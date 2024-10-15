@@ -1,4 +1,4 @@
-using LabSolos_Server_DotNet8.Database;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
 using Microsoft.EntityFrameworkCore;
 

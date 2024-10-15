@@ -13,6 +13,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Unidade,  
         Metro,    
         Centimetro,
-        Milimetro
+        Milimetro,
+        Outro
     }
 }
