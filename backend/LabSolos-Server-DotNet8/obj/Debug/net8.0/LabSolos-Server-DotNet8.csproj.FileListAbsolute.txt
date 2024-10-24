@@ -1,3 +1,11 @@
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.csproj.AssemblyReference.cache
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.GeneratedMSBuildEditorConfig.editorconfig
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.AssemblyInfoInputs.cache
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.AssemblyInfo.cs
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.csproj.CoreCompileInputs.cache
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.MvcApplicationPartsAssemblyInfo.cs
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.MvcApplicationPartsAssemblyInfo.cache
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.sourcelink.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/appsettings.Development.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/appsettings.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/LabSolos-Server-DotNet8
@@ -111,14 +119,6 @@
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/runtimes/win-arm64/native/e_sqlite3.dll
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/runtimes/win-x64/native/e_sqlite3.dll
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/runtimes/win-x86/native/e_sqlite3.dll
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.csproj.AssemblyReference.cache
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.GeneratedMSBuildEditorConfig.editorconfig
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.AssemblyInfoInputs.cache
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.AssemblyInfo.cs
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.csproj.CoreCompileInputs.cache
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.MvcApplicationPartsAssemblyInfo.cs
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.MvcApplicationPartsAssemblyInfo.cache
-/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.sourcelink.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/staticwebassets.build.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/staticwebassets.development.json
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/staticwebassets/msbuild.LabSolos-Server-DotNet8.Microsoft.AspNetCore.StaticWebAssets.props
