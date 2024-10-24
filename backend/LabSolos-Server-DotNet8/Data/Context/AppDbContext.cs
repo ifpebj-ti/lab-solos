@@ -27,8 +27,6 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .WithMany(l => l.Produtos)
                 .HasForeignKey(p => p.LoteId)
                 .OnDelete(DeleteBehavior.SetNull);  
-
-            DbSeeder.Seed(modelBuilder);
         }
     }
 }

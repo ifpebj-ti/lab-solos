@@ -1,5 +1,5 @@
 using LabSolos_Server_DotNet8.Data.Context;
-using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Data.Seeds;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +23,15 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Executar o seeding de dados apenas em ambiente de desenvolvimento
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated(); // Garante que o banco de dados está criado
+
+    // Chama o método de seeding que utiliza o contexto
+    DbSeeder.Seed(context);
 }
 
 app.UseHttpsRedirection();
