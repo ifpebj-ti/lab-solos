@@ -8,6 +8,9 @@ Obrigado pelo seu interesse em contribuir para este projeto! Siga estas diretriz
 
 - Tenha o [Git](https://git-scm.com/) instalado e configurado no seu sistema.
 - Garanta que sua conta GitHub esteja associada ao repositório.
+- Ter conhecimento básico do trunk-based development, usado como estratégia de controle de versão.
+
+![Logo do Projeto](https://cdn.prod.website-files.com/622642781cd7e96ac1f66807/64f786f2c86968875977eab2_Trunk-Based%20vs._Feature-Based%20Development%20-%20Blog%20Header.webp)
 
 ### 2. Fluxo de Trabalho de Contribuição
 
