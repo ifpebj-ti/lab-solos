@@ -11,7 +11,7 @@ function Sidebar() {
     
     return (
         <div className="bg-primary w-[70px] min-h-screen flex items-center flex-col">
-           <img src={logo} className="mt-7 2xl:mt-10 w-8"></img>
+           <img src={logo} className="mt-7 2xl:mt-10 w-12"></img>
            <div className="flex flex-col justify-between w-full mt-14 2xl:mt-20 items-center h-full">
                 <div>
                     <Link to={"/"} className={`w-11 h-11 ${currentPage === '/' ? 'bg-background hover:bg-opacity-90' : 'bg-primary hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}><HomeIcon fill={currentPage == "/" ? "#16A34A" : "#fff"}/></Link>
