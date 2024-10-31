@@ -2,3 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* font inter */
+
+@font-face {
+    font-family: "inter-bold";
+    src: url("../public/fonts/Inter/Inter-Bold.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "inter-light";
+    src: url("../public/fonts/Inter/Inter-Light.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "inter-medium";
+    src: url("../public/fonts/Inter/Inter-Medium.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "inter-regular";
+    src: url("../public/fonts/Inter/Inter-Regular.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "inter-semibold";
+    src: url("../public/fonts/Inter/Inter-SemiBold.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "inter-thin";
+    src: url("../public/fonts/Inter/Inter-Thin.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+
+/* font Rajdhani */
+
+@font-face {
+    font-family: "rajdhani-bold";
+    src: url("../public/fonts/Rajdhani/Rajdhani-Bold.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "rajdhani-light";
+    src: url("../public/fonts/Rajdhani/Rajdhani-Light.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "rajdhani-medium";
+    src: url("../public/fonts/Rajdhani/Rajdhani-Medium.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "rajdhani-regular";
+    src: url("../public/fonts/Rajdhani/Rajdhani-Regular.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "rajdhani-semibold";
+    src: url("../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf") format("opentype");
+    font-style: normal;
+    font-display: swap;
+}
