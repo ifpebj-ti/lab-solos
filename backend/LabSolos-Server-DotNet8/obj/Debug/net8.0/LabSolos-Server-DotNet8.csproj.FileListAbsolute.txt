@@ -133,3 +133,12 @@
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.pdb
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/LabSolos-Server-DotNet8.genruntimeconfig.cache
 /home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/Debug/net8.0/ref/LabSolos-Server-DotNet8.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/System.Security.Permissions.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.Abstractions.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.Logging.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.Protocols.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/Microsoft.IdentityModel.Tokens.dll
+/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/bin/Debug/net8.0/System.IdentityModel.Tokens.Jwt.dll

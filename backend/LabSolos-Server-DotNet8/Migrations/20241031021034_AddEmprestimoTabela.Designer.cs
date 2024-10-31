@@ -3,6 +3,7 @@ using System;
 using LabSolos_Server_DotNet8.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LabSolos_Server_DotNet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241031021034_AddEmprestimoTabela")]
+    partial class AddEmprestimoTabela
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -241,7 +244,7 @@ namespace LabSolos_Server_DotNet8.Migrations
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>
                 {
                     b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Aprovador")
-                        .WithMany("EmprestimosAprovados")
+                        .WithMany()
                         .HasForeignKey("AprovadorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -252,7 +255,7 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .IsRequired();
 
                     b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Solicitante")
-                        .WithMany("EmprestimosSolicitados")
+                        .WithMany()
                         .HasForeignKey("SolicitanteId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -282,13 +285,6 @@ namespace LabSolos_Server_DotNet8.Migrations
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>
                 {
                     b.Navigation("Emprestimo");
-                });
-
-            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
-                {
-                    b.Navigation("EmprestimosAprovados");
-
-                    b.Navigation("EmprestimosSolicitados");
                 });
 #pragma warning restore 612, 618
         }

@@ -18,5 +18,8 @@ namespace LabSolos_Server_DotNet8.Models
 
         public int? LoteId { get; set; }  
         public Lote? Lote { get; set; } 
+
+        // Relacionamento 1:1 com Emprestimo
+        public Emprestimo? Emprestimo { get; set; }
     }
 }
