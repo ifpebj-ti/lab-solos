@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 
