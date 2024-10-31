@@ -1,8 +1,41 @@
+using System.Text;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
+using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<JwtService>();
+
+// Configurações JWT
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.Zero // Evitar atrasos na expiração
+    };
+});
+
+builder.Services.AddAuthorization();
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
@@ -35,7 +68,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+// Adiciona a autenticação ao pipeline
+app.UseAuthentication(); 
+app.UseAuthorization();
 // Usar mapeamento top-level para os controladores
 app.MapControllers();
 
