@@ -4,6 +4,8 @@ import Base from "./pages/Base";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import CreateAccount from "./pages/CreateAccount";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function AppRoutes() {
     return (
@@ -15,6 +17,8 @@ function AppRoutes() {
                     <Route path="/profile" element={<Profile/>}></Route>                
                 </Route>
                 <Route path="/login" element={<Login />}></Route>
+                <Route path="/forgotyourpassword" element={<ForgotPassword />}></Route>
+                <Route path="/createAccount" element={<CreateAccount />}></Route>
             </Routes>
         </BrowserRouter>
     )
