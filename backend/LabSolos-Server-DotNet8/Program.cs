@@ -5,15 +5,34 @@ using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IUserService, UserService>();
+// Configuração do sistema de logs
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information() // Serão mostrados logs a partir do nível selecionado (Verbose - Debug - Information - Warning - Error - Fatal)
+    .WriteTo.Console() // Permite que os logs sejam escritos no terminal
+    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Month) // Caminho onde deverá estar o arquivo e periodicidade dos arquivos (Hour - Day - Month - Infinite)
+    .CreateLogger();
+
+builder.Host.UseSerilog(); 
+
+// Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Adicionar suporte para controladores
+builder.Services.AddControllers();
+
+// Configurar o Swagger para documentação da API
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Configurações JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -37,16 +56,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configurar o Swagger para documentação da API
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 // Configurar o Entity Framework Core com SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Adicionar suporte para controladores
-builder.Services.AddControllers();
+    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
 
 var app = builder.Build();
 
@@ -67,11 +79,10 @@ if (app.Environment.IsDevelopment())
     DbSeeder.Seed(context);
 }
 
-app.UseHttpsRedirection();
-// Adiciona a autenticação ao pipeline
-app.UseAuthentication(); 
-app.UseAuthorization();
-// Usar mapeamento top-level para os controladores
-app.MapControllers();
+app.UseSerilogRequestLogging(); // Configura o Serilog para registrar automaticamente todas as requisições HTTP feitas à aplicação
+app.UseHttpsRedirection(); // Força o redirecionamento de todas as requisições HTTP para HTTPS, garantindo que as comunicações sejam feitas em uma conexão segura e criptografada
+app.UseAuthentication(); // Adiciona a autenticação ao pipeline
+app.UseAuthorization(); // Verifica as permissões de um usuário autenticado, permitindo o acesso a recursos específicos da aplicação com base em regras definidas
+app.MapControllers(); // Configura o roteamento para todos os controladores da aplicação, registrando automaticamente as rotas definidas nos atributos [HttpGet], [HttpPost], etc.
 
 app.Run();
