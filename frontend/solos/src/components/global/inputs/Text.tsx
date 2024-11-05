@@ -1,18 +1,14 @@
-import { UseFormRegister, FieldError } from 'react-hook-form';
+import { UseFormRegister, FieldError, FieldValues, Path } from 'react-hook-form';
 
-interface LoginFormData {
-    email: string;
-    password: string;
-}
-interface IInputText {
-    label: string,
-    type: string,
-    register: UseFormRegister<LoginFormData>;
+interface IInputText<T extends FieldValues> {
+    label: string;
+    type: string;
+    register: UseFormRegister<T>;
     error?: string | FieldError;
-    name: keyof LoginFormData;
+    name: Path<T>;
 }
 
-function InputText({ label, type, register, error, name }: IInputText) {
+function InputText<T extends FieldValues>({ label, type, register, error, name }: IInputText<T>) {
     return (
         <div className="w-full flex flex-col gap-1 relative mt-3">
             <label className="font-inter-regular text-sm text-clt-2">{label}</label>
@@ -22,11 +18,10 @@ function InputText({ label, type, register, error, name }: IInputText) {
                 className="px-3 bg-background h-9 text-sm border shadow-sm border-border rounded-sm hover:border-gray-400 focus:outline-none focus:border-gray-400"
             />
             <p className={`text-red-500 text-xs mt-[60px] absolute ${error ? 'visible' : 'invisible'}`}>
-                {String(error || '')}
+                {typeof error === 'string' ? error : error?.message}
             </p>
         </div>
     );
 }
-
 
 export default InputText;

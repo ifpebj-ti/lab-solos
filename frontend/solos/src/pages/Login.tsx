@@ -1,10 +1,10 @@
 import InputText from '../components/global/inputs/Text';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from "../../public/images/logo.png";
 import { useForm } from "react-hook-form";
-import { Link } from 'react-router-dom';
-import { useState } from "react";
 import { z } from 'zod';
+import InputPassword from '../components/global/inputs/Password';
 
 const submitLoginSchema = z.object({
     email: z.string().email("Digite um email válido").toLowerCase(),
@@ -17,10 +17,10 @@ function Login() {
     const {register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
         resolver: zodResolver(submitLoginSchema),
     });
-    const [output, setOutput] = useState('');
+    const navigate = useNavigate();
 
-    function postLogin(data: LoginFormData) {
-        setOutput(JSON.stringify(data, null, 2));
+    function postLogin() {
+        navigate("/");
     }
 
     return (
@@ -42,9 +42,8 @@ function Login() {
                             error={errors.email?.message}
                             name="email"
                         />
-                        <InputText
+                        <InputPassword
                             label="Senha"
-                            type="password"
                             register={register}
                             error={errors.password?.message}
                             name="password"
@@ -63,11 +62,11 @@ function Login() {
                     </form>
                 </div>
             </div>
-            {output && (
+            {/* {output && (
                 <pre className="mt-4 p-2 text-sm text-gray-700 bg-gray-100 rounded-md">
                     {output}
                 </pre>
-            )}
+            )} */}
         </div>
     );
 }
