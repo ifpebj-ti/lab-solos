@@ -15,7 +15,7 @@ function InputText<T extends FieldValues>({ label, type, register, error, name }
             <input
                 type={type}
                 {...register(name)}
-                className="px-3 bg-background h-9 text-sm border shadow-sm border-border rounded-sm hover:border-gray-400 focus:outline-none focus:border-gray-400"
+                className="px-3 bg-backgroundMy h-9 text-sm border shadow-sm border-borderMy rounded-sm hover:border-gray-400 focus:outline-none focus:border-gray-400"
             />
             <p className={`text-red-500 text-xs mt-[60px] absolute ${error ? 'visible' : 'invisible'}`}>
                 {typeof error === 'string' ? error : error?.message}

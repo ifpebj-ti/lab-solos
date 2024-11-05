@@ -25,15 +25,15 @@ function Login() {
 
     return (
         <div className="h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]">
-            <div className="w-96 bg-background border-[1px] border-border rounded-md shadow-lg">
-                <div className="w-full bg-primary h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]">
+            <div className="w-96 bg-backgroundMy border border-borderMy rounded-md shadow-lg">
+                <div className="w-full bg-primaryMy h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]">
                     <img alt="Logo" src={logo} className="w-24" />
                     <div className="text-white gap-y-1">
                         <h1 className="font-rajdhani-semibold text-3xl">Lab-On</h1>
                         <p className="font-rajdhani-medium text-base">Gerenciamento de Laboratórios <br /> Químicos Online</p>
                     </div>
                 </div>
-                <div className="w-full bg-background rounded-b-md p-4 flex items-center flex-col justify-between">
+                <div className="w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between">
                     <form onSubmit={handleSubmit(postLogin)} className="w-full gap-y-3 flex flex-col">
                         <InputText
                             label="Email"
@@ -56,7 +56,7 @@ function Login() {
                             <Link to={"/forgotYourPassword"} className='text-blue-600 hover:text-blue-800'>Esqueceu sua senha? ↗</Link>
                         </div>
                         <button type="submit"
-                            className="mt-3 mb-3 bg-primary rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90">
+                            className="mt-3 mb-3 bg-primaryMy rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90">
                             Submeter Login
                         </button>
                     </form>

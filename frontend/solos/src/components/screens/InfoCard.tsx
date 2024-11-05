@@ -11,7 +11,7 @@ function InfoCard({ icon, text, notify }: IInfoCardProps) {
     const notifyProp = notify;
 
     return (
-        <Link to={"/profile"} className="relative w-1/4 gap-x-4 h-full border-border border-[1px] rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm">
+        <Link to={"/profile"} className="relative w-1/4 gap-x-4 h-full border-borderMy border rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm">
             {icon}
             <p className="font-inter-medium uppercase text-clt-2 text-sm">{text}</p>
 

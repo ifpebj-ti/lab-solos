@@ -28,7 +28,7 @@ const submitCreateAccountSchema = z
             ctx.addIssue({
                 code: "custom",
                 path: ["nome"],
-                message: "Forneça pelo menos dois nomes",
+                message: "Forneça pelo menos dois nomes com mais de 3 caracteres",
             });
         }
         if (data.senha !== data.repeat) {
@@ -55,15 +55,15 @@ function CreateAccount() {
 
     return (
         <div className="h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]">
-            <div className="w-[700px] bg-background border-[1px] border-border rounded-md shadow-lg">
-                <div className="w-full bg-primary h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]">
+            <div className="w-[700px] bg-backgroundMy border-[1px] border-borderMy rounded-md shadow-lg">
+                <div className="w-full bg-primaryMy h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]">
                     <img alt="Logo" src={logo} className="w-24" />
                     <div className="text-white gap-y-1">
                         <h1 className="font-rajdhani-semibold text-3xl">Lab-On</h1>
                         <p className="font-rajdhani-medium text-base">Gerenciamento de Laboratórios Químicos Online</p>
                     </div>
                 </div>
-                <div className="w-full bg-background rounded-b-md p-4 flex items-center flex-col justify-between">
+                <div className="w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between">
                     <p className='font-inter-regular text-clt-2 w-full'>Selecione seu tipo de usuário e crie sua conta.</p>
                     <form onSubmit={handleSubmit(postCreateAccount)} className="w-full gap-y-3 flex flex-col mt-2">
                         <div className='gap-y-3 gap-x-5 grid grid-cols-2 w-full'>
@@ -95,7 +95,7 @@ function CreateAccount() {
                             />
                         </div>
                         <button type="submit"
-                            className="mt-5 mb-3 bg-primary rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90">
+                            className="mt-5 mb-3 bg-primaryMy rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90">
                             Criar conta
                         </button>
                     </form>

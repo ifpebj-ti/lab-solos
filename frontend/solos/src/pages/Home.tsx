@@ -19,17 +19,17 @@ function Home() {
             <div className="w-11/12 flex items-center justify-between mt-7">
                 <h1 className="uppercase font-rajdhani-medium text-3xl text-clt-2">Home</h1>
                 <div className="flex items-center justify-between">
-                <button className="border-[1px] border-border rounded-md h-11 w-11 mr-6 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200">
+                <button className="border border-borderMy rounded-md h-11 w-11 mr-6 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200">
                     <SearchIcon fill="#232323" />
                 </button>
-                <button className="border-[1px] border-border rounded-md h-11 px-8 uppercase font-inter-semibold text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200">Login</button>
+                <button className="border border-borderMy rounded-md h-11 px-8 uppercase font-inter-semibold text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200">Login</button>
                 </div>
             </div>
             <div className="w-11/12 h-[50%] flex items-center justify-between mt-6">
                 <div className="flex justify-center flex-col h-full font-rajdhani-semibold text-6xl text-clt-2 gap-y-3">
-                    <p>Laboratório de <span className="text-primary">Solos</span></p>
+                    <p>Laboratório de <span className="text-primaryMy">Solos</span></p>
                     <p>e Sustentabilidade</p>
-                    <p>Ambiental - <span className="text-primary">IFPEBJ</span></p>
+                    <p>Ambiental - <span className="text-primaryMy">IFPEBJ</span></p>
                 </div>
                 <img src={Laboratory} alt="Foto ilustrativa de um laboratório" className="h-full w-auto"></img>
             </div>
@@ -39,8 +39,8 @@ function Home() {
                 <InfoCard icon={<LoanIcon/>} text="Solicitações de Empréstimo" notify={false}/>
             </div>
             <Carousel valor={valor} informacoes={informacoes} imageSrc={imagesSrc}/>
-            <div className="w-5/12 h-2 bg-primary rounded-lg text-background">.</div>
-            <div className="w-full min-h-44 bg-primary mt-16 flex items-center justify-center">
+            <div className="w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy">.</div>
+            <div className="w-full min-h-44 bg-primaryMy mt-16 flex items-center justify-center">
                 <div className="w-11/12 flex items-center justify-between h-full text-white">
                     <div className="flex items-center justify-center ">
                         <img src={logo} alt="Logo" className="w-28"/>
