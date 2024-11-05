@@ -32,7 +32,7 @@ function ResetPassword() {
 
     return (
         <div className="h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]">
-            <div className="w-96 bg-background border-[1px] border-border rounded-md">
+            <div className="w-96 bg-background border-[1px] border-border rounded-md shadow-lg">
                 <div className="w-full bg-primary h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]">
                     <img alt="Logo" src={logo} className="w-24" />
                     <div className="text-white gap-y-1">
