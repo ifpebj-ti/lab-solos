@@ -15,8 +15,10 @@ namespace LabSolos_Server_DotNet8.Controllers
         {
             var user = await _userService.ValidateUserAsync(request.Email, request.Password);
 
-            if (user == null)
+            if (user == null){
                 return Unauthorized("Credenciais inválidas.");
+            }
+
 
             var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
             return Ok(new { Token = token });
