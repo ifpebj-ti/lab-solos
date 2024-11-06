@@ -50,7 +50,7 @@ function ResetPassword() {
                             name="senha"
                         />
                          <InputPassword
-                            label="Nova Senha"
+                            label="Confirme sua Nova Senha"
                             register={register}
                             error={errors.repeat?.message}
                             name="repeat"
