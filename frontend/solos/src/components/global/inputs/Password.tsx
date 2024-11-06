@@ -20,16 +20,16 @@ function InputPassword<T extends FieldValues>({ label, register, error, name }: 
     return (
         <div className="w-full flex flex-col gap-1 relative mt-3">
             <label className="font-inter-regular text-sm text-clt-2">{label}</label>
-            <div className="w-full flex border border-border rounded-sm hover:border-gray-400 focus:border-gray-400">
+            <div className="w-full flex border border-borderMy rounded-sm hover:border-gray-400 focus:border-gray-400">
                 <input
                     type={showPassword ? "text" : "password"}
                     {...register(name)}
-                    className="w-full px-3 bg-background h-9 text-sm shadow-sm focus:outline-none"
+                    className="w-full px-3 bg-backgroundMy h-9 text-sm shadow-sm focus:outline-none"
                 />
                 <button
                     type="button"
                     onClick={togglePasswordVisibility}
-                    className="px-4 bg-background h-9 shadow-sm"
+                    className="px-4 bg-backgroundMy h-9 shadow-sm"
                 >
                     {showPassword ? <EyeIcon2/> : <EyeIcon/>}
                 </button>

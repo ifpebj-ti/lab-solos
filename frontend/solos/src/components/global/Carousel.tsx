@@ -43,7 +43,7 @@ function Carousel({ valor, informacoes, imageSrc }: ICarousel) {
               className={`flex items-center justify-center transition-transform cursor-pointer ${scaleClass}`}
               style={{ width: i === 1 ? '30%' : '25%', height: i === 1 ? '200px' : '180px' }}
             >
-              <div className="rounded-md flex items-center justify-center w-full h-full border-[1px] border-border hover:bg-cl-table-item transition-all ease-in-out duration-200 gap-x-4 text-clt-2">
+              <div className="rounded-md flex items-center justify-center w-full h-full border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200 gap-x-4 text-clt-2">
                 <img alt='Imagem descritiva da informção' src={imageSrc[itemIndex]} className='w-5/12'></img>
                 <div className='w-5/12'>
                   <p className='text-5xl font-inter-semibold'>+{valor[itemIndex]}</p>
@@ -59,7 +59,7 @@ function Carousel({ valor, informacoes, imageSrc }: ICarousel) {
           <button
             key={i}
             onClick={() => handleCardClick(i)}
-            className={`h-3 w-3 rounded-full ${currentIndex === i ? 'bg-primary' : 'bg-cl-table-item'}`}
+            className={`h-3 w-3 rounded-full ${currentIndex === i ? 'bg-primaryMy' : 'bg-cl-table-item'}`}
           />
         ))}
       </div>
