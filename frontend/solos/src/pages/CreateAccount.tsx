@@ -114,7 +114,6 @@ function CreateAccount() {
     if (data.tipoUsuario === 'mentor') {
       delete data.mentorResponsavel;
     }
-    console.log(data);
     navigate('/login');
   }
 
