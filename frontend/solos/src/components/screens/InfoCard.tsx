@@ -15,7 +15,7 @@ function InfoCard({ icon, text, notify }: IInfoCardProps) {
       to={'/profile'}
       className='relative w-1/4 gap-x-4 h-full border-borderMy border rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm'
     >
-      {icon}
+      <div className='min-w-8'>{icon}</div>
       <p className='font-inter-medium uppercase text-clt-2 text-sm'>{text}</p>
 
       {/* Bolinha vermelha para notificação */}
