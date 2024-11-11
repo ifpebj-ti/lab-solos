@@ -1,34 +1,35 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DateInput from '@/components/global/inputs/DateInput';
 import InputText from '@/components/global/inputs/Text';
-import SearchIcon from '../../public/icons/SearchIcon';
+import OpenSearch from '@/components/global/OpenSearch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const submitCreateVidrariaSchema = z.object({
-  nome: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
-  formula: z.string(),
-  catmat: z.string(),
-  quantidade: z.number(),
-  minimo: z.number(),
-  lote: z.string(),
-  validade: z.date(),
-  localizacao: z.string(),
-  medida: z.string(),
-  grupo: z.string(),
+const submitLaunchQuimicosSchema = z.object({
+  catmat: z.string().min(6, 'O código CATMAT deve ter mais de 5 caracteres'),
+  quantidade: z
+    .string()
+    .transform((val) => Number(val))
+    .refine((val) => Number.isInteger(val) && val > 0, {
+      message: 'Quantidade deve ser um número inteiro positivo.',
+    }),
+  lote: z.string().min(5, 'O lote deve ter mais de 4 caracteres'),
+  // validade: z.date(),
 });
 
-type CreateVidrariaFormData = z.infer<typeof submitCreateVidrariaSchema>;
+type LaunchQuimicosFormData = z.infer<typeof submitLaunchQuimicosSchema>;
 
 function Launch() {
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateVidrariaFormData>({
-    resolver: zodResolver(submitCreateVidrariaSchema),
+  } = useForm<LaunchQuimicosFormData>({
+    resolver: zodResolver(submitLaunchQuimicosSchema),
   });
   function postCreateVidraria() {
     navigate('/');
@@ -40,25 +41,23 @@ function Launch() {
           Realizar Lançamento
         </h1>
         <div className='flex items-center justify-between'>
-          <button className='border border-borderMy rounded-md h-11 w-11 mr-6 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
-            <SearchIcon fill='#232323' />
-          </button>
+          <OpenSearch />
         </div>
       </div>
       <div className='w-11/12 min-h-96 mt-6'>
-        <Tabs defaultValue='vidrarias' className='w-full'>
+        <Tabs defaultValue='quimicos' className='w-full'>
           <TabsList className='w-full flex items-center justify-between h-[52px] border border-borderMy rounded-md px-2'>
-            <TabsTrigger
-              value='vidrarias'
-              className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
-            >
-              Vidrarias
-            </TabsTrigger>
             <TabsTrigger
               value='quimicos'
               className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
             >
               Químicos
+            </TabsTrigger>
+            <TabsTrigger
+              value='vidrarias'
+              className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
+            >
+              Vidrarias
             </TabsTrigger>
             <TabsTrigger
               value='outros'
@@ -68,28 +67,14 @@ function Launch() {
             </TabsTrigger>
           </TabsList>
           <TabsContent
-            value='vidrarias'
+            value='quimicos'
             className='w-full mt-10 rounded-md border border-borderMy p-4'
           >
             <form
               onSubmit={handleSubmit(postCreateVidraria)}
-              className='w-full gap-y-3 flex flex-col'
+              className='w-full gap-y-3 flex flex-col min-h-96 justify-between'
             >
-              <div className='w-full h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
-                <InputText
-                  label='Nome Completo'
-                  type='text'
-                  register={register}
-                  error={errors.nome?.message}
-                  name='nome'
-                />
-                <InputText
-                  label='Fórmula Química'
-                  type='text'
-                  register={register}
-                  error={errors.formula?.message}
-                  name='formula'
-                />
+              <div className='w-full h-full grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-3'>
                 <InputText
                   label='Catmat'
                   type='text'
@@ -98,26 +83,20 @@ function Launch() {
                   name='catmat'
                 />
                 <InputText
-                  label='Quantidade'
-                  type='number'
-                  register={register}
-                  error={errors.quantidade?.message}
-                  name='quantidade'
-                />
-                <InputText
-                  label='Quantidade Mínima'
-                  type='number'
-                  register={register}
-                  error={errors.minimo?.message}
-                  name='minimo'
-                />
-                <InputText
                   label='Lote'
                   type='text'
                   register={register}
                   error={errors.lote?.message}
                   name='lote'
                 />
+                <InputText
+                  label='Quantidade'
+                  type='number'
+                  register={register}
+                  error={errors.quantidade?.message}
+                  name='quantidade'
+                />
+                <DateInput />
               </div>
               <div className='flex gap-x-5'>
                 <button
@@ -135,7 +114,9 @@ function Launch() {
               </div>
             </form>
           </TabsContent>
-          <TabsContent value='quimicos'>Change your password here.</TabsContent>
+          <TabsContent value='vidrarias'>
+            Change your password here.
+          </TabsContent>
           <TabsContent value='outros'>Outros.</TabsContent>
         </Tabs>
       </div>
