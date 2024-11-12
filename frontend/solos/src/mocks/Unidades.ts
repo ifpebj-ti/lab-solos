@@ -33,3 +33,37 @@ export const options = [
   { value: 'base', label: 'Base' },
   { value: 'gases', label: 'Gases' },
 ];
+
+export const medidas = [
+  { value: 'ml', label: 'Mililitro' },
+  { value: 'l', label: 'Litro' },
+  { value: 'g', label: 'Grama' },
+  { value: 'kg', label: 'Quilo' },
+];
+
+export const outros = [
+  { value: 'uni', label: 'Unidade' },
+  { value: 'l', label: 'Litro' },
+  { value: 'g', label: 'Grama' },
+  { value: 'kg', label: 'Quilo' },
+  { value: 'cx', label: 'Caixa' },
+  { value: 'cm', label: 'Caminhão' },
+];
+
+export const vidrarias = [
+  { value: 'pipeta', label: 'Pipeta' },
+  { value: 'bureta', label: 'Bureta' },
+  { value: 'proveta', label: 'Proveta (Cilindro Graduado)' },
+  { value: 'bequer', label: 'Béquer' },
+  { value: 'erlenmeyer', label: 'Erlenmeyer' },
+  { value: 'balao_volumetrico', label: 'Balão Volumétrico' },
+  { value: 'funil', label: 'Funil' },
+  { value: 'dessecador', label: 'Dessecador' },
+  { value: 'condensador', label: 'Condensador' },
+  { value: 'placa_petri', label: 'Placa de Petri' },
+  { value: 'frasco_reagentes', label: 'Frasco de Reagentes' },
+  { value: 'balao_fundo_redondo', label: 'Balão de Fundo Redondo' },
+  { value: 'tubo_ensaio', label: 'Tubo de Ensaio' },
+  { value: 'kitasato', label: 'Kitasato' },
+  { value: 'vidro_relogio', label: 'Vidro de Relógio' }
+];

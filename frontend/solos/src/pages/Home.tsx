@@ -1,4 +1,3 @@
-import SearchIcon from '../../public/icons/SearchIcon';
 import Laboratory from '../../public/images/laboratory.png';
 import AlertIcon from '../../public/icons/AlertIcon';
 import JoinIcon from '../../public/icons/JoinIcon';
@@ -9,6 +8,7 @@ import analysis from '../../public/images/analysis.png';
 import notebook from '../../public/images/notebook.png';
 import vidraria from '../../public/images/vidraria.png';
 import logo from '../../public/images/logo.png';
+import OpenSearch from '@/components/global/OpenSearch';
 
 function Home() {
   const valor = ['721', '283', '43', '728', '815'];
@@ -27,12 +27,7 @@ function Home() {
           Home
         </h1>
         <div className='flex items-center justify-between'>
-          <button className='border border-borderMy rounded-md h-11 w-11 mr-6 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
-            <SearchIcon fill='#232323' />
-          </button>
-          <button className='border border-borderMy rounded-md h-11 px-8 uppercase font-inter-semibold text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200'>
-            Login
-          </button>
+          <OpenSearch />
         </div>
       </div>
       <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>

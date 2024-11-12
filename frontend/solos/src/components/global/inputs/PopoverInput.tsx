@@ -21,6 +21,7 @@ type PopoverInputProps = {
   value: string;
   onChange: (value: string) => void; // função para alterar o valor selecionado
   error?: string; // opcional: mensagem de erro
+  title?: string;
 };
 
 const PopoverInput = ({
@@ -28,14 +29,13 @@ const PopoverInput = ({
   value,
   onChange,
   error,
+  title = 'Selecione a unidade de medida',
 }: PopoverInputProps) => {
   const [open, setOpen] = useState(false);
 
   return (
     <div className='flex flex-col gap-y-1'>
-      <p className='font-inter-regular text-sm text-clt-2 mt-3'>
-        Selecione a unidade de medida
-      </p>
+      <p className='font-inter-regular text-sm text-clt-2 mt-3'>{title}</p>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button

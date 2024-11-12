@@ -1,8 +1,7 @@
-import { useState } from "react";
 import LoadingIcon from '../../public/icons/LoadingIcon';
 
 function Profile() {
-  const [isLoading, setIsLoading] = useState(true);
+  const isLoading = true;
 
   return (
     <>
