@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import CreateAccount from './pages/CreateAccount';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Launch from './pages/Launch';
 
 function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ function AppRoutes() {
           <Route index element={<Home />}></Route>
           <Route path='/register' element={<Register />}></Route>
           <Route path='/profile' element={<Profile />}></Route>
+          <Route path='/launch' element={<Launch />}></Route>
         </Route>
         <Route path='/login' element={<Login />}></Route>
         <Route path='/forgotyourpassword' element={<ForgotPassword />}></Route>

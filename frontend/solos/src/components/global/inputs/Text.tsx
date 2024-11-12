@@ -11,6 +11,7 @@ interface IInputText<T extends FieldValues> {
   register: UseFormRegister<T>;
   error?: string | FieldError;
   name: Path<T>;
+  placeholder?: string;
 }
 
 function InputText<T extends FieldValues>({
@@ -19,11 +20,13 @@ function InputText<T extends FieldValues>({
   register,
   error,
   name,
+  placeholder,
 }: IInputText<T>) {
   return (
     <div className='w-full flex flex-col gap-1 relative mt-3'>
       <label className='font-inter-regular text-sm text-clt-2'>{label}</label>
       <input
+        placeholder={placeholder}
         type={type}
         {...register(name)}
         className='px-3 bg-backgroundMy h-9 text-sm border shadow-sm border-borderMy rounded-sm hover:border-gray-400 focus:outline-none focus:border-gray-400'
