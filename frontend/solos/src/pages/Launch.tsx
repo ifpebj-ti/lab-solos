@@ -1,39 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DateInput from '@/components/global/inputs/DateInput';
-import InputText from '@/components/global/inputs/Text';
 import OpenSearch from '@/components/global/OpenSearch';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const submitLaunchQuimicosSchema = z.object({
-  catmat: z.string().min(6, 'O código CATMAT deve ter mais de 5 caracteres'),
-  quantidade: z
-    .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Quantidade deve ser um número inteiro positivo.',
-    }),
-  lote: z.string().min(5, 'O lote deve ter mais de 4 caracteres'),
-  // validade: z.date(),
-});
-
-type LaunchQuimicosFormData = z.infer<typeof submitLaunchQuimicosSchema>;
+import LaunchOutros from '@/components/global/forms/launch/LaunchOutros';
+import LaunchQuimicos from '@/components/global/forms/launch/LaunchQuimicos';
+import LaunchVidrarias from '@/components/global/forms/launch/LaunchVidrarias';
 
 function Launch() {
-  const navigate = useNavigate();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LaunchQuimicosFormData>({
-    resolver: zodResolver(submitLaunchQuimicosSchema),
-  });
-  function postCreateVidraria() {
-    navigate('/');
-  }
   return (
     <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
       <div className='w-11/12 flex items-center justify-between mt-7'>
@@ -70,54 +41,20 @@ function Launch() {
             value='quimicos'
             className='w-full mt-10 rounded-md border border-borderMy p-4'
           >
-            <form
-              onSubmit={handleSubmit(postCreateVidraria)}
-              className='w-full gap-y-3 flex flex-col min-h-96 justify-between'
-            >
-              <div className='w-full h-full grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-3'>
-                <InputText
-                  label='Catmat'
-                  type='text'
-                  register={register}
-                  error={errors.catmat?.message}
-                  name='catmat'
-                />
-                <InputText
-                  label='Lote'
-                  type='text'
-                  register={register}
-                  error={errors.lote?.message}
-                  name='lote'
-                />
-                <InputText
-                  label='Quantidade'
-                  type='number'
-                  register={register}
-                  error={errors.quantidade?.message}
-                  name='quantidade'
-                />
-                <DateInput />
-              </div>
-              <div className='flex gap-x-5'>
-                <button
-                  type='submit'
-                  className='font-rajdhani-semibold text-primaryMy text-base bg-backgroundMy h-9 mt-8 w-full rounded-sm border border-primaryMy hover:bg-cl-table-item'
-                >
-                  Criar Conta
-                </button>
-                <button
-                  type='submit'
-                  className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
-                >
-                  Criar Conta
-                </button>
-              </div>
-            </form>
+            <LaunchQuimicos />
           </TabsContent>
-          <TabsContent value='vidrarias'>
-            Change your password here.
+          <TabsContent
+            value='vidrarias'
+            className='w-full mt-10 rounded-md border border-borderMy p-4'
+          >
+            <LaunchVidrarias />
           </TabsContent>
-          <TabsContent value='outros'>Outros.</TabsContent>
+          <TabsContent
+            value='outros'
+            className='w-full mt-10 rounded-md border border-borderMy p-4'
+          >
+            <LaunchOutros />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
