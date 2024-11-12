@@ -54,8 +54,7 @@ function FormVidrarias() {
     resolver: zodResolver(submitCreateVidrariaSchema),
   });
 
-  function onSubmit(data: CreateVidrariaFormData) {
-    console.log(data); // faça a requisição de post aqui
+  function onSubmit() {
     navigate('/');
   }
 
@@ -120,8 +119,8 @@ function FormVidrarias() {
         <InputText
           label='Quantidade Inserida'
           register={register}
-          error={errors.minimo?.message}
-          name='minimo'
+          error={errors.quantidade?.message}
+          name='quantidade'
           type='number'
         />
         <InputText

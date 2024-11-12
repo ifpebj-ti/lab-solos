@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import LinkIcon from '../../../public/icons/LinkIcon';
 
-
 import { cn } from '@/lib/utils';
 import {
   Command,
@@ -105,7 +104,7 @@ function OpenSearch() {
                             : 'opacity-0'
                         )}
                       />
-                      <LinkIcon/>
+                      <LinkIcon />
                       {framework.label}
                     </CommandItem>
                   ))}

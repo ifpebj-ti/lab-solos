@@ -53,8 +53,7 @@ function FormQuimicos() {
     resolver: zodResolver(submitCreateQuimicoSchema),
   });
 
-  function onSubmit(data: CreateQuimicoFormData) {
-    console.log(data); // faça a requisição de post aqui
+  function onSubmit() {
     navigate('/');
   }
 

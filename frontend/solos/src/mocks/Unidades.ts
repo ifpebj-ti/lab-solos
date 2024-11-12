@@ -65,5 +65,5 @@ export const vidrarias = [
   { value: 'balao_fundo_redondo', label: 'Balão de Fundo Redondo' },
   { value: 'tubo_ensaio', label: 'Tubo de Ensaio' },
   { value: 'kitasato', label: 'Kitasato' },
-  { value: 'vidro_relogio', label: 'Vidro de Relógio' }
+  { value: 'vidro_relogio', label: 'Vidro de Relógio' },
 ];
