@@ -24,7 +24,7 @@ function Register() {
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Cadastro de Bens
             </h1>
-            <div className='flex items-center justify-between'>
+            <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
               <Link
                 to={'/launch'}

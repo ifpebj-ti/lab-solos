@@ -3,6 +3,7 @@ import logo from './../../../public/images/logo.png';
 import HomeIcon from '../../../public/icons/sidebar/HomeIcon';
 import PlusIcon from '../../../public/icons/sidebar/PlusIcon';
 import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
+import FollowUpIcon from '../../../public/icons/sidebar/FollowUpIcon';
 
 function Sidebar() {
   const location = useLocation();
@@ -24,6 +25,12 @@ function Sidebar() {
             className={`w-11 h-11 ${currentPage === '/register' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
           >
             <PlusIcon fill={currentPage == '/register' ? '#16A34A' : '#fff'} />
+          </Link>
+          <Link
+            to={'/followUp'}
+            className={`w-11 h-11 ${currentPage === '/followUp' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
+          >
+            <FollowUpIcon fill={currentPage == '/followUp' ? '#16A34A' : '#fff'} />
           </Link>
         </div>
         <div>

@@ -8,6 +8,7 @@ import CreateAccount from './pages/CreateAccount';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Launch from './pages/Launch';
+import FollowUp from './pages/FollowUp';
 
 function AppRoutes() {
   return (
@@ -18,9 +19,10 @@ function AppRoutes() {
           <Route path='/register' element={<Register />}></Route>
           <Route path='/profile' element={<Profile />}></Route>
           <Route path='/launch' element={<Launch />}></Route>
+          <Route path='/followUp' element={<FollowUp />}></Route>
         </Route>
         <Route path='/login' element={<Login />}></Route>
-        <Route path='/forgotyourpassword' element={<ForgotPassword />}></Route>
+        <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
         <Route path='/resetPassword' element={<ResetPassword />}></Route>
         <Route path='/createAccount' element={<CreateAccount />}></Route>
       </Routes>

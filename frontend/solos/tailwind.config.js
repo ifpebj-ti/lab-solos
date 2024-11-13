@@ -14,6 +14,7 @@ export default {
         'clt-2': '#232323',
         'cl-icon': '#474747',
         'cl-icon2': '#A9A9A9',
+        'cl-table': '#f1f1f1',
         'cl-table-item': '#EBEBEB',
         danger: '#DD1313',
         background: 'hsl(var(--background))',
@@ -70,6 +71,10 @@ export default {
         'rajdhani-light': ['rajdhani-light', 'sans-serif'],
         'rajdhani-regular': ['rajdhani-regular', 'sans-serif'],
         'rajdhani-semibold': ['rajdhani-semibold', 'sans-serif'],
+      },
+      scale: {
+        "99": "0.99",
+        'customScale': '1.002', // Substitua o valor conforme necessário
       },
       // borderRadius: {
       // 	lg: 'var(--radius)',
