@@ -1,13 +1,14 @@
 import React from 'react';
 interface IAlertIcon {
   fill?: string;
+  size?: number;
 }
 
-export default function AlertIcon({ fill = '#16A34A' }: IAlertIcon) {
+export default function AlertIcon({ fill = '#16A34A', size = 35 }: IAlertIcon) {
   return (
     <svg
-      width='35'
-      height='35'
+      width={size}
+      height={size}
       viewBox='0 0 50 50'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'

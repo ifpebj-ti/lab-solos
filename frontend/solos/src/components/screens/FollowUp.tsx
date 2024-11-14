@@ -1,17 +1,19 @@
-import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
+import { ReactNode } from 'react';
 
-function FollowUpCard() {
+type FollowUpCardProps = {
+  title: string;
+  number: string;
+  icon: ReactNode;
+};
+
+function FollowUpCard({ title, number, icon }: FollowUpCardProps) {
   return (
     <div className='w-full max-w-72 h-full border border-borderMy rounded-md p-4 flex flex-col justify-between'>
       <div className='w-full flex items-center justify-between'>
-        <p className='text-sm font-inter-regular text-clt-2'>
-          Alerta de Validade
-        </p>
-        <ProfileIcon fill='#A9A9A9' />
+        <p className='text-sm font-inter-regular text-clt-2'>{title}</p>
+        {icon}
       </div>
-      <div className='text-5xl lg:text-6xl font-inter-medium text-clt-1'>
-        +335
-      </div>
+      <div className='text-5xl font-inter-medium text-clt-1'>+{number}</div>
     </div>
   );
 }

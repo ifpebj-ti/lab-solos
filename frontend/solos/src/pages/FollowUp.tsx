@@ -7,6 +7,9 @@ import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import Pagination from '../components/global/table/Pagination'; // Importa o componente Pagination
+import CalendarIcon from '../../public/icons/CalendarIcon';
+import LayersIcon from '../../public/icons/LayersIcon';
+import AlertIcon from '../../public/icons/AlertIcon';
 import { useState } from 'react';
 
 function FollowUp() {
@@ -80,9 +83,21 @@ function FollowUp() {
             </div>
           </div>
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
-            <FollowUpCard />
-            <FollowUpCard />
-            <FollowUpCard />
+            <FollowUpCard
+              title='Produtos com Alertas'
+              number='254'
+              icon={<AlertIcon fill='#A9A9A9' size={19} />}
+            />
+            <FollowUpCard
+              title='Produtos com Alerta de Validade'
+              number='159'
+              icon={<CalendarIcon />}
+            />
+            <FollowUpCard
+              title='Produtos com Alerta de Estoque'
+              number='183'
+              icon={<LayersIcon />}
+            />
           </div>
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
