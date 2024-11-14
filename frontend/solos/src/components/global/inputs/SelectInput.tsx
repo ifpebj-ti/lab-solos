@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/select'; // Ajuste o caminho conforme necessário
 
 type SelectInputProps = {
-  label: string;
+  label?: string;
   options: { value: string; label: string }[]; // Lista de opções para o Select
   value: string;
   onValueChange: (value: string) => void; // Função para alterar o valor

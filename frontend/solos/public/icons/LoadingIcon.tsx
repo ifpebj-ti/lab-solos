@@ -4,7 +4,7 @@ interface ILoadingIcon {
 }
 
 export default function LoadingIcon({ fill = '#16A34A' }: ILoadingIcon) {
-  return(
+  return (
     <svg
       width='35'
       height='35'
@@ -20,6 +20,5 @@ export default function LoadingIcon({ fill = '#16A34A' }: ILoadingIcon) {
         strokeLinejoin='round'
       />
     </svg>
-  )
+  );
 }
-

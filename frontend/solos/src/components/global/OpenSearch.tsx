@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import LinkIcon from '../../../public/icons/LinkIcon';
 
-
 import { cn } from '@/lib/utils';
 import {
   Command,
@@ -73,7 +72,7 @@ function OpenSearch() {
       <AlertDialogTrigger asChild>
         <button
           onClick={() => setIsOpen(true)}
-          className='border border-borderMy rounded-md h-11 w-11 mr-6 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
+          className='border border-borderMy rounded-md h-11 w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
         >
           <SearchIcon fill='#232323' />
         </button>
@@ -105,7 +104,7 @@ function OpenSearch() {
                             : 'opacity-0'
                         )}
                       />
-                      <LinkIcon/>
+                      <LinkIcon />
                       {framework.label}
                     </CommandItem>
                   ))}

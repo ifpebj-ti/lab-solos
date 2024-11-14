@@ -43,8 +43,7 @@ function FormOutros() {
     resolver: zodResolver(submitCreateOutrosSchema),
   });
 
-  function onSubmit(data: CreateOutrosFormData) {
-    console.log(data); // faça a requisição de post aqui
+  function onSubmit() {
     navigate('/');
   }
 
