@@ -137,6 +137,27 @@
   }
 }
 
-.cor {
-  background-color: #f1f1f1;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Esconde o scroll */
 }
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Cor do track */
+  border-radius: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #888; /* Cor do thumb */
+  border-radius: 4px;
+  border: 2px solid #f0f0f0; /* Espaçamento ao redor */
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Cor ao passar o mouse */
+}
+

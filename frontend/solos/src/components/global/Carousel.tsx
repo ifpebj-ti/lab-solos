@@ -31,7 +31,7 @@ function Carousel({ valor, informacoes, imageSrc }: ICarousel) {
 
   return (
     <div className='flex flex-col items-center w-11/12 mt-14 mb-16'>
-      <div className='flex items-center justify-between w-full bg-white'>
+      <div className='flex items-center justify-between w-full'>
         {Array.from({ length: 3 }, (_, i) => {
           const itemIndex = getCircularIndex(currentIndex + i - 1);
           const scaleClass = i === 1 ? 'scale-110' : 'scale-100';

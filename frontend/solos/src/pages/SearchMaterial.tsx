@@ -7,13 +7,36 @@ import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import Pagination from '../components/global/table/Pagination'; // Importa o componente Pagination
-import CalendarIcon from '../../public/icons/CalendarIcon';
+import UserIcon from '../../public/icons/UserIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
-import AlertIcon from '../../public/icons/AlertIcon';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import UsersIcon from '../../public/icons/UsersIcon';
+import { useEffect, useRef, useState } from 'react';
+import { generateRandomData, ChemicalData } from '@/mocks/Unidades';
 
-function FollowUp() {
+function SearchMaterial() {
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [testData, setTestData] = useState<ChemicalData[]>([]);
+
+  const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));
+    setScrollLeft(scrollContainerRef.current?.scrollLeft || 0);
+  };
+
+  const stopDrag = () => {
+    setIsDragging(false);
+  };
+
+  const onDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Ajuste a velocidade de arraste se necessário
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
   const isLoading = false;
   const [value, setValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,41 +44,24 @@ function FollowUp() {
 
   // Colunas e dados da tabela
   const columns = [
-    { value: 'Nome', width: '20%' },
-    { value: 'Endereço', width: '30%' },
-    { value: 'Profissão', width: '30%' },
-    { value: 'Email', width: '20%' },
+    { value: 'Catmat', width: '10%' },
+    { value: 'Item', width: '20%' },
+    { value: 'Lote', width: '15%' },
+    { value: 'Quant. Estoque', width: '20%' },
+    { value: 'Mínimo', width: '15%' },
+    { value: 'Data de Validade', width: '20%' },
   ];
-  const testData = [
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    // Adicione mais dados conforme necessário
-  ];
+
+  useEffect(() => {
+    const generatedData = generateRandomData();
+    setTestData(generatedData);
+  }, []);
+
   const options = [
-    { value: 'validade', label: 'Validade' },
-    { value: 'estoque', label: 'Estoque' },
+    { value: 'todos', label: 'Todos' },
+    { value: 'vidrarias', label: 'Vidrarias' },
+    { value: 'quimicos', label: 'Quimicos' },
+    { value: 'outros', label: 'Outros' },
   ];
 
   // Cálculo das páginas
@@ -77,32 +83,45 @@ function FollowUp() {
         <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Acompanhamento
+              Pesquisa
             </h1>
-            <div className='flex items-center justify-between gap-x-6'>
+            <div className='flex items-center justify-between'>
               <OpenSearch />
-              <Link
-                to={'/searchMaterial'}
-                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
-              >
-                Realizar Lançamento
-              </Link>
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+          <div
+            ref={scrollContainerRef}
+            onMouseDown={startDrag}
+            onMouseLeave={stopDrag}
+            onMouseUp={stopDrag}
+            onMouseMove={onDrag}
+            className='w-11/12 h-32 mt-7 flex items-center gap-x-8 overflow-x-auto scrollbar-hide'
+            style={{ cursor: 'grab' }}
+          >
             <FollowUpCard
-              title='Produtos com Alertas'
+              title='Usuários Admin'
+              number='2'
+              icon={<UserIcon />}
+            />
+            <FollowUpCard title='Usuários' number='39' icon={<UsersIcon />} />
+            <FollowUpCard
+              title='Tipos de Vidrarias'
+              number='84'
+              icon={<LayersIcon />}
+            />
+            <FollowUpCard
+              title='Usos de Vidrarias'
               number='254'
-              icon={<AlertIcon fill='#A9A9A9' size={19} />}
+              icon={<LayersIcon />}
             />
             <FollowUpCard
-              title='Produtos com Alerta de Validade'
-              number='159'
-              icon={<CalendarIcon />}
+              title='Tipos de Químicos'
+              number='62'
+              icon={<LayersIcon />}
             />
             <FollowUpCard
-              title='Produtos com Alerta de Estoque'
-              number='183'
+              title='Usos de Químicos'
+              number='441'
               icon={<LayersIcon />}
             />
           </div>
@@ -131,7 +150,14 @@ function FollowUp() {
                 {currentData.map((rowData, index) => (
                   <ItemTable
                     key={index}
-                    data={rowData}
+                    data={[
+                      rowData.codigo,
+                      rowData.nome,
+                      rowData.lote,
+                      rowData.numeroAleatorio,
+                      rowData.numeroMinimo,
+                      rowData.data,
+                    ]}
                     rowIndex={index}
                     columnWidths={columns.map((column) => column.width)}
                   />
@@ -152,4 +178,4 @@ function FollowUp() {
   );
 }
 
-export default FollowUp;
+export default SearchMaterial;
