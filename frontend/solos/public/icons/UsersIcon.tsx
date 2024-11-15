@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface IUsersIcon {
   fill?: string;
 }
@@ -7,8 +5,8 @@ interface IUsersIcon {
 export default function UsersIcon({ fill = '#A9A9A9' }: IUsersIcon) {
   return (
     <svg
-      width='24'
-      height='24'
+      width='18'
+      height='18'
       viewBox='0 0 24 24'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
