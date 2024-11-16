@@ -95,6 +95,7 @@ function OpenSearch() {
                       onSelect={() => {
                         navigate(framework.route);
                       }}
+                      className='font-inter-regular'
                     >
                       <Check
                         className={cn(

@@ -10,6 +10,7 @@ import ResetPassword from './pages/ResetPassword';
 import Launch from './pages/Launch';
 import FollowUp from './pages/FollowUp';
 import SearchMaterial from './pages/SearchMaterial';
+import Verification from './pages/Verification';
 
 function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ function AppRoutes() {
           <Route path='/launch' element={<Launch />}></Route>
           <Route path='/followUp' element={<FollowUp />}></Route>
           <Route path='/searchMaterial' element={<SearchMaterial />}></Route>
+          <Route path='/verification' element={<Verification />}></Route>
         </Route>
         <Route path='/login' element={<Login />}></Route>
         <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
