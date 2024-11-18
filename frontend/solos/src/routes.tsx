@@ -12,6 +12,7 @@ import FollowUp from './pages/FollowUp';
 import SearchMaterial from './pages/SearchMaterial';
 import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
+import RegistrationRequest from './pages/RegistrationRequests';
 
 function AppRoutes() {
   return (
@@ -26,6 +27,10 @@ function AppRoutes() {
           <Route path='/searchMaterial' element={<SearchMaterial />}></Route>
           <Route path='/verification' element={<Verification />}></Route>
           <Route path='/registeredUsers' element={<RegisteredUsers />}></Route>
+          <Route
+            path='/registrationRequest'
+            element={<RegistrationRequest />}
+          ></Route>
         </Route>
         <Route path='/login' element={<Login />}></Route>
         <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
