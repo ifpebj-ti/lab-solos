@@ -9,20 +9,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-const chartData = [
-  { month: 'January', desktop: 186 },
-  { month: 'February', desktop: 165 },
-  { month: 'March', desktop: 197 },
-  { month: 'April', desktop: 193 },
-  { month: 'May', desktop: 209 },
-  { month: 'June', desktop: 264 },
-  { month: 'January', desktop: 146 },
-  { month: 'February', desktop: 105 },
-  { month: 'March', desktop: 237 },
-  { month: 'April', desktop: 103 },
-  { month: 'May', desktop: 209 },
-  { month: 'June', desktop: 214 },
-]
+import DateRangeInput from '@/components/global/inputs/DateRangeInput';
+import SelectInput from '@/components/global/inputs/SelectInput';
+import { useState } from 'react';
+import { lotes, chartData, columnsVer, dataVer } from '@/mocks/Unidades';
+import Pagination from '@/components/global/table/Pagination';
+import SearchInput from '@/components/global/inputs/SearchInput';
+import HeaderTable from '@/components/global/table/Header';
+import ItemTable from '@/components/global/table/Item';
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -32,6 +26,7 @@ const chartConfig = {
 
 function Verification() {
   const isLoading = false;
+  const [value, setValue] = useState('');
   const infoItems = [
     { title: 'Item', value: 'Cloreto de Cálcio', width: '2/5' },
     { title: 'Fórmula', value: 'CaCL2', width: '1/5' },
@@ -47,6 +42,12 @@ function Verification() {
   const infoItems4 = [
     { title: 'Última Retirada', value: '29/11/2024 09:54', width: 'full' },
   ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+  const currentData = dataVer.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <>
@@ -81,7 +82,23 @@ function Verification() {
           <div className='w-11/12 mt-7'>
             <Card className='rounded-md bg-backgroundMy border border-borderMy shadow-none'>
               <CardHeader>
-                <CardTitle className='font-inter-regular text-lg text-clt-2 font-medium'>Gráfico de Movimentação de Estoque</CardTitle>
+                <div className='flex items-center justify-between w-full gap-x-7'>
+                  <CardTitle className='font-inter-regular text-lg text-clt-2 font-medium w-1/2'>
+                    Gráfico de Movimentação de Estoque
+                  </CardTitle>
+                  <div className='flex gap-x-7 w-1/2'>
+                    <div className='w-1/2'>
+                      <DateRangeInput />
+                    </div>
+                    <div className='-mt-4 w-1/2'>
+                      <SelectInput
+                        options={lotes}
+                        onValueChange={(value) => setValue(value)}
+                        value={value}
+                      />
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className='pt-4'>
                 <ChartContainer config={chartConfig} className='w-full h-80'>
@@ -118,6 +135,51 @@ function Verification() {
                 </ChartContainer>
               </CardContent>
             </Card>
+          </div>
+          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex justify-between items-center mt-2 gap-x-7'>
+              <div className='w-2/4'>
+                <SearchInput name='search' />
+              </div>
+              <div className='flex gap-x-7 w-1/2'>
+                <div className='w-1/2'>
+                  <DateRangeInput />
+                </div>
+                <div className='-mt-4 w-1/2'>
+                  <SelectInput
+                    options={lotes}
+                    onValueChange={(value) => setValue(value)}
+                    value={value}
+                  />
+                </div>
+              </div>
+            </div>
+            <HeaderTable columns={columnsVer} />
+            <div className='w-full items-center flex flex-col justify-between min-h-72'>
+              <div className='w-full'>
+                {currentData.map((rowData, index) => (
+                  <ItemTable
+                    key={index}
+                    data={[
+                      rowData.date,
+                      rowData.name,
+                      rowData.institution,
+                      rowData.code,
+                      rowData.quantity,
+                    ]}
+                    rowIndex={index}
+                    columnWidths={columnsVer.map((column) => column.width)}
+                  />
+                ))}
+              </div>
+              {/* Componente de Paginação */}
+              <Pagination
+                totalItems={dataVer.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
         </div>
       )}

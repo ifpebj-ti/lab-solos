@@ -73,8 +73,8 @@ export default {
         'rajdhani-semibold': ['rajdhani-semibold', 'sans-serif'],
       },
       scale: {
-        "99": "0.99",
-        'customScale': '1.002', // Substitua o valor conforme necessário
+        99: '0.99',
+        customScale: '1.002', // Substitua o valor conforme necessário
       },
       // borderRadius: {
       // 	lg: 'var(--radius)',
