@@ -150,6 +150,13 @@ export const columnsVer = [
   { value: 'Quantidade', width: '15%' },
 ];
 
+export const columnsButtons = [
+  { value: 'Utilizador', width: '35%' },
+  { value: 'Identificador', width: '35%' },
+  { value: 'Lote', width: '15%' },
+  { value: 'Ação', width: '15%' },
+];
+
 export const columns = [
   { value: 'Nome', width: '20%' },
   { value: 'Endereço', width: '30%' },
@@ -261,6 +268,84 @@ export const dataVer = [
     institution: 'Universidade Federal do Amazonas',
     code: '5817',
     quantity: '7',
+  },
+];
+
+export const dataButton = [
+  {
+    name: 'Maria Oliveira',
+    institution: 'Universidade de São Paulo',
+    code: '4823',
+  },
+  {
+    name: 'João Silva',
+    institution: 'Universidade Federal do Rio de Janeiro',
+    code: '1924',
+  },
+  {
+    name: 'Ana Souza',
+    institution: 'Universidade Estadual de Campinas',
+    code: '3019',
+  },
+  {
+    name: 'Carlos Lima',
+    institution: 'Universidade Federal de Minas Gerais',
+    code: '7193',
+  },
+  {
+    name: 'Beatriz Santos',
+    institution: 'Universidade de Brasília',
+    code: '8451',
+  },
+  {
+    name: 'Rafael Almeida',
+    institution: 'Universidade Federal do Ceará',
+    code: '2156',
+  },
+  {
+    name: 'Fernanda Costa',
+    institution: 'Universidade Federal de Santa Catarina',
+    code: '9073',
+  },
+  {
+    name: 'Luiz Pereira',
+    institution: 'Universidade Federal do Pará',
+    code: '1348',
+  },
+  {
+    name: 'Carolina Ramos',
+    institution: 'Universidade Federal do Rio Grande do Sul',
+    code: '4981',
+  },
+  {
+    name: 'Felipe Ferreira',
+    institution: 'Universidade Estadual Paulista',
+    code: '3629',
+  },
+  {
+    name: 'Larissa Mendes',
+    institution: 'Universidade Federal de Pernambuco',
+    code: '6514',
+  },
+  {
+    name: 'Ricardo Barbosa',
+    institution: 'Universidade Federal de Goiás',
+    code: '2765',
+  },
+  {
+    name: 'Juliana Rocha',
+    institution: 'Universidade Federal da Bahia',
+    code: '3892',
+  },
+  {
+    name: 'Gustavo Souza',
+    institution: 'Universidade Federal do Paraná',
+    code: '7432',
+  },
+  {
+    name: 'Vanessa Ribeiro',
+    institution: 'Universidade Federal do Amazonas',
+    code: '5817',
   },
 ];
 

@@ -28,19 +28,19 @@ function Verification() {
   const isLoading = false;
   const [value, setValue] = useState('');
   const infoItems = [
-    { title: 'Item', value: 'Cloreto de Cálcio', width: '2/5' },
-    { title: 'Fórmula', value: 'CaCL2', width: '1/5' },
-    { title: 'Grupo', value: 'Sais', width: '1/5' },
-    { title: 'Situação', value: 'Disponível', width: '1/5' },
+    { title: 'Item', value: 'Cloreto de Cálcio', width: '40%' },
+    { title: 'Fórmula', value: 'CaCL2', width: '20%' },
+    { title: 'Grupo', value: 'Sais', width: '20%' },
+    { title: 'Situação', value: 'Disponível', width: '20%' },
   ];
   const infoItems2 = [
-    { title: 'Estoque Atual', value: '+3,55', width: 'full' },
+    { title: 'Estoque Atual', value: '+3,55', width: '100%' },
   ];
   const infoItems3 = [
-    { title: 'Última Inserção', value: '10/08/2024 14:25', width: 'full' },
+    { title: 'Última Inserção', value: '10/08/2024 14:25', width: '100%' },
   ];
   const infoItems4 = [
-    { title: 'Última Retirada', value: '29/11/2024 09:54', width: 'full' },
+    { title: 'Última Retirada', value: '29/11/2024 09:54', width: '100%' },
   ];
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
