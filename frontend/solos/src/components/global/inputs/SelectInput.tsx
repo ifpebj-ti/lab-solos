@@ -21,7 +21,7 @@ const SelectInput = ({
   error,
 }: SelectInputProps) => {
   return (
-    <div className='flex flex-col gap-y-1 w-full'>
+    <div className='flex flex-col gap-y-1 w-full min-w-40'>
       <p className='font-inter-regular text-sm text-clt-2 mt-3'>{label}</p>
       <Select onValueChange={onValueChange}>
         <SelectTrigger

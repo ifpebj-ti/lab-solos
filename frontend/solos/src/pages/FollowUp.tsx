@@ -12,6 +12,7 @@ import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { columns, testData } from '@/mocks/Unidades';
 
 function FollowUp() {
   const isLoading = false;
@@ -19,40 +20,6 @@ function FollowUp() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
-  // Colunas e dados da tabela
-  const columns = [
-    { value: 'Nome', width: '20%' },
-    { value: 'Endereço', width: '30%' },
-    { value: 'Profissão', width: '30%' },
-    { value: 'Email', width: '20%' },
-  ];
-  const testData = [
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-    ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-    ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-    ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-    // Adicione mais dados conforme necessário
-  ];
   const options = [
     { value: 'validade', label: 'Validade' },
     { value: 'estoque', label: 'Estoque' },

@@ -119,3 +119,175 @@ export function generateRandomData(): ChemicalData[] {
 
   return data;
 }
+
+export const lotes = [
+  { value: '0001', label: 'Lote 0001' },
+  { value: '0002', label: 'Lote 0002' },
+  { value: '0003', label: 'Lote 0003' },
+  { value: '0004', label: 'Lote 0004' },
+];
+
+export const chartData = [
+  { month: 'January', desktop: 186 },
+  { month: 'February', desktop: 125 },
+  { month: 'March', desktop: 197 },
+  { month: 'April', desktop: 193 },
+  { month: 'May', desktop: 209 },
+  { month: 'June', desktop: 264 },
+  { month: 'July', desktop: 146 },
+  { month: 'Agost', desktop: 165 },
+  { month: 'September', desktop: 237 },
+  { month: 'Octuber', desktop: 143 },
+  { month: 'November', desktop: 209 },
+  { month: 'December', desktop: 214 },
+];
+
+export const columnsVer = [
+  { value: 'Data', width: '15%' },
+  { value: 'Utilizador', width: '30%' },
+  { value: 'Identificador', width: '25%' },
+  { value: 'Lote', width: '15%' },
+  { value: 'Quantidade', width: '15%' },
+];
+
+export const columns = [
+  { value: 'Nome', width: '20%' },
+  { value: 'Endereço', width: '30%' },
+  { value: 'Profissão', width: '30%' },
+  { value: 'Email', width: '20%' },
+];
+export const dataVer = [
+  {
+    date: '2023-08-15',
+    name: 'Maria Oliveira',
+    institution: 'Universidade de São Paulo',
+    code: '4823',
+    quantity: '5',
+  },
+  {
+    date: '2024-02-10',
+    name: 'João Silva',
+    institution: 'Universidade Federal do Rio de Janeiro',
+    code: '1924',
+    quantity: '8',
+  },
+  {
+    date: '2022-11-23',
+    name: 'Ana Souza',
+    institution: 'Universidade Estadual de Campinas',
+    code: '3019',
+    quantity: '3',
+  },
+  {
+    date: '2023-06-14',
+    name: 'Carlos Lima',
+    institution: 'Universidade Federal de Minas Gerais',
+    code: '7193',
+    quantity: '10',
+  },
+  {
+    date: '2024-01-28',
+    name: 'Beatriz Santos',
+    institution: 'Universidade de Brasília',
+    code: '8451',
+    quantity: '7',
+  },
+  {
+    date: '2023-09-30',
+    name: 'Rafael Almeida',
+    institution: 'Universidade Federal do Ceará',
+    code: '2156',
+    quantity: '6',
+  },
+  {
+    date: '2024-03-05',
+    name: 'Fernanda Costa',
+    institution: 'Universidade Federal de Santa Catarina',
+    code: '9073',
+    quantity: '4',
+  },
+  {
+    date: '2022-10-19',
+    name: 'Luiz Pereira',
+    institution: 'Universidade Federal do Pará',
+    code: '1348',
+    quantity: '2',
+  },
+  {
+    date: '2023-07-25',
+    name: 'Carolina Ramos',
+    institution: 'Universidade Federal do Rio Grande do Sul',
+    code: '4981',
+    quantity: '9',
+  },
+  {
+    date: '2024-04-11',
+    name: 'Felipe Ferreira',
+    institution: 'Universidade Estadual Paulista',
+    code: '3629',
+    quantity: '5',
+  },
+  {
+    date: '2023-05-02',
+    name: 'Larissa Mendes',
+    institution: 'Universidade Federal de Pernambuco',
+    code: '6514',
+    quantity: '8',
+  },
+  {
+    date: '2024-06-18',
+    name: 'Ricardo Barbosa',
+    institution: 'Universidade Federal de Goiás',
+    code: '2765',
+    quantity: '6',
+  },
+  {
+    date: '2023-12-22',
+    name: 'Juliana Rocha',
+    institution: 'Universidade Federal da Bahia',
+    code: '3892',
+    quantity: '3',
+  },
+  {
+    date: '2024-07-08',
+    name: 'Gustavo Souza',
+    institution: 'Universidade Federal do Paraná',
+    code: '7432',
+    quantity: '10',
+  },
+  {
+    date: '2023-03-17',
+    name: 'Vanessa Ribeiro',
+    institution: 'Universidade Federal do Amazonas',
+    code: '5817',
+    quantity: '7',
+  },
+];
+
+export const testData = [
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
+  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
+  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
+  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
+  // Adicione mais dados conforme necessário
+];

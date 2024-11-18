@@ -30,7 +30,9 @@ function Sidebar() {
             to={'/followUp'}
             className={`w-11 h-11 ${currentPage === '/followUp' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
           >
-            <FollowUpIcon fill={currentPage == '/followUp' ? '#16A34A' : '#fff'} />
+            <FollowUpIcon
+              fill={currentPage == '/followUp' ? '#16A34A' : '#fff'}
+            />
           </Link>
         </div>
         <div>
