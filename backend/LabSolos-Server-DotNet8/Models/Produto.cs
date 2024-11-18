@@ -8,8 +8,8 @@ namespace LabSolos_Server_DotNet8.Models
         public required string NomeProduto { get; set; }
         public string? Fornecedor { get; set; }
         public TipoProduto Tipo { get; set; } // Enum
-        public required double Quantidade { get; set; }
-        public required double QuantidadeMinima { get; set; }
+        public required float Quantidade { get; set; }
+        public required float QuantidadeMinima { get; set; }
         public DateTime? DataFabricacao{ get; set; }
         public DateTime? DataValidade { get; set; }
         public required string LocalizacaoProduto { get; set; }
