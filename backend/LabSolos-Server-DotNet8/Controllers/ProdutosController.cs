@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -8,27 +7,35 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProdutoController : ControllerBase
+    public class ProdutoController(IProdutoService produtoService, ILogger<ProdutoController> logger) : ControllerBase
     {
-        private readonly IProdutoService _produtoService;
+        private readonly IProdutoService _produtoService = produtoService;
+        private readonly ILogger<ProdutoController> _logger = logger;
 
-        public ProdutoController(IProdutoService produtoService)
-        {
-            _produtoService = produtoService;
-        }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Produto>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int tipoProduto)
         {
+            _logger.LogInformation("Iniciando operação para obter produtos do tipo {Tipo}.", (TipoProduto)tipoProduto);
+
+            // Validação do tipo com o enum
+            if (!Enum.IsDefined(typeof(TipoProduto), tipoProduto))
+            {
+                _logger.LogWarning("Tipo de produto inválido: {Tipo}", tipoProduto);
+                return BadRequest("Tipo de produto inválido. Use um valor de TipoProduto válido.");
+            }
+
+            var tipoEnum = (TipoProduto)tipoProduto;
+
             try
             {
-                var produtos = await _produtoService.GetAllAsync();
+                var produtos = await _produtoService.GetProdutosByTipoAsync(tipoEnum);
                 return Ok(produtos);
             }
-            catch (Exception)
+            catch (NotImplementedException ex)
             {
-                // Log da exceção (ex) pode ser adicionado aqui
-                return StatusCode(500, "Erro ao obter os produtos.");
+                _logger.LogWarning("Erro na obtenção de produtos: {Message}", ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 

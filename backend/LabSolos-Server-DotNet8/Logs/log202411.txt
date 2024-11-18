@@ -1,1 +1,173 @@
 2024-11-04 21:00:07.302 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-14 07:14:50.986 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-14 07:14:51.218 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-14 07:14:51.296 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-14 07:14:51.310 -03:00 [INF] Creating key {bb6db8ef-297a-4124-b74f-4d08f995ba29} with creation date 2024-11-14 10:14:51Z, activation date 2024-11-14 10:14:51Z, and expiration date 2025-02-12 10:14:51Z.
+2024-11-14 07:14:51.321 -03:00 [WRN] No XML encryptor configured. Key {bb6db8ef-297a-4124-b74f-4d08f995ba29} may be persisted to storage in unencrypted form.
+2024-11-14 07:14:51.325 -03:00 [INF] Writing data to file '/home/bearer/.aspnet/DataProtection-Keys/key-bb6db8ef-297a-4124-b74f-4d08f995ba29.xml'.
+2024-11-14 07:14:51.375 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-14 07:14:51.376 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-14 07:14:51.377 -03:00 [INF] Hosting environment: Development
+2024-11-14 07:14:51.377 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-14 07:22:28.558 -03:00 [INF] Application is shutting down...
+2024-11-18 19:50:31.815 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-18 19:50:32.074 -03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-18 19:50:32.158 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-18 19:50:32.222 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-18 19:50:32.224 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-18 19:50:32.224 -03:00 [INF] Hosting environment: Development
+2024-11-18 19:50:32.224 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-18 19:53:09.765 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos/?tipoProduto=1 - null null
+2024-11-18 19:53:09.821 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-18 19:53:09.860 -03:00 [INF] HTTP GET /api/produtos/ responded 404 in 40.4664 ms
+2024-11-18 19:53:09.862 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos/?tipoProduto=1 - 404 0 null 99.0743ms
+2024-11-18 19:53:09.869 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/api/produtos/, Response status code: 404
+2024-11-18 19:54:02.693 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/auth/login - application/json 66
+2024-11-18 19:54:02.697 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2024-11-18 19:54:02.734 -03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LoginRequest) on controller LabSolos_Server_DotNet8.Controllers.AuthController (LabSolos-Server-DotNet8).
+2024-11-18 19:54:02.897 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__email_0='?' (Size = 17)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituição"
+FROM "Usuarios" AS "u"
+WHERE "u"."Email" = @__email_0
+LIMIT 2
+2024-11-18 19:54:03.109 -03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-18 19:54:03.122 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8) in 382.3343ms
+2024-11-18 19:54:03.122 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2024-11-18 19:54:03.123 -03:00 [INF] HTTP POST /api/auth/login responded 200 in 427.1423 ms
+2024-11-18 19:54:03.130 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/auth/login - 200 null application/json; charset=utf-8 436.2856ms
+2024-11-18 19:55:20.404 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/auth/login - application/json 66
+2024-11-18 19:55:20.408 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2024-11-18 19:55:20.408 -03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LoginRequest) on controller LabSolos_Server_DotNet8.Controllers.AuthController (LabSolos-Server-DotNet8).
+2024-11-18 19:55:20.489 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__email_0='?' (Size = 17)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituição"
+FROM "Usuarios" AS "u"
+WHERE "u"."Email" = @__email_0
+LIMIT 2
+2024-11-18 19:55:20.584 -03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-18 19:55:20.585 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8) in 176.3978ms
+2024-11-18 19:55:20.585 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2024-11-18 19:55:20.585 -03:00 [INF] HTTP POST /api/auth/login responded 200 in 179.6987 ms
+2024-11-18 19:55:20.586 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/auth/login - 200 null application/json; charset=utf-8 181.8593ms
+2024-11-18 19:55:27.634 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos/?tipoProduto=1 - null null
+2024-11-18 19:55:27.635 -03:00 [INF] HTTP GET /api/produtos/ responded 404 in 0.1682 ms
+2024-11-18 19:55:27.635 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos/?tipoProduto=1 - 404 0 null 1.6513ms
+2024-11-18 19:55:27.636 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/api/produtos/, Response status code: 404
+2024-11-18 19:55:55.589 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=0 - null null
+2024-11-18 19:55:55.590 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:55:55.595 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produto"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutoController (LabSolos-Server-DotNet8).
+2024-11-18 19:55:55.597 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8) in 1.5191ms
+2024-11-18 19:55:55.597 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:55:55.598 -03:00 [ERR] HTTP GET /api/produto/ responded 500 in 7.9359 ms
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.IProdutoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.ProdutoController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method84(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-18 19:55:55.614 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.IProdutoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.ProdutoController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method84(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-18 19:55:55.622 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=0 - 500 null text/plain; charset=utf-8 33.1354ms
+2024-11-18 19:58:14.246 -03:00 [INF] Application is shutting down...
+2024-11-18 19:58:20.695 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-18 19:58:20.960 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-18 19:58:21.066 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-18 19:58:21.133 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-18 19:58:21.135 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-18 19:58:21.135 -03:00 [INF] Hosting environment: Development
+2024-11-18 19:58:21.135 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-18 19:58:29.135 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=0 - null null
+2024-11-18 19:58:29.182 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-18 19:58:29.204 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:29.229 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produto"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutoController (LabSolos-Server-DotNet8).
+2024-11-18 19:58:29.248 -03:00 [INF] Iniciando operação para obter produtos do tipo "Quimico".
+2024-11-18 19:58:29.250 -03:00 [INF] Iniciando operação para obter produtos do tipo "Quimico".
+2024-11-18 19:58:29.251 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2024-11-18 19:58:29.345 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2024-11-18 19:58:29.491 -03:00 [INF] Operação concluída. 4 produtos obtidos.
+2024-11-18 19:58:29.494 -03:00 [INF] 2 produtos químicos obtidos.
+2024-11-18 19:58:29.499 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-18 19:58:29.562 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8) in 327.9544ms
+2024-11-18 19:58:29.563 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:29.565 -03:00 [INF] HTTP GET /api/produto/ responded 200 in 383.7167 ms
+2024-11-18 19:58:29.574 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=0 - 200 null application/json; charset=utf-8 439.5106ms
+2024-11-18 19:58:41.707 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=1 - null null
+2024-11-18 19:58:41.710 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:41.711 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produto"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutoController (LabSolos-Server-DotNet8).
+2024-11-18 19:58:41.714 -03:00 [INF] Iniciando operação para obter produtos do tipo "Vidraria".
+2024-11-18 19:58:41.715 -03:00 [INF] Iniciando operação para obter produtos do tipo "Vidraria".
+2024-11-18 19:58:41.715 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2024-11-18 19:58:41.808 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2024-11-18 19:58:41.810 -03:00 [INF] Operação concluída. 4 produtos obtidos.
+2024-11-18 19:58:41.814 -03:00 [INF] 2 vidrarias obtidas.
+2024-11-18 19:58:41.815 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-18 19:58:41.828 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8) in 116.3674ms
+2024-11-18 19:58:41.828 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:41.829 -03:00 [INF] HTTP GET /api/produto/ responded 200 in 119.4942 ms
+2024-11-18 19:58:41.830 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=1 - 200 null application/json; charset=utf-8 122.7141ms
+2024-11-18 19:58:46.732 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=2 - null null
+2024-11-18 19:58:46.735 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:46.735 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produto"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutoController (LabSolos-Server-DotNet8).
+2024-11-18 19:58:46.737 -03:00 [INF] Iniciando operação para obter produtos do tipo "Outro".
+2024-11-18 19:58:46.738 -03:00 [INF] Iniciando operação para obter produtos do tipo "Outro".
+2024-11-18 19:58:46.738 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2024-11-18 19:58:46.739 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2024-11-18 19:58:46.740 -03:00 [INF] Operação concluída. 4 produtos obtidos.
+2024-11-18 19:58:46.740 -03:00 [WRN] Tipo de produto especificado ("Outro") ainda não tem implementação.
+2024-11-18 19:58:46.742 -03:00 [WRN] Erro na obtenção de produtos: Tipo de produto não implementado.
+2024-11-18 19:58:46.743 -03:00 [INF] Executing BadRequestObjectResult, writing value of type 'System.String'.
+2024-11-18 19:58:46.744 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8) in 8.9583ms
+2024-11-18 19:58:46.745 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:46.745 -03:00 [INF] HTTP GET /api/produto/ responded 400 in 12.3814 ms
+2024-11-18 19:58:46.746 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=2 - 400 null text/plain; charset=utf-8 14.3424ms
+2024-11-18 19:58:50.958 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=3 - null null
+2024-11-18 19:58:50.958 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:50.958 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produto"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutoController (LabSolos-Server-DotNet8).
+2024-11-18 19:58:50.959 -03:00 [INF] Iniciando operação para obter produtos do tipo "3".
+2024-11-18 19:58:50.959 -03:00 [WRN] Tipo de produto inválido: 3
+2024-11-18 19:58:50.959 -03:00 [INF] Executing BadRequestObjectResult, writing value of type 'System.String'.
+2024-11-18 19:58:50.960 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8) in 1.126ms
+2024-11-18 19:58:50.960 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutoController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-18 19:58:50.960 -03:00 [INF] HTTP GET /api/produto/ responded 400 in 1.8609 ms
+2024-11-18 19:58:50.960 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produto/?tipoProduto=3 - 400 null text/plain; charset=utf-8 2.6816ms

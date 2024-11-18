@@ -1,6 +1,7 @@
 using System.Text;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
+using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ builder.Host.UseSerilog();
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 // Adicionar suporte para controladores
 builder.Services.AddControllers();

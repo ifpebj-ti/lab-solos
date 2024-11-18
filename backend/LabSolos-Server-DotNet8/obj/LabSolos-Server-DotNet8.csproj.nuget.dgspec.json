@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {}
+    "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {}
   },
   "projects": {
-    "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
+    "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
+        "projectUniqueName": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
         "projectName": "LabSolos-Server-DotNet8",
-        "projectPath": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
-        "packagesPath": "/home/tomas/.nuget/packages/",
-        "outputPath": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/",
+        "projectPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
+        "packagesPath": "/home/bearer/.nuget/packages/",
+        "outputPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/tomas/.nuget/NuGet/NuGet.Config"
+          "/home/bearer/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,11 +32,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -101,7 +96,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.403/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

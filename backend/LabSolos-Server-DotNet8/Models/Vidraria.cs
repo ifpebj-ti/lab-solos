@@ -7,7 +7,7 @@ namespace LabSolos_Server_DotNet8.Models
         public required MaterialVidraria Material { get; set; } //enum
         public required FormatoVidraria Formato { get; set; } //enum
         public required AlturaVidraria Altura { get; set; } //enum
-        public double? Capacidade { get; set; }
+        public float? Capacidade { get; set; }
         public bool? Graduada { get; set; } 
     }
 }
