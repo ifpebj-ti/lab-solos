@@ -75,9 +75,6 @@ function Verification() {
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
             </div>
-            {/* <p>
-              Fórmula da água: H<sub className='text-xs'>2</sub>O
-            </p> */}
           </div>
           <div className='w-11/12 mt-7'>
             <Card className='rounded-md bg-backgroundMy border border-borderMy shadow-none'>

@@ -151,10 +151,9 @@ export const columnsVer = [
 ];
 
 export const columnsButtons = [
-  { value: 'Utilizador', width: '35%' },
-  { value: 'Identificador', width: '35%' },
+  { value: 'Utilizador', width: '45%' },
+  { value: 'Identificador', width: '40%' },
   { value: 'Lote', width: '15%' },
-  { value: 'Ação', width: '15%' },
 ];
 
 export const columns = [

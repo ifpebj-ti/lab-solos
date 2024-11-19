@@ -13,6 +13,7 @@ import SearchMaterial from './pages/SearchMaterial';
 import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
+import ViewClass from './pages/ViewClass';
 
 function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ function AppRoutes() {
           <Route path='/searchMaterial' element={<SearchMaterial />}></Route>
           <Route path='/verification' element={<Verification />}></Route>
           <Route path='/registeredUsers' element={<RegisteredUsers />}></Route>
+          <Route path='/viewClass' element={<ViewClass />}></Route>
           <Route
             path='/registrationRequest'
             element={<RegistrationRequest />}
