@@ -8,10 +8,9 @@ import Pagination from '@/components/global/table/Pagination';
 import { useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
-import { Link } from 'react-router-dom';
 
-// aqui virá a listagem dos integrantes da turma
-function ViewClass() {
+// aqui virá as informações de um único empréstimo
+function MentoringHistory() {
   const isLoading = false;
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -52,20 +51,14 @@ function ViewClass() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Visualização de Turmas
+              Histórico de Mentorados
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
-              <Link
-                to={'/classHistory'}
-                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
-              >
-                Empréstimos da Turma
-              </Link>
             </div>
           </div>
           <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems}/>
+            <InfoContainer items={infoItems} />
             <div className='w-full flex gap-x-8 mt-5'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
@@ -116,4 +109,4 @@ function ViewClass() {
   );
 }
 
-export default ViewClass;
+export default MentoringHistory;

@@ -14,6 +14,8 @@ import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
+import MentoringHistory from './pages/MentoringHistory';
+import ClassHistory from './pages/ClassHistory';
 
 function AppRoutes() {
   return (
@@ -29,6 +31,11 @@ function AppRoutes() {
           <Route path='/verification' element={<Verification />}></Route>
           <Route path='/registeredUsers' element={<RegisteredUsers />}></Route>
           <Route path='/viewClass' element={<ViewClass />}></Route>
+          <Route path='/classHistory' element={<ClassHistory />}></Route>
+          <Route
+            path='/mentoringHistory'
+            element={<MentoringHistory />}
+          ></Route>
           <Route
             path='/registrationRequest'
             element={<RegistrationRequest />}
