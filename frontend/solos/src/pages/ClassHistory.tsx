@@ -8,10 +8,9 @@ import Pagination from '@/components/global/table/Pagination';
 import { useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
-import { Link } from 'react-router-dom';
 
-// aqui virá a listagem dos integrantes da turma
-function ViewClass() {
+// aqui virá as informções dos emprestimos da turma por completa
+function ClassHistory() {
   const isLoading = false;
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -31,14 +30,6 @@ function ViewClass() {
     },
     { title: 'Instituição', value: 'IFPE', width: '20%' },
   ];
-  const infoItems2 = [{ title: 'CPF', value: '134.255.168-65', width: '100%' }];
-  const infoItems3 = [
-    { title: 'Número para Contato', value: '(81) 98126-5571', width: '100%' },
-  ];
-  const infoItems4 = [
-    { title: 'Data de Ingresso', value: '29/11/2024 09:54', width: '100%' },
-  ];
-  const infoItems5 = [{ title: 'Curso', value: 'Eng. Hídrica', width: '100%' }];
   return (
     <>
       {isLoading ? (
@@ -52,26 +43,14 @@ function ViewClass() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Visualização de Turmas
+              Histórico da Turma
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
-              <Link
-                to={'/classHistory'}
-                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
-              >
-                Empréstimos da Turma
-              </Link>
             </div>
           </div>
           <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems}/>
-            <div className='w-full flex gap-x-8 mt-5'>
-              <InfoContainer items={infoItems2} />
-              <InfoContainer items={infoItems3} />
-              <InfoContainer items={infoItems4} />
-              <InfoContainer items={infoItems5} />
-            </div>
+            <InfoContainer items={infoItems} />
           </div>
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
@@ -116,4 +95,4 @@ function ViewClass() {
   );
 }
 
-export default ViewClass;
+export default ClassHistory;
