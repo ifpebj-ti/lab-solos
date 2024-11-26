@@ -23,9 +23,7 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .HasDiscriminator<TipoUsuario>("TipoUsuario")
                 .HasValue<Usuario>(TipoUsuario.Administrador) 
                 .HasValue<Academico>(TipoUsuario.Mentor)        
-                .HasValue<Academico>(TipoUsuario.Mentee) 
-                .HasValue<Usuario>(TipoUsuario.Consultor);    
-
+                .HasValue<Academico>(TipoUsuario.Mentee);
 
             // Configuração de herança - Produto sendo a classe base de Quimico e Vidraria
             modelBuilder.Entity<Produto>()
