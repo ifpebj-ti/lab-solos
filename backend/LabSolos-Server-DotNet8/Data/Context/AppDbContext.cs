@@ -7,6 +7,7 @@ namespace LabSolos_Server_DotNet8.Data.Context
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
+        public DbSet<Administrador> Administradores { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Academico> Academicos { get; set; }
         public DbSet<Produto> Produtos { get; set; }
@@ -21,9 +22,9 @@ namespace LabSolos_Server_DotNet8.Data.Context
             // Configuração de herança para Usuario com TipoUsuario como discriminador
             modelBuilder.Entity<Usuario>()
                 .HasDiscriminator<TipoUsuario>("TipoUsuario")
-                .HasValue<Usuario>(TipoUsuario.Administrador) 
-                .HasValue<Academico>(TipoUsuario.Mentor)        
-                .HasValue<Academico>(TipoUsuario.Mentee);
+                .HasValue<Administrador>(TipoUsuario.Administrador) 
+                .HasValue<Academico>(TipoUsuario.Academico)
+                .HasValue<Usuario>(TipoUsuario.Usuario);
 
             // Configuração de herança - Produto sendo a classe base de Quimico e Vidraria
             modelBuilder.Entity<Produto>()

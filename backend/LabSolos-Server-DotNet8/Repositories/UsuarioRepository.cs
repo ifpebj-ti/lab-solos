@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
@@ -14,7 +10,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         private readonly AppDbContext _context = context;
         private readonly ILogger<UsuarioRepository> _logger = logger;
 
-        private readonly PasswordHasher<Usuario> _passwordHasher = new PasswordHasher<Usuario>();
+        private readonly PasswordHasher<Usuario> _passwordHasher = new();
 
         public async Task<Usuario?> ValidarUsuarioAsync(string email, string password)
         {

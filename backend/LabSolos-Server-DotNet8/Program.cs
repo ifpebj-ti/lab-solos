@@ -23,6 +23,7 @@ builder.Host.UseSerilog();
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 

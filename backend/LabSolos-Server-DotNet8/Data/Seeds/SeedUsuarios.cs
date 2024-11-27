@@ -11,7 +11,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
         {
             var passwordHasher = new PasswordHasher<Usuario>();
 
-            var admin = new Usuario
+            var admin = new Administrador
             {
                 Id = 1,
                 NomeCompleto = "Administrador Exemplo",
@@ -19,6 +19,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAdmin123"),
                 Telefone = "123456789",
                 DataIngresso = DateTime.UtcNow,
+                NivelUsuario = NivelUsuario.Administrador,
                 TipoUsuario = TipoUsuario.Administrador,
                 Status = StatusUsuario.Habilitado
             };
@@ -30,7 +31,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaMentor123"),
                 Telefone = "987654321",
                 DataIngresso = DateTime.UtcNow,
-                TipoUsuario = TipoUsuario.Mentor,
+                NivelUsuario = NivelUsuario.Mentor,
+                TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
                 Instituição = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
@@ -44,7 +46,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAluno123"),
                 Telefone = "5566778899",
                 DataIngresso = DateTime.UtcNow,
-                TipoUsuario = TipoUsuario.Mentee,
+                NivelUsuario = NivelUsuario.Mentorado,
+                TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
                 Instituição = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
@@ -53,7 +56,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             Console.WriteLine(admin.ToString());
 
-            context.Usuarios.Add(admin);
+            context.Administradores.Add(admin);
             context.Academicos.AddRange(aluno, mentor);
         }
     }

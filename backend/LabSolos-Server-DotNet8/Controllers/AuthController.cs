@@ -1,3 +1,4 @@
+using LabSolos_Server_DotNet8.DTOs.Auth;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +12,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUsuarioService _usuarioService = usuarioService;
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginDTO request)
         {
             var usuario = await _usuarioService.ValidarUsuarioAsync(request.Email, request.Password);
 
@@ -23,10 +24,4 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(new { Token = token });
         }
     }
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
 }

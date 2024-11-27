@@ -2,8 +2,7 @@ using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Repositories;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using LabSolos_Server_DotNet8.DTOs.Usuarios;
 
 namespace LabSolos_Server_DotNet8.Services
 {
@@ -19,8 +18,51 @@ namespace LabSolos_Server_DotNet8.Services
     
         public async Task<IEnumerable<object>> GetUsuariosByTipoAsync(TipoUsuario tipoUsuario)
         {
-            return [];
+            _logger.LogInformation("Iniciando operação para obter usuários do tipo {TipoUsuario}.", tipoUsuario);
+            var usuarios = await _usuarioRepository.GetAllAsync();
+
+            switch (tipoUsuario)
+            {
+                case TipoUsuario.Administrador:
+                    var administradores = usuarios
+                        .OfType<Administrador>()
+                        .Select(a => new AdministradorDTO
+                        {
+                            Id = a.Id,
+                            NomeCompleto = a.NomeCompleto,
+                            Email = a.Email,
+                            Telefone = a.Telefone,
+                            DataIngresso = a.DataIngresso,
+                            Status = a.Status.ToString()
+                        }).ToList<object>();
+
+                    _logger.LogInformation("{Count} administradores obtidos.", administradores.Count);
+                    return administradores;
+
+                case TipoUsuario.Academico:
+                    var academicos = usuarios
+                        .OfType<Academico>()
+                        .Select(m => new AcademicoDTO
+                        {
+                            Id = m.Id,
+                            NomeCompleto = m.NomeCompleto,
+                            Nivel = m.NivelUsuario.ToString(),
+                            Email = m.Email,
+                            Telefone = m.Telefone,
+                            Instituicao = m.Instituição,
+                            Curso = m.Curso,
+                            Status = m.Status.ToString()
+                        }).ToList<object>();
+
+                    _logger.LogInformation("{Count} academicos obtidos.", academicos.Count);
+                    return academicos;
+
+                default:
+                    _logger.LogWarning("Tipo de usuário especificado ({TipoUsuario}) ainda não tem implementação.", tipoUsuario);
+                    throw new NotImplementedException("Tipo de usuário não implementado.");
+            }
         }
+
 
         public async Task<IEnumerable<Usuario>> GetAllAsync()
         {
