@@ -2979,3 +2979,4 @@ RETURNING "Id";
 2024-11-26 21:50:59.010 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
 2024-11-26 21:50:59.010 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 255.9118 ms
 2024-11-26 21:50:59.010 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 258.7561ms
+2024-11-26 21:53:56.072 -03:00 [INF] Application is shutting down...

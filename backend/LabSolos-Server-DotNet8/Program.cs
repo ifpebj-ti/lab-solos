@@ -34,7 +34,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configurações JWT
+// Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
@@ -60,6 +60,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Configurar CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+
 // Configurar o Entity Framework Core com SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
@@ -82,6 +91,8 @@ if (app.Environment.IsDevelopment())
     // Chama o método de seeding que utiliza o contexto
     DbSeeder.Seed(context);
 }
+
+app.UseCors("AllowAll");
 
 app.UseSerilogRequestLogging(); // Configura o Serilog para registrar automaticamente todas as requisições HTTP feitas à aplicação
 app.UseHttpsRedirection(); // Força o redirecionamento de todas as requisições HTTP para HTTPS, garantindo que as comunicações sejam feitas em uma conexão segura e criptografada
