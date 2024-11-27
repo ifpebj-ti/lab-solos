@@ -1,5 +1,3 @@
-using LabSolos_Server_DotNet8.Enums;
-
 namespace LabSolos_Server_DotNet8.Models
 {
     public class Academico : Usuario

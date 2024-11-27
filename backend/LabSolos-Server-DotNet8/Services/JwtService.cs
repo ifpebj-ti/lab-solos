@@ -7,10 +7,10 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public class JwtService(IConfiguration config)
     {
-    private readonly string _secret = config["Jwt:Key"];
-    private readonly string _issuer = config["Jwt:Issuer"];
-    private readonly string _audience = config["Jwt:Audience"];
-    private readonly int _expiresInMinutes = int.Parse(config["Jwt:ExpiresInMinutes"]);
+    private readonly string _secret = config["Jwt:Key"]!;
+    private readonly string _issuer = config["Jwt:Issuer"]!;
+    private readonly string _audience = config["Jwt:Audience"]!;
+    private readonly int _expiresInMinutes = int.Parse(config["Jwt:ExpiresInMinutes"]!);
 
         public string GenerateToken(string userId, string userEmail)
     {

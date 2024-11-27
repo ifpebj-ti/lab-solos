@@ -11,14 +11,15 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
         {
             var passwordHasher = new PasswordHasher<Usuario>();
 
-            var admin = new Usuario
+            var admin = new Administrador
             {
                 Id = 1,
                 NomeCompleto = "Administrador Exemplo",
                 Email = "admin@exemplo.com",
-                SenhaHash = passwordHasher.HashPassword(null, "SenhaAdmin123"),
+                SenhaHash = passwordHasher.HashPassword(null!, "SenhaAdmin123"),
                 Telefone = "123456789",
                 DataIngresso = DateTime.UtcNow,
+                NivelUsuario = NivelUsuario.Administrador,
                 TipoUsuario = TipoUsuario.Administrador,
                 Status = StatusUsuario.Habilitado
             };
@@ -27,10 +28,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 2,
                 NomeCompleto = "Professor Exemplo",
                 Email = "mentor@exemplo.com",
-                SenhaHash = passwordHasher.HashPassword(null, "SenhaMentor123"),
+                SenhaHash = passwordHasher.HashPassword(null!, "SenhaMentor123"),
                 Telefone = "987654321",
                 DataIngresso = DateTime.UtcNow,
-                TipoUsuario = TipoUsuario.Mentor,
+                NivelUsuario = NivelUsuario.Mentor,
+                TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
                 Instituição = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
@@ -41,30 +43,20 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 3,
                 NomeCompleto = "Aluno Exemplo",
                 Email = "aluno@exemplo.com",
-                SenhaHash = passwordHasher.HashPassword(null, "SenhaAluno123"),
+                SenhaHash = passwordHasher.HashPassword(null!, "SenhaAluno123"),
                 Telefone = "5566778899",
                 DataIngresso = DateTime.UtcNow,
-                TipoUsuario = TipoUsuario.Mentee,
+                NivelUsuario = NivelUsuario.Mentorado,
+                TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
                 Instituição = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
                 Curso = "Curso Exemplo"
             };
-            var consultor = new Usuario
-            {
-                Id = 4,
-                NomeCompleto = "Consultor Exemplo",
-                Email = "consultor@exemplo.com",
-                SenhaHash = passwordHasher.HashPassword(null, "SenhaConsultor123"),
-                Telefone = "1122334455",
-                DataIngresso = DateTime.UtcNow,
-                TipoUsuario = TipoUsuario.Consultor,
-                Status = StatusUsuario.Habilitado
-            };
 
             Console.WriteLine(admin.ToString());
 
-            context.Usuarios.AddRange(admin, consultor);
+            context.Administradores.Add(admin);
             context.Academicos.AddRange(aluno, mentor);
         }
     }

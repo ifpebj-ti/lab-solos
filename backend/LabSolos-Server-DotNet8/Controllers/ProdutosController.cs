@@ -7,14 +7,14 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProdutoController(IProdutoService produtoService, ILogger<ProdutoController> logger) : ControllerBase
+    public class ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger) : ControllerBase
     {
         private readonly IProdutoService _produtoService = produtoService;
-        private readonly ILogger<ProdutoController> _logger = logger;
+        private readonly ILogger<ProdutosController> _logger = logger;
 
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int tipoProduto)
+        [HttpGet("tipo/{tipoProduto}")]
+        public async Task<IActionResult> GetAll(int tipoProduto)
         {
             _logger.LogInformation("Iniciando operação para obter produtos do tipo {Tipo}.", (TipoProduto)tipoProduto);
 

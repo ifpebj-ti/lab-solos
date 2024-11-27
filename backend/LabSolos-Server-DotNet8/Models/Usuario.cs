@@ -11,6 +11,7 @@ namespace LabSolos_Server_DotNet8.Models
         public required string SenhaHash { get;  set; }
         public string? Telefone { get; set; }
         public DateTime DataIngresso { get; set; }
+        public NivelUsuario NivelUsuario { get; set; }
         public TipoUsuario TipoUsuario { get; set; }
         public StatusUsuario Status { get; set; }
 
