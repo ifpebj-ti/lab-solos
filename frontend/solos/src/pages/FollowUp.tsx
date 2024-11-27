@@ -11,7 +11,6 @@ import CalendarIcon from '../../public/icons/CalendarIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { columns, testData } from '@/mocks/Unidades';
 
 function FollowUp() {
@@ -48,12 +47,6 @@ function FollowUp() {
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
-              <Link
-                to={'/searchMaterial'}
-                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
-              >
-                Realizar Lançamento
-              </Link>
             </div>
           </div>
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>

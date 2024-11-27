@@ -1,15 +1,15 @@
-import OpenSearch from '../components/global/OpenSearch';
-import LoadingIcon from '../../public/icons/LoadingIcon';
+import OpenSearch from '../../components/global/OpenSearch';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 import FollowUpCard from '@/components/screens/FollowUp';
 import HeaderTable from '@/components/global/table/Header';
 import ItemTable from '@/components/global/table/Item';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
-import Pagination from '../components/global/table/Pagination'; // Importa o componente Pagination
-import UserIcon from '../../public/icons/UserIcon';
-import LayersIcon from '../../public/icons/LayersIcon';
-import UsersIcon from '../../public/icons/UsersIcon';
+import Pagination from '../../components/global/table/Pagination';
+import UserIcon from '../../../public/icons/UserIcon';
+import LayersIcon from '../../../public/icons/LayersIcon';
+import UsersIcon from '../../../public/icons/UsersIcon';
 import { useEffect, useRef, useState } from 'react';
 import { generateRandomData, ChemicalData } from '@/mocks/Unidades';
 
@@ -106,7 +106,7 @@ function SearchMaterial() {
             <FollowUpCard title='Usuários' number='39' icon={<UsersIcon />} />
             <FollowUpCard
               title='Tipos de Vidrarias'
-              number='84'
+              number='87'
               icon={<LayersIcon />}
             />
             <FollowUpCard
@@ -122,6 +122,16 @@ function SearchMaterial() {
             <FollowUpCard
               title='Usos de Químicos'
               number='441'
+              icon={<LayersIcon />}
+            />
+            <FollowUpCard
+              title='Tipos de Outros'
+              number='39'
+              icon={<LayersIcon />}
+            />
+            <FollowUpCard
+              title='Usos de Outros'
+              number='249'
               icon={<LayersIcon />}
             />
           </div>

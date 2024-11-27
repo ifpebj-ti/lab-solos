@@ -1,12 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import LoadingIcon from '../../public/icons/LoadingIcon';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { Link } from 'react-router-dom';
 import OpenSearch from '@/components/global/OpenSearch';
 import FormQuimicos from '@/components/global/forms/create/FormQuimicos';
 import FormVidrarias from '@/components/global/forms/create/FormVidraria';
 import FormOutros from '@/components/global/forms/create/FormOutros';
 
-function Register() {
+function Index() {
   const isLoading = false;
 
   return (
@@ -27,7 +27,7 @@ function Register() {
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
               <Link
-                to={'/launch'}
+                to={'/insert/launch'}
                 className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
               >
                 Realizar Lançamento
@@ -82,4 +82,4 @@ function Register() {
   );
 }
 
-export default Register;
+export default Index;
