@@ -1,21 +1,21 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Base from './pages/Base';
-import Register from './pages/Register';
+import Register from './pages/insert/Register';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import CreateAccount from './pages/CreateAccount';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Launch from './pages/Launch';
+import Launch from './pages/insert/Launch';
 import FollowUp from './pages/FollowUp';
-import SearchMaterial from './pages/SearchMaterial';
+import SearchMaterial from './pages/search/SearchMaterial';
 import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
-import MentoringHistory from './pages/MentoringHistory';
-import ClassHistory from './pages/ClassHistory';
+import MentoringHistory from './pages/history/MentoringHistory';
+import ClassHistory from './pages/history/ClassHistory';
 
 function AppRoutes() {
   return (
@@ -23,24 +23,31 @@ function AppRoutes() {
       <Routes>
         <Route path='/' element={<Base />}>
           <Route index element={<Home />}></Route>
-          <Route path='/register' element={<Register />}></Route>
           <Route path='/profile' element={<Profile />}></Route>
-          <Route path='/launch' element={<Launch />}></Route>
           <Route path='/followUp' element={<FollowUp />}></Route>
-          <Route path='/searchMaterial' element={<SearchMaterial />}></Route>
+          <Route path='/search/material' element={<SearchMaterial />}></Route>
           <Route path='/verification' element={<Verification />}></Route>
-          <Route path='/registeredUsers' element={<RegisteredUsers />}></Route>
           <Route path='/viewClass' element={<ViewClass />}></Route>
-          <Route path='/classHistory' element={<ClassHistory />}></Route>
+
+          {/* telas de histórico */}
+          <Route path='/history/class' element={<ClassHistory />}></Route>
           <Route
-            path='/mentoringHistory'
+            path='/history/mentoring'
             element={<MentoringHistory />}
           ></Route>
+
+          {/* insert de bens */}
+          <Route path='/insert/' element={<Register />}></Route>
+          <Route path='/insert/launch' element={<Launch />}></Route>
+
+          {/* Users get */}
+          <Route path='/users' element={<RegisteredUsers />}></Route>
           <Route
-            path='/registrationRequest'
+            path='/users/request'
             element={<RegistrationRequest />}
           ></Route>
         </Route>
+        {/* rotas sem autenticação */}
         <Route path='/login' element={<Login />}></Route>
         <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
         <Route path='/resetPassword' element={<ResetPassword />}></Route>

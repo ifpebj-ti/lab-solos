@@ -53,7 +53,7 @@ function RegisteredUsers() {
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
               <Link
-                to={'/registrationRequest'}
+                to={'/users/request'}
                 className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
               >
                 Solicitações de Cadastro
