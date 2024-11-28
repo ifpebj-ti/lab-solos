@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
 using Microsoft.EntityFrameworkCore;
+using LabSolos_Server_DotNet8.Enums;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
@@ -57,7 +58,47 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task AddAsync(Usuario usuario)
         {
             _logger.LogInformation("Iniciando operação para adicionar um novo usuario: {Nome}.", usuario.NomeCompleto);
-            await _context.Usuarios.AddAsync(usuario);
+
+            switch (usuario.TipoUsuario)
+            {
+                case TipoUsuario.Administrador:
+                    var admin = new Administrador
+                    {
+                        NomeCompleto = usuario.NomeCompleto,
+                        Email = usuario.Email,
+                        SenhaHash = usuario.SenhaHash,
+                        Telefone = usuario.Telefone,
+                        DataIngresso = usuario.DataIngresso,
+                        NivelUsuario = usuario.NivelUsuario,
+                        TipoUsuario = TipoUsuario.Administrador,
+                        Status = usuario.Status
+                    };
+                    await _context.Administradores.AddAsync(admin);
+                    break;
+
+                case TipoUsuario.Academico:
+                    var academico = new Academico
+                    {
+                        NomeCompleto = usuario.NomeCompleto,
+                        Email = usuario.Email,
+                        SenhaHash = usuario.SenhaHash,
+                        Telefone = usuario.Telefone,
+                        DataIngresso = usuario.DataIngresso,
+                        NivelUsuario = usuario.NivelUsuario,
+                        TipoUsuario = TipoUsuario.Academico,
+                        Status = usuario.Status,
+                        Instituicao = (usuario as Academico)!.Instituicao,
+                        Cidade = (usuario as Academico)?.Cidade,
+                        Curso = (usuario as Academico)?.Curso
+                    };
+                    await _context.Academicos.AddAsync(academico);
+                    break;
+
+                default:
+                    await _context.Usuarios.AddAsync(usuario);
+                    break;
+                
+            }
             await _context.SaveChangesAsync();
             _logger.LogInformation("Usuario {Nome} adicionado com sucesso.", usuario.NomeCompleto);
         }

@@ -3073,3 +3073,317 @@ FROM "Produtos" AS "p"
 2024-11-27 21:14:16.188 -03:00 [INF] HTTP GET /api/produtos/tipo/1 responded 200 in 22.1509 ms
 2024-11-27 21:14:16.190 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos/tipo/1 - 200 null application/json; charset=utf-8 24.8715ms
 2024-11-27 22:12:45.555 -03:00 [INF] Application is shutting down...
+2024-11-27 22:25:39.802 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 22:25:40.047 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:25:40.129 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:25:40.193 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:25:40.194 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:25:40.195 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:25:40.195 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:25:49.732 -03:00 [INF] Application is shutting down...
+2024-11-27 22:25:53.150 -03:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 22:25:53.339 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 22:25:53.340 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 22:25:53.340 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 22:25:53.341 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 22:25:53.341 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 22:25:53.341 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 22:25:53.342 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 22:25:53.342 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 22:25:53.519 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:25:53.529 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 22:25:53.535 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 22:25:53.537 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 22:25:53.840 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:25:53.842 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:25:53.855 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:25:53.856 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:25:53.860 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:25:53.862 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:25:54.251 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:25:54.252 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:25:54.252 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 22:25:54.254 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:25:54.255 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:25:54.343 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:25:54.406 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:25:54.408 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:25:54.408 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:25:54.408 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:25:57.328 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 161
+2024-11-27 22:25:57.379 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 22:25:57.411 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:25:57.437 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 22:25:57.490 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Administrador Teste.
+2024-11-27 22:25:57.565 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 23), @p2='?' (DbType = Int32), @p3='?' (Size = 19), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 22:25:57.591 -03:00 [INF] Usuario Administrador Teste adicionado com sucesso.
+2024-11-27 22:25:57.597 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 22:25:57.691 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 249.9201ms
+2024-11-27 22:25:57.692 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:25:57.694 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 316.4698 ms
+2024-11-27 22:25:57.703 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 374.1497ms
+2024-11-27 22:39:07.563 -03:00 [INF] Application is shutting down...
+2024-11-27 22:39:14.457 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 22:39:14.734 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:39:14.820 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:39:14.886 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:39:14.888 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:39:14.888 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:39:14.889 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:39:21.899 -03:00 [INF] Application is shutting down...
+2024-11-27 22:39:26.005 -03:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 22:39:26.209 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 22:39:26.210 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 22:39:26.210 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 22:39:26.211 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 22:39:26.211 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 22:39:26.211 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 22:39:26.212 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 22:39:26.212 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 22:39:26.394 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:39:26.402 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 22:39:26.406 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 22:39:26.408 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 22:39:26.687 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:39:26.690 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:39:26.699 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:39:26.700 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:39:26.706 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:39:26.707 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:39:27.086 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:39:27.087 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:39:27.088 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 22:39:27.090 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:39:27.090 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:39:27.189 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:39:27.255 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:39:27.257 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:39:27.258 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:39:27.258 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:39:30.581 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 161
+2024-11-27 22:39:30.639 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 22:39:30.673 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:39:30.702 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 22:39:30.773 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Administrador Teste.
+2024-11-27 22:39:30.869 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 23), @p2='?' (DbType = Int32), @p3='?' (Size = 19), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 22:39:30.907 -03:00 [INF] Usuario Administrador Teste adicionado com sucesso.
+2024-11-27 22:39:30.917 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 22:39:31.047 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 338.0255ms
+2024-11-27 22:39:31.048 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:39:31.051 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 411.8645 ms
+2024-11-27 22:39:31.062 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 483.2437ms
+2024-11-27 22:40:48.173 -03:00 [INF] Application is shutting down...
