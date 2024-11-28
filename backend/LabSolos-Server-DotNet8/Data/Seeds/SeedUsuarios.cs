@@ -34,7 +34,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 NivelUsuario = NivelUsuario.Mentor,
                 TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
-                Instituição = "Universidade Exemplo",
+                Instituicao = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
                 Curso = "Curso Exemplo"
             };
@@ -49,7 +49,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 NivelUsuario = NivelUsuario.Mentorado,
                 TipoUsuario = TipoUsuario.Academico,
                 Status = StatusUsuario.Habilitado,
-                Instituição = "Universidade Exemplo",
+                Instituicao = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
                 Curso = "Curso Exemplo"
             };

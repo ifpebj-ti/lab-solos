@@ -46,10 +46,10 @@ namespace LabSolos_Server_DotNet8.Services
                         {
                             Id = m.Id,
                             NomeCompleto = m.NomeCompleto,
-                            Nivel = m.NivelUsuario.ToString(),
+                            NivelUsuario = m.NivelUsuario.ToString(),
                             Email = m.Email,
                             Telefone = m.Telefone,
-                            Instituicao = m.Instituição,
+                            Instituicao = m.Instituicao,
                             Curso = m.Curso,
                             Status = m.Status.ToString()
                         }).ToList<object>();
