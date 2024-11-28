@@ -2980,3 +2980,96 @@ RETURNING "Id";
 2024-11-26 21:50:59.010 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 255.9118 ms
 2024-11-26 21:50:59.010 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 258.7561ms
 2024-11-26 21:53:56.072 -03:00 [INF] Application is shutting down...
+2024-11-27 21:12:41.397 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 21:12:41.693 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 21:12:41.789 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 21:12:41.860 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 21:12:41.862 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 21:12:41.863 -03:00 [INF] Hosting environment: Development
+2024-11-27 21:12:41.863 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 21:12:55.258 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/1 - null null
+2024-11-27 21:12:55.308 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 21:12:55.408 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:12:55.521 -03:00 [INF] Route matched with {action = "GetByTipo", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetByTipo(Int32) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 21:12:55.536 -03:00 [INF] Iniciando operação para obter usuarios do tipo "Academico".
+2024-11-27 21:12:55.538 -03:00 [INF] Iniciando operação para obter usuários do tipo "Academico".
+2024-11-27 21:12:55.539 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2024-11-27 21:12:55.619 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituição"
+FROM "Usuarios" AS "u"
+2024-11-27 21:12:55.722 -03:00 [INF] Operação concluída. 4 usuarios obtidos.
+2024-11-27 21:12:55.724 -03:00 [INF] 2 academicos obtidos.
+2024-11-27 21:12:55.731 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 21:12:55.773 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8) in 248.3466ms
+2024-11-27 21:12:55.774 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:12:55.778 -03:00 [INF] HTTP GET /api/usuarios/tipo/1 responded 200 in 469.7685 ms
+2024-11-27 21:12:55.789 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/1 - 200 null application/json; charset=utf-8 532.2018ms
+2024-11-27 21:13:42.992 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/0 - null null
+2024-11-27 21:13:43.030 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:13:43.034 -03:00 [INF] Route matched with {action = "GetByTipo", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetByTipo(Int32) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 21:13:43.057 -03:00 [INF] Iniciando operação para obter usuarios do tipo "Administrador".
+2024-11-27 21:13:43.060 -03:00 [INF] Iniciando operação para obter usuários do tipo "Administrador".
+2024-11-27 21:13:43.062 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2024-11-27 21:13:43.215 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituição"
+FROM "Usuarios" AS "u"
+2024-11-27 21:13:43.217 -03:00 [INF] Operação concluída. 4 usuarios obtidos.
+2024-11-27 21:13:43.218 -03:00 [INF] 1 administradores obtidos.
+2024-11-27 21:13:43.219 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 21:13:43.231 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8) in 192.1397ms
+2024-11-27 21:13:43.231 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:13:43.231 -03:00 [INF] HTTP GET /api/usuarios/tipo/0 responded 200 in 212.7330 ms
+2024-11-27 21:13:43.233 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/0 - 200 null application/json; charset=utf-8 240.0725ms
+2024-11-27 21:13:58.095 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/1 - null null
+2024-11-27 21:13:58.099 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:13:58.099 -03:00 [INF] Route matched with {action = "GetByTipo", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetByTipo(Int32) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 21:13:58.102 -03:00 [INF] Iniciando operação para obter usuarios do tipo "Academico".
+2024-11-27 21:13:58.102 -03:00 [INF] Iniciando operação para obter usuários do tipo "Academico".
+2024-11-27 21:13:58.102 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2024-11-27 21:13:58.103 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituição"
+FROM "Usuarios" AS "u"
+2024-11-27 21:13:58.104 -03:00 [INF] Operação concluída. 4 usuarios obtidos.
+2024-11-27 21:13:58.104 -03:00 [INF] 2 academicos obtidos.
+2024-11-27 21:13:58.104 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 21:13:58.105 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8) in 5.4578ms
+2024-11-27 21:13:58.105 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.GetByTipo (LabSolos-Server-DotNet8)'
+2024-11-27 21:13:58.105 -03:00 [INF] HTTP GET /api/usuarios/tipo/1 responded 200 in 7.8808 ms
+2024-11-27 21:13:58.105 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/usuarios/tipo/1 - 200 null application/json; charset=utf-8 9.6172ms
+2024-11-27 21:14:08.441 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos/tipo/0 - null null
+2024-11-27 21:14:08.448 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-27 21:14:08.477 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2024-11-27 21:14:08.481 -03:00 [INF] Iniciando operação para obter produtos do tipo "Quimico".
+2024-11-27 21:14:08.485 -03:00 [INF] Iniciando operação para obter produtos do tipo "Quimico".
+2024-11-27 21:14:08.488 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2024-11-27 21:14:08.510 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2024-11-27 21:14:08.612 -03:00 [INF] Operação concluída. 4 produtos obtidos.
+2024-11-27 21:14:08.615 -03:00 [INF] 2 produtos químicos obtidos.
+2024-11-27 21:14:08.616 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 21:14:08.639 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8) in 161.2847ms
+2024-11-27 21:14:08.639 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-27 21:14:08.640 -03:00 [INF] HTTP GET /api/produtos/tipo/0 responded 200 in 195.7074 ms
+2024-11-27 21:14:08.640 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos/tipo/0 - 200 null application/json; charset=utf-8 200.0954ms
+2024-11-27 21:14:16.165 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos/tipo/1 - null null
+2024-11-27 21:14:16.166 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-27 21:14:16.166 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll(Int32) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2024-11-27 21:14:16.167 -03:00 [INF] Iniciando operação para obter produtos do tipo "Vidraria".
+2024-11-27 21:14:16.168 -03:00 [INF] Iniciando operação para obter produtos do tipo "Vidraria".
+2024-11-27 21:14:16.168 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2024-11-27 21:14:16.171 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2024-11-27 21:14:16.172 -03:00 [INF] Operação concluída. 4 produtos obtidos.
+2024-11-27 21:14:16.175 -03:00 [INF] 2 vidrarias obtidas.
+2024-11-27 21:14:16.175 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 21:14:16.187 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8) in 20.6273ms
+2024-11-27 21:14:16.188 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2024-11-27 21:14:16.188 -03:00 [INF] HTTP GET /api/produtos/tipo/1 responded 200 in 22.1509 ms
+2024-11-27 21:14:16.190 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos/tipo/1 - 200 null application/json; charset=utf-8 24.8715ms
+2024-11-27 22:12:45.555 -03:00 [INF] Application is shutting down...

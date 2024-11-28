@@ -1,3 +1,4 @@
+using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
@@ -55,9 +56,53 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Usuario usuario)
+        public async Task<IActionResult> Add([FromBody] AddUsuarioDTO usuarioDto)
         {
+            // Criação do objeto usuário
+            Usuario usuario = usuarioDto switch
+            {
+                AddAcademicoDTO academicoDto => new Academico
+                {
+                    NomeCompleto = academicoDto.NomeCompleto,
+                    Email = academicoDto.Email,
+                    SenhaHash = academicoDto.Senha,
+                    Telefone = academicoDto.Telefone,
+                    NivelUsuario = (NivelUsuario) academicoDto.NivelUsuario,
+                    TipoUsuario = TipoUsuario.Academico,
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now,
+                    EmprestimosSolicitados = [], // Inicia listas vazias
+                    EmprestimosAprovados = [],
+                    // Atribuição dos campos específicos do acadêmico
+                    Instituicao = academicoDto.Instituicao,
+                    Curso = academicoDto.Curso,
+                },
+                AddAdministradorDTO administradorDTO => new Administrador
+                {
+                    NomeCompleto = administradorDTO.NomeCompleto,
+                    Email = administradorDTO.Email,
+                    SenhaHash = administradorDTO.Senha,
+                    Telefone = administradorDTO.Telefone,
+                    NivelUsuario = (NivelUsuario) administradorDTO.NivelUsuario,
+                    TipoUsuario = TipoUsuario.Administrador, // Para usuários comuns
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now
+                },
+                _ => new Usuario
+                {
+                    NomeCompleto = usuarioDto.NomeCompleto,
+                    Email = usuarioDto.Email,
+                    SenhaHash = usuarioDto.Senha,
+                    Telefone = usuarioDto.Telefone,
+                    NivelUsuario = (NivelUsuario) usuarioDto.NivelUsuario,
+                    TipoUsuario = TipoUsuario.Administrador, // Para usuários comuns
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now
+                }
+            };
+
             await _usuarioService.AddAsync(usuario);
+
             return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
         }
 

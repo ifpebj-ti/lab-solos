@@ -1,0 +1,45 @@
+# Compiled files
+*.dll
+*.exe
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+
+# Build directories
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Log and database files
+*.log
+*.ldf
+*.mdf
+
+# Package directories
+*.nuget/
+packages/
+.vscode/
+
+# SourceLink
+*.sourcelink
+
+# Visual Studio working files
+.vs/
+.vscode/
+
+# Assembly info
+**/AssemblyInfo.*
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.swp
