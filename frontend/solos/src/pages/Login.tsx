@@ -5,6 +5,8 @@ import logo from '../../public/images/logo.png';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import InputPassword from '../components/global/inputs/Password';
+import { useState } from 'react';
+import { authenticate } from '@/integration/Auth';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -14,6 +16,7 @@ const submitLoginSchema = z.object({
 type LoginFormData = z.infer<typeof submitLoginSchema>;
 
 function Login() {
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -23,8 +26,17 @@ function Login() {
   });
   const navigate = useNavigate();
 
-  function postLogin() {
-    navigate('/');
+  async function postLogin(data: LoginFormData) {
+    setLoading(true);
+    try {
+      const response = await authenticate({ method: 'POST', params: data });
+      console.log('Login bem-sucedido:', response);
+      navigate('/'); // Redireciona para a página principal
+    } catch (error) {
+      console.error('Erro ao autenticar:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -76,18 +88,18 @@ function Login() {
             </div>
             <button
               type='submit'
-              className='mt-3 mb-3 bg-primaryMy rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90'
+              disabled={loading}
+              className={`mt-3 mb-3 rounded text-center h-9 w-full font-rajdhani-semibold text-white ${
+                loading
+                  ? 'bg-opacity-50 cursor-not-allowed'
+                  : 'bg-primaryMy hover:bg-opacity-90'
+              }`}
             >
-              Submeter Login
+              {loading ? 'Carregando...' : 'Submeter Login'}
             </button>
           </form>
         </div>
       </div>
-      {/* {output && (
-                <pre className="mt-4 p-2 text-sm text-gray-700 bg-gray-100 rounded-md">
-                    {output}
-                </pre>
-            )} */}
     </div>
   );
 }
