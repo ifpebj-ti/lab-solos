@@ -58,53 +58,73 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddUsuarioDTO usuarioDto)
         {
-            // Criação do objeto usuário
-            Usuario usuario = usuarioDto switch
+            var niveisAcademico = new[] { "Mentor", "Mentorado" };
+            try
             {
-                AddAcademicoDTO academicoDto => new Academico
+                // Validar os dados do usuário através do serviço
+                var resultadoValidacao = await _usuarioService.ValidarEstrutura(usuarioDto);
+                if (!resultadoValidacao.Validado)
                 {
-                    NomeCompleto = academicoDto.NomeCompleto,
-                    Email = academicoDto.Email,
-                    SenhaHash = academicoDto.Senha,
-                    Telefone = academicoDto.Telefone,
-                    NivelUsuario = (NivelUsuario) academicoDto.NivelUsuario,
-                    TipoUsuario = TipoUsuario.Academico,
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now,
-                    EmprestimosSolicitados = [], // Inicia listas vazias
-                    EmprestimosAprovados = [],
-                    // Atribuição dos campos específicos do acadêmico
-                    Instituicao = academicoDto.Instituicao,
-                    Curso = academicoDto.Curso,
-                },
-                AddAdministradorDTO administradorDTO => new Administrador
-                {
-                    NomeCompleto = administradorDTO.NomeCompleto,
-                    Email = administradorDTO.Email,
-                    SenhaHash = administradorDTO.Senha,
-                    Telefone = administradorDTO.Telefone,
-                    NivelUsuario = (NivelUsuario) administradorDTO.NivelUsuario,
-                    TipoUsuario = TipoUsuario.Administrador, // Para usuários comuns
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now
-                },
-                _ => new Usuario
-                {
-                    NomeCompleto = usuarioDto.NomeCompleto,
-                    Email = usuarioDto.Email,
-                    SenhaHash = usuarioDto.Senha,
-                    Telefone = usuarioDto.Telefone,
-                    NivelUsuario = (NivelUsuario) usuarioDto.NivelUsuario,
-                    TipoUsuario = TipoUsuario.Administrador, // Para usuários comuns
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now
+                    return BadRequest(new { Message = resultadoValidacao.Mensagem });
                 }
-            };
 
-            await _usuarioService.AddAsync(usuario);
+                // Criar o objeto de acordo com o tipo
+                Usuario usuario = usuarioDto.NivelUsuario switch
+                {
+                    "Mentor" => new Academico
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Mentor,
+                        TipoUsuario = TipoUsuario.Academico,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now,
+                        Instituicao = usuarioDto.Instituicao!,
+                        Curso = usuarioDto.Curso!
+                    },
+                    "Mentorado" => new Academico
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Mentorado,
+                        TipoUsuario = TipoUsuario.Academico,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now,
+                        Instituicao = usuarioDto.Instituicao!,
+                        Curso = usuarioDto.Curso!
+                    },
+                    "Comum" => new Usuario
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Comum,
+                        TipoUsuario = TipoUsuario.Comum,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now
+                    },
+                    _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
+                };
 
-            return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
+                await _usuarioService.AddAsync(usuario);
+
+                return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro inesperado.", Details = ex.Message });
+            }
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Usuario usuario)

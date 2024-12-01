@@ -3387,3 +3387,1133 @@ RETURNING "Id";
 2024-11-27 22:39:31.051 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 411.8645 ms
 2024-11-27 22:39:31.062 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 483.2437ms
 2024-11-27 22:40:48.173 -03:00 [INF] Application is shutting down...
+2024-11-27 22:42:29.151 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 22:42:29.469 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:42:29.561 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:42:29.634 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:42:29.636 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:42:29.636 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:42:29.636 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:42:37.323 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 234
+2024-11-27 22:42:37.361 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 22:42:37.394 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:42:37.426 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 22:42:37.480 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 22:42:37.704 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 22:42:37.762 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 22:42:37.767 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 22:42:37.855 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 424.1953ms
+2024-11-27 22:42:37.856 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:42:37.859 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 498.6588 ms
+2024-11-27 22:42:37.868 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 544.5605ms
+2024-11-27 22:49:59.504 -03:00 [INF] Application is shutting down...
+2024-11-27 22:50:07.056 -03:00 [INF] Executed DbCommand (22ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 22:50:07.259 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 22:50:07.259 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 22:50:07.260 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 22:50:07.260 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 22:50:07.260 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 22:50:07.261 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 22:50:07.261 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 22:50:07.261 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 22:50:07.451 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:50:07.460 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 22:50:07.467 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 22:50:07.469 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 22:50:07.766 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:50:07.768 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:50:07.781 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:50:07.782 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:50:07.788 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:50:07.789 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:50:08.176 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:50:08.177 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:50:08.177 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 22:50:08.179 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:50:08.180 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:50:08.276 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:50:08.342 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:50:08.344 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:50:08.345 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:50:08.345 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:50:13.615 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 22:50:13.666 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 22:50:13.692 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:50:13.716 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 22:50:13.778 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 22:50:13.850 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 22:50:13.894 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 22:50:13.899 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 22:50:13.992 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 272.0745ms
+2024-11-27 22:50:13.994 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:50:13.996 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 331.1286 ms
+2024-11-27 22:50:14.003 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 388.8643ms
+2024-11-27 22:55:47.224 -03:00 [INF] Application is shutting down...
+2024-11-27 22:55:55.030 -03:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 22:55:55.257 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 22:55:55.257 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 22:55:55.258 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 22:55:55.258 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 22:55:55.258 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 22:55:55.259 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 22:55:55.259 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 22:55:55.259 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 22:55:55.477 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 22:55:55.486 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 22:55:55.489 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 22:55:55.491 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 22:55:55.809 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:55:55.812 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 22:55:55.828 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:55:55.829 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 22:55:55.835 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:55:55.836 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 22:55:56.227 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:55:56.228 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 22:55:56.228 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 22:55:56.230 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:55:56.231 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 22:55:56.329 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 22:55:56.402 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 22:55:56.405 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 22:55:56.405 -03:00 [INF] Hosting environment: Development
+2024-11-27 22:55:56.406 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 22:55:58.441 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 22:55:58.490 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 22:55:58.522 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:55:58.541 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 22:55:58.599 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 53.3901ms
+2024-11-27 22:55:58.601 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 22:55:58.604 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 114.2052 ms
+System.InvalidOperationException: A estrutura fornecida não é reconhecida.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 91
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 22:55:58.628 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: A estrutura fornecida não é reconhecida.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 91
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 22:55:58.643 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 203.2171ms
+2024-11-27 23:02:32.810 -03:00 [INF] Application is shutting down...
+2024-11-27 23:02:42.236 -03:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 23:02:42.457 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 23:02:42.458 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 23:02:42.458 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 23:02:42.459 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 23:02:42.460 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 23:02:42.460 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 23:02:42.461 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 23:02:42.461 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 23:02:42.699 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:02:42.708 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 23:02:42.711 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 23:02:42.714 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 23:02:43.107 -03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 23:02:43.109 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 23:02:43.120 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 23:02:43.121 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 23:02:43.125 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 23:02:43.126 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 23:02:43.524 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 23:02:43.524 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 23:02:43.525 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 23:02:43.527 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 23:02:43.528 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 23:02:43.647 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:02:43.722 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:02:43.724 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:02:43.724 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:02:43.725 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:02:50.060 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:02:50.114 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:02:50.145 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:02:50.173 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(System.Object) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:02:50.241 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 64.9127ms
+2024-11-27 23:02:50.243 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:02:50.246 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 134.3936 ms
+Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: 'System.Text.Json.JsonElement' does not contain a definition for 'Tipo'
+   at CallSite.Target(Closure, CallSite, Object)
+   at System.Dynamic.UpdateDelegates.UpdateAndExecute1[T0,TRet](CallSite site, T0 arg0)
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(Object usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 62
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:02:50.267 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: 'System.Text.Json.JsonElement' does not contain a definition for 'Tipo'
+   at CallSite.Target(Closure, CallSite, Object)
+   at System.Dynamic.UpdateDelegates.UpdateAndExecute1[T0,TRet](CallSite site, T0 arg0)
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(Object usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 62
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:02:50.282 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 222.1858ms
+2024-11-27 23:07:38.884 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:07:38.887 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:07:38.887 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(System.Object) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:07:38.890 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 1.7466ms
+2024-11-27 23:07:38.890 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:07:38.890 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 3.8132 ms
+Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: 'System.Text.Json.JsonElement' does not contain a definition for 'Tipo'
+   at CallSite.Target(Closure, CallSite, Object)
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(Object usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 62
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:07:38.892 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: 'System.Text.Json.JsonElement' does not contain a definition for 'Tipo'
+   at CallSite.Target(Closure, CallSite, Object)
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(Object usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 62
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:07:38.895 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 10.7179ms
+2024-11-27 23:07:44.273 -03:00 [INF] Application is shutting down...
+2024-11-27 23:07:51.100 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:07:51.362 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:07:51.447 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:07:51.515 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:07:51.517 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:07:51.517 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:07:51.517 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:08:05.896 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:08:05.943 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:08:05.972 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:08:05.997 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:08:06.053 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 52.1772ms
+2024-11-27 23:08:06.055 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:08:06.058 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 115.7234 ms
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:08:06.076 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:08:06.095 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 199.2669ms
+2024-11-27 23:09:00.747 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 180
+2024-11-27 23:09:00.750 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:00.750 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:09:00.764 -03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2024-11-27 23:09:00.807 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 56.5699ms
+2024-11-27 23:09:00.808 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:00.808 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 58.6814 ms
+2024-11-27 23:09:00.808 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/problem+json; charset=utf-8 61.2791ms
+2024-11-27 23:09:09.247 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 179
+2024-11-27 23:09:09.250 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:09.251 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:09:09.254 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 3.4318ms
+2024-11-27 23:09:09.255 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:09.255 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 6.3457 ms
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:09:09.257 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:09:09.262 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 14.8359ms
+2024-11-27 23:09:38.617 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 179
+2024-11-27 23:09:38.617 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:38.618 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:09:38.619 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 0.9912ms
+2024-11-27 23:09:38.619 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:09:38.620 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 2.3341 ms
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:09:38.621 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:09:38.623 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 6.4845ms
+2024-11-27 23:10:44.394 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 177
+2024-11-27 23:10:44.395 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:10:44.395 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:10:44.398 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 23:10:44.645 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 23:10:44.692 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 23:10:44.693 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Administrador'.
+2024-11-27 23:10:44.765 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 369.0763ms
+2024-11-27 23:10:44.765 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:10:44.765 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 369.9870 ms
+2024-11-27 23:10:44.768 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 374.1404ms
+2024-11-27 23:10:53.406 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 183
+2024-11-27 23:10:53.406 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:10:53.407 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:10:53.407 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 23:10:53.503 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 23:10:53.509 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 23:10:53.509 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Administrador'.
+2024-11-27 23:10:53.510 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 103.3013ms
+2024-11-27 23:10:53.510 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:10:53.510 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 104.1056 ms
+2024-11-27 23:10:53.511 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 105.0845ms
+2024-11-27 23:11:43.635 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:11:43.635 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:11:43.636 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:11:43.637 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 0.965ms
+2024-11-27 23:11:43.637 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:11:43.637 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 2.0950 ms
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:11:43.639 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:11:43.640 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 5.2178ms
+2024-11-27 23:12:55.135 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:12:55.136 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:12:55.136 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:12:55.137 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 1.0019ms
+2024-11-27 23:12:55.137 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:12:55.138 -03:00 [ERR] HTTP POST /api/usuarios responded 500 in 2.0900 ms
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2024-11-27 23:12:55.139 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at LabSolos_Server_DotNet8.Controllers.UsuariosController.Add(AddUsuarioDTO usuarioDto) in /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:line 77
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2024-11-27 23:12:55.141 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 500 null text/plain; charset=utf-8 5.3227ms
+2024-11-27 23:18:15.790 -03:00 [INF] Application is shutting down...
+2024-11-27 23:18:27.301 -03:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2024-11-27 23:18:27.509 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2024-11-27 23:18:27.509 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2024-11-27 23:18:27.510 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2024-11-27 23:18:27.510 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2024-11-27 23:18:27.510 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2024-11-27 23:18:27.511 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2024-11-27 23:18:27.511 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2024-11-27 23:18:27.511 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2024-11-27 23:18:27.705 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:18:27.714 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2024-11-27 23:18:27.718 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2024-11-27 23:18:27.721 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2024-11-27 23:18:28.021 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 23:18:28.024 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2024-11-27 23:18:28.035 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 23:18:28.036 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2024-11-27 23:18:28.040 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 23:18:28.041 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2024-11-27 23:18:28.463 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 23:18:28.464 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2024-11-27 23:18:28.464 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2024-11-27 23:18:28.466 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 23:18:28.467 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2024-11-27 23:18:28.569 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:18:28.637 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:18:28.639 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:18:28.639 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:18:28.639 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:18:32.109 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:18:32.158 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:18:32.188 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:18:32.216 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:18:32.280 -03:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType2`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 23:18:32.291 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 69.8241ms
+2024-11-27 23:18:32.292 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:18:32.296 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 136.8118 ms
+2024-11-27 23:18:32.300 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/json; charset=utf-8 192.1278ms
+2024-11-27 23:19:50.573 -03:00 [INF] Application is shutting down...
+2024-11-27 23:19:57.637 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:19:57.890 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:19:57.979 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:19:58.044 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:19:58.046 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:19:58.047 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:19:58.047 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:20:05.432 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:20:05.477 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:20:05.504 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:20:05.527 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:20:05.590 -03:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType2`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 23:20:05.603 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 71.3804ms
+2024-11-27 23:20:05.605 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:20:05.607 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 130.1265 ms
+2024-11-27 23:20:05.611 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/json; charset=utf-8 179.7368ms
+2024-11-27 23:25:11.550 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 251
+2024-11-27 23:25:11.552 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:25:11.553 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:25:11.557 -03:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType2`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 23:25:11.558 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 5.0256ms
+2024-11-27 23:25:11.559 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:25:11.559 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 7.6972 ms
+2024-11-27 23:25:11.561 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/json; charset=utf-8 10.8677ms
+2024-11-27 23:27:35.820 -03:00 [INF] Application is shutting down...
+2024-11-27 23:27:42.941 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:27:43.200 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:27:43.312 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:27:43.384 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:27:43.386 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:27:43.387 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:27:43.387 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:28:27.205 -03:00 [INF] Application is shutting down...
+2024-11-27 23:28:34.231 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:28:34.490 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:28:34.576 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:28:34.645 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:28:34.647 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:28:34.647 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:28:34.648 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:28:49.718 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 23:28:49.765 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:28:49.795 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:28:49.823 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:28:49.883 -03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2024-11-27 23:28:49.926 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 98.7222ms
+2024-11-27 23:28:49.927 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:28:49.936 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 166.7250 ms
+2024-11-27 23:28:49.941 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/problem+json; charset=utf-8 224.2363ms
+2024-11-27 23:29:07.952 -03:00 [INF] Application is shutting down...
+2024-11-27 23:29:14.805 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:29:15.094 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:29:15.180 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:29:15.248 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:29:15.250 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:29:15.251 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:29:15.251 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:29:16.850 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 23:29:16.910 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:29:16.939 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:29:16.969 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:29:17.053 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 23:29:17.305 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 23:29:17.359 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 23:29:17.365 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 23:29:17.480 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 506.6938ms
+2024-11-27 23:29:17.481 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:29:17.483 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 575.7531 ms
+2024-11-27 23:29:17.492 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 642.1026ms
+2024-11-27 23:33:01.758 -03:00 [INF] Application is shutting down...
+2024-11-27 23:33:08.262 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:33:08.560 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:33:08.674 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:33:08.763 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:33:08.766 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:33:08.767 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:33:08.768 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:33:19.344 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 23:33:19.394 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:33:19.421 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:33:19.447 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(System.Object) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:33:19.484 -03:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType2`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 23:33:19.501 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 49.6254ms
+2024-11-27 23:33:19.503 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:33:19.505 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 111.8825 ms
+2024-11-27 23:33:19.512 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/json; charset=utf-8 168.7188ms
+2024-11-27 23:33:36.237 -03:00 [INF] Application is shutting down...
+2024-11-27 23:33:43.101 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:33:43.373 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:33:43.461 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:33:43.535 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:33:43.538 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:33:43.538 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:33:43.538 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:33:46.796 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 23:33:46.842 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:33:46.872 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:33:46.906 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(System.Object) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:33:46.954 -03:00 [INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType2`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2024-11-27 23:33:46.973 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 63.2592ms
+2024-11-27 23:33:46.975 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:33:46.978 -03:00 [INF] HTTP POST /api/usuarios responded 400 in 137.5282 ms
+2024-11-27 23:33:46.981 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 400 null application/json; charset=utf-8 186.1886ms
+2024-11-27 23:37:45.786 -03:00 [INF] Application is shutting down...
+2024-11-27 23:37:52.367 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2024-11-27 23:37:52.644 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2024-11-27 23:37:52.729 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2024-11-27 23:37:52.797 -03:00 [INF] Now listening on: http://localhost:5289
+2024-11-27 23:37:52.799 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2024-11-27 23:37:52.800 -03:00 [INF] Hosting environment: Development
+2024-11-27 23:37:52.800 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2024-11-27 23:38:05.117 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/usuarios - application/json 228
+2024-11-27 23:38:05.167 -03:00 [WRN] Failed to determine the https port for redirect.
+2024-11-27 23:38:05.199 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:38:05.224 -03:00 [INF] Route matched with {action = "Add", controller = "Usuarios"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Add(LabSolos_Server_DotNet8.DTOs.Usuarios.AddUsuarioDTO) on controller LabSolos_Server_DotNet8.Controllers.UsuariosController (LabSolos-Server-DotNet8).
+2024-11-27 23:38:05.286 -03:00 [INF] Iniciando operação para adicionar um novo usuario: Mentor Teste.
+2024-11-27 23:38:05.530 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (Size = 24), @p2='?' (DbType = Int32), @p3='?' (Size = 12), @p4='?' (Size = 17), @p5='?' (DbType = Int32), @p6='?' (Size = 9), @p7='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)
+RETURNING "Id";
+2024-11-27 23:38:05.572 -03:00 [INF] Usuario Mentor Teste adicionado com sucesso.
+2024-11-27 23:38:05.579 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Usuario'.
+2024-11-27 23:38:05.670 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8) in 442.0044ms
+2024-11-27 23:38:05.672 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.UsuariosController.Add (LabSolos-Server-DotNet8)'
+2024-11-27 23:38:05.675 -03:00 [INF] HTTP POST /api/usuarios responded 201 in 508.5751 ms
+2024-11-27 23:38:05.685 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/usuarios - 201 null application/json; charset=utf-8 568.2342ms
+2024-11-27 23:38:29.133 -03:00 [INF] Application is shutting down...

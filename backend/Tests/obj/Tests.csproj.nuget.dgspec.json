@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/tomas/Desktop/lab-solos/backend/Tests/Tests.csproj": {}
+    "/home/bearer/Desktop/lab-solos/backend/Tests/Tests.csproj": {}
   },
   "projects": {
-    "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
+    "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
+        "projectUniqueName": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
         "projectName": "LabSolos-Server-DotNet8",
-        "projectPath": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
-        "packagesPath": "/home/tomas/.nuget/packages/",
-        "outputPath": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/",
+        "projectPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
+        "packagesPath": "/home/bearer/.nuget/packages/",
+        "outputPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/tomas/.nuget/NuGet/NuGet.Config"
+          "/home/bearer/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,17 +32,20 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.10, )"
+            },
+            "Microsoft.AspNetCore.Identity": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.10, )"
@@ -56,6 +59,18 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.10, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[8.0.3, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[6.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -81,21 +96,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.403/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/home/tomas/Desktop/lab-solos/backend/Tests/Tests.csproj": {
+    "/home/bearer/Desktop/lab-solos/backend/Tests/Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/tomas/Desktop/lab-solos/backend/Tests/Tests.csproj",
+        "projectUniqueName": "/home/bearer/Desktop/lab-solos/backend/Tests/Tests.csproj",
         "projectName": "Tests",
-        "projectPath": "/home/tomas/Desktop/lab-solos/backend/Tests/Tests.csproj",
-        "packagesPath": "/home/tomas/.nuget/packages/",
-        "outputPath": "/home/tomas/Desktop/lab-solos/backend/Tests/obj/",
+        "projectPath": "/home/bearer/Desktop/lab-solos/backend/Tests/Tests.csproj",
+        "packagesPath": "/home/bearer/.nuget/packages/",
+        "outputPath": "/home/bearer/Desktop/lab-solos/backend/Tests/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/tomas/.nuget/NuGet/NuGet.Config"
+          "/home/bearer/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -107,8 +122,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
-                "projectPath": "/home/tomas/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj"
+              "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj": {
+                "projectPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj"
               }
             }
           }
@@ -117,11 +132,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -171,7 +181,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.403/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

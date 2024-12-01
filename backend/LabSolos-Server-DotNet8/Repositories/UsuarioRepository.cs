@@ -94,9 +94,13 @@ namespace LabSolos_Server_DotNet8.Repositories
                     await _context.Academicos.AddAsync(academico);
                     break;
 
-                default:
+                case TipoUsuario.Comum:
                     await _context.Usuarios.AddAsync(usuario);
                     break;
+
+                default:
+                    _logger.LogError("NivelUsuario desconhecido: {Nivel}.", usuario.NivelUsuario);
+                    throw new ArgumentException("NivelUsuario inválido.");
                 
             }
             await _context.SaveChangesAsync();
