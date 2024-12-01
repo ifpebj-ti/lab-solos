@@ -5,5 +5,6 @@ namespace LabSolos_Server_DotNet8.Enums
         Administrador,
         Mentor,
         Mentorado,
+        Comum
     }
 }

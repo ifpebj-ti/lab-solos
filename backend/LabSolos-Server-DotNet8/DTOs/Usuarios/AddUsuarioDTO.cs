@@ -6,6 +6,10 @@ namespace LabSolos_Server_DotNet8.DTOs.Usuarios
                 public required string Email { get; set; }
                 public required string Senha { get; set; }
                 public string? Telefone { get; set; }
-                public int NivelUsuario { get; set; }
+                public string NivelUsuario { get; set; }
+                public string TipoUsuario { get; set; }
+                public string? Instituicao { get; set; }
+                public string? Cidade { get; set; }
+                public string? Curso { get; set; }
         }
 }

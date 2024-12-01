@@ -6,6 +6,8 @@ using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace Tests.Repositories
@@ -21,12 +23,18 @@ namespace Tests.Repositories
                 return new AppDbContext(options);
         }
 
+        private ProdutoRepository ObterProdutoRepositoryComLogger(AppDbContext contexto)
+        {
+            var loggerMock = new Mock<ILogger<ProdutoRepository>>();
+            return new ProdutoRepository(contexto, loggerMock.Object);
+        }
+
         [Fact]
         public async Task AdicionarAsync_DeveAdicionarProduto()
         {
             // Arrange
             var contexto = ObterDbContextEmMemoria("BancoTeste_Add");
-            var repositorio = new ProdutoRepository(contexto);
+            var repositorio = ObterProdutoRepositoryComLogger(contexto);
             var produto = new Quimico
             {
                 Id = 1,
@@ -55,7 +63,7 @@ namespace Tests.Repositories
         {
             // Arrange
             var contexto = ObterDbContextEmMemoria("BancoTeste_GetAll");
-            var repositorio = new ProdutoRepository(contexto);
+            var repositorio = ObterProdutoRepositoryComLogger(contexto);
             await repositorio.AddAsync(new Quimico
             {
                 Id = 1,
@@ -95,7 +103,7 @@ namespace Tests.Repositories
         {
             // Arrange
             var contexto = ObterDbContextEmMemoria("BancoTeste_Update");
-            var repositorio = new ProdutoRepository(contexto);
+            var repositorio = ObterProdutoRepositoryComLogger(contexto);
             var produto = new Quimico
             {
                 Id = 1,
@@ -126,7 +134,7 @@ namespace Tests.Repositories
         {
             // Arrange
             var contexto = ObterDbContextEmMemoria("BancoTeste_Delete");
-            var repositorio = new ProdutoRepository(contexto);
+            var repositorio = ObterProdutoRepositoryComLogger(contexto);
             var produto = new Quimico
             {
                 Id = 1,
