@@ -29,7 +29,7 @@ export const authenticate = async ({ method, params }: IAuth) => {
     }
     return response.data;
   } catch (error) {
-    console.error('Authentication error: ', error);
+    console.error('Authentication error ');
     throw error;
   }
 };

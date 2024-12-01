@@ -65,7 +65,7 @@ function ViewClass() {
             </div>
           </div>
           <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems}/>
+            <InfoContainer items={infoItems} />
             <div className='w-full flex gap-x-8 mt-5'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />

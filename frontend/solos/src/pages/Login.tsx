@@ -31,9 +31,6 @@ function Login() {
     setLoading(true);
     try {
       const response = await authenticate({ method: 'POST', params: data });
-      console.log('Login bem-sucedido:', response);
-
-      // Exibir o toast de sucesso
       toast({
         title: 'Login bem-sucedido!',
         description: 'Redirecionando para a página inicial...',
@@ -44,8 +41,6 @@ function Login() {
       }, 5000);
     } catch (error) {
       console.error('Erro ao autenticar:', error);
-
-      // Exibir o toast de erro
       toast({
         title: 'Erro durante o login',
         description: 'Verifique suas credenciais e tente novamente.',

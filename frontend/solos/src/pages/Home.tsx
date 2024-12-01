@@ -66,7 +66,11 @@ function Home() {
         />
       </div>
       <div className='w-11/12'>
-        <Carousel valor={valor} informacoes={informacoes} imageSrc={imagesSrc} />
+        <Carousel
+          valor={valor}
+          informacoes={informacoes}
+          imageSrc={imagesSrc}
+        />
       </div>
       <div className='w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy'>
         .
@@ -80,28 +84,28 @@ function Home() {
               <p className='font-rajdhani-medium text-base'>
                 Gerenciamento de Laboratórios Químicos Online
               </p>
-            <div className='flex space-x-1 font-rajdhani-medium text-base'>
-              <a
-                href='mailto:jessica.roberta@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
+              <div className='flex space-x-1 font-rajdhani-medium text-base'>
+                <a
+                  href='mailto:jessica.roberta@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
                 >
-                Jessica Roberta
-              </a>
-              ,&nbsp;
-              <a
-                href='mailto:ricardo.espindola@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
+                  Jessica Roberta
+                </a>
+                ,&nbsp;
+                <a
+                  href='mailto:ricardo.espindola@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
                 >
-                Ricardo Espíndola
-              </a>
-              &nbsp; e&nbsp;
-              <a
-                href='mailto:ricardoespindola128@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
+                  Ricardo Espíndola
+                </a>
+                &nbsp; e&nbsp;
+                <a
+                  href='mailto:ricardoespindola128@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
                 >
-                Tomás Abdias
-              </a>
-            </div>
+                  Tomás Abdias
+                </a>
+              </div>
             </div>
           </div>
         </div>
