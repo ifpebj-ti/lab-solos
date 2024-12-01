@@ -31,6 +31,7 @@ function Login() {
     setLoading(true);
     try {
       const response = await authenticate({ method: 'POST', params: data });
+      console.log(response);
       toast({
         title: 'Login bem-sucedido!',
         description: 'Redirecionando para a página inicial...',
