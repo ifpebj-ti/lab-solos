@@ -30,7 +30,7 @@ function Carousel({ valor, informacoes, imageSrc }: ICarousel) {
   };
 
   return (
-    <div className='flex flex-col items-center w-11/12 mt-14 mb-16'>
+    <div className='flex flex-col items-center w-full mt-14 mb-16'>
       <div className='flex items-center justify-between w-full'>
         {Array.from({ length: 3 }, (_, i) => {
           const itemIndex = getCircularIndex(currentIndex + i - 1);
@@ -53,7 +53,7 @@ function Carousel({ valor, informacoes, imageSrc }: ICarousel) {
                   className='w-5/12'
                 ></img>
                 <div className='w-5/12'>
-                  <p className='text-5xl font-inter-semibold'>
+                  <p className='text-4xl lg:text-5xl font-inter-semibold'>
                     +{valor[itemIndex]}
                   </p>
                   <p className='font-inter-regular text-sm text-clt-2 text-wrap'>
