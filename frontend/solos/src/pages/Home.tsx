@@ -31,7 +31,7 @@ function Home() {
         </div>
       </div>
       <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>
-        <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-6xl text-clt-2 gap-y-3'>
+        <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl xl:text-6xl text-clt-2 gap-y-3'>
           <p>
             Laboratório de <span className='text-primaryMy'>Solos</span>
           </p>
@@ -40,11 +40,13 @@ function Home() {
             Ambiental - <span className='text-primaryMy'>IFPEBJ</span>
           </p>
         </div>
-        <img
-          src={Laboratory}
-          alt='Foto ilustrativa de um laboratório'
-          className='h-full w-auto'
-        ></img>
+        <div className='h-full'>
+          <img
+            src={Laboratory}
+            alt='Foto ilustrativa de um laboratório'
+            className='h-full w-auto'
+          ></img>
+        </div>
       </div>
       <div className='w-11/12 min-h-24 flex justify-between mt-7'>
         <InfoCard
@@ -63,44 +65,47 @@ function Home() {
           notify={false}
         />
       </div>
-      <Carousel valor={valor} informacoes={informacoes} imageSrc={imagesSrc} />
+      <div className='w-11/12'>
+        <Carousel
+          valor={valor}
+          informacoes={informacoes}
+          imageSrc={imagesSrc}
+        />
+      </div>
       <div className='w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy'>
         .
       </div>
       <div className='w-full min-h-44 bg-primaryMy mt-16 flex items-center justify-center'>
         <div className='w-11/12 flex items-center justify-between h-full text-white'>
-          <div className='flex items-center justify-center '>
-            <img src={logo} alt='Logo' className='w-28' />
+          <div className='flex items-center justify-center'>
+            <img src={logo} alt='Logo' className='w-36' />
             <div className='flex-col mt-2'>
               <p className='text-4xl font-rajdhani-semibold'>Lab-On</p>
-              <p className='font-rajdhani-medium text-lg'>
+              <p className='font-rajdhani-medium text-base'>
                 Gerenciamento de Laboratórios Químicos Online
               </p>
-            </div>
-          </div>
-          <div className='flex items-end justify-end flex-col h-2/5 font-rajdhani-medium'>
-            <p>© TODOS OS DIREITOS RESERVADOS</p>
-            <div className='flex space-x-1'>
-              <a
-                href='mailto:jessica.roberta@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
-              >
-                Jessica Roberta
-              </a>
-              ,&nbsp;
-              <a
-                href='mailto:ricardo.espindola@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
-              >
-                Ricardo Espíndola
-              </a>
-              &nbsp; e&nbsp;
-              <a
-                href='mailto:ricardoespindola128@gmail.com'
-                className='hover:underline hover:text-blue-600 cursor-pointer'
-              >
-                Tomás Abdias
-              </a>
+              <div className='flex space-x-1 font-rajdhani-medium text-base'>
+                <a
+                  href='mailto:jessica.roberta@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
+                >
+                  Jessica Roberta
+                </a>
+                ,&nbsp;
+                <a
+                  href='mailto:ricardo.espindola@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
+                >
+                  Ricardo Espíndola
+                </a>
+                &nbsp; e&nbsp;
+                <a
+                  href='mailto:ricardoespindola128@gmail.com'
+                  className='hover:underline hover:text-blue-600 cursor-pointer'
+                >
+                  Tomás Abdias
+                </a>
+              </div>
             </div>
           </div>
         </div>

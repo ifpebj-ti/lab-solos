@@ -7,6 +7,7 @@ import { z } from 'zod';
 import InputPassword from '../components/global/inputs/Password';
 import { useState } from 'react';
 import { authenticate } from '@/integration/Auth';
+import { toast } from '../components/hooks/use-toast';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -30,15 +31,24 @@ function Login() {
     setLoading(true);
     try {
       const response = await authenticate({ method: 'POST', params: data });
-      console.log('Login bem-sucedido:', response);
-      navigate('/'); // Redireciona para a página principal
+      toast({
+        title: 'Login bem-sucedido!',
+        description: 'Redirecionando para a página inicial...',
+      });
+      // Redirecionar após sucesso
+      setTimeout(() => {
+        navigate('/');
+      }, 5000);
     } catch (error) {
       console.error('Erro ao autenticar:', error);
+      toast({
+        title: 'Erro durante o login',
+        description: 'Verifique suas credenciais e tente novamente.',
+      });
     } finally {
       setLoading(false);
     }
   }
-
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
       <div className='w-96 bg-backgroundMy border border-borderMy rounded-md shadow-lg'>
@@ -89,11 +99,7 @@ function Login() {
             <button
               type='submit'
               disabled={loading}
-              className={`mt-3 mb-3 rounded text-center h-9 w-full font-rajdhani-semibold text-white ${
-                loading
-                  ? 'bg-opacity-50 cursor-not-allowed'
-                  : 'bg-primaryMy hover:bg-opacity-90'
-              }`}
+              className={`mt-3 mb-3 rounded text-center h-9 w-full font-rajdhani-semibold text-white bg-primaryMy hover:bg-opacity-90`}
             >
               {loading ? 'Carregando...' : 'Submeter Login'}
             </button>

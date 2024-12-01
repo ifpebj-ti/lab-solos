@@ -22,11 +22,14 @@ export const authenticate = async ({ method, params }: IAuth) => {
     });
     const token = response.data.token; // Atualizado para 'access_token' conforme Swagger
     if (token) {
-      Cookie.set('token', token);
+      Cookie.set('token', token, {
+        secure: true,
+        sameSite: 'Strict',
+      });
     }
     return response.data;
   } catch (error) {
-    console.error('Authentication error: ', error);
+    console.error('Authentication error ');
     throw error;
   }
 };

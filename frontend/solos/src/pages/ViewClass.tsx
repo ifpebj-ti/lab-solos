@@ -57,7 +57,7 @@ function ViewClass() {
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
               <Link
-                to={'/classHistory'}
+                to={'/history/class'}
                 className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
               >
                 Empréstimos da Turma
@@ -65,7 +65,7 @@ function ViewClass() {
             </div>
           </div>
           <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems}/>
+            <InfoContainer items={infoItems} />
             <div className='w-full flex gap-x-8 mt-5'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />

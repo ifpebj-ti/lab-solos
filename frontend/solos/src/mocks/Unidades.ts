@@ -116,7 +116,6 @@ export function generateRandomData(): ChemicalData[] {
       data: dataAtual,
     });
   }
-
   return data;
 }
 
