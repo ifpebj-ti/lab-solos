@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 // login
 
@@ -20,9 +21,14 @@ export const authenticate = async ({ method, params }: IAuth) => {
       url: 'Auth/login',
       data: params,
     });
-    const token = response.data.token; // Atualizado para 'access_token' conforme Swagger
-    if (token) {
-      Cookie.set('token', token, {
+    const doorKey = response.data.token;
+    if (doorKey) {
+      Cookie.set('doorKey', doorKey, {
+        secure: true,
+        sameSite: 'Strict',
+      });
+      const decoded = jwtDecode(doorKey);
+      Cookie.set('rankID', JSON.stringify(decoded.sub), {
         secure: true,
         sameSite: 'Strict',
       });

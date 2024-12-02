@@ -16,6 +16,7 @@ import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
 import MentoringHistory from './pages/history/MentoringHistory';
 import ClassHistory from './pages/history/ClassHistory';
+import PrivateRoute from './components/base/PrivateRoutes';
 
 function AppRoutes() {
   return (
@@ -41,7 +42,15 @@ function AppRoutes() {
           <Route path='/insert/launch' element={<Launch />}></Route>
 
           {/* Users get */}
-          <Route path='/users' element={<RegisteredUsers />}></Route>
+          <Route
+            path='/users'
+            element={
+              <PrivateRoute
+                element={<RegisteredUsers />}
+                requiredRank={['1']}
+              />
+            }
+          ></Route>
           <Route
             path='/users/request'
             element={<RegistrationRequest />}
