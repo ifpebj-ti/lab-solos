@@ -17,6 +17,7 @@ import ViewClass from './pages/ViewClass';
 import MentoringHistory from './pages/history/MentoringHistory';
 import ClassHistory from './pages/history/ClassHistory';
 import PrivateRoute from './components/base/PrivateRoutes';
+import Page404 from './pages/Page404';
 
 function AppRoutes() {
   return (
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
         <Route path='/resetPassword' element={<ResetPassword />}></Route>
         <Route path='/createAccount' element={<CreateAccount />}></Route>
+        <Route path='*' element={<Page404 />}></Route>
       </Routes>
     </BrowserRouter>
   );
