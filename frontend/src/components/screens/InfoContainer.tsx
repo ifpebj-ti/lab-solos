@@ -1,6 +1,6 @@
 type InfoItem = {
   title: string;
-  value: string;
+  value: string | number | null;
   width: string;
 };
 
