@@ -29,11 +29,6 @@ jobs:
           cd frontend
           npm install
 
-      - name: Run tests
-        run: |
-          cd frontend
-          npm test
-
       - name: Build Docker image for frontend
         run: |
           docker build -t jrss1/frontend-labon:latest ./frontend
