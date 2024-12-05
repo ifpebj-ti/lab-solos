@@ -9,7 +9,7 @@ RUN npm install
 COPY . .
 
 # Copiar o arquivo de configuração do TypeScript
-COPY tsconfig.json ./
+COPY frontend/tsconfig.json ./tsconfig.json
 
 # Rodar o build da aplicação
 RUN npm run build
