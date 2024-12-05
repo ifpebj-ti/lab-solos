@@ -275,7 +275,7 @@ function Verification() {
             </div>
           </div>
         </div>
-      ): (
+      ) : (
         <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
           <p className=''>Erro durante requisição.</p>
           <Link
