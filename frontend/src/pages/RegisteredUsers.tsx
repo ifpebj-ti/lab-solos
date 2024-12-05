@@ -62,7 +62,8 @@ function RegisteredUsers() {
     { value: '3', label: 'Outro Tipo' },
   ];
 
-  const filteredUsers = registeredUsers.filter((user) =>
+  const filteredUsers = registeredUsers.filter(
+    (user) =>
       (value === 'todos' || user.nivelUsuario.toString() === value) &&
       user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
   );

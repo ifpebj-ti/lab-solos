@@ -19,6 +19,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -137,7 +139,7 @@ function Verification() {
           </div>
           Carregando...
         </div>
-      ) : (
+      ) : productsById != undefined ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
@@ -272,6 +274,17 @@ function Verification() {
               />
             </div>
           </div>
+        </div>
+      ) : (
+        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
+          <p className=''>Erro durante requisição.</p>
+          <Link
+            to={'/'}
+            className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
+          >
+            <ArrowLeft className='mt-[2px]' />
+            Voltar
+          </Link>
         </div>
       )}
     </>
