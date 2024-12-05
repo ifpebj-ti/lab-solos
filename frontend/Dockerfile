@@ -8,6 +8,9 @@ RUN npm install
 # Copiar o código da aplicação
 COPY . .
 
+# Copiar o arquivo de configuração do TypeScript
+COPY tsconfig.json ./
+
 # Rodar o build da aplicação
 RUN npm run build
 
