@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Docker image for frontend
         run: |
-          docker build -t jrss1/frontend-labon:latest .
+          docker build -t jrss1/frontend-labon:latest -f frontend/Dockerfile .
 
 
       - name: Push Docker image
