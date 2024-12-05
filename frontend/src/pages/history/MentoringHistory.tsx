@@ -5,15 +5,51 @@ import TopDown from '@/components/global/table/TopDown';
 import { columnsButtons, dataButton } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
+import { getUserById } from '@/integration/Users';
+import { formatDate } from '@/function/date';
+
+interface IUsuario {
+  instituicao: string;
+  cidade: string;
+  curso: string;
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: number;
+  tipoUsuario: number;
+  status: number;
+  emprestimosSolicitados: null;
+  emprestimosAprovados: null;
+}
 
 // aqui virá as informações de um único empréstimo
 function MentoringHistory() {
-  const isLoading = false;
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
+  const id = 3;
+
+  useEffect(() => {
+    const fetchGetUserById = async () => {
+      try {
+        const response = await getUserById({ id });
+        setUser(response);
+      } catch (error) {
+        console.error('Erro ao buscar usuários', error);
+        setUser(undefined);
+      } finally {
+        setLoading(false); // Stop loading after fetch (success or failure)
+      }
+    };
+    fetchGetUserById();
+  }, []);
 
   // Cálculo das páginas
   const currentData = dataButton.slice(
@@ -21,26 +57,48 @@ function MentoringHistory() {
     currentPage * itemsPerPage
   );
 
-  const infoItems = [
-    { title: 'Nome', value: 'Carlos Emanuel Santos de Oliveira', width: '50%' },
-    {
-      title: 'Email',
-      value: 'carlos.oliveira@belojardim.ifpe.edu.br',
-      width: '30%',
-    },
-    { title: 'Instituição', value: 'IFPE', width: '20%' },
-  ];
-  const infoItems2 = [{ title: 'CPF', value: '134.255.168-65', width: '100%' }];
-  const infoItems3 = [
-    { title: 'Número para Contato', value: '(81) 98126-5571', width: '100%' },
-  ];
-  const infoItems4 = [
-    { title: 'Data de Ingresso', value: '29/11/2024 09:54', width: '100%' },
-  ];
-  const infoItems5 = [{ title: 'Curso', value: 'Eng. Hídrica', width: '100%' }];
+  const infoItems = user
+    ? [
+        {
+          title: 'Nome',
+          value: user.nomeCompleto,
+          width: '50%',
+        },
+        {
+          title: 'Email',
+          value: user.email,
+          width: '30%',
+        },
+        { title: 'Instituição', value: user.instituicao, width: '20%' },
+      ]
+    : [];
+  const infoItems2 = user
+    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
+    : [];
+  const infoItems3 = user
+    ? [
+        {
+          title: 'Número para Contato',
+          value: user.telefone,
+          width: '100%',
+        },
+      ]
+    : [];
+  const infoItems4 = user
+    ? [
+        {
+          title: 'Data de Ingresso',
+          value: formatDate(user.dataIngresso),
+          width: '100%',
+        },
+      ]
+    : [];
+  const infoItems5 = user
+    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
+    : [];
   return (
     <>
-      {isLoading ? (
+      {loading ? (
         <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2'>
           <div className='animate-spin'>
             <LoadingIcon />
@@ -69,7 +127,11 @@ function MentoringHistory() {
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
               <div className='w-2/4'>
-                <SearchInput name='search' />
+                <SearchInput
+                  name='search'
+                  onChange={() => console.log('w')}
+                  value='2'
+                />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>
