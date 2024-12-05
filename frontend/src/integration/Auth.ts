@@ -14,6 +14,17 @@ interface IAuth {
   params: IAuthParams;
 }
 
+interface ICreateUserData {
+  nomeCompleto: string;
+  email: string;
+  senha: string;
+  telefone: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  instituicao: string;
+  cidade: string;
+  curso: string;
+}
 export const authenticate = async ({ method, params }: IAuth) => {
   try {
     const response = await api({
@@ -36,6 +47,16 @@ export const authenticate = async ({ method, params }: IAuth) => {
     return response.data;
   } catch (error) {
     console.error('Authentication error ');
+    throw error;
+  }
+};
+
+export const createMentor = async (data: ICreateUserData) => {
+  try {
+    const response = await api.post('/Usuarios', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating mentor:', error);
     throw error;
   }
 };

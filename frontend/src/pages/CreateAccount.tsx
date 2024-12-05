@@ -29,6 +29,8 @@ import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
+import { createMentor } from '@/integration/Auth';
+import { toast } from '@/components/hooks/use-toast';
 
 const frameworks = [
   { value: 'next.js', label: 'Next.js' },
@@ -110,12 +112,36 @@ function CreateAccount() {
 
   const tipoUsuario = watch('tipoUsuario');
 
-  function postCreateAccount(data: CreateAccountFormData) {
+  const postCreateAccount = async (data: CreateAccountFormData) => {
     if (data.tipoUsuario === 'mentor') {
-      delete data.mentorResponsavel;
+      const mentorData = {
+        nomeCompleto: data.nome,
+        email: data.email,
+        senha: data.senha,
+        telefone: data.telefone,
+        nivelUsuario: 'Comum',
+        tipoUsuario: 'Mentor',
+        instituicao: data.instituicao,
+        cidade: 'Indefinido',
+        curso: data.curso,
+      };
+
+      try {
+        await createMentor(mentorData);
+        toast({
+          title: 'Cadastro submetido à aprovação!',
+          description: 'Redirecionando para a página de login...',
+        });
+        navigate('/login');
+      } catch (error) {
+        toast({
+          title: 'Erro durante ato de cadastro!',
+          description: 'Verifique seus dados e tente novamente',
+        });
+        console.error(error);
+      }
     }
-    navigate('/login');
-  }
+  };
 
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
@@ -153,6 +179,12 @@ function CreateAccount() {
                     value='mentorado'
                   >
                     Mentorado
+                  </SelectItem>
+                  <SelectItem
+                    className='hover:bg-cl-table-item font-inter-regular'
+                    value='comum'
+                  >
+                    Comum
                   </SelectItem>
                 </SelectContent>
               </Select>
