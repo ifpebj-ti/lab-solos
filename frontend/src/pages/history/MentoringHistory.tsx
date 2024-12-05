@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
 import { getUserById } from '@/integration/Users';
+import { formatDate } from '@/function/date';
 
 interface IUsuario {
   instituicao: string;
@@ -31,7 +32,7 @@ interface IUsuario {
 function MentoringHistory() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<IUsuario[]>([]);
+  const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
   const id = 3;
 
@@ -42,7 +43,7 @@ function MentoringHistory() {
         setUser(response);
       } catch (error) {
         console.error('Erro ao buscar usuários', error);
-        setUser([]);
+        setUser(undefined);
       } finally {
         setLoading(false); // Stop loading after fetch (success or failure)
       }
@@ -50,7 +51,6 @@ function MentoringHistory() {
     fetchGetUserById();
   }, []);
 
-  console.log(user);
   // Cálculo das páginas
   const currentData = dataButton.slice(
     (currentPage - 1) * itemsPerPage,
@@ -66,20 +66,20 @@ function MentoringHistory() {
         },
         {
           title: 'Email',
-          value: 'carlos.oliveira@belojardim.ifpe.edu.br',
+          value: user.email,
           width: '30%',
         },
-        { title: 'Instituição', value: 'IFPE', width: '20%' },
+        { title: 'Instituição', value: user.instituicao, width: '20%' },
       ]
     : [];
   const infoItems2 = user
-    ? [{ title: 'CPF', value: '134.255.168-65', width: '100%' }]
+    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
     : [];
   const infoItems3 = user
     ? [
         {
           title: 'Número para Contato',
-          value: '(81) 98126-5571',
+          value: user.telefone,
           width: '100%',
         },
       ]
@@ -88,13 +88,13 @@ function MentoringHistory() {
     ? [
         {
           title: 'Data de Ingresso',
-          value: '29/11/2024 09:54',
+          value: formatDate(user.dataIngresso),
           width: '100%',
         },
       ]
     : [];
   const infoItems5 = user
-    ? [{ title: 'Curso', value: 'Eng. Hídrica', width: '100%' }]
+    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
     : [];
   return (
     <>
@@ -127,7 +127,11 @@ function MentoringHistory() {
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
               <div className='w-2/4'>
-                <SearchInput name='search' />
+                <SearchInput
+                  name='search'
+                  onChange={() => console.log('w')}
+                  value='2'
+                />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>
