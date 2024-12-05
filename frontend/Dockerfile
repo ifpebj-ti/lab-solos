@@ -14,3 +14,5 @@ RUN npm run build
 # Expor a porta 3000 e iniciar a aplicação
 EXPOSE 5173
 CMD ["npm", "run", "dev"]
+
+# Agora vai
