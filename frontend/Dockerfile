@@ -6,7 +6,7 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 
 # Copiar o código da aplicação
-COPY frontend/ .
+COPY lab-solos/frontend/ .
 
 # Rodar o build da aplicação
 RUN npm run build
