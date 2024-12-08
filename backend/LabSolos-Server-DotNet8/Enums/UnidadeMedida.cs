@@ -14,6 +14,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Metro,    
         Centimetro,
         Milimetro,
-        Outro
+        Outro,
+        Indefinido
     }
 }

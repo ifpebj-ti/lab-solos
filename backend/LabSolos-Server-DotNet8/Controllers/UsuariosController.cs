@@ -62,7 +62,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             try
             {
                 // Validar os dados do usuário através do serviço
-                var resultadoValidacao = await _usuarioService.ValidarEstrutura(usuarioDto);
+                var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
                 if (!resultadoValidacao.Validado)
                 {
                     return BadRequest(new { Message = resultadoValidacao.Mensagem });
@@ -108,7 +108,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                         Status = StatusUsuario.Pendente,
                         DataIngresso = DateTime.Now
                     },
-                    _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
+                    _ => throw new InvalidOperationException("O nivel fornecido não é suportado.")
                 };
 
                 await _usuarioService.AddAsync(usuario);

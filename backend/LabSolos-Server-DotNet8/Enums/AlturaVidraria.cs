@@ -4,6 +4,7 @@ namespace LabSolos_Server_DotNet8.Enums
     {
         Alta,
         Intermediaria,
-        Baixa
+        Baixa,
+        Indefinido
     }
 }

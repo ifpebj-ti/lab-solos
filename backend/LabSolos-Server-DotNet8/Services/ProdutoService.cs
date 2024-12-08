@@ -27,7 +27,7 @@ namespace LabSolos_Server_DotNet8.Services
                             Fornecedor = q.Fornecedor,
                             Quantidade = q.Quantidade,
                             QuantidadeMinima = q.QuantidadeMinima,
-                            DataValidade = q.DataValidade,
+                            DataValidade = q.DataValidade.ToString(),
                             LocalizacaoProduto = q.LocalizacaoProduto,
                             Catmat = q.Catmat,
                             UnidadeMedida = q.UnidadeMedida.ToString(),

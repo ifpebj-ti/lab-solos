@@ -12,11 +12,13 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IProdutoService _produtoService = produtoService;
         private readonly ILogger<ProdutosController> _logger = logger;
 
-
         [HttpGet("tipo/{tipoProduto}")]
         public async Task<IActionResult> GetAll(int tipoProduto)
         {
-            _logger.LogInformation("Iniciando operação para obter produtos do tipo {Tipo}.", (TipoProduto)tipoProduto);
+            _logger.LogInformation(
+                "Iniciando operação para obter produtos do tipo {Tipo}.",
+                (TipoProduto)tipoProduto
+            );
 
             // Validação do tipo com o enum
             if (!Enum.IsDefined(typeof(TipoProduto), tipoProduto))

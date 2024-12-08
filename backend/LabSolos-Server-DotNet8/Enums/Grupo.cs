@@ -7,6 +7,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Oxido,
         Sal,
         Hidroxido,
-        Outros
+        Outros,
+        Indefinido
     }
 }
