@@ -17,17 +17,27 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Month) // Caminho onde deverá estar o arquivo e periodicidade dos arquivos (Hour - Day - Month - Infinite)
     .CreateLogger();
 
-builder.Host.UseSerilog(); 
+builder.Host.UseSerilog();
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
+
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<ILoteService, LoteService>();
+builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
+
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped<ILoteRepository, LoteRepository>();
 
 // Adicionar suporte para controladores
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    }); ;
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();

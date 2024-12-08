@@ -15,6 +15,6 @@ namespace LabSolos_Server_DotNet8.Services
         Task UpdateAsync(Usuario usuario);
         Task DeleteAsync(int id);
         Task<Usuario?> ValidarUsuarioAsync(string email, string password);
-        Task<ResultadoValidacaoDTO> ValidarEstrutura(AddUsuarioDTO usuarioDto);
+        ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto);
     }
 }
