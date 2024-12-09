@@ -14,6 +14,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Quartzo,
         Poliestireno,
         AcoInoxidavel,
-        Outro
+        Outro,
+        Indefinido
     }
 }

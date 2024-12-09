@@ -92,7 +92,7 @@ namespace LabSolos_Server_DotNet8.Services
             await _usuarioRepository.DeleteAsync(id);
         }
 
-        public async Task<ResultadoValidacaoDTO> ValidarEstrutura(AddUsuarioDTO usuarioDto)
+        public ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto)
         {
             // Verificar se o nivel e tipo são consistentes
             if (NiveisAcademico.Contains(usuarioDto.NivelUsuario) && usuarioDto.TipoUsuario != "Academico")

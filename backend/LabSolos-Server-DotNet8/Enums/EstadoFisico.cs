@@ -5,6 +5,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Solido,
         Liquido,
         Gasoso,
-        Plasma
+        Plasma,
+        Indefinido
     }
 }

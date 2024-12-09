@@ -15,5 +15,6 @@ namespace LabSolos_Server_DotNet8.Enums
         Oval,
         Disco,
         Outro,
+        Indefinido
     }
 }

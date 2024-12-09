@@ -13,6 +13,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Amoniacal,
         Etéreo, 
         Almiscarado,
-        Outro
+        Outro,
+        Indefinido
     }
 }
