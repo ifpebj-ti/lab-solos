@@ -42,7 +42,7 @@ function ViewClass() {
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2'>
+        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>

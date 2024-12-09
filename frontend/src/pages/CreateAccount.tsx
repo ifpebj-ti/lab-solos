@@ -125,7 +125,6 @@ function CreateAccount() {
         cidade: 'Indefinido',
         curso: data.curso,
       };
-
       try {
         await createMentor(mentorData);
         toast({
@@ -221,28 +220,31 @@ function CreateAccount() {
                 error={errors.repeat?.message}
                 name='repeat'
               />
-              <InputText
-                label='Instituição'
-                type='text'
-                register={register}
-                error={errors.instituicao?.message}
-                name='instituicao'
-              />
-              <InputText
-                label='Curso'
-                type='text'
-                register={register}
-                error={errors.curso?.message}
-                name='curso'
-              />
-              <InputText
-                label='Telefone'
-                type='text'
-                register={register}
-                error={errors.telefone?.message}
-                name='telefone'
-              />
-
+              {(tipoUsuario === 'mentorado' || tipoUsuario === 'mentor') && (
+                <>
+                  <InputText
+                    label='Instituição'
+                    type='text'
+                    register={register}
+                    error={errors.instituicao?.message}
+                    name='instituicao'
+                  />
+                  <InputText
+                    label='Curso'
+                    type='text'
+                    register={register}
+                    error={errors.curso?.message}
+                    name='curso'
+                  />
+                  <InputText
+                    label='Telefone'
+                    type='text'
+                    register={register}
+                    error={errors.telefone?.message}
+                    name='telefone'
+                  />
+                </>
+              )}
               {/* Campo mentorResponsavel que aparece somente se tipoUsuario for 'mentorado' */}
               {tipoUsuario === 'mentorado' && (
                 <div className='flex flex-col gap-y-1'>
