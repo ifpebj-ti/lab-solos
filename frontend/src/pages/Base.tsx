@@ -4,7 +4,7 @@ import Container from '../components/global/Container';
 
 function Base() {
   return (
-    <div className='flex justify-start flex-row w-full h-screen'>
+    <div className='flex justify-start flex-row w-full h-screen '>
       <Sidebar />
       <Container>
         <Outlet />
