@@ -5,8 +5,10 @@ import PlusIcon from '../../../public/icons/sidebar/PlusIcon';
 import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
 import FollowUpIcon from '../../../public/icons/sidebar/FollowUpIcon';
 import { History, UserCircle } from 'lucide-react';
+// import { useUser } from '../context/UserProvider';
 
 function Sidebar() {
+  // const { rankID } = useUser();
   const location = useLocation();
   const currentPage = location.pathname;
   const isHistoryActive = currentPage.startsWith('/history');
