@@ -26,11 +26,15 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
+builder.Services.AddScoped<ISystemService, SystemService>();
+builder.Services.AddScoped<IEmprestimoService, EmprestimoService>();
 
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<ILoteRepository, LoteRepository>();
+builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
+
 
 // Adicionar suporte para controladores
 builder.Services.AddControllers()
