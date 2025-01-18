@@ -1,0 +1,487 @@
+2025-01-17 20:25:00.069 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 20:25:00.336 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 20:25:00.428 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 20:25:00.499 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 20:25:00.501 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 20:25:00.502 -03:00 [INF] Hosting environment: Development
+2025-01-17 20:25:00.502 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 20:25:18.617 -03:00 [INF] Application is shutting down...
+2025-01-17 20:25:28.857 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 20:25:29.171 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 20:25:29.261 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 20:25:29.333 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 20:25:29.335 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 20:25:29.336 -03:00 [INF] Hosting environment: Development
+2025-01-17 20:25:29.336 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 20:25:35.483 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/system/quantities - null null
+2025-01-17 20:25:35.548 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 20:25:35.584 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:25:35.607 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-17 20:25:35.618 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 3.176ms
+2025-01-17 20:25:35.620 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:25:35.625 -03:00 [ERR] HTTP GET /api/system/quantities responded 500 in 76.4281 ms
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.ISystemService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.SystemController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-17 20:25:35.644 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.ISystemService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.SystemController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-17 20:25:35.658 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/system/quantities - 500 null text/plain; charset=utf-8 175.0904ms
+2025-01-17 20:26:11.028 -03:00 [INF] Application is shutting down...
+2025-01-17 20:26:18.133 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 20:26:18.416 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 20:26:18.513 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 20:26:18.589 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 20:26:18.591 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 20:26:18.592 -03:00 [INF] Hosting environment: Development
+2025-01-17 20:26:18.592 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 20:26:23.388 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/system/quantities - null null
+2025-01-17 20:26:23.451 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 20:26:23.489 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:26:23.516 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-17 20:26:23.526 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-17 20:26:23.633 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-17 20:26:23.796 -03:00 [INF] Operação concluída. 9 produtos obtidos.
+2025-01-17 20:26:23.807 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.System.QuantitiesDTO'.
+2025-01-17 20:26:23.854 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 331.0656ms
+2025-01-17 20:26:23.857 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:26:23.859 -03:00 [INF] HTTP GET /api/system/quantities responded 200 in 410.3341 ms
+2025-01-17 20:26:23.872 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/system/quantities - 200 null application/json; charset=utf-8 485.8222ms
+2025-01-17 20:37:25.214 -03:00 [INF] Application is shutting down...
+2025-01-17 20:37:32.216 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 20:37:32.491 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 20:37:32.582 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 20:37:32.651 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 20:37:32.653 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 20:37:32.653 -03:00 [INF] Hosting environment: Development
+2025-01-17 20:37:32.654 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 20:37:35.139 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/system/quantities - null null
+2025-01-17 20:37:35.203 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 20:37:35.237 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:37:35.256 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-17 20:37:35.271 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-17 20:37:35.360 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-17 20:37:35.526 -03:00 [INF] Operação concluída. 9 produtos obtidos.
+2025-01-17 20:37:35.532 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2025-01-17 20:37:35.542 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+2025-01-17 20:37:35.600 -03:00 [INF] Operação concluída. 3 usuarios obtidos.
+2025-01-17 20:37:35.607 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.System.QuantitiesDTO'.
+2025-01-17 20:37:35.648 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 386.8658ms
+2025-01-17 20:37:35.650 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 20:37:35.656 -03:00 [INF] HTTP GET /api/system/quantities responded 200 in 451.4618 ms
+2025-01-17 20:37:35.665 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/system/quantities - 200 null application/json; charset=utf-8 526.9662ms
+2025-01-17 21:35:44.417 -03:00 [INF] Application is shutting down...
+2025-01-17 21:35:51.479 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 21:35:51.773 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 21:35:51.868 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 21:35:51.937 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 21:35:51.939 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 21:35:51.940 -03:00 [INF] Hosting environment: Development
+2025-01-17 21:35:51.940 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 21:35:54.049 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/system/quantities - null null
+2025-01-17 21:35:54.106 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 21:35:54.134 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 21:35:54.155 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-17 21:35:54.161 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-17 21:35:54.252 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-17 21:35:54.424 -03:00 [INF] Operação concluída. 9 produtos obtidos.
+2025-01-17 21:35:54.429 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2025-01-17 21:35:54.440 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+2025-01-17 21:35:54.498 -03:00 [INF] Operação concluída. 3 usuarios obtidos.
+2025-01-17 21:35:54.509 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.System.QuantitiesDTO'.
+2025-01-17 21:35:54.557 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 397.5481ms
+2025-01-17 21:35:54.561 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 21:35:54.565 -03:00 [INF] HTTP GET /api/system/quantities responded 200 in 458.3788 ms
+2025-01-17 21:35:54.575 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/system/quantities - 200 null application/json; charset=utf-8 529.5211ms
+2025-01-17 21:36:04.119 -03:00 [INF] Application is shutting down...
+2025-01-17 21:36:11.731 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 21:36:12.010 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 21:36:12.103 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 21:36:12.171 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 21:36:12.173 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 21:36:12.173 -03:00 [INF] Hosting environment: Development
+2025-01-17 21:36:12.174 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 21:36:15.433 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/system/quantities - null null
+2025-01-17 21:36:15.493 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 21:36:15.529 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 21:36:15.550 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-17 21:36:15.556 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-17 21:36:15.663 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-17 21:36:15.825 -03:00 [INF] Operação concluída. 9 produtos obtidos.
+2025-01-17 21:36:15.831 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2025-01-17 21:36:15.839 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+2025-01-17 21:36:15.896 -03:00 [INF] Operação concluída. 3 usuarios obtidos.
+2025-01-17 21:36:15.906 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.System.QuantitiesDTO'.
+2025-01-17 21:36:15.949 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 392.9463ms
+2025-01-17 21:36:15.951 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-17 21:36:15.954 -03:00 [INF] HTTP GET /api/system/quantities responded 200 in 462.8291 ms
+2025-01-17 21:36:15.964 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/system/quantities - 200 null application/json; charset=utf-8 532.8852ms
+2025-01-17 21:41:02.417 -03:00 [INF] Application is shutting down...
+2025-01-17 21:41:11.423 -03:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 21:41:11.781 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 21:41:11.953 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 21:41:12.067 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 21:41:12.071 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 21:41:12.071 -03:00 [INF] Hosting environment: Development
+2025-01-17 21:41:12.072 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 21:41:20.961 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos - null null
+2025-01-17 21:41:21.017 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 21:41:21.048 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2025-01-17 21:41:21.069 -03:00 [INF] Route matched with {action = "GetAll", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[LabSolos_Server_DotNet8.Models.Produto]] GetAll() on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-17 21:41:21.076 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-17 21:41:21.161 -03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-17 21:41:21.305 -03:00 [INF] Operação concluída. 9 produtos obtidos.
+2025-01-17 21:41:21.310 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Produto, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 21:41:21.410 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8) in 334.5538ms
+2025-01-17 21:41:21.411 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.GetAll (LabSolos-Server-DotNet8)'
+2025-01-17 21:41:21.414 -03:00 [INF] HTTP GET /api/produtos responded 200 in 396.6765 ms
+2025-01-17 21:41:21.420 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos - 200 null application/json; charset=utf-8 460.4324ms
+2025-01-17 21:42:22.987 -03:00 [INF] Application is shutting down...
+2025-01-17 21:42:30.083 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 21:42:30.349 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 21:42:30.451 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 21:42:30.530 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 21:42:30.532 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 21:42:30.533 -03:00 [INF] Hosting environment: Development
+2025-01-17 21:42:30.533 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 21:42:33.190 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/produtos - null null
+2025-01-17 21:42:33.252 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 21:42:33.293 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-17 21:42:33.301 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-17 21:42:33.305 -03:00 [INF] HTTP GET /api/produtos responded 401 in 57.2224 ms
+2025-01-17 21:42:33.308 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/produtos - 401 0 null 119.8088ms
+2025-01-17 21:57:33.992 -03:00 [INF] Application is shutting down...
+2025-01-17 22:01:56.371 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:01:56.629 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:01:56.720 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:01:56.788 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:01:56.789 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:01:56.790 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:01:56.790 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:03:17.415 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/1 - null null
+2025-01-17 22:03:17.476 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:03:17.509 -03:00 [INF] HTTP GET /api/emprestimos/solicitados/1 responded 404 in 35.9535 ms
+2025-01-17 22:03:17.512 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/1 - 404 0 null 99.1708ms
+2025-01-17 22:03:17.519 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/api/emprestimos/solicitados/1, Response status code: 404
+2025-01-17 22:03:22.751 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/3 - null null
+2025-01-17 22:03:22.755 -03:00 [INF] HTTP GET /api/emprestimos/solicitados/3 responded 404 in 0.9602 ms
+2025-01-17 22:03:22.756 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/3 - 404 0 null 4.3081ms
+2025-01-17 22:03:22.756 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/api/emprestimos/solicitados/3, Response status code: 404
+2025-01-17 22:03:27.086 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - null null
+2025-01-17 22:03:27.091 -03:00 [INF] HTTP GET /api/emprestimos/solicitados/2 responded 404 in 2.6028 ms
+2025-01-17 22:03:27.091 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - 404 0 null 4.7919ms
+2025-01-17 22:03:27.092 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/api/emprestimos/solicitados/2, Response status code: 404
+2025-01-17 22:04:32.398 -03:00 [INF] Application is shutting down...
+2025-01-17 22:04:36.698 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:04:36.968 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:04:37.070 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:04:37.139 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:04:37.141 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:04:37.142 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:04:37.142 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:04:39.795 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - null null
+2025-01-17 22:04:39.858 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:04:39.892 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:04:39.921 -03:00 [INF] Route matched with {action = "GetEmprestimosSolicitadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosSolicitadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:04:39.929 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8) in 3.1474ms
+2025-01-17 22:04:39.932 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:04:39.935 -03:00 [ERR] HTTP GET /api/emprestimos/solicitados/2 responded 500 in 80.7364 ms
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.EmprestimoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.EmprestimosController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-17 22:04:39.953 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.EmprestimoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.EmprestimosController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-17 22:04:39.966 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - 500 null text/plain; charset=utf-8 172.7709ms
+2025-01-17 22:05:26.683 -03:00 [INF] Application is shutting down...
+2025-01-17 22:05:31.070 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:05:31.335 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:05:31.425 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:05:31.494 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:05:31.495 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:05:31.496 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:05:31.496 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:05:34.113 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - null null
+2025-01-17 22:05:34.165 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:05:34.198 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:05:34.234 -03:00 [INF] Route matched with {action = "GetEmprestimosSolicitadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosSolicitadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:05:34.246 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8) in 5.244ms
+2025-01-17 22:05:34.250 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:05:34.256 -03:00 [ERR] HTTP GET /api/emprestimos/solicitados/2 responded 500 in 88.1575 ms
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.EmprestimoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.EmprestimosController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-17 22:05:34.282 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: Unable to resolve service for type 'LabSolos_Server_DotNet8.Services.EmprestimoService' while attempting to activate 'LabSolos_Server_DotNet8.Controllers.EmprestimosController'.
+   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.ThrowHelperUnableToResolveService(Type type, Type requiredBy)
+   at lambda_method22(Closure, IServiceProvider, Object[])
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerFactoryProvider.<>c__DisplayClass6_0.<CreateControllerFactory>g__CreateController|0(ControllerContext controllerContext)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-17 22:05:34.303 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - 500 null text/plain; charset=utf-8 190.7803ms
+2025-01-17 22:07:28.428 -03:00 [INF] Application is shutting down...
+2025-01-17 22:07:32.804 -03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:07:33.106 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:07:33.214 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:07:33.294 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:07:33.295 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:07:33.296 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:07:33.296 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:07:34.846 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - null null
+2025-01-17 22:07:34.907 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:07:34.942 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:07:34.975 -03:00 [INF] Route matched with {action = "GetEmprestimosSolicitadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosSolicitadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:07:35.184 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."SolicitanteId" = @__userId_0
+2025-01-17 22:07:35.352 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:07:35.460 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8) in 481.5396ms
+2025-01-17 22:07:35.461 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:07:35.464 -03:00 [INF] HTTP GET /api/emprestimos/solicitados/2 responded 200 in 557.9674 ms
+2025-01-17 22:07:35.477 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/2 - 200 null application/json; charset=utf-8 632.4512ms
+2025-01-17 22:07:58.459 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/3 - null null
+2025-01-17 22:07:58.463 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:07:58.464 -03:00 [INF] Route matched with {action = "GetEmprestimosSolicitadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosSolicitadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:07:58.561 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."SolicitanteId" = @__userId_0
+2025-01-17 22:07:58.563 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:07:58.564 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8) in 99.9058ms
+2025-01-17 22:07:58.565 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosSolicitadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:07:58.565 -03:00 [INF] HTTP GET /api/emprestimos/solicitados/3 responded 200 in 103.0305 ms
+2025-01-17 22:07:58.566 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/solicitados/3 - 200 null application/json; charset=utf-8 106.865ms
+2025-01-17 22:09:07.008 -03:00 [INF] Application is shutting down...
+2025-01-17 22:09:11.995 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:09:12.272 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:09:12.373 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:09:12.444 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:09:12.446 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:09:12.446 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:09:12.446 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:09:14.436 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/3 - null null
+2025-01-17 22:09:14.494 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:09:14.530 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:14.572 -03:00 [INF] Route matched with {action = "GetEmprestimosAprovadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosAprovadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:09:14.766 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."AprovadorId" = @__userId_0
+2025-01-17 22:09:14.781 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:09:14.882 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8) in 304.5095ms
+2025-01-17 22:09:14.884 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:14.887 -03:00 [INF] HTTP GET /api/emprestimos/aprovados/3 responded 200 in 392.7058 ms
+2025-01-17 22:09:14.896 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/3 - 200 null application/json; charset=utf-8 462.2414ms
+2025-01-17 22:09:19.716 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/2 - null null
+2025-01-17 22:09:19.721 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:19.721 -03:00 [INF] Route matched with {action = "GetEmprestimosAprovadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosAprovadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:09:19.843 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."AprovadorId" = @__userId_0
+2025-01-17 22:09:20.022 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:09:20.042 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8) in 320.2883ms
+2025-01-17 22:09:20.042 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:20.042 -03:00 [INF] HTTP GET /api/emprestimos/aprovados/2 responded 200 in 322.6637 ms
+2025-01-17 22:09:20.043 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/2 - 200 null application/json; charset=utf-8 327.1261ms
+2025-01-17 22:09:32.265 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/4 - null null
+2025-01-17 22:09:32.269 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:32.269 -03:00 [INF] Route matched with {action = "GetEmprestimosAprovadosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosAprovadosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:09:32.273 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."AprovadorId" = @__userId_0
+2025-01-17 22:09:32.274 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:09:32.274 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8) in 4.8567ms
+2025-01-17 22:09:32.274 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosAprovadosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:09:32.274 -03:00 [INF] HTTP GET /api/emprestimos/aprovados/4 responded 200 in 7.5886 ms
+2025-01-17 22:09:32.275 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/aprovados/4 - 200 null application/json; charset=utf-8 9.4207ms
+2025-01-17 22:11:56.425 -03:00 [INF] Application is shutting down...
+2025-01-17 22:12:00.936 -03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-17 22:12:01.218 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-17 22:12:01.321 -03:00 [INF] User profile is available. Using '/home/bearer/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-01-17 22:12:01.389 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-17 22:12:01.391 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-17 22:12:01.392 -03:00 [INF] Hosting environment: Development
+2025-01-17 22:12:01.392 -03:00 [INF] Content root path: /home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8
+2025-01-17 22:12:20.128 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/4 - null null
+2025-01-17 22:12:20.183 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-17 22:12:20.212 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:12:20.241 -03:00 [INF] Route matched with {action = "GetEmprestimosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:12:20.424 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."SolicitanteId" = @__userId_0 OR "e"."AprovadorId" = @__userId_1
+2025-01-17 22:12:20.435 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:12:20.528 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8) in 283.6846ms
+2025-01-17 22:12:20.529 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:12:20.531 -03:00 [INF] HTTP GET /api/emprestimos/4 responded 200 in 350.9403 ms
+2025-01-17 22:12:20.540 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/4 - 200 null application/json; charset=utf-8 413.0164ms
+2025-01-17 22:12:25.005 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/emprestimos/2 - null null
+2025-01-17 22:12:25.011 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:12:25.012 -03:00 [INF] Route matched with {action = "GetEmprestimosUsuario", controller = "Emprestimos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetEmprestimosUsuario(Int32) on controller LabSolos_Server_DotNet8.Controllers.EmprestimosController (LabSolos-Server-DotNet8).
+2025-01-17 22:12:25.110 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__userId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT "e"."Id", "e"."AprovadorId", "e"."DataDevolucao", "e"."DataRealizacao", "e"."ProdutoId", "e"."SolicitanteId", "e"."Status", "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Emprestimos" AS "e"
+INNER JOIN "Produtos" AS "p" ON "e"."ProdutoId" = "p"."Id"
+WHERE "e"."SolicitanteId" = @__userId_0 OR "e"."AprovadorId" = @__userId_1
+2025-01-17 22:12:25.282 -03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[LabSolos_Server_DotNet8.Models.Emprestimo, LabSolos-Server-DotNet8, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2025-01-17 22:12:25.298 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8) in 285.4892ms
+2025-01-17 22:12:25.299 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.EmprestimosController.GetEmprestimosUsuario (LabSolos-Server-DotNet8)'
+2025-01-17 22:12:25.299 -03:00 [INF] HTTP GET /api/emprestimos/2 responded 200 in 290.6311 ms
+2025-01-17 22:12:25.301 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/2 - 200 null application/json; charset=utf-8 296.0239ms
+2025-01-17 22:13:09.459 -03:00 [INF] Application is shutting down...

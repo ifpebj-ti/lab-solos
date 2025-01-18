@@ -3,11 +3,13 @@ using LabSolos_Server_DotNet8.DTOs.Lotes;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class LoteController(AppDbContext context, ILoteService loteService) : ControllerBase
     {
@@ -37,7 +39,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                     await _loteService.AddLoteProdutosAsync(produto, codigoLote);
                 }
 
-                return CreatedAtAction(nameof(GetByCodigo), new { codigoLote }, new { Message = "Lote criado com sucesso." });
+                return CreatedAtAction(nameof(GetByCodigo), new { codigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
             }
             catch (InvalidOperationException ex)
             {

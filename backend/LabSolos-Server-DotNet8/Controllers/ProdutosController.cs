@@ -1,11 +1,13 @@
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger) : ControllerBase
     {
@@ -13,7 +15,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly ILogger<ProdutosController> _logger = logger;
 
         [HttpGet("tipo/{tipoProduto}")]
-        public async Task<IActionResult> GetAll(int tipoProduto)
+        public async Task<IActionResult> GetProdutoByTipo(int tipoProduto)
         {
             _logger.LogInformation(
                 "Iniciando operação para obter produtos do tipo {Tipo}.",
@@ -38,6 +40,21 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 _logger.LogWarning("Erro na obtenção de produtos: {Message}", ex.Message);
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet()]
+        public async Task<ActionResult<Produto>> GetAll()
+        {
+            try
+            {
+                var produtos = await _produtoService.GetAllAsync();
+
+                return Ok(produtos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Erro ao obter o produto.");
             }
         }
 

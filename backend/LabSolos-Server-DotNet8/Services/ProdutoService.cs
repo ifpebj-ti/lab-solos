@@ -70,7 +70,7 @@ namespace LabSolos_Server_DotNet8.Services
                     throw new NotImplementedException("Tipo de produto não implementado.");
             }
         }
-        public async Task<IEnumerable<Produto>> GetAllAsync()
+        public async Task<IEnumerable<object>> GetAllAsync()
         {
             return await _produtoRepository.GetAllAsync();
         }
