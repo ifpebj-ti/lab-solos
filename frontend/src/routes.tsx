@@ -21,6 +21,7 @@ import Page404 from './pages/Page404';
 import LoanCreation from './pages/loan/LoanCreation';
 import LoanReview from './pages/loan/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
+import LoanHistories from './pages/loan/LoanHistories';
 
 function AppRoutes() {
   return (
@@ -64,6 +65,7 @@ function AppRoutes() {
           <Route path='/loan/creation' element={<LoanCreation />}></Route>
           <Route path='/loan/review' element={<LoanReview />}></Route>
           <Route path='/loan/history' element={<LoanHistory />}></Route>
+          <Route path='/loan/histories' element={<LoanHistories />}></Route>
         </Route>
         {/* rotas sem autenticação */}
         <Route path='/login' element={<Login />}></Route>

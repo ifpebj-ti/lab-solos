@@ -408,3 +408,25 @@ export const estudantesSelected = [
   ['Carlos Eduardo', 'USP', 'Medicina'],
   ['Mariana Silva', 'UNICAMP', 'Direito'],
 ];
+
+export const columnsHistories = [
+  { value: 'Id', width: '45%' },
+  { value: 'Data', width: '25%' },
+  { value: 'Itens Utilizados', width: '30%' },
+  { value: 'Mentorados Vinculados', width: '30%' },
+  { value: 'Status', width: '30%' },
+];
+
+export const registrosHistories = [
+  ['001', '2025-01-01', '5', '12', 'devolvido'],
+  ['002', '2025-01-02', '8', '10', 'não devolvido'],
+  ['003', '2025-01-03', '14', '6', 'devolvido'],
+  ['004', '2025-01-04', '7', '9', 'não devolvido'],
+  ['005', '2025-01-05', '3', '15', 'devolvido'],
+  ['006', '2025-01-06', '13', '8', 'não devolvido'],
+  ['007', '2025-01-07', '10', '11', 'devolvido'],
+  ['008', '2025-01-08', '4', '14', 'não devolvido'],
+  ['009', '2025-01-09', '9', '7', 'devolvido'],
+  ['010', '2025-01-10', '6', '13', 'não devolvido'],
+];
+
