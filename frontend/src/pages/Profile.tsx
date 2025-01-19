@@ -73,8 +73,16 @@ function Profile() {
           </div>
           <div className='w-11/12 mt-7'>
             <div className='flex gap-x-5 h-32'>
-              <FollowUpCard title='Empréstimos Realizados' number='22' icon={<LayersIcon />} />
-              <FollowUpCard title='Itens Utilizados' number='59' icon={<LayersIcon />} />
+              <FollowUpCard
+                title='Empréstimos Realizados'
+                number='22'
+                icon={<LayersIcon />}
+              />
+              <FollowUpCard
+                title='Itens Utilizados'
+                number='59'
+                icon={<LayersIcon />}
+              />
             </div>
             <div className='w-full mt-7'>
               <InfoContainer items={infoItems} />

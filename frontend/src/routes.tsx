@@ -18,6 +18,9 @@ import MentoringHistory from './pages/history/MentoringHistory';
 import ClassHistory from './pages/history/ClassHistory';
 import PrivateRoute from './components/base/PrivateRoutes';
 import Page404 from './pages/Page404';
+import LoanCreation from './pages/loan/LoanCreation';
+import LoanReview from './pages/loan/LoanReview';
+import LoanHistory from './pages/loan/LoanHistory';
 
 function AppRoutes() {
   return (
@@ -56,6 +59,11 @@ function AppRoutes() {
             path='/users/request'
             element={<RegistrationRequest />}
           ></Route>
+
+          {/* loan routes */}
+          <Route path='/loan/creation' element={<LoanCreation />}></Route>
+          <Route path='/loan/review' element={<LoanReview />}></Route>
+          <Route path='/loan/history' element={<LoanHistory />}></Route>
         </Route>
         {/* rotas sem autenticação */}
         <Route path='/login' element={<Login />}></Route>

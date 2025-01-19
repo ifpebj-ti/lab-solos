@@ -28,6 +28,8 @@ function Sidebar() {
           >
             <HomeIcon fill={currentPage == '/' ? '#16A34A' : '#fff'} />
           </Link>
+
+          {/* admin */}
           {String(rankID) === '1' && (
             <Link
               to={'/insert'}
@@ -46,7 +48,9 @@ function Sidebar() {
               />
             </Link>
           )}
-          {String(rankID) === '1' && (
+
+          {/* Mentor */}
+          {String(rankID) === '2' && (
             <Link
               to={'/history/class'}
               className={`w-11 h-11 ${isHistoryActive ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
@@ -62,17 +66,15 @@ function Sidebar() {
               <UserCircle stroke={isUsersActive ? '#16A34A' : '#fff'} />
             </Link>
           )}
-          {String(rankID) === '3' && (
-            <Link
-              to={'/search/material'}
-              className={`w-11 h-11 ${currentPage === '/search/material' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
-            >
-              <SearchIcon
-                fill={currentPage === '/search/material' ? '#16A34A' : '#fff'}
-                tam='18'
-              />
-            </Link>
-          )}
+          <Link
+            to={'/search/material'}
+            className={`w-11 h-11 ${currentPage === '/search/material' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
+          >
+            <SearchIcon
+              fill={currentPage === '/search/material' ? '#16A34A' : '#fff'}
+              tam='18'
+            />
+          </Link>
           {String(rankID) === '3' && (
             <Link
               to={'/history/mentoring'}

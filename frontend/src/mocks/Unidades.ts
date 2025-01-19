@@ -155,6 +155,13 @@ export const columnsButtons = [
   { value: 'Lote', width: '15%' },
 ];
 
+export const columnsLoan = [
+  { value: 'Código', width: '25%' },
+  { value: 'Data de Uso', width: '25%' },
+  { value: 'Quant. Itens Utilizados', width: '25%' },
+  { value: 'Status', width: '25%' },
+];
+
 export const columns = [
   { value: 'Nome', width: '20%' },
   { value: 'Endereço', width: '30%' },
@@ -373,4 +380,31 @@ export const testData = [
   ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
   ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
   // Adicione mais dados conforme necessário
+];
+
+export const columnsItensSelected = [
+  { value: 'Código', width: '15%' },
+  { value: 'Nome', width: '25%' },
+  { value: 'Tipo', width: '20%' },
+  { value: 'Quantidade', width: '20%' },
+  { value: 'Grandeza', width: '20%' },
+];
+
+export const itensSelected = [
+  ['001', 'Sódio', 'sal', '500', 'grama'],
+  ['002', 'Cloro', 'ácido', '250', 'mililitro'],
+  ['003', 'Potássio', 'base', '300', 'mililitro'],
+  ['004', 'Magnésio', 'sal', '1000', 'grama'],
+  ['005', 'Flúor', 'ácido', '500', 'mililitro'],
+];
+
+export const columnsEstudantesSelected = [
+  { value: 'Nome', width: '45%' },
+  { value: 'Instituição', width: '25%' },
+  { value: 'Curso', width: '30%' },
+];
+export const estudantesSelected = [
+  ['Ana Beatriz', 'UFPE', 'Engenharia de Software'],
+  ['Carlos Eduardo', 'USP', 'Medicina'],
+  ['Mariana Silva', 'UNICAMP', 'Direito'],
 ];

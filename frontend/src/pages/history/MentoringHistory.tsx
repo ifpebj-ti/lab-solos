@@ -2,7 +2,7 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsButtons, dataButton } from '@/mocks/Unidades';
+import { columnsLoan, dataButton } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -148,7 +148,7 @@ function MentoringHistory() {
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsButtons} />
+            <HeaderTable columns={columnsLoan} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.map((rowData, index) => (
@@ -156,7 +156,7 @@ function MentoringHistory() {
                     key={index}
                     data={[rowData.name, rowData.institution, rowData.code]}
                     rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
+                    columnWidths={columnsLoan.map((column) => column.width)}
                   />
                 ))}
               </div>

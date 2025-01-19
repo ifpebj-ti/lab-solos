@@ -15,7 +15,7 @@ import { generateRandomData, ChemicalData } from '@/mocks/Unidades';
 import { useUser } from '@/components/context/UserProvider';
 
 function SearchMaterial() {
-    const { rankID } = useUser();
+  const { rankID } = useUser();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
