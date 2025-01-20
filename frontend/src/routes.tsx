@@ -15,13 +15,15 @@ import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
 import MentoringHistory from './pages/history/MentoringHistory';
-import ClassHistory from './pages/history/ClassHistory';
+// essa rota vai ser só pra admim
+// import ClassHistory from './pages/history/ClassHistory';
 import PrivateRoute from './components/base/PrivateRoutes';
 import Page404 from './pages/Page404';
 import LoanCreation from './pages/loan/LoanCreation';
 import LoanReview from './pages/loan/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
 import LoanHistories from './pages/loan/LoanHistories';
+import MyClass from './pages/MyClass';
 
 function AppRoutes() {
   return (
@@ -36,7 +38,7 @@ function AppRoutes() {
           <Route path='/viewClass' element={<ViewClass />}></Route>
 
           {/* telas de histórico */}
-          <Route path='/history/class' element={<ClassHistory />}></Route>
+          <Route path='/history/class' element={<LoanHistories />}></Route>
           <Route
             path='/history/mentoring'
             element={<MentoringHistory />}
@@ -66,6 +68,7 @@ function AppRoutes() {
           <Route path='/loan/review' element={<LoanReview />}></Route>
           <Route path='/loan/history' element={<LoanHistory />}></Route>
           <Route path='/loan/histories' element={<LoanHistories />}></Route>
+          <Route path='/me/myclass' element={<MyClass />}></Route>
         </Route>
         {/* rotas sem autenticação */}
         <Route path='/login' element={<Login />}></Route>

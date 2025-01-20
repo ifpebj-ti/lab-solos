@@ -5,10 +5,11 @@ import { useState } from 'react';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
+import { Link } from 'react-router-dom';
 
 function Profile() {
   const { rankID } = useUser();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   if (rankID === null) {
     return (
@@ -68,6 +69,9 @@ function Profile() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
+              {String(rankID) === '2' && (
+                <Link to={'/me/myclass'} className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'>Minha Turma</Link>
+              )}
               <OpenSearch />
             </div>
           </div>
@@ -92,9 +96,11 @@ function Profile() {
                 <InfoContainer items={infoItems4} />
                 <InfoContainer items={infoItems5} />
               </div>
-              <div className='w-full mt-5'>
-                <InfoContainer items={infoItems} />
-              </div>
+              {String(rankID) === '3' && (
+                <div className='w-full mt-5'>
+                  <InfoContainer items={infoItems} />
+                </div>
+              )}
             </div>
           </div>
         </div>

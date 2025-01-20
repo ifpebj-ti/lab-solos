@@ -4,7 +4,7 @@ import HomeIcon from '../../../public/icons/sidebar/HomeIcon';
 import PlusIcon from '../../../public/icons/sidebar/PlusIcon';
 import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
 import FollowUpIcon from '../../../public/icons/sidebar/FollowUpIcon';
-import { History, UserCircle } from 'lucide-react';
+import { History, UserCircle, UserPlus } from 'lucide-react';
 import { useUser } from '../context/UserProvider';
 import SearchIcon from '../../../public/icons/SearchIcon';
 import HistoryText from '../../../public/icons/HistoryText';
@@ -56,6 +56,26 @@ function Sidebar() {
               className={`w-11 h-11 ${isHistoryActive ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
             >
               <History stroke={isHistoryActive ? '#16A34A' : '#fff'} />
+            </Link>
+          )}
+          {String(rankID) === '2' && (
+            <Link
+              to={'/loan/creation'}
+              className={`w-11 h-11 ${currentPage === '/loan/creation' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
+            >
+              <PlusIcon
+                fill={currentPage === '/loan/creation' ? '#16A34A' : '#fff'}
+              />
+            </Link>
+          )}
+          {String(rankID) === '2' && (
+            <Link
+              to={'/users/request'}
+              className={`w-11 h-11 ${currentPage === '/users/request' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
+            >
+              <UserPlus
+                stroke={currentPage === '/users/request' ? '#16A34A' : '#fff'}
+              />
             </Link>
           )}
           {String(rankID) === '1' && (
