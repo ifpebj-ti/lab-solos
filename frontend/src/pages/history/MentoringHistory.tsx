@@ -2,7 +2,7 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsButtons, dataButton } from '@/mocks/Unidades';
+import { columnsLoan, dataButton } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
 import { getUserById } from '@/integration/Users';
 import { formatDate } from '@/function/date';
+import { useUser } from '../../components/context/UserProvider';
 
 interface IUsuario {
   instituicao: string;
@@ -35,6 +36,7 @@ function MentoringHistory() {
   const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
   const id = 3;
+  const { rankID } = useUser();
 
   useEffect(() => {
     const fetchGetUserById = async () => {
@@ -109,7 +111,9 @@ function MentoringHistory() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico de Mentorados
+              Histórico
+              {String(rankID) === '1' ||
+                (String(rankID) === '2' && <span>de Mentorados</span>)}
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
@@ -144,7 +148,7 @@ function MentoringHistory() {
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsButtons} />
+            <HeaderTable columns={columnsLoan} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.map((rowData, index) => (
@@ -152,7 +156,7 @@ function MentoringHistory() {
                     key={index}
                     data={[rowData.name, rowData.institution, rowData.code]}
                     rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
+                    columnWidths={columnsLoan.map((column) => column.width)}
                   />
                 ))}
               </div>

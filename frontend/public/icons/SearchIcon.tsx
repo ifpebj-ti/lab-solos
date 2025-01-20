@@ -1,12 +1,13 @@
 interface ISearchIcon {
   fill?: string;
+  tam?: string;
 }
 
-export default function SearchIcon({ fill = '#fff' }: ISearchIcon) {
+export default function SearchIcon({ fill = '#fff', tam = '15' }: ISearchIcon) {
   return (
     <svg
-      width='15'
-      height='15'
+      width={tam}
+      height={tam}
       viewBox='0 0 20 20'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'

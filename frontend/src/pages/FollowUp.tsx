@@ -69,7 +69,11 @@ function FollowUp() {
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
               <div className='w-2/4'>
-                <SearchInput name='search' onChange={() => console.log('build')} value='1' />
+                <SearchInput
+                  name='search'
+                  onChange={() => console.log('build')}
+                  value='1'
+                />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>

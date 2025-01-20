@@ -12,8 +12,10 @@ import LayersIcon from '../../../public/icons/LayersIcon';
 import UsersIcon from '../../../public/icons/UsersIcon';
 import { useEffect, useRef, useState } from 'react';
 import { generateRandomData, ChemicalData } from '@/mocks/Unidades';
+import { useUser } from '@/components/context/UserProvider';
 
 function SearchMaterial() {
+  const { rankID } = useUser();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -98,12 +100,16 @@ function SearchMaterial() {
             className='w-11/12 h-32 mt-7 flex items-center gap-x-8 overflow-x-auto scrollbar-hide'
             style={{ cursor: 'grab' }}
           >
-            <FollowUpCard
-              title='Usuários Admin'
-              number='2'
-              icon={<UserIcon />}
-            />
-            <FollowUpCard title='Usuários' number='39' icon={<UsersIcon />} />
+            {String(rankID) === '1' && (
+              <FollowUpCard
+                title='Usuários Admin'
+                number='2'
+                icon={<UserIcon />}
+              />
+            )}
+            {String(rankID) === '1' && (
+              <FollowUpCard title='Usuários' number='39' icon={<UsersIcon />} />
+            )}
             <FollowUpCard
               title='Tipos de Vidrarias'
               number='87'
@@ -138,7 +144,11 @@ function SearchMaterial() {
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex justify-between items-center mt-2'>
               <div className='w-2/4'>
-                <SearchInput name='search' onChange={() => console.log('build')} value='1' />
+                <SearchInput
+                  name='search'
+                  onChange={() => console.log('build')}
+                  value='1'
+                />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>

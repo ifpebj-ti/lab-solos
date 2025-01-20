@@ -190,7 +190,7 @@ function RegisteredUsers() {
         </div>
       ) : (
         <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
-          <p className=''>Erro durante requisição.</p>
+          <p>Erro durante requisição.</p>
           <Link
             to={'/'}
             className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'

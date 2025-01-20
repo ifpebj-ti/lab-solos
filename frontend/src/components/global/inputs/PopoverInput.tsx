@@ -34,7 +34,7 @@ const PopoverInput = ({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className='flex flex-col gap-y-1'>
+    <div className='flex flex-col gap-y-1 w-full'>
       <p className='font-inter-regular text-sm text-clt-2 mt-3'>{title}</p>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
