@@ -13,9 +13,7 @@ namespace LabSolos_Server_DotNet8.Models
         public required DateTime DataDevolucao { get; set; }
         public required StatusEmprestimo Status { get; set; }
 
-        // Referência ao Produto emprestado
-        public required int ProdutoId { get; set; }
-        public Produto Produto { get; set; } = null!; // Produto relacionado
+        public List<Produto>? Produtos { get; set; }
 
         // Referência ao Solicitante do empréstimo (sempre obrigatório)
         public required int SolicitanteId { get; set; }

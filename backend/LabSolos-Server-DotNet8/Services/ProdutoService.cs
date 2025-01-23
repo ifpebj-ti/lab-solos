@@ -5,6 +5,16 @@ using LabSolos_Server_DotNet8.Repositories;
 
 namespace LabSolos_Server_DotNet8.Services
 {
+    public interface IProdutoService
+    {
+        Task<IEnumerable<object>> GetAllAsync();
+        Task<IEnumerable<object>> GetProdutosByTipoAsync(TipoProduto tipoProduto);
+        Task<Produto?> GetByIdAsync(int id);
+        Task AddAsync(Produto produto);
+        Task UpdateAsync(Produto produto);
+        Task DeleteAsync(int id);
+    }
+    
     public class ProdutoService(IProdutoRepository produtoRepository, ILogger<ProdutoService> logger) : IProdutoService
     {
         private readonly IProdutoRepository _produtoRepository = produtoRepository;

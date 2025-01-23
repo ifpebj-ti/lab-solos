@@ -6,6 +6,11 @@ using LabSolos_Server_DotNet8.Repositories;
 
 namespace LabSolos_Server_DotNet8.Services
 {
+    public interface ISystemService
+    {
+        Task<QuantitiesDTO> GetSystemQuantitiesAsync();
+    }
+    
     public class SystemService(IProdutoRepository produtoRepository, IUsuarioRepository usuarioRepository) : ISystemService
     {
 

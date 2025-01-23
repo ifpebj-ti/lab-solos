@@ -9,6 +9,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
+    public interface IProdutoRepository
+    {
+        Task<IEnumerable<Produto>> GetAllAsync();
+        Task<List<Produto>> GetProdutosByIds(List<int> produtosIds);
+        Task<Produto?> GetByIdAsync(int id);
+        Task AddAsync(Produto produto);
+        Task UpdateAsync(Produto produto);
+        Task UpdateProdutos(IEnumerable<Produto> produtos);
+        Task DeleteAsync(int id);
+    }
+    
     public class ProdutoRepository(AppDbContext context, ILogger<ProdutoRepository> logger) : IProdutoRepository
     {
         private readonly AppDbContext _context = context;
@@ -20,6 +31,13 @@ namespace LabSolos_Server_DotNet8.Repositories
             var produtos = await _context.Produtos.ToListAsync();
             _logger.LogInformation("Operação concluída. {Count} produtos obtidos.", produtos.Count);
             return produtos;
+        }
+
+        public async Task<List<Produto>> GetProdutosByIds(List<int> produtosIds)
+        {
+            return await _context.Produtos
+                .Where(p => produtosIds.Contains(p.Id))
+                .ToListAsync();
         }
 
         public async Task<Produto?> GetByIdAsync(int id)
@@ -113,6 +131,11 @@ namespace LabSolos_Server_DotNet8.Repositories
             _logger.LogInformation("Produto com ID {Id} atualizado com sucesso.", produto.Id);
         }
 
+        public async Task UpdateProdutos(IEnumerable<Produto> produtos)
+        {
+            _context.Produtos.UpdateRange(produtos);
+            await _context.SaveChangesAsync();
+        }
         public async Task DeleteAsync(int id)
         {
             _logger.LogInformation("Iniciando operação para deletar o produto com ID {Id}.", id);

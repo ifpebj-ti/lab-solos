@@ -43,9 +43,9 @@ namespace LabSolos_Server_DotNet8.Data.Context
             // Configuração de relacionamento 1:1 entre Produto e Emprestimo
             modelBuilder.Entity<Produto>()
                 .HasOne(p => p.Emprestimo)
-                .WithOne(e => e.Produto)
-                .HasForeignKey<Emprestimo>(e => e.ProdutoId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .WithMany(e => e.Produtos)
+                .HasForeignKey(e => e.EmprestimoId)
+                .OnDelete(DeleteBehavior.SetNull);
             
             // Configuração do relacionamento entre Emprestimo e Solicitante
             modelBuilder.Entity<Emprestimo>()

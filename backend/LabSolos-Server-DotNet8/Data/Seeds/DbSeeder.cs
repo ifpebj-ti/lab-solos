@@ -14,9 +14,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             if (!hasData)
             {
-                SeedProdutos.Seed(context);
                 SeedUsuarios.Seed(context);
-                SeedEmprestimos.Seed(context);
+                SeedProdutos.Seed(context);
 
                 context.SaveChanges();
             }

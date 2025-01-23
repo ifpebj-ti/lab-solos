@@ -49,6 +49,35 @@ namespace LabSolos_Server_DotNet8.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Emprestimos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DataRealizacao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataDevolucao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    SolicitanteId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AprovadorId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Emprestimos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Emprestimos_Usuarios_AprovadorId",
+                        column: x => x.AprovadorId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Emprestimos_Usuarios_SolicitanteId",
+                        column: x => x.SolicitanteId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Produtos",
                 columns: table => new
                 {
@@ -65,6 +94,7 @@ namespace LabSolos_Server_DotNet8.Migrations
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     UltimaModificacao = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LoteId = table.Column<int>(type: "INTEGER", nullable: true),
+                    EmprestimoId = table.Column<int>(type: "INTEGER", nullable: true),
                     Catmat = table.Column<string>(type: "TEXT", nullable: true),
                     UnidadeMedida = table.Column<int>(type: "INTEGER", nullable: true),
                     EstadoFisico = table.Column<int>(type: "INTEGER", nullable: true),
@@ -85,47 +115,17 @@ namespace LabSolos_Server_DotNet8.Migrations
                 {
                     table.PrimaryKey("PK_Produtos", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Produtos_Emprestimos_EmprestimoId",
+                        column: x => x.EmprestimoId,
+                        principalTable: "Emprestimos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_Produtos_Lotes_LoteId",
                         column: x => x.LoteId,
                         principalTable: "Lotes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Emprestimos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DataRealizacao = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    DataDevolucao = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProdutoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    SolicitanteId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AprovadorId = table.Column<int>(type: "INTEGER", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Emprestimos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Emprestimos_Produtos_ProdutoId",
-                        column: x => x.ProdutoId,
-                        principalTable: "Produtos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Emprestimos_Usuarios_AprovadorId",
-                        column: x => x.AprovadorId,
-                        principalTable: "Usuarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Emprestimos_Usuarios_SolicitanteId",
-                        column: x => x.SolicitanteId,
-                        principalTable: "Usuarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -134,15 +134,14 @@ namespace LabSolos_Server_DotNet8.Migrations
                 column: "AprovadorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Emprestimos_ProdutoId",
-                table: "Emprestimos",
-                column: "ProdutoId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Emprestimos_SolicitanteId",
                 table: "Emprestimos",
                 column: "SolicitanteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Produtos_EmprestimoId",
+                table: "Produtos",
+                column: "EmprestimoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Produtos_LoteId",
@@ -154,16 +153,16 @@ namespace LabSolos_Server_DotNet8.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Emprestimos");
-
-            migrationBuilder.DropTable(
                 name: "Produtos");
 
             migrationBuilder.DropTable(
-                name: "Usuarios");
+                name: "Emprestimos");
 
             migrationBuilder.DropTable(
                 name: "Lotes");
+
+            migrationBuilder.DropTable(
+                name: "Usuarios");
         }
     }
 }

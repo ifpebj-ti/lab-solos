@@ -17,9 +17,9 @@ namespace LabSolos_Server_DotNet8.Models
         public DateTime UltimaModificacao { get; set; } // Decidir
 
         public int? LoteId { get; set; }  
-        public Lote? Lote { get; set; } 
+        public Lote? Lote { get; set; }
 
-        // Relacionamento 1:1 com Emprestimo
+        public int? EmprestimoId { get; set; }
         public Emprestimo? Emprestimo { get; set; }
     }
 }
