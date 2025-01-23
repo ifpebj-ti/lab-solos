@@ -4,6 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
+    public interface ILoteRepository
+    {
+        Task<Lote> AddLoteAsync(Lote lote);
+        Task<Lote?> GetLoteByIdAsync(int id);
+        Task<Lote?> GetLoteByCodigoAsync(string codigoLote);
+    }
+    
     public class LoteRepository(AppDbContext context) : ILoteRepository
     {
         public readonly AppDbContext _context = context;

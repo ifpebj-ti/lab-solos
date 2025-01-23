@@ -15,7 +15,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUsuarioService _usuarioService = usuarioService;
         private readonly ILogger<UsuariosController> _logger = logger;
 
-        
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -37,16 +37,9 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             var tipoEnum = (TipoUsuario)tipoUsuario;
 
-            try
-            {
-                var usuarios = await _usuarioService.GetUsuariosByTipoAsync(tipoEnum);
-                return Ok(usuarios);
-            }
-            catch (NotImplementedException ex)
-            {
-                _logger.LogWarning("Erro na obtenção de usuarios: {Message}", ex.Message);
-                return BadRequest(ex.Message);
-            }
+
+            var usuarios = await _usuarioService.GetUsuariosByTipoAsync(tipoEnum);
+            return Ok(usuarios);
         }
 
         [HttpGet("{id}")]
@@ -61,70 +54,61 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> Add([FromBody] AddUsuarioDTO usuarioDto)
         {
             var niveisAcademico = new[] { "Mentor", "Mentorado" };
-            try
+
+            // Validar os dados do usuário através do serviço
+            var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
+            if (!resultadoValidacao.Validado)
             {
-                // Validar os dados do usuário através do serviço
-                var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
-                if (!resultadoValidacao.Validado)
+                return BadRequest(new { Message = resultadoValidacao.Mensagem });
+            }
+
+            // Criar o objeto de acordo com o tipo
+            Usuario usuario = usuarioDto.NivelUsuario switch
+            {
+                "Mentor" => new Academico
                 {
-                    return BadRequest(new { Message = resultadoValidacao.Mensagem });
-                }
-
-                // Criar o objeto de acordo com o tipo
-                Usuario usuario = usuarioDto.NivelUsuario switch
+                    NomeCompleto = usuarioDto.NomeCompleto,
+                    Email = usuarioDto.Email,
+                    SenhaHash = usuarioDto.Senha,
+                    Telefone = usuarioDto.Telefone,
+                    NivelUsuario = NivelUsuario.Mentor,
+                    TipoUsuario = TipoUsuario.Academico,
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now,
+                    Instituicao = usuarioDto.Instituicao!,
+                    Curso = usuarioDto.Curso!
+                },
+                "Mentorado" => new Academico
                 {
-                    "Mentor" => new Academico
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Mentor,
-                        TipoUsuario = TipoUsuario.Academico,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now,
-                        Instituicao = usuarioDto.Instituicao!,
-                        Curso = usuarioDto.Curso!
-                    },
-                    "Mentorado" => new Academico
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Mentorado,
-                        TipoUsuario = TipoUsuario.Academico,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now,
-                        Instituicao = usuarioDto.Instituicao!,
-                        Curso = usuarioDto.Curso!
-                    },
-                    "Comum" => new Usuario
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Comum,
-                        TipoUsuario = TipoUsuario.Comum,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now
-                    },
-                    _ => throw new InvalidOperationException("O nivel fornecido não é suportado.")
-                };
+                    NomeCompleto = usuarioDto.NomeCompleto,
+                    Email = usuarioDto.Email,
+                    SenhaHash = usuarioDto.Senha,
+                    Telefone = usuarioDto.Telefone,
+                    NivelUsuario = NivelUsuario.Mentorado,
+                    TipoUsuario = TipoUsuario.Academico,
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now,
+                    Instituicao = usuarioDto.Instituicao!,
+                    Curso = usuarioDto.Curso!
+                },
+                "Comum" => new Usuario
+                {
+                    NomeCompleto = usuarioDto.NomeCompleto,
+                    Email = usuarioDto.Email,
+                    SenhaHash = usuarioDto.Senha,
+                    Telefone = usuarioDto.Telefone,
+                    NivelUsuario = NivelUsuario.Comum,
+                    TipoUsuario = TipoUsuario.Comum,
+                    Status = StatusUsuario.Pendente,
+                    DataIngresso = DateTime.Now
+                },
+                _ => throw new InvalidOperationException("O nivel fornecido não é suportado.")
+            };
 
-                await _usuarioService.AddAsync(usuario);
+            await _usuarioService.AddAsync(usuario);
 
-                return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ocorreu um erro inesperado.", Details = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
+
         }
 
 

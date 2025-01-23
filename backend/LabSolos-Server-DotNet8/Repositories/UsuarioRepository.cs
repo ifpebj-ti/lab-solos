@@ -6,6 +6,16 @@ using LabSolos_Server_DotNet8.Enums;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
+    public interface IUsuarioRepository
+    {
+        Task<IEnumerable<Usuario>> GetAllAsync();
+        Task<Usuario?> GetByIdAsync(int id);
+        Task AddAsync(Usuario usuario);
+        Task UpdateAsync(Usuario usuario);
+        Task DeleteAsync(int id);
+        Task<Usuario?> ValidarUsuarioAsync(string email, string password);
+    }
+    
     public class UsuarioRepository(AppDbContext context, ILogger<UsuarioRepository> logger) : IUsuarioRepository
     {
         private readonly AppDbContext _context = context;

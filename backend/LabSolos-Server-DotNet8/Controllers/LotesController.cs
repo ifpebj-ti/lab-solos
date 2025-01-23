@@ -19,77 +19,58 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpPost("AddLote")]
         public async Task<IActionResult> AddLote([FromBody] AddLoteDTO loteDto)
         {
-            try
+
+            // Validar os dados do usuário através do serviço
+            var resultadoValidacao = _loteService.ValidarEstruturaLote(loteDto);
+            if (!resultadoValidacao.Validado)
             {
-                // Validar os dados do usuário através do serviço
-                var resultadoValidacao = _loteService.ValidarEstruturaLote(loteDto);
-                if (!resultadoValidacao.Validado)
-                {
-                    return BadRequest(new { Message = resultadoValidacao.Mensagem });
-                }
-
-                string codigoLote = loteDto.CodigoLote;
-
-                for (int i = 0; i < loteDto.QuantidadeLote; i++)
-                {
-                    // Criar o produto com base no tipo
-                    var produto = _loteService.AddProdutoPorTipo(loteDto);
-
-                    // Adicionar ao lote
-                    await _loteService.AddLoteProdutosAsync(produto, codigoLote);
-                }
-
-                return CreatedAtAction(nameof(GetByCodigo), new { codigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
+                return BadRequest(new { Message = resultadoValidacao.Mensagem });
             }
-            catch (InvalidOperationException ex)
+
+            string codigoLote = loteDto.CodigoLote;
+
+            for (int i = 0; i < loteDto.QuantidadeLote; i++)
             {
-                return BadRequest(new { Message = ex.Message });
+                // Criar o produto com base no tipo
+                var produto = _loteService.AddProdutoPorTipo(loteDto);
+
+                // Adicionar ao lote
+                await _loteService.AddLoteProdutosAsync(produto, codigoLote);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "Ocorreu um erro inesperado.", Details = ex.Message });
-            }
+
+            return CreatedAtAction(nameof(GetByCodigo), new { codigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
+
         }
 
         [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetLoteById(int id)
         {
-            try
-            {
-                // Busca o lote pelo ID no repositório
-                var lote = await _loteService.GetLoteByIdAsync(id);
 
-                if (lote == null)
-                {
-                    return NotFound(new { Message = $"Lote com ID {id} não encontrado." });
-                }
+            // Busca o lote pelo ID no repositório
+            var lote = await _loteService.GetLoteByIdAsync(id);
 
-                return Ok(lote);
-            }
-            catch (Exception ex)
+            if (lote == null)
             {
-                return StatusCode(500, new { Message = "Ocorreu um erro ao processar sua solicitação.", Details = ex.Message });
+                return NotFound(new { Message = $"Lote com ID {id} não encontrado." });
             }
+
+            return Ok(lote);
+
         }
 
         [HttpGet("GetByCodigo/{codigoLote}")]
         public async Task<IActionResult> GetByCodigo(string codigoLote)
         {
-            try
-            {
-                var lote = await _loteService.GetLoteByCodigoAsync(codigoLote);
 
-                if (lote == null)
-                {
-                    return NotFound(new { Message = "Lote não encontrado." });
-                }
+            var lote = await _loteService.GetLoteByCodigoAsync(codigoLote);
 
-                return Ok(lote);
-            }
-            catch (Exception ex)
+            if (lote == null)
             {
-                return StatusCode(500, new { Message = "Ocorreu um erro inesperado.", Details = ex.Message });
+                return NotFound(new { Message = "Lote não encontrado." });
             }
+
+            return Ok(lote);
+
         }
 
     }

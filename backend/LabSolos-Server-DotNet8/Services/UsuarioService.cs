@@ -7,6 +7,18 @@ using LabSolos_Server_DotNet8.DTOs.Usuarios;
 
 namespace LabSolos_Server_DotNet8.Services
 {
+    public interface IUsuarioService
+    {
+        Task<IEnumerable<Usuario>> GetAllAsync();
+        Task<IEnumerable<object>> GetUsuariosByTipoAsync(TipoUsuario tipoUsuario);
+        Task<Usuario?> GetByIdAsync(int id);
+        Task AddAsync(Usuario usuario);
+        Task UpdateAsync(Usuario usuario);
+        Task DeleteAsync(int id);
+        Task<Usuario?> ValidarUsuarioAsync(string email, string password);
+        ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto);
+    }
+    
     public class UsuarioService(IUsuarioRepository usuarioRepository, ILogger<UsuarioService> logger) : IUsuarioService
     {
         private readonly IUsuarioRepository _usuarioRepository = usuarioRepository;

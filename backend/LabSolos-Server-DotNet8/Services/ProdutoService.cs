@@ -5,6 +5,16 @@ using LabSolos_Server_DotNet8.Repositories;
 
 namespace LabSolos_Server_DotNet8.Services
 {
+    public interface IProdutoService
+    {
+        Task<IEnumerable<object>> GetAllAsync();
+        Task<IEnumerable<object>> GetProdutosByTipoAsync(TipoProduto tipoProduto);
+        Task<Produto?> GetByIdAsync(int id);
+        Task AddAsync(Produto produto);
+        Task UpdateAsync(Produto produto);
+        Task DeleteAsync(int id);
+    }
+    
     public class ProdutoService(IProdutoRepository produtoRepository, ILogger<ProdutoService> logger) : IProdutoService
     {
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
@@ -27,8 +37,10 @@ namespace LabSolos_Server_DotNet8.Services
                             Fornecedor = q.Fornecedor,
                             Quantidade = q.Quantidade,
                             QuantidadeMinima = q.QuantidadeMinima,
+                            DataFabricacao = q.DataFabricacao.ToString(),
                             DataValidade = q.DataValidade.ToString(),
                             LocalizacaoProduto = q.LocalizacaoProduto,
+                            Status = q.Status.ToString(),
                             Catmat = q.Catmat,
                             UnidadeMedida = q.UnidadeMedida.ToString(),
                             EstadoFisico = q.EstadoFisico.ToString(),
@@ -53,8 +65,11 @@ namespace LabSolos_Server_DotNet8.Services
                             NomeProduto = v.NomeProduto,
                             Fornecedor = v.Fornecedor,
                             Quantidade = v.Quantidade,
+                            DataFabricacao = v.DataFabricacao.ToString(),
+                            DataValidade = v.DataValidade.ToString(),
                             QuantidadeMinima = v.QuantidadeMinima,
                             LocalizacaoProduto = v.LocalizacaoProduto,
+                            Status = v.Status.ToString(),
                             Material = v.Material.ToString(),
                             Formato = v.Formato.ToString(),
                             Altura = v.Altura.ToString(),
@@ -65,6 +80,25 @@ namespace LabSolos_Server_DotNet8.Services
                     _logger.LogInformation("{Count} vidrarias obtidas.", vidrarias.Count);
                     return vidrarias;
 
+                case TipoProduto.Outro:
+                    var outros = produtos.Where(p => p.Tipo == tipoProduto)
+                    .Select(o => new ProdutoDTO
+                    {
+                        Id = o.Id,
+                        NomeProduto = o.NomeProduto,
+                        Fornecedor = o.Fornecedor,
+                        Quantidade = o.Quantidade,
+                        DataFabricacao = o.DataFabricacao.ToString(),
+                        DataValidade = o.DataValidade.ToString(),
+                        QuantidadeMinima = o.QuantidadeMinima,
+                        LocalizacaoProduto = o.LocalizacaoProduto,
+                        Status = o.Status.ToString(),
+                    })
+                    .ToList<object>();
+
+                    _logger.LogInformation("{Count} Outros obtidos.", outros.Count);
+                    return outros;
+
                 default:
                     _logger.LogWarning("Tipo de produto especificado ({Tipo}) ainda não tem implementação.", tipoProduto);
                     throw new NotImplementedException("Tipo de produto não implementado.");
@@ -72,7 +106,20 @@ namespace LabSolos_Server_DotNet8.Services
         }
         public async Task<IEnumerable<object>> GetAllAsync()
         {
-            return await _produtoRepository.GetAllAsync();
+            var produtos = await _produtoRepository.GetAllAsync();
+
+            return produtos.Select(o => new ProdutoDTO
+            {
+                Id = o.Id,
+                NomeProduto = o.NomeProduto,
+                Fornecedor = o.Fornecedor,
+                Quantidade = o.Quantidade,
+                DataFabricacao = o.DataFabricacao.ToString(),
+                DataValidade = o.DataValidade.ToString(),
+                QuantidadeMinima = o.QuantidadeMinima,
+                LocalizacaoProduto = o.LocalizacaoProduto,
+                Status = o.Status.ToString(),
+            });
         }
 
         public async Task<Produto?> GetByIdAsync(int id)

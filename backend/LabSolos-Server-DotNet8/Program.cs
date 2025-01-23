@@ -1,6 +1,8 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
+using LabSolos_Server_DotNet8.Filters;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,14 +12,18 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do sistema de logs
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // Serão mostrados logs a partir do nível selecionado (Verbose - Debug - Information - Warning - Error - Fatal)
-    .WriteTo.Console() // Permite que os logs sejam escritos no terminal
-    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Month) // Caminho onde deverá estar o arquivo e periodicidade dos arquivos (Hour - Day - Month - Infinite)
-    .CreateLogger();
+// Adicionar suporte para controladores
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(typeof(ApiLoggingFilter));
+    options.Filters.Add(typeof(ApiExceptionFilter));
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
-builder.Host.UseSerilog();
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
@@ -35,17 +41,27 @@ builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<ILoteRepository, LoteRepository>();
 builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
 
-// Adicionar suporte para controladores
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    }); ;
+// Configurar o Serilog para escrever os logs em um arquivo
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em "Logs/log.txt"
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiLoggingFilter"))
+                .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiExceptionFilter"))
+                .WriteTo.File("Logs/Exceptions/exception-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiExceptionFilter
+    .CreateLogger();
+
+// Substituir o logger padrão do ASP.NET Core pelo Serilog
+builder.Host.UseSerilog();
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -82,18 +98,17 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-// Configurar o Entity Framework Core com SQLite
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
-
 var app = builder.Build();
 
 // Configurar o pipeline de requisição
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API v1");
+        c.RoutePrefix = string.Empty; // Faz o Swagger abrir na raiz
+    });
 
     // Executar o seeding de dados apenas em ambiente de desenvolvimento
     using var scope = app.Services.CreateScope();
@@ -104,13 +119,19 @@ if (app.Environment.IsDevelopment())
     // Chama o método de seeding que utiliza o contexto
     DbSeeder.Seed(context);
 }
+else
+{
+    app.UseExceptionHandler("/Error");
+}
 
 app.UseCors("AllowAll");
 
-app.UseSerilogRequestLogging(); // Configura o Serilog para registrar automaticamente todas as requisições HTTP feitas à aplicação
-app.UseHttpsRedirection(); // Força o redirecionamento de todas as requisições HTTP para HTTPS, garantindo que as comunicações sejam feitas em uma conexão segura e criptografada
-app.UseAuthentication(); // Adiciona a autenticação ao pipeline
-app.UseAuthorization(); // Verifica as permissões de um usuário autenticado, permitindo o acesso a recursos específicos da aplicação com base em regras definidas
-app.MapControllers(); // Configura o roteamento para todos os controladores da aplicação, registrando automaticamente as rotas definidas nos atributos [HttpGet], [HttpPost], etc.
+// Middlewares
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+//app.UseHsts();
+
+app.MapControllers();
 
 app.Run();

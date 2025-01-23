@@ -7,7 +7,29 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
     public class SeedProdutos
     {
         public static void Seed(AppDbContext context)
-        {            
+        {
+
+            var emprestimo1 = new Emprestimo
+            {
+                Id = 1,
+                DataRealizacao = DateTime.UtcNow.AddDays(-7),
+                DataDevolucao = DateTime.UtcNow.AddDays(7),
+                Status = StatusEmprestimo.Aprovado,
+                SolicitanteId = 3,
+                AprovadorId = 2
+            };
+
+            var emprestimo2 = new Emprestimo
+            {
+                Id = 2,
+                DataRealizacao = DateTime.UtcNow.AddDays(-3),
+                DataDevolucao = DateTime.UtcNow.AddDays(4),
+                Status = StatusEmprestimo.EmAndamento,
+                SolicitanteId = 2
+            };
+
+            context.Emprestimos.AddRange(emprestimo1, emprestimo2);
+
             // Lotes
             var loteQuimico1 = new Lote
             {
@@ -48,7 +70,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Grupo = Grupo.Acido,
                 GrauPureza = "98%",
                 Catmat = "Q1234",
-                LoteId = loteQuimico1.Id
+                LoteId = loteQuimico1.Id,
+                EmprestimoId = emprestimo1.Id
             };
 
             var quimico2 = new Quimico
@@ -72,7 +95,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Grupo = Grupo.Sal,
                 GrauPureza = "P.A.",
                 Catmat = "Q5678",
-                LoteId = loteQuimico1.Id
+                LoteId = loteQuimico1.Id,
+                EmprestimoId = emprestimo2.Id,
             };
 
             // Adicionar os químicos ao contexto
@@ -94,7 +118,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Alta,
                 Capacidade = 500,
                 Graduada = true,
-                LoteId = loteVidraria1.Id
+                LoteId = loteVidraria1.Id,
+                EmprestimoId = emprestimo1.Id
             };
 
             var vidraria2 = new Vidraria
@@ -112,11 +137,27 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Baixa,
                 Capacidade = 1000,
                 Graduada = false,
-                LoteId = loteVidraria1.Id
+                LoteId = loteVidraria1.Id,
+                EmprestimoId = emprestimo2.Id
             };
 
             // Adicionar as vidrarias ao contexto
             context.Vidrarias.AddRange(vidraria1, vidraria2);
+
+            var outro1 = new Produto
+            {
+                Id = 5,
+                NomeProduto = "Mop",
+                Tipo = TipoProduto.Outro,
+                Fornecedor = "Fornecedor Limpeza RST",
+                Quantidade = 1,
+                QuantidadeMinima = 1,
+                LocalizacaoProduto = "Jogado, por ai",
+                Status = StatusProduto.Disponivel,
+                EmprestimoId = emprestimo1.Id
+            };
+
+            context.Produtos.Add(outro1);            
 
             // Salvar todas as mudanças no banco de dados
             context.SaveChanges(); 
