@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LabSolos_Server_DotNet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241031022628_AddEmprestimoRelacionamento")]
-    partial class AddEmprestimoRelacionamento
+    [Migration("20250123125033_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,10 +100,10 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Quantidade")
+                    b.Property<float>("Quantidade")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("QuantidadeMinima")
+                    b.Property<float>("QuantidadeMinima")
                         .HasColumnType("REAL");
 
                     b.Property<int>("Status")
@@ -121,7 +121,7 @@ namespace LabSolos_Server_DotNet8.Migrations
 
                     b.ToTable("Produtos");
 
-                    b.HasDiscriminator<int>("Tipo");
+                    b.HasDiscriminator<int>("Tipo").HasValue(2);
 
                     b.UseTphMappingStrategy();
                 });
@@ -138,6 +138,9 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("NivelUsuario")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NomeCompleto")
                         .IsRequired()
@@ -160,7 +163,7 @@ namespace LabSolos_Server_DotNet8.Migrations
 
                     b.ToTable("Usuarios");
 
-                    b.HasDiscriminator<int>("TipoUsuario").HasValue(3);
+                    b.HasDiscriminator<int>("TipoUsuario").HasValue(2);
 
                     b.UseTphMappingStrategy();
                 });
@@ -209,7 +212,7 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<int>("Altura")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double?>("Capacidade")
+                    b.Property<float?>("Capacidade")
                         .HasColumnType("REAL");
 
                     b.Property<int>("Formato")
@@ -234,11 +237,18 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<string>("Curso")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Instituição")
+                    b.Property<string>("Instituicao")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Administrador", b =>
+                {
+                    b.HasBaseType("LabSolos_Server_DotNet8.Models.Usuario");
+
+                    b.HasDiscriminator().HasValue(0);
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>

@@ -1,3 +1,4 @@
+using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
@@ -7,11 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
-    public class ProdutosController(IProdutoService produtoService, ILogger<ProdutosController> logger) : ControllerBase
+    public class ProdutosController(IProdutoService produtoService, IUtilitiesService utilsService, ILogger<ProdutosController> logger) : ControllerBase
     {
         private readonly IProdutoService _produtoService = produtoService;
+        private readonly IUtilitiesService _utilsService = utilsService;
+
         private readonly ILogger<ProdutosController> _logger = logger;
 
         [HttpGet("tipo/{tipoProduto}")]
@@ -31,65 +34,100 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             var tipoEnum = (TipoProduto)tipoProduto;
 
-            try
-            {
-                var produtos = await _produtoService.GetProdutosByTipoAsync(tipoEnum);
-                return Ok(produtos);
-            }
-            catch (NotImplementedException ex)
-            {
-                _logger.LogWarning("Erro na obtenção de produtos: {Message}", ex.Message);
-                return BadRequest(ex.Message);
-            }
+            var produtos = await _produtoService.GetProdutosByTipoAsync(tipoEnum);
+            return Ok(produtos);
+
         }
 
         [HttpGet()]
         public async Task<ActionResult<Produto>> GetAll()
         {
-            try
-            {
-                var produtos = await _produtoService.GetAllAsync();
 
-                return Ok(produtos);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Erro ao obter o produto.");
-            }
+            var produtos = await _produtoService.GetAllAsync();
+
+            return Ok(produtos);
+
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Produto>> GetById(int id)
         {
-            try
+
+            var produto = await _produtoService.GetByIdAsync(id);
+            if (produto == null)
             {
-                var produto = await _produtoService.GetByIdAsync(id);
-                if (produto == null)
-                {
-                    return NotFound();
-                }
-                return Ok(produto);
+                return NotFound();
             }
-            catch (Exception)
-            {
-                // Log da exceção (ex) pode ser adicionado aqui
-                return StatusCode(500, "Erro ao obter o produto.");
-            }
+            return Ok(produto);
+
         }
 
         [HttpPost]
-        public async Task<ActionResult> Add(Produto produto)
+        public async Task<ActionResult> Add(AddProdutoDTO produtoDTO)
         {
-            try
+            Produto produto = produtoDTO.TipoProduto switch
             {
-                await _produtoService.AddAsync(produto);
-                return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
-            }
-            catch (Exception)
-            {
-                // Log da exceção (ex) pode ser adicionado aqui
-                return StatusCode(500, "Erro ao adicionar o produto.");
-            }
+                "Quimico" => new Quimico
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Quimico,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
+                    Status = StatusProduto.Disponivel,
+                    UltimaModificacao = DateTime.Now,
+                    Catmat = produtoDTO.Catmat,
+                    UnidadeMedida = (UnidadeMedida)produtoDTO.UnidadeMedida,
+                    EstadoFisico = (EstadoFisico)produtoDTO.EstadoFisico,
+                    Cor = (Cor)produtoDTO.Cor,
+                    Odor = (Odor)produtoDTO.Odor,
+                    Densidade = produtoDTO.Densidade,
+                    PesoMolecular = produtoDTO.PesoMolecular,
+                    GrauPureza = produtoDTO.GrauPureza,
+                    FormulaQuimica = produtoDTO.FormulaQuimica,
+                    Grupo = (Grupo)produtoDTO.Grupo,
+
+                },
+                "Vidraria" => new Vidraria
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Vidraria,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
+                    Status = StatusProduto.Disponivel,
+                    UltimaModificacao = DateTime.Now,
+                    Material = (MaterialVidraria)produtoDTO.Material,
+                    Formato = (FormatoVidraria)produtoDTO.Formato,
+                    Altura = (AlturaVidraria)produtoDTO.Altura,
+                    Capacidade = produtoDTO.Capacidade,
+                    Graduada = produtoDTO.Graduada,
+                },
+                "Outro" => new Produto
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Outro,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
+                    Status = StatusProduto.Disponivel,
+                    UltimaModificacao = DateTime.Now,
+                },
+                _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
+            };
+
+
+            await _produtoService.AddAsync(produto);
+            return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
         }
 
         [HttpPut("{id}")]
@@ -100,31 +138,17 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest("O ID do produto não corresponde.");
             }
 
-            try
-            {
-                await _produtoService.UpdateAsync(produto);
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                // Log da exceção (ex) pode ser adicionado aqui
-                return StatusCode(500, "Erro ao atualizar o produto.");
-            }
+            await _produtoService.UpdateAsync(produto);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            try
-            {
-                await _produtoService.DeleteAsync(id);
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                // Log da exceção (ex) pode ser adicionado aqui
-                return StatusCode(500, "Erro ao deletar o produto.");
-            }
+            await _produtoService.DeleteAsync(id);
+            return NoContent();
         }
+
+
     }
 }

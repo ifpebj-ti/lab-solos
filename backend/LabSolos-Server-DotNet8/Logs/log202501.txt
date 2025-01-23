@@ -485,3 +485,701 @@ WHERE "e"."SolicitanteId" = @__userId_0 OR "e"."AprovadorId" = @__userId_1
 2025-01-17 22:12:25.299 -03:00 [INF] HTTP GET /api/emprestimos/2 responded 200 in 290.6311 ms
 2025-01-17 22:12:25.301 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/emprestimos/2 - 200 null application/json; charset=utf-8 296.0239ms
 2025-01-17 22:13:09.459 -03:00 [INF] Application is shutting down...
+2025-01-23 08:13:40.257 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 08:13:40.397 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 08:13:40.457 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 08:13:40.466 -03:00 [INF] Creating key {3a1f70a2-04f0-4de7-bb05-e338897a4811} with creation date 2025-01-23 11:13:40Z, activation date 2025-01-23 11:13:40Z, and expiration date 2025-04-23 11:13:40Z.
+2025-01-23 08:13:40.482 -03:00 [INF] Writing data to file 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys\key-3a1f70a2-04f0-4de7-bb05-e338897a4811.xml'.
+2025-01-23 08:13:40.520 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 08:13:40.522 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 08:13:40.523 -03:00 [INF] Hosting environment: Development
+2025-01-23 08:13:40.524 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 08:13:55.044 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/ - null null
+2025-01-23 08:13:55.066 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 08:13:55.092 -03:00 [INF] HTTP GET / responded 404 in 25.6901 ms
+2025-01-23 08:13:55.100 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/ - 404 0 null 56.8829ms
+2025-01-23 08:13:55.110 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/, Response status code: 404
+2025-01-23 08:15:41.475 -03:00 [INF] Application is shutting down...
+2025-01-23 08:15:44.721 -03:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 08:15:44.863 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 08:15:44.926 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 08:15:44.963 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 08:15:44.967 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 08:15:44.970 -03:00 [INF] Hosting environment: Development
+2025-01-23 08:15:44.971 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 08:15:46.671 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/ - null null
+2025-01-23 08:15:46.698 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/ - 301 0 null 27.7595ms
+2025-01-23 08:15:46.707 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/index.html - null null
+2025-01-23 08:15:46.793 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/index.html - 200 null text/html;charset=utf-8 86.2326ms
+2025-01-23 08:15:46.822 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger-ui.css - null null
+2025-01-23 08:15:46.824 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger-ui-standalone-preset.js - null null
+2025-01-23 08:15:46.824 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger-ui-bundle.js - null null
+2025-01-23 08:15:46.859 -03:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-01-23 08:15:46.859 -03:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-01-23 08:15:46.863 -03:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-01-23 08:15:46.864 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger-ui.css - 200 152034 text/css 41.3428ms
+2025-01-23 08:15:46.865 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger-ui-standalone-preset.js - 200 230280 text/javascript 41.1326ms
+2025-01-23 08:15:46.867 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger-ui-bundle.js - 200 1456926 text/javascript 43.2344ms
+2025-01-23 08:15:47.038 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/v1/swagger.json - null null
+2025-01-23 08:15:47.043 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 08:15:47.056 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/favicon-32x32.png - null null
+2025-01-23 08:15:47.059 -03:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2025-01-23 08:15:47.060 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/favicon-32x32.png - 200 628 image/png 4.3619ms
+2025-01-23 08:15:47.073 -03:00 [INF] HTTP GET /v1/swagger.json responded 404 in 29.8265 ms
+2025-01-23 08:15:47.075 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/v1/swagger.json - 404 0 null 37.0257ms
+2025-01-23 08:15:47.081 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5289/v1/swagger.json, Response status code: 404
+2025-01-23 08:15:55.689 -03:00 [INF] Application is shutting down...
+2025-01-23 08:15:58.749 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 08:15:58.894 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 08:15:58.956 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 08:15:58.992 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 08:15:58.995 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 08:15:58.998 -03:00 [INF] Hosting environment: Development
+2025-01-23 08:15:58.999 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 08:16:01.837 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/index.html - null null
+2025-01-23 08:16:01.921 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/index.html - 200 null text/html;charset=utf-8 85.3423ms
+2025-01-23 08:16:02.125 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - null null
+2025-01-23 08:16:02.256 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 131.0057ms
+2025-01-23 08:19:27.472 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 346
+2025-01-23 08:19:27.479 -03:00 [INF] CORS policy execution successful.
+2025-01-23 08:19:27.482 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 08:19:27.506 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-23 08:19:27.512 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-23 08:19:27.515 -03:00 [INF] HTTP POST /api/Produtos responded 401 in 33.3660 ms
+2025-01-23 08:19:27.518 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 401 0 null 46.2014ms
+2025-01-23 08:20:03.196 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/auth/login - application/json 66
+2025-01-23 08:20:03.203 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:20:03.222 -03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LabSolos_Server_DotNet8.DTOs.Auth.LoginDTO) on controller LabSolos_Server_DotNet8.Controllers.AuthController (LabSolos-Server-DotNet8).
+2025-01-23 08:20:03.308 -03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__email_0='?' (Size = 17)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+WHERE "u"."Email" = @__email_0
+LIMIT 2
+2025-01-23 08:20:03.417 -03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-01-23 08:20:03.422 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8) in 197.4644ms
+2025-01-23 08:20:03.425 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:20:03.429 -03:00 [INF] HTTP POST /api/auth/login responded 200 in 229.1526 ms
+2025-01-23 08:20:03.434 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/auth/login - 200 null application/json; charset=utf-8 237.5262ms
+2025-01-23 08:21:10.083 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/produtos - application/json 358
+2025-01-23 08:21:10.086 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-23 08:21:10.088 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-23 08:21:10.089 -03:00 [INF] HTTP POST /api/produtos responded 401 in 3.6345 ms
+2025-01-23 08:21:10.090 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/produtos - 401 0 null 7.6008ms
+2025-01-23 08:21:23.444 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/produtos - application/json 358
+2025-01-23 08:21:23.451 -03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+ ---> Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(String encodedJson)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+   --- End of inner exception stack trace ---
+2025-01-23 08:21:23.464 -03:00 [INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+2025-01-23 08:21:23.466 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-23 08:21:23.471 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-23 08:21:23.472 -03:00 [INF] HTTP POST /api/produtos responded 401 in 26.7795 ms
+2025-01-23 08:21:23.474 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/produtos - 401 0 null 29.8218ms
+2025-01-23 08:21:58.618 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/auth/login - application/json 66
+2025-01-23 08:21:58.621 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:21:58.622 -03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LabSolos_Server_DotNet8.DTOs.Auth.LoginDTO) on controller LabSolos_Server_DotNet8.Controllers.AuthController (LabSolos-Server-DotNet8).
+2025-01-23 08:21:58.673 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__email_0='?' (Size = 17)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+WHERE "u"."Email" = @__email_0
+LIMIT 2
+2025-01-23 08:21:58.727 -03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-01-23 08:21:58.729 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8) in 104.9432ms
+2025-01-23 08:21:58.729 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:21:58.731 -03:00 [INF] HTTP POST /api/auth/login responded 200 in 110.0521 ms
+2025-01-23 08:21:58.732 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/auth/login - 200 null application/json; charset=utf-8 114.2083ms
+2025-01-23 08:22:03.004 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/produtos - application/json 358
+2025-01-23 08:22:03.006 -03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+ ---> Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(String encodedJson)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+   --- End of inner exception stack trace ---
+2025-01-23 08:22:03.008 -03:00 [INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EndcodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+2025-01-23 08:22:03.009 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-23 08:22:03.010 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-23 08:22:03.010 -03:00 [INF] HTTP POST /api/produtos responded 401 in 4.9184 ms
+2025-01-23 08:22:03.012 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/produtos - 401 0 null 8.5369ms
+2025-01-23 08:22:40.616 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/auth/login - application/json 66
+2025-01-23 08:22:40.618 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:22:40.618 -03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(LabSolos_Server_DotNet8.DTOs.Auth.LoginDTO) on controller LabSolos_Server_DotNet8.Controllers.AuthController (LabSolos-Server-DotNet8).
+2025-01-23 08:22:40.622 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__email_0='?' (Size = 17)], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+WHERE "u"."Email" = @__email_0
+LIMIT 2
+2025-01-23 08:22:40.680 -03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2025-01-23 08:22:40.682 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8) in 62.7202ms
+2025-01-23 08:22:40.684 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.AuthController.Login (LabSolos-Server-DotNet8)'
+2025-01-23 08:22:40.684 -03:00 [INF] HTTP POST /api/auth/login responded 200 in 66.7911 ms
+2025-01-23 08:22:40.685 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/auth/login - 200 null application/json; charset=utf-8 69.2007ms
+2025-01-23 08:22:52.957 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/produtos - application/json 358
+2025-01-23 08:22:52.978 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:22:52.981 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.Models.Produto) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 08:22:53.011 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 28.287ms
+2025-01-23 08:22:53.013 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:22:53.014 -03:00 [ERR] HTTP POST /api/produtos responded 500 in 55.3898 ms
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-23 08:22:53.024 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-23 08:22:53.033 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/produtos - 500 null text/plain; charset=utf-8 76.7254ms
+2025-01-23 08:23:06.390 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/produtos - application/json 357
+2025-01-23 08:23:06.393 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:23:06.396 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.Models.Produto) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 08:23:06.400 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 1.7542ms
+2025-01-23 08:23:06.403 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:23:06.404 -03:00 [ERR] HTTP POST /api/produtos responded 500 in 11.3197 ms
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-23 08:23:06.415 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-23 08:23:06.423 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/produtos - 500 null text/plain; charset=utf-8 32.941ms
+2025-01-23 08:23:37.535 -03:00 [INF] Application is shutting down...
+2025-01-23 08:23:40.542 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 08:23:40.672 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 08:23:40.734 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 08:23:40.770 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 08:23:40.772 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 08:23:40.773 -03:00 [INF] Hosting environment: Development
+2025-01-23 08:23:40.773 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 08:23:47.155 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 346
+2025-01-23 08:23:47.178 -03:00 [INF] CORS policy execution successful.
+2025-01-23 08:23:47.184 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 08:23:47.203 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:23:47.218 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.Models.Produto) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 08:23:47.275 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 53.8999ms
+2025-01-23 08:23:47.277 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:23:47.281 -03:00 [ERR] HTTP POST /api/Produtos responded 500 in 94.9738 ms
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-23 08:23:47.295 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-23 08:23:47.316 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 500 null text/plain; charset=utf-8 160.7429ms
+2025-01-23 08:24:54.662 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/index.html - null null
+2025-01-23 08:24:54.703 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/index.html - 200 null text/html;charset=utf-8 40.8945ms
+2025-01-23 08:24:54.872 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - null null
+2025-01-23 08:24:54.947 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 75.1865ms
+2025-01-23 08:25:03.804 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 1500
+2025-01-23 08:25:03.810 -03:00 [INF] CORS policy execution successful.
+2025-01-23 08:25:03.812 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:25:03.818 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.Models.Produto) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 08:25:03.825 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 4.2684ms
+2025-01-23 08:25:03.827 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 08:25:03.829 -03:00 [ERR] HTTP POST /api/Produtos responded 500 in 17.9160 ms
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2025-01-23 08:25:03.836 -03:00 [ERR] An unhandled exception has occurred while executing the request.
+System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'. Path: $ | LineNumber: 1 | BytePositionInLine: 7.
+ ---> System.NotSupportedException: Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported. Type 'LabSolos_Server_DotNet8.Models.Produto'.
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& state, Utf8JsonReader& reader, NotSupportedException ex)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.ContinueDeserialize(ReadBufferState& bufferState, JsonReaderState& jsonReaderState, ReadStack& readStack)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.DeserializeAsObjectAsync(Stream utf8Json, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter.ReadRequestBodyAsync(InputFormatterContext context, Encoding encoding)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinder.BindModelAsync(ModelBindingContext bindingContext)
+   at Microsoft.AspNetCore.Mvc.ModelBinding.ParameterBinder.BindModelAsync(ActionContext actionContext, IModelBinder modelBinder, IValueProvider valueProvider, ParameterDescriptor parameter, ModelMetadata metadata, Object value, Object container)
+   at Microsoft.AspNetCore.Mvc.Controllers.ControllerBinderDelegateProvider.<>c__DisplayClass0_0.<<CreateBinderDelegate>g__Bind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-01-23 08:25:03.845 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 500 null text/plain; charset=utf-8 40.7946ms
+2025-01-23 09:43:40.171 -03:00 [INF] Application is shutting down...
+2025-01-23 09:50:46.346 -03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+PRAGMA journal_mode = 'wal';
+2025-01-23 09:50:46.424 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "__EFMigrationsHistory" (
+    "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+    "ProductVersion" TEXT NOT NULL
+);
+2025-01-23 09:50:46.430 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+2025-01-23 09:50:46.432 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2025-01-23 09:50:46.446 -03:00 [INF] Applying migration '20250123125033_Initial'.
+2025-01-23 09:50:46.476 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Lotes" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Lotes" PRIMARY KEY AUTOINCREMENT,
+    "CodigoLote" TEXT NOT NULL,
+    "DataEntrada" TEXT NULL
+);
+2025-01-23 09:50:46.478 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Usuarios" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Usuarios" PRIMARY KEY AUTOINCREMENT,
+    "NomeCompleto" TEXT NOT NULL,
+    "Email" TEXT NOT NULL,
+    "SenhaHash" TEXT NOT NULL,
+    "Telefone" TEXT NULL,
+    "DataIngresso" TEXT NOT NULL,
+    "NivelUsuario" INTEGER NOT NULL,
+    "TipoUsuario" INTEGER NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "Instituicao" TEXT NULL,
+    "Cidade" TEXT NULL,
+    "Curso" TEXT NULL
+);
+2025-01-23 09:50:46.480 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Produtos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Produtos" PRIMARY KEY AUTOINCREMENT,
+    "NomeProduto" TEXT NOT NULL,
+    "Fornecedor" TEXT NULL,
+    "Tipo" INTEGER NOT NULL,
+    "Quantidade" REAL NOT NULL,
+    "QuantidadeMinima" REAL NOT NULL,
+    "DataFabricacao" TEXT NULL,
+    "DataValidade" TEXT NULL,
+    "LocalizacaoProduto" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "UltimaModificacao" TEXT NOT NULL,
+    "LoteId" INTEGER NULL,
+    "Catmat" TEXT NULL,
+    "UnidadeMedida" INTEGER NULL,
+    "EstadoFisico" INTEGER NULL,
+    "Cor" INTEGER NULL,
+    "Odor" INTEGER NULL,
+    "Densidade" REAL NULL,
+    "PesoMolecular" REAL NULL,
+    "GrauPureza" TEXT NULL,
+    "FormulaQuimica" TEXT NULL,
+    "Grupo" INTEGER NULL,
+    "Material" INTEGER NULL,
+    "Formato" INTEGER NULL,
+    "Altura" INTEGER NULL,
+    "Capacidade" REAL NULL,
+    "Graduada" INTEGER NULL,
+    CONSTRAINT "FK_Produtos_Lotes_LoteId" FOREIGN KEY ("LoteId") REFERENCES "Lotes" ("Id") ON DELETE SET NULL
+);
+2025-01-23 09:50:46.483 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Emprestimos" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Emprestimos" PRIMARY KEY AUTOINCREMENT,
+    "DataRealizacao" TEXT NOT NULL,
+    "DataDevolucao" TEXT NOT NULL,
+    "Status" INTEGER NOT NULL,
+    "ProdutoId" INTEGER NOT NULL,
+    "SolicitanteId" INTEGER NOT NULL,
+    "AprovadorId" INTEGER NULL,
+    CONSTRAINT "FK_Emprestimos_Produtos_ProdutoId" FOREIGN KEY ("ProdutoId") REFERENCES "Produtos" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_AprovadorId" FOREIGN KEY ("AprovadorId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Emprestimos_Usuarios_SolicitanteId" FOREIGN KEY ("SolicitanteId") REFERENCES "Usuarios" ("Id") ON DELETE RESTRICT
+);
+2025-01-23 09:50:46.485 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_AprovadorId" ON "Emprestimos" ("AprovadorId");
+2025-01-23 09:50:46.486 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Emprestimos_ProdutoId" ON "Emprestimos" ("ProdutoId");
+2025-01-23 09:50:46.488 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Emprestimos_SolicitanteId" ON "Emprestimos" ("SolicitanteId");
+2025-01-23 09:50:46.491 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Produtos_LoteId" ON "Produtos" ("LoteId");
+2025-01-23 09:50:46.492 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20250123125033_Initial', '8.0.10');
+2025-01-23 09:50:51.869 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:50:51.995 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:50:52.001 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Usuarios" AS "u")
+2025-01-23 09:50:52.005 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Emprestimos" AS "e")
+2025-01-23 09:50:52.009 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Lotes" AS "l")
+2025-01-23 09:50:52.188 -03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2025-01-23 09:50:52.192 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Lotes" ("Id", "CodigoLote", "DataEntrada")
+VALUES (@p0, @p1, @p2);
+2025-01-23 09:50:52.200 -03:00 [INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 5), @p8='?' (Size = 22), @p9='?' (Size = 3), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 15), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2025-01-23 09:50:52.202 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 5), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Single), @p6='?' (DbType = Int32), @p7='?' (Size = 4), @p8='?' (Size = 22), @p9='?' (Size = 4), @p10='?' (DbType = Int32), @p11='?' (Size = 12), @p12='?' (DbType = Int32), @p13='?' (Size = 16), @p14='?' (DbType = Int32), @p15='?' (DbType = Single), @p16='?' (DbType = Single), @p17='?' (DbType = Single), @p18='?' (DbType = Int32), @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Catmat", "Cor", "DataFabricacao", "DataValidade", "Densidade", "EstadoFisico", "FormulaQuimica", "Fornecedor", "GrauPureza", "Grupo", "LocalizacaoProduto", "LoteId", "NomeProduto", "Odor", "PesoMolecular", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao", "UnidadeMedida")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2025-01-23 09:50:52.209 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 26), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2025-01-23 09:50:52.212 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Single), @p3='?' (DbType = DateTime), @p4='?' (DbType = DateTime), @p5='?' (DbType = Int32), @p6='?' (Size = 23), @p7='?' (DbType = Boolean), @p8='?' (Size = 16), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p11='?' (Size = 27), @p12='?' (DbType = Single), @p13='?' (DbType = Single), @p14='?' (DbType = Int32), @p15='?' (DbType = Int32), @p16='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("Id", "Altura", "Capacidade", "DataFabricacao", "DataValidade", "Formato", "Fornecedor", "Graduada", "LocalizacaoProduto", "LoteId", "Material", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16);
+2025-01-23 09:50:52.504 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 18), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 17), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 9), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2025-01-23 09:50:52.507 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 14), @p2='?' (Size = 13), @p3='?' (DbType = DateTime), @p4='?' (Size = 17), @p5='?' (Size = 20), @p6='?' (DbType = Int32), @p7='?' (Size = 13), @p8='?' (Size = 84), @p9='?' (DbType = Int32), @p10='?' (Size = 10), @p11='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "Cidade", "Curso", "DataIngresso", "Email", "Instituicao", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);
+2025-01-23 09:50:52.509 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime), @p2='?' (Size = 17), @p3='?' (DbType = Int32), @p4='?' (Size = 21), @p5='?' (Size = 84), @p6='?' (DbType = Int32), @p7='?' (Size = 9), @p8='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Usuarios" ("Id", "DataIngresso", "Email", "NivelUsuario", "NomeCompleto", "SenhaHash", "Status", "Telefone", "TipoUsuario")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+2025-01-23 09:50:52.512 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2025-01-23 09:50:52.515 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Emprestimos" ("Id", "AprovadorId", "DataDevolucao", "DataRealizacao", "ProdutoId", "SolicitanteId", "Status")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2025-01-23 09:50:52.589 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:50:52.630 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:50:52.632 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:50:52.633 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:50:52.633 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:50:56.447 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/index.html - null null
+2025-01-23 09:50:56.514 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/index.html - 200 null text/html;charset=utf-8 66.802ms
+2025-01-23 09:50:56.706 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - null null
+2025-01-23 09:50:56.804 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 97.4515ms
+2025-01-23 09:51:15.047 -03:00 [INF] Application is shutting down...
+2025-01-23 09:51:17.870 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:51:18.003 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:51:18.060 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:51:18.096 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:51:18.098 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:51:18.099 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:51:18.100 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:51:18.534 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/index.html - null null
+2025-01-23 09:51:18.592 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/index.html - 200 null text/html;charset=utf-8 59.0535ms
+2025-01-23 09:51:18.655 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - null null
+2025-01-23 09:51:18.750 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 95.1946ms
+2025-01-23 09:52:06.700 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 124
+2025-01-23 09:52:06.707 -03:00 [INF] CORS policy execution successful.
+2025-01-23 09:52:06.711 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 09:52:06.731 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:52:06.745 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.DTOs.Produtos.AddProdutoDTO) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 09:52:06.779 -03:00 [INF] Iniciando operação para adicionar um novo produto: Outro.
+2025-01-23 09:52:06.785 -03:00 [INF] Executing ObjectResult, writing value of type 'System.String'.
+2025-01-23 09:52:06.788 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 39.4598ms
+2025-01-23 09:52:06.789 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:52:06.791 -03:00 [ERR] HTTP POST /api/Produtos responded 500 in 80.6237 ms
+2025-01-23 09:52:06.796 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 500 null text/plain; charset=utf-8 96.5498ms
+2025-01-23 09:53:23.188 -03:00 [INF] Application is shutting down...
+2025-01-23 09:53:25.813 -03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:53:25.937 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:53:25.996 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:53:26.030 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:53:26.034 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:53:26.035 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:53:26.036 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:53:29.840 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 124
+2025-01-23 09:53:29.871 -03:00 [INF] CORS policy execution successful.
+2025-01-23 09:53:29.874 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 09:53:29.893 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:53:29.908 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.DTOs.Produtos.AddProdutoDTO) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 09:53:29.952 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.Produtos.AddProdutoDTO'.
+2025-01-23 09:53:29.970 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 58.9883ms
+2025-01-23 09:53:29.972 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:53:29.974 -03:00 [INF] HTTP POST /api/Produtos responded 200 in 99.4806 ms
+2025-01-23 09:53:29.977 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 200 null application/json; charset=utf-8 137.63ms
+2025-01-23 09:54:28.108 -03:00 [INF] Application is shutting down...
+2025-01-23 09:54:30.943 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:54:31.080 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:54:31.137 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:54:31.171 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:54:31.173 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:54:31.174 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:54:31.175 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:54:34.373 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 124
+2025-01-23 09:54:34.398 -03:00 [INF] CORS policy execution successful.
+2025-01-23 09:54:34.401 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 09:54:34.416 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:54:34.430 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.DTOs.Produtos.AddProdutoDTO) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 09:54:34.472 -03:00 [INF] Iniciando operação para adicionar um novo produto: Outro.
+2025-01-23 09:54:34.485 -03:00 [INF] Executing ObjectResult, writing value of type 'System.String'.
+2025-01-23 09:54:34.495 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 57.8573ms
+2025-01-23 09:54:34.496 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:54:34.498 -03:00 [ERR] HTTP POST /api/Produtos responded 500 in 96.7639 ms
+2025-01-23 09:54:34.501 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 500 null text/plain; charset=utf-8 128.787ms
+2025-01-23 09:55:45.852 -03:00 [INF] Application is shutting down...
+2025-01-23 09:55:48.671 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:55:48.804 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:55:48.876 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:55:48.913 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:55:48.915 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:55:48.916 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:55:48.919 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:55:52.173 -03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5289/api/Produtos - application/json 124
+2025-01-23 09:55:52.196 -03:00 [INF] CORS policy execution successful.
+2025-01-23 09:55:52.201 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 09:55:52.218 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:55:52.232 -03:00 [INF] Route matched with {action = "Add", controller = "Produtos"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] Add(LabSolos_Server_DotNet8.DTOs.Produtos.AddProdutoDTO) on controller LabSolos_Server_DotNet8.Controllers.ProdutosController (LabSolos-Server-DotNet8).
+2025-01-23 09:55:52.274 -03:00 [INF] Iniciando operação para adicionar um novo produto: Outro.
+2025-01-23 09:55:52.403 -03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = DateTime), @p1='?' (DbType = DateTime), @p2='?' (Size = 5), @p3='?', @p4='?' (DbType = Int32), @p5='?' (Size = 5), @p6='?' (DbType = Single), @p7='?' (DbType = Single), @p8='?' (DbType = Int32), @p9='?' (DbType = Int32), @p10='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Produtos" ("DataFabricacao", "DataValidade", "Fornecedor", "LocalizacaoProduto", "LoteId", "NomeProduto", "Quantidade", "QuantidadeMinima", "Status", "Tipo", "UltimaModificacao")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)
+RETURNING "Id";
+2025-01-23 09:55:52.424 -03:00 [INF] Produto Outro adicionado com sucesso.
+2025-01-23 09:55:52.428 -03:00 [INF] Executing CreatedAtActionResult, writing value of type 'LabSolos_Server_DotNet8.Models.Produto'.
+2025-01-23 09:55:52.541 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8) in 303.029ms
+2025-01-23 09:55:52.543 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.ProdutosController.Add (LabSolos-Server-DotNet8)'
+2025-01-23 09:55:52.545 -03:00 [INF] HTTP POST /api/Produtos responded 201 in 342.4891 ms
+2025-01-23 09:55:52.551 -03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5289/api/Produtos - 201 null application/json; charset=utf-8 377.777ms
+2025-01-23 09:56:21.869 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/System/quantities - null null
+2025-01-23 09:56:21.881 -03:00 [INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-01-23 09:56:21.885 -03:00 [INF] AuthenticationScheme: Bearer was challenged.
+2025-01-23 09:56:21.887 -03:00 [INF] HTTP GET /api/System/quantities responded 401 in 8.3991 ms
+2025-01-23 09:56:21.891 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/System/quantities - 401 0 null 21.1562ms
+2025-01-23 09:56:34.308 -03:00 [INF] Application is shutting down...
+2025-01-23 09:56:37.058 -03:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-01-23 09:56:37.187 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Produtos" AS "p")
+2025-01-23 09:56:37.247 -03:00 [INF] User profile is available. Using 'C:\Users\tomas.abdias\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-01-23 09:56:37.282 -03:00 [INF] Now listening on: http://localhost:5289
+2025-01-23 09:56:37.285 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-01-23 09:56:37.286 -03:00 [INF] Hosting environment: Development
+2025-01-23 09:56:37.287 -03:00 [INF] Content root path: D:\Treinamentos\lab-solos\backend\LabSolos-Server-DotNet8
+2025-01-23 09:56:37.906 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5289/api/System/quantities - null null
+2025-01-23 09:56:37.927 -03:00 [WRN] Failed to determine the https port for redirect.
+2025-01-23 09:56:37.944 -03:00 [INF] Executing endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-23 09:56:37.957 -03:00 [INF] Route matched with {action = "GetSystemQuantities", controller = "System"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetSystemQuantities() on controller LabSolos_Server_DotNet8.Controllers.SystemController (LabSolos-Server-DotNet8).
+2025-01-23 09:56:37.967 -03:00 [INF] Iniciando operação para obter todos os produtos.
+2025-01-23 09:56:38.020 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "p"."Id", "p"."DataFabricacao", "p"."DataValidade", "p"."Fornecedor", "p"."LocalizacaoProduto", "p"."LoteId", "p"."NomeProduto", "p"."Quantidade", "p"."QuantidadeMinima", "p"."Status", "p"."Tipo", "p"."UltimaModificacao", "p"."Catmat", "p"."Cor", "p"."Densidade", "p"."EstadoFisico", "p"."FormulaQuimica", "p"."GrauPureza", "p"."Grupo", "p"."Odor", "p"."PesoMolecular", "p"."UnidadeMedida", "p"."Altura", "p"."Capacidade", "p"."Formato", "p"."Graduada", "p"."Material"
+FROM "Produtos" AS "p"
+2025-01-23 09:56:38.103 -03:00 [INF] Operação concluída. 5 produtos obtidos.
+2025-01-23 09:56:38.107 -03:00 [INF] Iniciando operação para obter todos os usuarios.
+2025-01-23 09:56:38.112 -03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "u"."Id", "u"."DataIngresso", "u"."Email", "u"."NivelUsuario", "u"."NomeCompleto", "u"."SenhaHash", "u"."Status", "u"."Telefone", "u"."TipoUsuario", "u"."Cidade", "u"."Curso", "u"."Instituicao"
+FROM "Usuarios" AS "u"
+2025-01-23 09:56:38.139 -03:00 [INF] Operação concluída. 3 usuarios obtidos.
+2025-01-23 09:56:38.144 -03:00 [INF] Executing OkObjectResult, writing value of type 'LabSolos_Server_DotNet8.DTOs.System.QuantitiesDTO'.
+2025-01-23 09:56:38.162 -03:00 [INF] Executed action LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8) in 202.0263ms
+2025-01-23 09:56:38.165 -03:00 [INF] Executed endpoint 'LabSolos_Server_DotNet8.Controllers.SystemController.GetSystemQuantities (LabSolos-Server-DotNet8)'
+2025-01-23 09:56:38.169 -03:00 [INF] HTTP GET /api/System/quantities responded 200 in 241.4643 ms
+2025-01-23 09:56:38.175 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5289/api/System/quantities - 200 null application/json; charset=utf-8 269.7106ms
+2025-01-23 10:08:22.107 -03:00 [INF] Application is shutting down...

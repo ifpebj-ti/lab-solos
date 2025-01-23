@@ -2,7 +2,7 @@ using LabSolos_Server_DotNet8.Enums;
 
 namespace LabSolos_Server_DotNet8.Models
 {
-    public abstract class Produto
+    public class Produto
     {
         public int Id { get; set; }
         public required string NomeProduto { get; set; }

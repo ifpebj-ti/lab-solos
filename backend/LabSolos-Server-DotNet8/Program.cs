@@ -1,6 +1,8 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
+using LabSolos_Server_DotNet8.Filters;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,13 +12,18 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do sistema de logs
+// Configurar o Serilog para escrever os logs em um arquivo
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // Serão mostrados logs a partir do nível selecionado (Verbose - Debug - Information - Warning - Error - Fatal)
-    .WriteTo.Console() // Permite que os logs sejam escritos no terminal
-    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Month) // Caminho onde deverá estar o arquivo e periodicidade dos arquivos (Hour - Day - Month - Infinite)
+    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em "Logs/log.txt"
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Core.Filters.ApiLoggingFilter"))
+                .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Core.Filters.ApiExceptionFilter"))
+                .WriteTo.File("Logs/Exceptions/exception-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiExceptionFilter
     .CreateLogger();
 
+// Substituir o logger padrão do ASP.NET Core pelo Serilog
 builder.Host.UseSerilog();
 
 // Configuração de algumas dependẽncias
@@ -37,15 +44,20 @@ builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 
 
 // Adicionar suporte para controladores
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    }); ;
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(typeof(ApiLoggingFilter));
+    options.Filters.Add(typeof(ApiExceptionFilter));
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -93,7 +105,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API v1");
+        c.RoutePrefix = string.Empty; // Faz o Swagger abrir na raiz
+    });
 
     // Executar o seeding de dados apenas em ambiente de desenvolvimento
     using var scope = app.Services.CreateScope();
@@ -103,6 +119,10 @@ if (app.Environment.IsDevelopment())
 
     // Chama o método de seeding que utiliza o contexto
     DbSeeder.Seed(context);
+}
+else
+{
+    app.UseExceptionHandler("/Error");
 }
 
 app.UseCors("AllowAll");

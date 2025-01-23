@@ -30,7 +30,8 @@ namespace LabSolos_Server_DotNet8.Data.Context
             modelBuilder.Entity<Produto>()
                 .HasDiscriminator<TipoProduto>("Tipo")
                 .HasValue<Quimico>(TipoProduto.Quimico)
-                .HasValue<Vidraria>(TipoProduto.Vidraria);
+                .HasValue<Vidraria>(TipoProduto.Vidraria)
+                .HasValue<Produto>(TipoProduto.Outro);
 
             // Configuração da relação entre Produto e Lote 
             modelBuilder.Entity<Produto>()
