@@ -7,20 +7,74 @@ import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import Pagination from '../../components/global/table/Pagination';
-import UserIcon from '../../../public/icons/UserIcon';
 import LayersIcon from '../../../public/icons/LayersIcon';
-import UsersIcon from '../../../public/icons/UsersIcon';
 import { useEffect, useRef, useState } from 'react';
-import { generateRandomData, ChemicalData } from '@/mocks/Unidades';
-import { useUser } from '@/components/context/UserProvider';
+import { getAllProducts } from '@/integration/Product';
+import { getSystemQuantities } from '@/integration/System';
+
+interface IAllProducts {
+  $id: string;
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: number;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: number;
+  ultimaModificacao: string;
+  loteId: number;
+  lote: unknown | null;
+  emprestimo: unknown | null;
+}
+interface ISystemQuantities {
+  $id: string;
+  produtos: {
+    $id: string;
+    Quimico: number;
+    Vidraria: number;
+    Total: number;
+  };
+  usuarios: {
+    $id: string;
+    Administrador: number;
+    Mentor: number;
+    Mentorado: number;
+    Total: number;
+  };
+}
+
 
 function SearchMaterial() {
-  const { rankID } = useUser();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const [testData, setTestData] = useState<ChemicalData[]>([]);
+  // scroll
+  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<IAllProducts[]>([]);
+  const [system, setSystem] = useState<ISystemQuantities>();
+
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        const allProducts = await getAllProducts();
+        const systemQuant = await getSystemQuantities();
+        setProducts(allProducts);
+        setSystem(systemQuant);
+      } catch (error) {
+        console.error('Erro ao buscar dados necessários', error);
+      } finally {
+        setIsLoading(false); // Stop loading after fetch (success or failure)
+      }
+    };
+    fetchAllProducts();
+  }, []);
+  console.log(products[1]);
+  console.log(system?.produtos.Quimico);
 
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -39,39 +93,47 @@ function SearchMaterial() {
     const walk = (x - startX) * 2; // Ajuste a velocidade de arraste se necessário
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
-  const isLoading = false;
   const [value, setValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
   // Colunas e dados da tabela
   const columns = [
-    { value: 'Catmat', width: '10%' },
-    { value: 'Item', width: '20%' },
-    { value: 'Lote', width: '15%' },
-    { value: 'Quant. Estoque', width: '20%' },
-    { value: 'Mínimo', width: '15%' },
-    { value: 'Data de Validade', width: '20%' },
+    { value: 'ID', width: '15%' },
+    { value: 'Nome', width: '35%' },
+    { value: 'Tipo', width: '20%' },
+    { value: 'Quantidade', width: '15%' },
+    { value: 'Status', width: '15%' },
   ];
-
-  useEffect(() => {
-    const generatedData = generateRandomData();
-    setTestData(generatedData);
-  }, []);
 
   const options = [
     { value: 'todos', label: 'Todos' },
-    { value: 'vidrarias', label: 'Vidrarias' },
-    { value: 'quimicos', label: 'Quimicos' },
-    { value: 'outros', label: 'Outros' },
+    { value: '0', label: 'Vidrarias' },
+    { value: '1', label: 'Quimicos' },
+    { value: '2', label: 'Outros' },
   ];
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
+  const toggleSortOrder = (ascending: boolean) => {
+    setIsAscending(ascending);
+  };
+  const filteredUsers = products.filter((item) => {
+    const searchName = item.nomeProduto
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesType = value === 'todos' || item.tipo === Number(value);
+    return searchName && matchesType;
+  });
+  const sortedUsers = isAscending
+    ? [...filteredUsers]
+    : [...filteredUsers].reverse();
+
   // Cálculo das páginas
-  const currentData = testData.slice(
+  const currentData = sortedUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   return (
     <>
       {isLoading ? (
@@ -100,44 +162,19 @@ function SearchMaterial() {
             className='w-11/12 h-32 mt-7 flex items-center gap-x-8 overflow-x-auto scrollbar-hide'
             style={{ cursor: 'grab' }}
           >
-            {String(rankID) === '1' && (
-              <FollowUpCard
-                title='Usuários Admin'
-                number='2'
-                icon={<UserIcon />}
-              />
-            )}
-            {String(rankID) === '1' && (
-              <FollowUpCard title='Usuários' number='39' icon={<UsersIcon />} />
-            )}
             <FollowUpCard
               title='Tipos de Vidrarias'
-              number='87'
-              icon={<LayersIcon />}
-            />
-            <FollowUpCard
-              title='Usos de Vidrarias'
-              number='254'
+              number={String(system?.produtos.Vidraria)}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Químicos'
-              number='62'
-              icon={<LayersIcon />}
-            />
-            <FollowUpCard
-              title='Usos de Químicos'
-              number='441'
+              number={String(system?.produtos.Quimico)}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Outros'
-              number='39'
-              icon={<LayersIcon />}
-            />
-            <FollowUpCard
-              title='Usos de Outros'
-              number='249'
+              number={String(system?.produtos.Total)}
               icon={<LayersIcon />}
             />
           </div>
@@ -146,14 +183,16 @@ function SearchMaterial() {
               <div className='w-2/4'>
                 <SearchInput
                   name='search'
-                  onChange={() => console.log('build')}
-                  value='1'
+                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                  value={searchTerm}
                 />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown onClick={() => console.log('s')} top={true} />
-                  <TopDown onClick={() => console.log('s')} top={false} />
+                  <TopDown
+                    onClick={() => toggleSortOrder(!isAscending)}
+                    top={isAscending}
+                  />
                 </div>
                 <div className='w-1/2 -mt-4'>
                   <SelectInput
@@ -167,25 +206,30 @@ function SearchMaterial() {
             <HeaderTable columns={columns} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ItemTable
-                    key={index}
-                    data={[
-                      rowData.codigo,
-                      rowData.nome,
-                      rowData.lote,
-                      rowData.numeroAleatorio,
-                      rowData.numeroMinimo,
-                      rowData.data,
-                    ]}
-                    rowIndex={index}
-                    columnWidths={columns.map((column) => column.width)}
-                  />
-                ))}
+                {currentData.length === 0 ? (
+                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
+                    Nenhum dado disponível para exibição.
+                  </div>
+                ) : (
+                  currentData.map((rowData, index) => (
+                    <ItemTable
+                      key={index}
+                      data={[
+                        String(rowData.id),
+                        String(rowData.nomeProduto),
+                        String(rowData.tipo),
+                        String(rowData.quantidade),
+                        String(rowData.status),
+                      ]}
+                      rowIndex={index}
+                      columnWidths={columns.map((column) => column.width)}
+                    />
+                  ))
+                )}
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={testData.length}
+                totalItems={filteredUsers.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
