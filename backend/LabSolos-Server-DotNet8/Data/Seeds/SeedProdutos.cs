@@ -118,6 +118,20 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             // Adicionar as vidrarias ao contexto
             context.Vidrarias.AddRange(vidraria1, vidraria2);
 
+            var outro = new Produto
+            {
+                Id = 5,
+                NomeProduto = "Mop",
+                Tipo = TipoProduto.Outro,
+                Fornecedor = "Fornecedor Limpeza RST",
+                Quantidade = 1,
+                QuantidadeMinima = 1,
+                LocalizacaoProduto = "Jogado, por ai",
+                Status = StatusProduto.Disponivel,
+            };
+
+            context.Produtos.Add(outro);
+
             // Salvar todas as mudanças no banco de dados
             context.SaveChanges(); 
         }

@@ -36,30 +36,24 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             var produtos = await _produtoService.GetProdutosByTipoAsync(tipoEnum);
             return Ok(produtos);
-
         }
 
         [HttpGet()]
         public async Task<ActionResult<Produto>> GetAll()
         {
-
             var produtos = await _produtoService.GetAllAsync();
-
             return Ok(produtos);
-
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Produto>> GetById(int id)
         {
-
             var produto = await _produtoService.GetByIdAsync(id);
             if (produto == null)
             {
                 return NotFound();
             }
             return Ok(produto);
-
         }
 
         [HttpPost]

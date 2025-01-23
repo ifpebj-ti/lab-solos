@@ -12,19 +12,17 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar o Serilog para escrever os logs em um arquivo
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em "Logs/log.txt"
-    .WriteTo.Logger(lc => lc
-                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Core.Filters.ApiLoggingFilter"))
-                .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
-    .WriteTo.Logger(lc => lc
-                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Core.Filters.ApiExceptionFilter"))
-                .WriteTo.File("Logs/Exceptions/exception-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiExceptionFilter
-    .CreateLogger();
+// Adicionar suporte para controladores
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(typeof(ApiLoggingFilter));
+    options.Filters.Add(typeof(ApiExceptionFilter));
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
-// Substituir o logger padrão do ASP.NET Core pelo Serilog
-builder.Host.UseSerilog();
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
@@ -42,17 +40,22 @@ builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<ILoteRepository, LoteRepository>();
 builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
 
-// Adicionar suporte para controladores
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add(typeof(ApiLoggingFilter));
-    options.Filters.Add(typeof(ApiExceptionFilter));
-})
-.AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
+// Configurar o Serilog para escrever os logs em um arquivo
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em "Logs/log.txt"
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiLoggingFilter"))
+                .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
+    .WriteTo.Logger(lc => lc
+                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiExceptionFilter"))
+                .WriteTo.File("Logs/Exceptions/exception-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiExceptionFilter
+    .CreateLogger();
+
+// Substituir o logger padrão do ASP.NET Core pelo Serilog
+builder.Host.UseSerilog();
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
@@ -94,16 +97,11 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-// Configurar o Entity Framework Core com SQLite
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
-
 var app = builder.Build();
 
 // Configurar o pipeline de requisição
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -127,10 +125,12 @@ else
 
 app.UseCors("AllowAll");
 
-app.UseSerilogRequestLogging(); // Configura o Serilog para registrar automaticamente todas as requisições HTTP feitas à aplicação
-app.UseHttpsRedirection(); // Força o redirecionamento de todas as requisições HTTP para HTTPS, garantindo que as comunicações sejam feitas em uma conexão segura e criptografada
-app.UseAuthentication(); // Adiciona a autenticação ao pipeline
-app.UseAuthorization(); // Verifica as permissões de um usuário autenticado, permitindo o acesso a recursos específicos da aplicação com base em regras definidas
-app.MapControllers(); // Configura o roteamento para todos os controladores da aplicação, registrando automaticamente as rotas definidas nos atributos [HttpGet], [HttpPost], etc.
+// Middlewares
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+//app.UseHsts();
+
+app.MapControllers();
 
 app.Run();
