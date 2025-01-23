@@ -25,3 +25,24 @@ export const getProductById = async ({ id }: IGetProductById) => {
     throw error;
   }
 };
+
+export const getAllProducts = async () => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+    const response = await api({
+      method: 'GET',
+      url: `produtos`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+    return response.data.$values;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};

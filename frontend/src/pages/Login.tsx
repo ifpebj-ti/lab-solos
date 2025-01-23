@@ -8,6 +8,7 @@ import InputPassword from '../components/global/inputs/Password';
 import { useState } from 'react';
 import { authenticate } from '@/integration/Auth';
 import { toast } from '../components/hooks/use-toast';
+import { AxiosError } from 'axios';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -30,25 +31,50 @@ function Login() {
   async function postLogin(data: LoginFormData) {
     setLoading(true);
     try {
-      authenticate({ method: 'POST', params: data });
-      toast({
-        title: 'Login bem-sucedido!',
-        description: 'Redirecionando para a página inicial...',
-      });
-      // Redirecionar após sucesso
-      setTimeout(() => {
-        navigate('/');
-      }, 5000);
-    } catch (error) {
-      console.error('Erro ao autenticar:', error);
-      toast({
-        title: 'Erro durante o login',
-        description: 'Verifique suas credenciais e tente novamente.',
-      });
+      const response = await authenticate({ method: 'POST', params: data });
+
+      if (response.status === 200) {
+        toast({
+          title: 'Login bem-sucedido!',
+          description: 'Redirecionando para a página inicial...',
+        });
+        // Redirecionar após sucesso
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      } else {
+        // Status inesperado, pode exibir mensagem genérica
+        toast({
+          title: 'Erro durante o login',
+          description: 'Ocorreu um erro inesperado. Tente novamente.',
+        });
+      }
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        // Lida com erros retornados pela API
+        if (error.response?.status === 401) {
+          toast({
+            title: 'Erro durante o login',
+            description: 'Credenciais inválidas. Verifique suas informações.',
+          });
+        } else {
+          toast({
+            title: 'Erro no servidor',
+            description:
+              'Não foi possível processar sua solicitação no momento.',
+          });
+        }
+      } else {
+        toast({
+          title: 'Erro durante o login',
+          description: 'Credenciais inválidas. Verifique suas informações.',
+        });
+      }
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
       <div className='w-96 bg-backgroundMy border border-borderMy rounded-md shadow-lg'>

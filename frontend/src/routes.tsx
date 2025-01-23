@@ -62,7 +62,6 @@ function AppRoutes() {
             path='/users/request'
             element={<RegistrationRequest />}
           ></Route>
-
           {/* loan routes */}
           <Route path='/loan/creation' element={<LoanCreation />}></Route>
           <Route path='/loan/review' element={<LoanReview />}></Route>

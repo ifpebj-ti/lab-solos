@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
@@ -28,10 +29,11 @@ interface ICreateUserData {
 export const authenticate = async ({ method, params }: IAuth) => {
   try {
     const response = await api({
-      method: method,
+      method,
       url: 'Auth/login',
       data: params,
     });
+
     const doorKey = response.data.token;
     if (doorKey) {
       Cookie.set('doorKey', doorKey, {
@@ -44,10 +46,16 @@ export const authenticate = async ({ method, params }: IAuth) => {
         sameSite: 'Strict',
       });
     }
-    return response.data;
-  } catch (error) {
-    console.error('Authentication error ');
-    throw error;
+
+    return response; // Retorna a resposta completa para analisar o status no front-end
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      // Retorna informações relevantes do erro da API
+      throw error.response || error;
+    } else {
+      // Erro desconhecido
+      throw new Error('Erro inesperado');
+    }
   }
 };
 
