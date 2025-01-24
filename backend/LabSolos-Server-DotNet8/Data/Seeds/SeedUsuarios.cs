@@ -36,7 +36,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Status = StatusUsuario.Habilitado,
                 Instituicao = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
-                Curso = "Curso Exemplo"
+                Curso = "Curso Exemplo",
+                ResponsavelId = admin.Id
+
             };
             var aluno = new Academico
             {
@@ -51,7 +53,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Status = StatusUsuario.Habilitado,
                 Instituicao = "Universidade Exemplo",
                 Cidade = "Cidade Exemplo",
-                Curso = "Curso Exemplo"
+                Curso = "Curso Exemplo",
+                ResponsavelId = mentor.Id
             };
 
             Console.WriteLine(admin.ToString());

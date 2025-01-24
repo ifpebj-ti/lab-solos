@@ -39,6 +39,7 @@ namespace LabSolos_Server_DotNet8.Migrations
                     NivelUsuario = table.Column<int>(type: "INTEGER", nullable: false),
                     TipoUsuario = table.Column<int>(type: "INTEGER", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    ResponsavelId = table.Column<int>(type: "INTEGER", nullable: true),
                     Instituicao = table.Column<string>(type: "TEXT", nullable: true),
                     Cidade = table.Column<string>(type: "TEXT", nullable: true),
                     Curso = table.Column<string>(type: "TEXT", nullable: true)
@@ -46,6 +47,12 @@ namespace LabSolos_Server_DotNet8.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_Usuarios_ResponsavelId",
+                        column: x => x.ResponsavelId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,6 +154,11 @@ namespace LabSolos_Server_DotNet8.Migrations
                 name: "IX_Produtos_LoteId",
                 table: "Produtos",
                 column: "LoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_ResponsavelId",
+                table: "Usuarios",
+                column: "ResponsavelId");
         }
 
         /// <inheritdoc />

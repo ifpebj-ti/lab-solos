@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
-    public class UsuariosController(IUsuarioService usuarioService, ILogger<UsuariosController> logger) : ControllerBase
+    public class UsuariosController(IUsuarioService usuarioService, IEmprestimoService emprestimoService, ILogger<UsuariosController> logger) : ControllerBase
     {
         private readonly IUsuarioService _usuarioService = usuarioService;
+        private readonly IEmprestimoService _emprestimoService = emprestimoService;
+
         private readonly ILogger<UsuariosController> _logger = logger;
 
 
@@ -50,9 +52,48 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(usuario);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add([FromBody] AddUsuarioDTO usuarioDto)
+        [HttpGet("{usuarioId}/dependentes/emprestimos")]
+        public async Task<IActionResult> GetEmprestimosDosDependentes(int usuarioId)
         {
+            // Buscar o usuário principal para garantir que ele exista
+            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            // Buscar os dependentes desse usuário
+            var dependentes = usuario.Dependentes;
+            if (dependentes == null || dependentes.Count == 0)
+            {
+                return NotFound("Este usuário não possui dependentes.");
+            }
+
+            // Obter todos os empréstimos dos dependentes
+            var emprestimosDependentes = new List<Emprestimo>();
+
+            foreach (var dependente in dependentes)
+            {
+                var emprestimos = await _emprestimoService.GetEmprestimosSolicitadosUsuario(dependente.Id);
+                emprestimosDependentes.AddRange(emprestimos);
+            }
+
+            if (emprestimosDependentes.Count == 0)
+            {
+                return NotFound("Nenhum empréstimo encontrado para os dependentes.");
+            }
+
+            return Ok(emprestimosDependentes);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Add(AddUsuarioDTO usuarioDto)
+        {
+
+            var responsavel = await _usuarioService.GetByEmailAsync(usuarioDto.ResponsavelEmail);
+
+            if (responsavel == null) return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
+
             var niveisAcademico = new[] { "Mentor", "Mentorado" };
 
             // Validar os dados do usuário através do serviço
@@ -70,12 +111,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                     NomeCompleto = usuarioDto.NomeCompleto,
                     Email = usuarioDto.Email,
                     SenhaHash = usuarioDto.Senha,
+                    ResponsavelId = responsavel.Id,
                     Telefone = usuarioDto.Telefone,
                     NivelUsuario = NivelUsuario.Mentor,
                     TipoUsuario = TipoUsuario.Academico,
                     Status = StatusUsuario.Pendente,
                     DataIngresso = DateTime.Now,
                     Instituicao = usuarioDto.Instituicao!,
+                    Cidade = usuarioDto.Cidade,
                     Curso = usuarioDto.Curso!
                 },
                 "Mentorado" => new Academico
@@ -83,12 +126,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                     NomeCompleto = usuarioDto.NomeCompleto,
                     Email = usuarioDto.Email,
                     SenhaHash = usuarioDto.Senha,
+                    ResponsavelId = responsavel.Id,
                     Telefone = usuarioDto.Telefone,
                     NivelUsuario = NivelUsuario.Mentorado,
                     TipoUsuario = TipoUsuario.Academico,
                     Status = StatusUsuario.Pendente,
                     DataIngresso = DateTime.Now,
                     Instituicao = usuarioDto.Instituicao!,
+                    Cidade = usuarioDto.Cidade,
                     Curso = usuarioDto.Curso!
                 },
                 "Comum" => new Usuario
@@ -96,6 +141,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                     NomeCompleto = usuarioDto.NomeCompleto,
                     Email = usuarioDto.Email,
                     SenhaHash = usuarioDto.Senha,
+                    ResponsavelId = responsavel.Id,
                     Telefone = usuarioDto.Telefone,
                     NivelUsuario = NivelUsuario.Comum,
                     TipoUsuario = TipoUsuario.Comum,
@@ -108,9 +154,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             await _usuarioService.AddAsync(usuario);
 
             return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
-
         }
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Usuario usuario)

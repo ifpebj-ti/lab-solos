@@ -14,6 +14,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 1,
                 DataRealizacao = DateTime.UtcNow.AddDays(-7),
                 DataDevolucao = DateTime.UtcNow.AddDays(7),
+                DataAprovacao = DateTime.UtcNow.AddDays(0),
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 3,
                 AprovadorId = 2
@@ -24,7 +25,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 2,
                 DataRealizacao = DateTime.UtcNow.AddDays(-3),
                 DataDevolucao = DateTime.UtcNow.AddDays(4),
-                Status = StatusEmprestimo.EmAndamento,
+                Status = StatusEmprestimo.Pendente,
                 SolicitanteId = 2
             };
 

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LabSolos_Server_DotNet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250123163859_Initial")]
+    [Migration("20250124001126_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -145,6 +145,9 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ResponsavelId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("SenhaHash")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -159,6 +162,8 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ResponsavelId");
 
                     b.ToTable("Usuarios");
 
@@ -285,6 +290,14 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Navigation("Lote");
                 });
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", null)
+                        .WithMany("Dependentes")
+                        .HasForeignKey("ResponsavelId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>
                 {
                     b.Navigation("Produtos");
@@ -297,6 +310,8 @@ namespace LabSolos_Server_DotNet8.Migrations
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
                 {
+                    b.Navigation("Dependentes");
+
                     b.Navigation("EmprestimosAprovados");
 
                     b.Navigation("EmprestimosSolicitados");

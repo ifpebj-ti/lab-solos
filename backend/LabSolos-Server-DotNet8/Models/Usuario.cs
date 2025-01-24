@@ -18,6 +18,10 @@ namespace LabSolos_Server_DotNet8.Models
         public List<Emprestimo>? EmprestimosSolicitados { get; set; }
         public List<Emprestimo>? EmprestimosAprovados { get; set; }
 
+        public int? ResponsavelId { get; set; }
+        public Usuario? Responsavel { get; set; }
+        public List<Usuario>? Dependentes { get; set; }
+
         // Método para definir o hash da senha
         public void DefinirSenha(string senha)
         {
