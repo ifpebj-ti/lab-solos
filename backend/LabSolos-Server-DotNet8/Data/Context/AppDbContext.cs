@@ -26,6 +26,13 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .HasValue<Academico>(TipoUsuario.Academico)
                 .HasValue<Usuario>(TipoUsuario.Comum);
 
+            // Configuração do relacionamento mentor-mentorandos (Responsavel e Dependentes)
+            modelBuilder.Entity<Usuario>()
+                .HasMany(u => u.Dependentes)
+                .WithOne(u => u.Responsavel)
+                .HasForeignKey(u => u.ResponsavelId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Configuração de herança - Produto sendo a classe base de Quimico e Vidraria
             modelBuilder.Entity<Produto>()
                 .HasDiscriminator<TipoProduto>("Tipo")

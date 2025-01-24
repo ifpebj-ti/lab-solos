@@ -7,15 +7,25 @@ namespace LabSolos_Server_DotNet8.Repositories
 {
     public interface IEmprestimoRepository
     {
+        Task<Emprestimo?> GetByIdAsync(int id);
         Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId);
         Task<Emprestimo> AddEmprestimo(Emprestimo emprestimo);
+        Task UpdateAsync(Emprestimo emprestimo);
     }
     
     public class EmprestimoRepository(AppDbContext context) : IEmprestimoRepository
     {
         private readonly AppDbContext _context = context;
+
+        public async Task<Emprestimo?> GetByIdAsync(int id)
+        {
+            return await _context.Emprestimos
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
+                .FirstOrDefaultAsync(e => e.Id == id);
+        }
 
         public async Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId)
         {
@@ -46,6 +56,12 @@ namespace LabSolos_Server_DotNet8.Repositories
             await _context.Emprestimos.AddAsync(emprestimo);
             await _context.SaveChangesAsync();
             return emprestimo;
+        }
+
+        public async Task UpdateAsync(Emprestimo emprestimo)
+        {
+            _context.Emprestimos.Update(emprestimo);
+            await _context.SaveChangesAsync();
         }
     }
 }

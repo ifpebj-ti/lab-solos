@@ -7,10 +7,12 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public interface IEmprestimoService
     {
-        Task<IEnumerable<object>> GetEmprestimosSolicitadosUsuario(int userId);
-        Task<IEnumerable<object>> GetEmprestimosAprovadosUsuario(int userId);
-        Task<IEnumerable<object>> GetEmprestimosUsuario(int userId);
+        Task<Emprestimo?> GetByIdAsync(int id);
+        Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
+        Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
+        Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId);
         Task<Emprestimo> AddEmprestimo(AddEmprestimoDTO addEmprestimoDTO);
+        Task UpdateAsync(Emprestimo emprestimo);
     }
     public class EmprestimoService(IEmprestimoRepository emprestimoRepository, IProdutoRepository produtoRepository) : IEmprestimoService
     {
@@ -18,21 +20,25 @@ namespace LabSolos_Server_DotNet8.Services
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
 
 
-        public async Task<IEnumerable<object>> GetEmprestimosUsuario(int userId)
+        public async Task<Emprestimo?> GetByIdAsync(int id)
+        {
+            return await _emprestimoRepository.GetByIdAsync(id);
+        }
+        public async Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId)
         {
             var emprestimos = await _emprestimoRepository.GetEmprestimosUsuario(userId);
 
             return emprestimos;
         }
 
-        public async Task<IEnumerable<object>> GetEmprestimosSolicitadosUsuario(int userId)
+        public async Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId)
         {
             var emprestimos = await _emprestimoRepository.GetEmprestimosSolicitadosUsuario(userId);
 
             return emprestimos;
         }
 
-        public async Task<IEnumerable<object>> GetEmprestimosAprovadosUsuario(int userId)
+        public async Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId)
         {
             var emprestimos = await _emprestimoRepository.GetEmprestimosAprovadosUsuario(userId);
 
@@ -82,6 +88,11 @@ namespace LabSolos_Server_DotNet8.Services
             // Salvar no banco via repositório
             await _produtoRepository.UpdateProdutos(produtos); // Atualizar os produtos no banco
             return await _emprestimoRepository.AddEmprestimo(novoEmprestimo);
+        }
+
+        public async Task UpdateAsync(Emprestimo emprestimo)
+        {
+            await _emprestimoRepository.UpdateAsync(emprestimo);
         }
     }
 }

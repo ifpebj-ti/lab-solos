@@ -11,6 +11,7 @@ namespace LabSolos_Server_DotNet8.Models
         public int Id { get; set; }
         public required DateTime DataRealizacao { get; set; }
         public required DateTime DataDevolucao { get; set; }
+        public DateTime? DataAprovacao { get; set; }
         public required StatusEmprestimo Status { get; set; }
 
         public List<Produto>? Produtos { get; set; }

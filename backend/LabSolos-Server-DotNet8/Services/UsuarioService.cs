@@ -12,6 +12,7 @@ namespace LabSolos_Server_DotNet8.Services
         Task<IEnumerable<Usuario>> GetAllAsync();
         Task<IEnumerable<object>> GetUsuariosByTipoAsync(TipoUsuario tipoUsuario);
         Task<Usuario?> GetByIdAsync(int id);
+        Task<Usuario?> GetByEmailAsync(string email);
         Task AddAsync(Usuario usuario);
         Task UpdateAsync(Usuario usuario);
         Task DeleteAsync(int id);
@@ -91,6 +92,16 @@ namespace LabSolos_Server_DotNet8.Services
 
         public async Task AddAsync(Usuario usuario)
         {
+            _logger.LogInformation("{id} id do usuario",usuario.Id.ToString());
+
+            var usuarioExistente = await _usuarioRepository.GetByEmailAsync(usuario.Email);
+
+            if (usuarioExistente is not null) 
+            {
+                _logger.LogWarning("Tentativa de adicionar um usuário com e-mail já existente: {Email}.", usuario.Email);
+                throw new InvalidOperationException("Já existe um usuário cadastrado com este e-mail.");
+            }
+
             await _usuarioRepository.AddAsync(usuario);
         }
 
@@ -132,6 +143,11 @@ namespace LabSolos_Server_DotNet8.Services
                 Validado = true, 
                 Mensagem = string.Empty
             };
+        }
+
+        public async Task<Usuario?> GetByEmailAsync(string email)
+        {
+            return await _usuarioRepository.GetByEmailAsync(email);
         }
     }
 }

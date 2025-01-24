@@ -10,6 +10,7 @@ namespace LabSolos_Server_DotNet8.Repositories
     {
         Task<IEnumerable<Usuario>> GetAllAsync();
         Task<Usuario?> GetByIdAsync(int id);
+        Task<Usuario?> GetByEmailAsync(string email);
         Task AddAsync(Usuario usuario);
         Task UpdateAsync(Usuario usuario);
         Task DeleteAsync(int id);
@@ -51,7 +52,10 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task<Usuario?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Iniciando operação para obter o usuario com ID {Id}.", id);
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuarios
+                .Include(u => u.Dependentes)
+                .Include(u => u.Responsavel)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (usuario == null)
             {
@@ -69,6 +73,9 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             _logger.LogInformation("Iniciando operação para adicionar um novo usuario: {Nome}.", usuario.NomeCompleto);
 
+            // Gera o hash da senha
+            usuario.DefinirSenha(usuario.SenhaHash);
+
             switch (usuario.TipoUsuario)
             {
                 case TipoUsuario.Administrador:
@@ -77,6 +84,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                         NomeCompleto = usuario.NomeCompleto,
                         Email = usuario.Email,
                         SenhaHash = usuario.SenhaHash,
+                        ResponsavelId = usuario.ResponsavelId,
                         Telefone = usuario.Telefone,
                         DataIngresso = usuario.DataIngresso,
                         NivelUsuario = usuario.NivelUsuario,
@@ -92,6 +100,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                         NomeCompleto = usuario.NomeCompleto,
                         Email = usuario.Email,
                         SenhaHash = usuario.SenhaHash,
+                        ResponsavelId = usuario.ResponsavelId,
                         Telefone = usuario.Telefone,
                         DataIngresso = usuario.DataIngresso,
                         NivelUsuario = usuario.NivelUsuario,
@@ -139,6 +148,11 @@ namespace LabSolos_Server_DotNet8.Repositories
             {
                 _logger.LogWarning("Usuario com ID {Id} não encontrado para exclusão.", id);
             }
+        }
+
+        public async Task<Usuario?> GetByEmailAsync(string email)
+        {
+            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }
