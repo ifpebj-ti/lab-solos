@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/LabSolos-Server-DotNet8.props" />
-</Project>
