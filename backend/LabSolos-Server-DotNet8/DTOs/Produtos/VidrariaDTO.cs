@@ -4,6 +4,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
     {
         public int Id { get; set; }
         public string NomeProduto { get; set; } = string.Empty;
+        public string TipoProduto { get; set; } = "Vidraria";
         public string? Fornecedor { get; set; } = string.Empty;
         public float Quantidade { get; set; }
         public string? DataFabricacao { get; set; }
