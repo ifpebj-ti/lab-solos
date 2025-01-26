@@ -40,7 +40,7 @@ export const getAllProducts = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data.$values;
+    return response.data;
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;

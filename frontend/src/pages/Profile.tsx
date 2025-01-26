@@ -1,15 +1,53 @@
 import { useUser } from '@/components/context/UserProvider';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { Link } from 'react-router-dom';
+import { getUserById } from '@/integration/Users';
+import Cookie from 'js-cookie';
+
+interface IUsuario {
+  instituicao: string;
+  cidade: string;
+  curso: string;
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: number;
+  tipoUsuario: number;
+  status: number;
+  emprestimosSolicitados: null;
+  emprestimosAprovados: null;
+}
 
 function Profile() {
   const { rankID } = useUser();
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<IUsuario>();
+  const id = Cookie.get('rankID')!;
+
+  useEffect(() => {
+    const fetchGetUserById = async () => {
+      try {
+        const response = await getUserById({ id });
+        setUser(response);
+      } catch (error) {
+        console.error('Erro ao buscar usuários', error);
+        setUser(undefined);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGetUserById();
+  }, [id]);
+
+  console.log(user);
 
   if (rankID === null) {
     return (

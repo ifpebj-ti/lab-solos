@@ -12,29 +12,26 @@ import { useEffect, useRef, useState } from 'react';
 import { getAllProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
 
-interface IAllProducts {
-  $id: string;
+export interface IAllProducts {
   id: number;
   nomeProduto: string;
+  tipoProduto: string;
   fornecedor: string;
-  tipo: number;
   quantidade: number;
   quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
   localizacaoProduto: string;
-  status: number;
-  ultimaModificacao: string;
-  loteId: number;
-  lote: unknown | null;
-  emprestimo: unknown | null;
+  dataFabricacao: string; // Pode ser null ou vazio
+  dataValidade: string;   // Data no formato string
+  status: string;
 }
+
 interface ISystemQuantities {
   $id: string;
   produtos: {
     $id: string;
     Quimico: number;
     Vidraria: number;
+    Outro: number;
     Total: number;
   };
   usuarios: {
@@ -57,7 +54,6 @@ function SearchMaterial() {
   const [products, setProducts] = useState<IAllProducts[]>([]);
   const [system, setSystem] = useState<ISystemQuantities>();
 
-
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
@@ -73,9 +69,6 @@ function SearchMaterial() {
     };
     fetchAllProducts();
   }, []);
-  console.log(products[1]);
-  console.log(system?.produtos.Quimico);
-
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));
@@ -93,7 +86,7 @@ function SearchMaterial() {
     const walk = (x - startX) * 2; // Ajuste a velocidade de arraste se necessário
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
@@ -108,9 +101,9 @@ function SearchMaterial() {
 
   const options = [
     { value: 'todos', label: 'Todos' },
-    { value: '0', label: 'Vidrarias' },
-    { value: '1', label: 'Quimicos' },
-    { value: '2', label: 'Outros' },
+    { value: 'Vidraria', label: 'Vidrarias' },
+    { value: 'Quimico', label: 'Quimicos' },
+    { value: 'Outro', label: 'Outros' },
   ];
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,7 +115,7 @@ function SearchMaterial() {
     const searchName = item.nomeProduto
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    const matchesType = value === 'todos' || item.tipo === Number(value);
+    const matchesType = value === 'todos' || item.tipoProduto === value;
     return searchName && matchesType;
   });
   const sortedUsers = isAscending
@@ -174,7 +167,7 @@ function SearchMaterial() {
             />
             <FollowUpCard
               title='Tipos de Outros'
-              number={String(system?.produtos.Total)}
+              number={String(system?.produtos.Outro)}
               icon={<LayersIcon />}
             />
           </div>
@@ -217,7 +210,7 @@ function SearchMaterial() {
                       data={[
                         String(rowData.id),
                         String(rowData.nomeProduto),
-                        String(rowData.tipo),
+                        String(rowData.tipoProduto),
                         String(rowData.quantidade),
                         String(rowData.status),
                       ]}
