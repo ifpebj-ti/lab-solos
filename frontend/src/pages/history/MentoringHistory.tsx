@@ -2,15 +2,16 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsLoan, dataButton } from '@/mocks/Unidades';
+import { columnsLoan } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
 import { getUserById } from '@/integration/Users';
-import { formatDate } from '@/function/date';
-import { useUser } from '../../components/context/UserProvider';
+import { formatDate, formatDateTime } from '@/function/date';
+import Cookie from 'js-cookie';
+import { getLoansByUserId } from '@/integration/Loans';
 
 interface IUsuario {
   instituicao: string;
@@ -28,33 +29,78 @@ interface IUsuario {
   emprestimosSolicitados: null;
   emprestimosAprovados: null;
 }
+export interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null; // Use `unknown` para tipo indefinido
+  emprestimoId: number;
+  emprestimo: unknown | null;
+}
+export interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  produtos: IProduto[];
+  solicitanteId: number;
+  solicitante: unknown | null; // Use `unknown` para tipo indefinido
+  aprovadorId: number;
+  aprovador: unknown | null;
+}
 
-// aqui virá as informações de um único empréstimo
 function MentoringHistory() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
-  const id = 3;
-  const { rankID } = useUser();
+  const id = Cookie.get('rankID')!;
+  const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
+  const toggleSortOrder = (ascending: boolean) => {
+    setIsAscending(ascending);
+  };
 
   useEffect(() => {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
+        const loansResponse = await getLoansByUserId({ id });
         setUser(response);
+        setLoans(loansResponse);
       } catch (error) {
         console.error('Erro ao buscar usuários', error);
         setUser(undefined);
       } finally {
-        setLoading(false); // Stop loading after fetch (success or failure)
+        setLoading(false);
       }
     };
     fetchGetUserById();
-  }, []);
+  }, [id]);
+
+  const filteredUsers = loans.filter((item) => {
+    const searchName = item.dataRealizacao
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return searchName;
+  });
+  const sortedUsers = isAscending
+    ? [...filteredUsers]
+    : [...filteredUsers].reverse();
 
   // Cálculo das páginas
-  const currentData = dataButton.slice(
+  const currentData = sortedUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -111,9 +157,7 @@ function MentoringHistory() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico
-              {String(rankID) === '1' ||
-                (String(rankID) === '2' && <span>de Mentorados</span>)}
+              Histórico de Mentorados
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
@@ -133,18 +177,20 @@ function MentoringHistory() {
               <div className='w-2/4'>
                 <SearchInput
                   name='search'
-                  onChange={() => console.log('w')}
-                  value='2'
+                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                  value={searchTerm}
                 />
               </div>
               <div className='w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown onClick={() => console.log('s')} top={true} />
-                  <TopDown onClick={() => console.log('s')} top={false} />
+                  <TopDown
+                    onClick={() => toggleSortOrder(!isAscending)}
+                    top={isAscending}
+                  />
                 </div>
                 <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
-                  <p>{dataButton.length}</p>
+                  <p>{loans.length}</p>
                 </div>
               </div>
             </div>
@@ -154,7 +200,14 @@ function MentoringHistory() {
                 {currentData.map((rowData, index) => (
                   <ItemTable
                     key={index}
-                    data={[rowData.name, rowData.institution, rowData.code]}
+                    data={[
+                      String(rowData.id),
+                      formatDateTime(rowData.dataRealizacao),
+                      Array.isArray(rowData.produtos)
+                        ? String(rowData.produtos.length)
+                        : '0',
+                      rowData.status,
+                    ]}
                     rowIndex={index}
                     columnWidths={columnsLoan.map((column) => column.width)}
                   />
@@ -162,7 +215,7 @@ function MentoringHistory() {
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={dataButton.length}
+                totalItems={currentData.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}

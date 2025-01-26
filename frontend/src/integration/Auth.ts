@@ -41,10 +41,14 @@ export const authenticate = async ({ method, params }: IAuth) => {
         sameSite: 'Strict',
       });
       const decoded = jwtDecode(doorKey);
-      Cookie.set('rankID', JSON.stringify(decoded.sub), {
-        secure: true,
-        sameSite: 'Strict',
-      });
+      if (decoded.sub) {
+        Cookie.set('rankID', decoded.sub, {
+          secure: true,
+          sameSite: 'Strict',
+        });
+      } else {
+        console.error('Erro: o valor de "sub" está indefinido.');
+      }
     }
 
     return response; // Retorna a resposta completa para analisar o status no front-end
