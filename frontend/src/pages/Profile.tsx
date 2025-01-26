@@ -8,8 +8,29 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { Link } from 'react-router-dom';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
+import { formatDateTime } from '@/function/date';
+import { getLoansByUserId } from '@/integration/Loans';
 
-interface IUsuario {
+// Interface para o responsável
+export interface IResponsible {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string; // Formato ISO
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: unknown; // Ajuste se necessário, pois não há exemplo de dados
+  emprestimosAprovados: unknown; // Ajuste se necessário
+  responsavelId: number | null;
+  responsavel: IResponsible | null; // Recursivamente permite responsáveis aninhados
+  dependentes: (IResponsible | null)[]; // Array de dependentes, pode conter `null`
+}
+
+// Interface para o usuário principal
+export interface IUser {
   instituicao: string;
   cidade: string;
   curso: string;
@@ -18,24 +39,60 @@ interface IUsuario {
   email: string;
   senhaHash: string;
   telefone: string;
-  dataIngresso: string;
-  nivelUsuario: number;
-  tipoUsuario: number;
-  status: number;
-  emprestimosSolicitados: null;
-  emprestimosAprovados: null;
+  dataIngresso: string; // Formato ISO
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: unknown; // Ajuste se necessário
+  emprestimosAprovados: unknown; // Ajuste se necessário
+  responsavelId: number | null;
+  responsavel: IResponsible | null; // Referência ao responsável
+  dependentes: unknown[]; // Pode ser ajustado para incluir uma interface se necessário
+}
+
+export interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null; // Use `unknown` para tipo indefinido
+  emprestimoId: number;
+  emprestimo: unknown | null;
+}
+export interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  produtos: IProduto[];
+  solicitanteId: number;
+  solicitante: unknown | null; // Use `unknown` para tipo indefinido
+  aprovadorId: number;
+  aprovador: unknown | null;
 }
 
 function Profile() {
   const { rankID } = useUser();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<IUsuario>();
+  const [user, setUser] = useState<IUser>();
   const id = Cookie.get('rankID')!;
+  const [loans, setLoans] = useState<IEmprestimo[]>([]);
 
   useEffect(() => {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
+        const responseLoans = await getLoansByUserId({ id });
+        setLoans(responseLoans);
         setUser(response);
       } catch (error) {
         console.error('Erro ao buscar usuários', error);
@@ -46,8 +103,6 @@ function Profile() {
     };
     fetchGetUserById();
   }, [id]);
-
-  console.log(user);
 
   if (rankID === null) {
     return (
@@ -62,34 +117,57 @@ function Profile() {
   const infoItems = [
     {
       title: 'Nome',
-      value: 'Maria Leony Silva',
-      width: '50%',
+      value: user?.nomeCompleto ?? '',
+      width: '30%',
     },
     {
       title: 'Email',
-      value: 'mls@ufcg.discente.edu.br',
+      value: user?.email ?? '',
       width: '30%',
     },
-    { title: 'Instituição', value: 'UFCG', width: '20%' },
+    { title: 'Instituição', value: user?.instituicao ?? '', width: '20%' },
+    { title: 'Status', value: user?.status ?? '', width: '20%' },
   ];
-  const infoItems2 = [{ title: 'Cidade', value: 'Patos - PB', width: '100%' }];
+  const infoItems2 = [{ title: 'Cidade', value: user?.cidade ?? '', width: '100%' }];
   const infoItems3 = [
     {
       title: 'Telefone',
-      value: '(85) 98126-8744',
+      value: user?.telefone ?? '',
       width: '100%',
     },
   ];
   const infoItems4 = [
     {
-      title: 'Status',
-      value: 'Liberado',
+      title: 'Data de Ingresso',
+      value: formatDateTime(user?.dataIngresso) ?? '',
       width: '100%',
     },
   ];
-  const infoItems5 = [
-    { title: 'Curso', value: 'Med. Veterinária', width: '100%' },
+  const infoItems5 = [{ title: 'Curso', value: user?.curso ?? '', width: '100%' }];
+
+  const infoItemsProf = [
+    {
+      title: 'Nome',
+      value: user?.responsavel?.nomeCompleto ?? '',
+      width: '30%',
+    },
+    {
+      title: 'Email',
+      value: user?.responsavel?.email ?? '',
+      width: '30%',
+    },
+    { title: 'Telefone', value: user?.responsavel?.telefone ?? '', width: '20%' },
+    { title: 'Status', value: user?.responsavel?.status ?? '', width: '20%' },
   ];
+
+  // Função para calcular o número total de itens utilizados
+  const calcularItensEmprestados = (emprestimos: IEmprestimo[]): number => {
+    return emprestimos.reduce((total, emprestimo) => {
+      const produtosEmprestados = emprestimo.produtos?.length || 0; // Conta o número de produtos
+      return total + produtosEmprestados;
+    }, 0);
+  };
+  const totalItens = calcularItensEmprestados(loans);
 
   return (
     <>
@@ -108,7 +186,12 @@ function Profile() {
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               {String(rankID) === '2' && (
-                <Link to={'/me/myclass'} className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'>Minha Turma</Link>
+                <Link
+                  to={'/me/myclass'}
+                  className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'
+                >
+                  Minha Turma
+                </Link>
               )}
               <OpenSearch />
             </div>
@@ -117,12 +200,12 @@ function Profile() {
             <div className='flex gap-x-5 h-32'>
               <FollowUpCard
                 title='Empréstimos Realizados'
-                number='22'
+                number={String(loans.length)}
                 icon={<LayersIcon />}
               />
               <FollowUpCard
                 title='Itens Utilizados'
-                number='59'
+                number={String(totalItens)}
                 icon={<LayersIcon />}
               />
             </div>
@@ -136,7 +219,7 @@ function Profile() {
               </div>
               {String(rankID) === '3' && (
                 <div className='w-full mt-5'>
-                  <InfoContainer items={infoItems} />
+                  <InfoContainer items={infoItemsProf} />
                 </div>
               )}
             </div>
