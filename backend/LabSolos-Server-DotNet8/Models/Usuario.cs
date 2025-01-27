@@ -14,7 +14,6 @@ namespace LabSolos_Server_DotNet8.Models
         public NivelUsuario NivelUsuario { get; set; }
         public TipoUsuario TipoUsuario { get; set; }
         public StatusUsuario Status { get; set; }
-
         public List<Emprestimo>? EmprestimosSolicitados { get; set; }
         public List<Emprestimo>? EmprestimosAprovados { get; set; }
 
