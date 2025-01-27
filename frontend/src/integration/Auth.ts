@@ -41,10 +41,14 @@ export const authenticate = async ({ method, params }: IAuth) => {
         sameSite: 'Strict',
       });
       const decoded = jwtDecode(doorKey);
-      Cookie.set('rankID', JSON.stringify(decoded.sub), {
-        secure: true,
-        sameSite: 'Strict',
-      });
+      if (decoded.sub) {
+        Cookie.set('rankID', decoded.sub, {
+          secure: true,
+          sameSite: 'Strict',
+        });
+      } else {
+        console.error('Erro: o valor de "sub" está indefinido.');
+      }
     }
 
     return response; // Retorna a resposta completa para analisar o status no front-end
@@ -64,7 +68,9 @@ export const createMentor = async (data: ICreateUserData) => {
     const response = await api.post('/Usuarios', data);
     return response.data;
   } catch (error) {
-    console.error('Error creating mentor:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao criar mentor', error);
+    }
     throw error;
   }
 };

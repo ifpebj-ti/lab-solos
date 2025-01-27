@@ -429,4 +429,3 @@ export const registrosHistories = [
   ['009', '2025-01-09', '9', '7', 'devolvido'],
   ['010', '2025-01-10', '6', '13', 'não devolvido'],
 ];
-

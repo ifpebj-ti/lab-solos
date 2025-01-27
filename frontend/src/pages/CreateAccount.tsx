@@ -137,7 +137,9 @@ function CreateAccount() {
           title: 'Erro durante ato de cadastro!',
           description: 'Verifique seus dados e tente novamente',
         });
-        console.error(error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(error);
+        }
       }
     }
   };
