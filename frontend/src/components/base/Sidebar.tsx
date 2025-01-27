@@ -5,9 +5,9 @@ import PlusIcon from '../../../public/icons/sidebar/PlusIcon';
 import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
 import FollowUpIcon from '../../../public/icons/sidebar/FollowUpIcon';
 import { History, UserCircle, UserPlus } from 'lucide-react';
-import { useUser } from '../context/UserProvider';
 import SearchIcon from '../../../public/icons/SearchIcon';
 import HistoryText from '../../../public/icons/HistoryText';
+import { useUser } from '../context/UseUser';
 
 function Sidebar() {
   const { rankID } = useUser();

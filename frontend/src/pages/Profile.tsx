@@ -1,4 +1,3 @@
-import { useUser } from '@/components/context/UserProvider';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
 import { useEffect, useState } from 'react';
@@ -10,6 +9,7 @@ import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
+import { useUser } from '@/components/context/UseUser';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -95,7 +95,9 @@ function Profile() {
         setLoans(responseLoans);
         setUser(response);
       } catch (error) {
-        console.error('Erro ao buscar usuários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar usuários', error);
+        }
         setUser(undefined);
       } finally {
         setLoading(false);
@@ -128,7 +130,9 @@ function Profile() {
     { title: 'Instituição', value: user?.instituicao ?? '', width: '20%' },
     { title: 'Status', value: user?.status ?? '', width: '20%' },
   ];
-  const infoItems2 = [{ title: 'Cidade', value: user?.cidade ?? '', width: '100%' }];
+  const infoItems2 = [
+    { title: 'Cidade', value: user?.cidade ?? '', width: '100%' },
+  ];
   const infoItems3 = [
     {
       title: 'Telefone',
@@ -143,7 +147,9 @@ function Profile() {
       width: '100%',
     },
   ];
-  const infoItems5 = [{ title: 'Curso', value: user?.curso ?? '', width: '100%' }];
+  const infoItems5 = [
+    { title: 'Curso', value: user?.curso ?? '', width: '100%' },
+  ];
 
   const infoItemsProf = [
     {
@@ -156,7 +162,11 @@ function Profile() {
       value: user?.responsavel?.email ?? '',
       width: '30%',
     },
-    { title: 'Telefone', value: user?.responsavel?.telefone ?? '', width: '20%' },
+    {
+      title: 'Telefone',
+      value: user?.responsavel?.telefone ?? '',
+      width: '20%',
+    },
     { title: 'Status', value: user?.responsavel?.status ?? '', width: '20%' },
   ];
 

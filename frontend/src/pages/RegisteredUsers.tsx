@@ -38,7 +38,9 @@ function RegisteredUsers() {
         const processedRegisteredUsers = await getRegisteredUsers();
         setRegisteredUsers(processedRegisteredUsers);
       } catch (error) {
-        console.error('Erro ao buscar usuários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar usuários', error);
+        }
         setRegisteredUsers([]);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)

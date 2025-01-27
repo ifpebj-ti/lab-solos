@@ -21,7 +21,9 @@ export const getProductById = async ({ id }: IGetProductById) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao buscar produtos', error);
+    }
     throw error;
   }
 };
