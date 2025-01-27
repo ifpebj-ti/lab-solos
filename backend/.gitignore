@@ -43,3 +43,8 @@ Thumbs.db
 *.tmp
 *.bak
 *.swp
+
+# Ignorar arquivos de cache
+**/*.cache
+**/*.temp
+**/*.tmp
