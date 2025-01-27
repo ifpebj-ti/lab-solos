@@ -9,7 +9,7 @@ import notebook from '../../public/images/notebook.png';
 import vidraria from '../../public/images/vidraria.png';
 import logo from '../../public/images/logo.png';
 import OpenSearch from '@/components/global/OpenSearch';
-import { useUser } from '../components/context/UserProvider';
+import { useUser } from '@/components/context/UseUser';
 
 function Home() {
   const { rankID } = useUser();

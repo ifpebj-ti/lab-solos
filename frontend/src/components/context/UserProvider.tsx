@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// UserProvider.tsx
+import React, { createContext, useState, useEffect } from 'react';
 import Cookie from 'js-cookie';
 
 interface UserContextProps {
   rankID: number | null;
 }
 
-const UserContext = createContext<UserContextProps>({ rankID: null });
+export const UserContext = createContext<UserContextProps>({ rankID: null });
 
 export const UserProvider: React.FC<React.PropsWithChildren> = ({
   children,
@@ -33,5 +34,3 @@ export const UserProvider: React.FC<React.PropsWithChildren> = ({
     <UserContext.Provider value={{ rankID }}>{children}</UserContext.Provider>
   );
 };
-
-export const useUser = () => useContext(UserContext);

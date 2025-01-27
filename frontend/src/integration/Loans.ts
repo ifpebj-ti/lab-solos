@@ -1,7 +1,11 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
-export const getSystemQuantities = async () => {
+interface ILoansByUserId {
+  id: number | string;
+}
+
+export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
   try {
     const doorKey = Cookie.get('doorKey');
 
@@ -10,14 +14,16 @@ export const getSystemQuantities = async () => {
     }
     const response = await api({
       method: 'GET',
-      url: `System/quantities`,
+      url: `Emprestimos/usuario/${id}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao buscar emprestimos', error);
+    }
     throw error;
   }
 };

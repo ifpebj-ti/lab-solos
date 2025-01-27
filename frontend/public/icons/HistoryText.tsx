@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface IHistoryText {
   fill?: string;
   tam?: string;
@@ -17,9 +15,9 @@ export default function HistoryText({
       viewBox='0 0 24 24'
       fill='none'
       stroke={fill}
-      stroke-width='2'
-      stroke-linecap='round'
-      stroke-linejoin='round'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
       className='lucide lucide-scroll-text'
     >
       <path d='M15 12h-5' />
