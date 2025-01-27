@@ -80,7 +80,9 @@ function MentoringHistory() {
         setUser(response);
         setLoans(loansResponse);
       } catch (error) {
-        console.error('Erro ao buscar usuários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados usuários', error);
+        }
         setUser(undefined);
       } finally {
         setLoading(false);

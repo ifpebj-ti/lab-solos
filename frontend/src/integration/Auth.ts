@@ -68,7 +68,9 @@ export const createMentor = async (data: ICreateUserData) => {
     const response = await api.post('/Usuarios', data);
     return response.data;
   } catch (error) {
-    console.error('Error creating mentor:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao criar mentor', error);
+    }
     throw error;
   }
 };

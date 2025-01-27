@@ -11,7 +11,6 @@ export const formatDate = (isoDate?: string): string => {
   return format(parsedDate, 'dd/MM/yyyy');
 };
 
-
 export const formatDateTime = (isoDate?: string): string => {
   if (!isoDate) {
     return 'Data inválida'; // Ou retorne um valor padrão

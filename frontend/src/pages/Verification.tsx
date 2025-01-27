@@ -77,7 +77,6 @@ function Verification() {
     };
     fetchProductsById();
   }, []);
-  console.log(productsById);
 
   const infoItems = productsById
     ? [

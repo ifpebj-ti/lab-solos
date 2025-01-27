@@ -21,7 +21,9 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching loans:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao buscar emprestimos', error);
+    }
     throw error;
   }
 };

@@ -21,7 +21,7 @@ export interface IAllProducts {
   quantidadeMinima: number;
   localizacaoProduto: string;
   dataFabricacao: string; // Pode ser null ou vazio
-  dataValidade: string;   // Data no formato string
+  dataValidade: string; // Data no formato string
   status: string;
 }
 
@@ -43,7 +43,6 @@ interface ISystemQuantities {
   };
 }
 
-
 function SearchMaterial() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -62,7 +61,9 @@ function SearchMaterial() {
         setProducts(allProducts);
         setSystem(systemQuant);
       } catch (error) {
-        console.error('Erro ao buscar dados necessários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados necessários', error);
+        }
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)
       }

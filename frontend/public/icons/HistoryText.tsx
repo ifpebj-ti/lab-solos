@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface IHistoryText {
   fill?: string;
   tam?: string;
