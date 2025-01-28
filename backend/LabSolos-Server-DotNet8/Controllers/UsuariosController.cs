@@ -86,6 +86,39 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(emprestimosDependentes);
         }
 
+        [HttpGet("{usuarioId}/dependentes")]
+        public async Task<IActionResult> GetDependentes(int usuarioId)
+        {
+            // Buscar o usuário principal para garantir que ele exista
+            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            // Buscar os dependentes desse usuário
+            var dependentes = usuario.Dependentes;
+            if (dependentes == null || dependentes.Count == 0)
+            {
+                return NotFound("Este usuário não possui dependentes.");
+            }
+            var dependentesDto = dependentes.Select(dependente => new DependenteDTO
+            {
+                Id = dependente.Id,
+                Email = dependente.Email,
+                NomeCompleto = dependente.NomeCompleto,
+                NivelUsuario = dependente.NivelUsuario.ToString(),
+                Cidade = (dependente as Academico)?.Cidade ?? null,
+                Curso = (dependente as Academico)?.Curso ?? null,
+                Instituicao = (dependente as Academico)?.Instituicao ?? null,
+                Telefone = dependente.Telefone,
+                Status = dependente.Status.ToString(),
+                DataIngresso = dependente.DataIngresso,
+            });
+
+            return Ok(dependentesDto);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add(AddUsuarioDTO usuarioDto)
         {
