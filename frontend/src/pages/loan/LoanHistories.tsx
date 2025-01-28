@@ -1,50 +1,124 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsHistories, registrosHistories } from '@/mocks/Unidades';
+import { columnsHistories } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
+import { getLoansByDependentes } from '@/integration/Class';
+
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: unknown[] | null;
+  emprestimosAprovados: unknown[] | null;
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: IUsuario[] | null;
+}
+
+interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null;
+  emprestimoId: number | null;
+  emprestimo: unknown | null;
+}
+
+interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  produtos: IProduto[];
+  solicitanteId: number;
+  solicitante: IUsuario;
+  aprovadorId: number;
+  aprovador: IUsuario;
+}
 
 function LoanHistories() {
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
+  const [isAscending, setIsAscending] = useState(true);
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const itemsPerPage = 7;
+
+  useEffect(() => {
+    const fetchGetLoansDependentes = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getLoansByDependentes();
+        setLoans(response);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados de empréstimos:', error);
+        }
+        setLoans([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGetLoansDependentes();
+  }, []);
+
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const filteredUsers = registrosHistories.filter((item) => {
-    const matchesText = item[0]
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+
+  // Filtragem baseada no termo de busca e status
+  const filteredLoans = loans.filter((loan) => {
+    const matchesText =
+      loan.id.toString().includes(searchTerm) ||
+      loan.solicitante.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      value === 'todos' || item[4].toLowerCase() === value.toLowerCase();
+      value === 'todos' || loan.status.toLowerCase() === value.toLowerCase();
     return matchesText && matchesStatus;
   });
-  const sortedUsers = isAscending
-    ? [...filteredUsers]
-    : [...filteredUsers].reverse();
 
-  const currentData = sortedUsers.slice(
+  // Ordenação dos empréstimos
+  const sortedLoans = isAscending
+    ? [...filteredLoans].sort((a, b) => a.dataRealizacao.localeCompare(b.dataRealizacao))
+    : [...filteredLoans].sort((a, b) => b.dataRealizacao.localeCompare(a.dataRealizacao));
+
+  // Dados da página atual
+  const currentData = sortedLoans.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const getUserCountText = (userType: string) => {
-    const count = registrosHistories.filter(
-      (item) => item[4] == userType
-    ).length;
-    return `${count}`;
+
+  // Contagem de empréstimos por status
+  const getLoanCountText = (status: string) => {
+    return loans.filter((loan) => loan.status === status).length.toString();
   };
+
   const options = [
-    { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
+    { value: 'todos', label: 'Todos' },
     { value: 'devolvido', label: 'Devolvido' },
     { value: 'não devolvido', label: 'Não devolvido' },
   ];
@@ -71,12 +145,12 @@ function LoanHistories() {
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
             <FollowUpCard
               title='Devolvidos'
-              number={getUserCountText('devolvido')}
+              number={getLoanCountText('devolvido')}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Não devolvidos'
-              number={getUserCountText('não devolvido')}
+              number={getLoanCountText('não devolvido')}
               icon={<LayersIcon />}
             />
           </div>
@@ -86,7 +160,7 @@ function LoanHistories() {
                 <div className='w-[40%]'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     value={searchTerm}
                   />
                 </div>
@@ -99,7 +173,7 @@ function LoanHistories() {
                     options={options}
                     onValueChange={(value) => {
                       setValue(value);
-                      setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
+                      setCurrentPage(1);
                     }}
                     value={value}
                   />
@@ -112,21 +186,25 @@ function LoanHistories() {
                     Nenhum dado disponível para exibição.
                   </div>
                 ) : (
-                  currentData.map((rowData, index) => (
+                  currentData.map((loan, index) => (
                     <ItemTable
                       key={index}
-                      data={rowData}
+                      data={[
+                        String(loan.id),
+                        loan.dataRealizacao,
+                        String(loan.produtos.length),
+                        String(loan.solicitante.dependentes?.length || 0),
+                        loan.status,
+                      ]}
                       rowIndex={index}
-                      columnWidths={columnsHistories.map(
-                        (column) => column.width
-                      )}
+                      columnWidths={columnsHistories.map((column) => column.width)}
                     />
                   ))
                 )}
               </div>
               <div className='mb-4'>
                 <Pagination
-                  totalItems={filteredUsers.length}
+                  totalItems={filteredLoans.length}
                   itemsPerPage={itemsPerPage}
                   currentPage={currentPage}
                   onPageChange={setCurrentPage}
