@@ -417,6 +417,15 @@ export const columnsHistories = [
   { value: 'Status', width: '20%' },
 ];
 
+export const columnsClass = [
+  { value: 'Nome', width: '22%' },
+  { value: 'Email', width: '22%' },
+  { value: 'Data Ingresso', width: '15%' },
+  { value: 'Curso', width: '16%' },
+  { value: 'Instituição', width: '15%' },
+  { value: 'Status', width: '10%' },
+];
+
 export const registrosHistories = [
   ['001', '2025-01-01', '5', '12', 'devolvido'],
   ['002', '2025-01-02', '8', '10', 'não devolvido'],

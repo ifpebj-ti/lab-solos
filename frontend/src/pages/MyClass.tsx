@@ -1,52 +1,66 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsHistories, registrosHistories } from '@/mocks/Unidades';
+import { columnsClass } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import SelectInput from '@/components/global/inputs/SelectInput';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
+import { getDependentes } from '@/integration/Class';
+import { formatDateTime } from '@/function/date';
+
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string;
+  dataIngresso: string;
+  status: string;
+  nivelUsuario: string;
+  cidade: string;
+  curso: string;
+  instituicao: string;
+}
 
 function MyClass() {
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
-  const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  // const [dependentes, setDependentes] = useState([]);
+  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
 
-  // useEffect(() => {
-  //   const fetchGetLoansDependentes = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const response = await getDependentes();
-  //       setLoans(response);
-  //     } catch (error) {
-  //       if (process.env.NODE_ENV === 'development') {
-  //         console.error('Erro ao buscar dados de empréstimos:', error);
-  //       }
-  //       setLoans([]);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   fetchGetLoansDependentes();
-  // }, []);
+  useEffect(() => {
+    const fetchGetLoansDependentes = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getDependentes();
+        setDependentes(response);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados de empréstimos:', error);
+        }
+        setDependentes([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGetLoansDependentes();
+  }, []);
+
+  console.log(dependentes);
+
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const filteredUsers = registrosHistories.filter((item) => {
-    const matchesText = item[0]
+  const filteredUsers = dependentes.filter((item) => {
+    const matchesText = item.nomeCompleto
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      value === 'todos' || item[4].toLowerCase() === value.toLowerCase();
-    return matchesText && matchesStatus;
+    return matchesText;
   });
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -56,17 +70,6 @@ function MyClass() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const getUserCountText = (userType: string) => {
-    const count = registrosHistories.filter(
-      (item) => item[4] == userType
-    ).length;
-    return `${count}`;
-  };
-  const options = [
-    { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
-    { value: 'devolvido', label: 'Devolvido' },
-    { value: 'não devolvido', label: 'Não devolvido' },
-  ];
 
   return (
     <>
@@ -90,7 +93,7 @@ function MyClass() {
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
             <FollowUpCard
               title='Mentorados'
-              number={getUserCountText('devolvido')}
+              number={String(dependentes?.length)}
               icon={<LayersIcon />}
             />
           </div>
@@ -108,18 +111,8 @@ function MyClass() {
                   onClick={() => toggleSortOrder(!isAscending)}
                   top={isAscending}
                 />
-                <div className='w-[30%] -mt-4'>
-                  <SelectInput
-                    options={options}
-                    onValueChange={(value) => {
-                      setValue(value);
-                      setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
-                    }}
-                    value={value}
-                  />
-                </div>
               </div>
-              <HeaderTable columns={columnsHistories} />
+              <HeaderTable columns={columnsClass} />
               <div className='w-full items-center flex flex-col min-h-72'>
                 {currentData.length === 0 ? (
                   <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
@@ -129,18 +122,23 @@ function MyClass() {
                   currentData.map((rowData, index) => (
                     <ItemTable
                       key={index}
-                      data={rowData}
+                      data={[
+                        rowData.nomeCompleto,
+                        rowData.email,
+                        formatDateTime(rowData.dataIngresso),
+                        rowData.curso,
+                        rowData.instituicao,
+                        rowData.status,
+                      ]}
                       rowIndex={index}
-                      columnWidths={columnsHistories.map(
-                        (column) => column.width
-                      )}
+                      columnWidths={columnsClass.map((column) => column.width)}
                     />
                   ))
                 )}
               </div>
               <div className='mb-4'>
                 <Pagination
-                  totalItems={filteredUsers.length}
+                  totalItems={currentData.length}
                   itemsPerPage={itemsPerPage}
                   currentPage={currentPage}
                   onPageChange={setCurrentPage}
