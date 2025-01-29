@@ -2,7 +2,6 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
 import { columnsClass } from '@/mocks/Unidades';
-import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -11,6 +10,7 @@ import LayersIcon from '../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 import { getDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
   id: number;
@@ -120,7 +120,7 @@ function MyClass() {
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
-                    <ItemTable
+                    <ClickableItemTable
                       key={index}
                       data={[
                         rowData.nomeCompleto,
@@ -132,6 +132,8 @@ function MyClass() {
                       ]}
                       rowIndex={index}
                       columnWidths={columnsClass.map((column) => column.width)}
+                      destinationRoute='/history/mentoring' // Ajuste conforme necessário
+                      id={rowData.id}
                     />
                   ))
                 )}
