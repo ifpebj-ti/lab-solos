@@ -12,12 +12,31 @@ import LayersIcon from '../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 
 function MyClass() {
-  const isLoading = false;
+  const [isLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
+  // const [dependentes, setDependentes] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchGetLoansDependentes = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await getDependentes();
+  //       setLoans(response);
+  //     } catch (error) {
+  //       if (process.env.NODE_ENV === 'development') {
+  //         console.error('Erro ao buscar dados de empréstimos:', error);
+  //       }
+  //       setLoans([]);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   fetchGetLoansDependentes();
+  // }, []);
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };

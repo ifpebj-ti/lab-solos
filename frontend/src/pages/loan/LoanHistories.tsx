@@ -11,6 +11,7 @@ import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 import { getLoansByDependentes } from '@/integration/Class';
+import { formatDateTime } from '@/function/date';
 
 interface IUsuario {
   id: number;
@@ -95,7 +96,9 @@ function LoanHistories() {
   const filteredLoans = loans.filter((loan) => {
     const matchesText =
       loan.id.toString().includes(searchTerm) ||
-      loan.solicitante.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase());
+      loan.solicitante.nomeCompleto
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
     const matchesStatus =
       value === 'todos' || loan.status.toLowerCase() === value.toLowerCase();
     return matchesText && matchesStatus;
@@ -103,8 +106,12 @@ function LoanHistories() {
 
   // Ordenação dos empréstimos
   const sortedLoans = isAscending
-    ? [...filteredLoans].sort((a, b) => a.dataRealizacao.localeCompare(b.dataRealizacao))
-    : [...filteredLoans].sort((a, b) => b.dataRealizacao.localeCompare(a.dataRealizacao));
+    ? [...filteredLoans].sort((a, b) =>
+        a.dataRealizacao.localeCompare(b.dataRealizacao)
+      )
+    : [...filteredLoans].sort((a, b) =>
+        b.dataRealizacao.localeCompare(a.dataRealizacao)
+      );
 
   // Dados da página atual
   const currentData = sortedLoans.slice(
@@ -191,13 +198,15 @@ function LoanHistories() {
                       key={index}
                       data={[
                         String(loan.id),
-                        loan.dataRealizacao,
+                        String(loan.solicitante.nomeCompleto),
+                        formatDateTime(loan.dataRealizacao),
                         String(loan.produtos.length),
-                        String(loan.solicitante.dependentes?.length || 0),
                         loan.status,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsHistories.map((column) => column.width)}
+                      columnWidths={columnsHistories.map(
+                        (column) => column.width
+                      )}
                     />
                   ))
                 )}
