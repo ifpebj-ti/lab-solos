@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import { NavigateFunction } from 'react-router-dom';
 
 // login
 
@@ -26,7 +27,17 @@ interface ICreateUserData {
   cidade: string;
   curso: string;
 }
-export const authenticate = async ({ method, params }: IAuth) => {
+
+// Interface para decodificação do token
+interface JwtPayload {
+  sub: string; // ID ou nível do usuário
+  role?: string; // Caso tenha uma role específica
+}
+
+export const authenticate = async (
+  { method, params }: IAuth,
+  navigate: NavigateFunction
+) => {
   try {
     const response = await api({
       method,
@@ -40,24 +51,35 @@ export const authenticate = async ({ method, params }: IAuth) => {
         secure: true,
         sameSite: 'Strict',
       });
-      const decoded = jwtDecode(doorKey);
+
+      const decoded = jwtDecode<JwtPayload>(doorKey);
       if (decoded.sub) {
         Cookie.set('rankID', decoded.sub, {
           secure: true,
           sameSite: 'Strict',
         });
+
+        // Redirecionamento com base no nível do usuário
+        switch (decoded.sub) {
+          case '1':
+            navigate('/dashboard-admin');
+            break;
+          case '2':
+            navigate('/dashboard-user');
+            break;
+          default:
+            navigate('/');
+            break;
+        }
       } else {
         console.error('Erro: o valor de "sub" está indefinido.');
       }
     }
-
-    return response; // Retorna a resposta completa para analisar o status no front-end
+    return response;
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
-      // Retorna informações relevantes do erro da API
       throw error.response || error;
     } else {
-      // Erro desconhecido
       throw new Error('Erro inesperado');
     }
   }
