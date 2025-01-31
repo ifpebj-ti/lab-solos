@@ -12,6 +12,7 @@ import { getUserById } from '@/integration/Users';
 import { formatDate, formatDateTime } from '@/function/date';
 import Cookie from 'js-cookie';
 import { getLoansByUserId } from '@/integration/Loans';
+import { useLocation } from 'react-router-dom';
 
 interface IUsuario {
   instituicao: string;
@@ -64,13 +65,15 @@ function MentoringHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
-  const id = Cookie.get('rankID')!;
+  // const id = Cookie.get('rankID')!;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
+  const location = useLocation();
+  const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
     const fetchGetUserById = async () => {

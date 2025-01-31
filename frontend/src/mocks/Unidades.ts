@@ -410,11 +410,20 @@ export const estudantesSelected = [
 ];
 
 export const columnsHistories = [
-  { value: 'Id', width: '45%' },
-  { value: 'Data', width: '25%' },
-  { value: 'Itens Utilizados', width: '30%' },
-  { value: 'Mentorados Vinculados', width: '30%' },
-  { value: 'Status', width: '30%' },
+  { value: 'Id', width: '10%' },
+  { value: 'Mentorado Vinculado', width: '30%' },
+  { value: 'Data', width: '20%' },
+  { value: 'Itens Utilizados', width: '20%' },
+  { value: 'Status', width: '20%' },
+];
+
+export const columnsClass = [
+  { value: 'Nome', width: '22%' },
+  { value: 'Email', width: '22%' },
+  { value: 'Data Ingresso', width: '15%' },
+  { value: 'Curso', width: '16%' },
+  { value: 'Instituição', width: '15%' },
+  { value: 'Status', width: '10%' },
 ];
 
 export const registrosHistories = [

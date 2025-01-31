@@ -5,21 +5,93 @@ import TopDown from '@/components/global/table/TopDown';
 import { columnsButtons, dataButton } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import ItemTable from '@/components/global/table/Item';
+import { getLoansByDependentes } from '@/integration/Class';
+import Cookie from 'js-cookie';
+
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: unknown[] | null;
+  emprestimosAprovados: unknown[] | null;
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: IUsuario[] | null;
+}
+
+interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null;
+  emprestimoId: number | null;
+  emprestimo: unknown | null;
+}
+
+interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  produtos: IProduto[];
+  solicitanteId: number;
+  solicitante: IUsuario;
+  aprovadorId: number;
+  aprovador: IUsuario;
+}
 
 // aqui virá as informções dos emprestimos da turma por completa
 function ClassHistory() {
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
+  const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  console.log('Loans no início:', loans);
 
   // Cálculo das páginas
   const currentData = dataButton.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  useEffect(() => {
+    const fetchGetLoansDependentes = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getLoansByDependentes();
+        console.log('Dados recebidos:', response); // Adicione aqui também
+        setLoans(response);
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+        setLoans([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGetLoansDependentes();
+  }, []);
+  console.log('doorKey:', Cookie.get('doorKey'));
+  console.log('rankID:', Cookie.get('rankID'));
+  console.log(loans + 'sdsdsd');
 
   const infoItems = [
     { title: 'Nome', value: 'Carlos Emanuel Santos de Oliveira', width: '50%' },
