@@ -1,3 +1,4 @@
+import BaseAdmin from './pages/BaseAdmin';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Base from './pages/Base';
@@ -24,6 +25,16 @@ import LoanReview from './pages/loan/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
 import LoanHistories from './pages/loan/LoanHistories';
 import MyClass from './pages/MyClass';
+
+// rotas admin
+import HomeAdmin from './pages/admin/Home';
+
+// rotas mentee
+import BaseMentee from './pages/BaseMentee';
+import ProfileMentee from './pages/mentee/Profile';
+import HistoryMentoring from './pages/mentee/HistoryMentoring';
+import LoanHistoryMentee from './pages/mentee/LoanHistory';
+import VerificationMentee from './pages/mentee/Verification';
 
 function AppRoutes() {
   return (
@@ -69,6 +80,24 @@ function AppRoutes() {
           <Route path='/loan/histories' element={<LoanHistories />}></Route>
           <Route path='/me/myclass' element={<MyClass />}></Route>
         </Route>
+        {/* Rotas de Admin  */}
+        <Route path='/admin' element={<BaseAdmin />}>
+          <Route index element={<HomeAdmin />} />
+          <Route path='profile' element={<Profile />} />
+          {/* Adicione mais rotas específicas para admin aqui */}
+        </Route>
+
+        {/* Rotas de Mentee */}
+        <Route path='/mentee' element={<BaseMentee />}>
+          <Route index element={<Home />} />
+          <Route path='search-material' element={<SearchMaterial />} />
+          <Route path='profile' element={<ProfileMentee />} />
+          <Route path='history/mentoring' element={<HistoryMentoring />} />
+          <Route path='history/loan' element={<LoanHistoryMentee />} />
+          <Route path='verification' element={<VerificationMentee />} />
+          {/* Adicione mais rotas específicas para admin aqui */}
+        </Route>
+
         {/* rotas sem autenticação */}
         <Route path='/login' element={<Login />}></Route>
         <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>

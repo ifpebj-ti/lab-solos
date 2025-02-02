@@ -20,8 +20,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { useUser } from '../context/UseUser';
 
-const frameworks = [
+const routesAdmin = [
   {
     value: 'home',
     label: 'Home',
@@ -38,12 +39,35 @@ const frameworks = [
     route: '/login',
   },
 ];
+const routesMentee = [
+  {
+    value: 'Home',
+    label: 'Home',
+    route: '/mentee/', // Adicionando a rota desejada
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/mentee/search-material',
+  },
+  {
+    value: 'Histórico Pessoal',
+    label: 'Histórico Pessoal',
+    route: '/mentee/history/mentoring',
+  },
+  {
+    value: 'Perfil',
+    label: 'Perfil',
+    route: '/mentee/profile',
+  },
+];
 
 function OpenSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [value] = useState('');
   const navigate = useNavigate();
+  const { rankID } = useUser();
 
   // Detecta o clique fora do diálogo
   useEffect(() => {
@@ -88,27 +112,50 @@ function OpenSearch() {
               <CommandList>
                 <CommandEmpty>No framework found.</CommandEmpty>
                 <CommandGroup>
-                  {frameworks.map((framework) => (
-                    <CommandItem
-                      key={framework.value}
-                      value={framework.value}
-                      onSelect={() => {
-                        navigate(framework.route);
-                      }}
-                      className='font-inter-regular'
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === framework.value
-                            ? 'opacity-100'
-                            : 'opacity-0'
-                        )}
-                      />
-                      <LinkIcon />
-                      {framework.label}
-                    </CommandItem>
-                  ))}
+                  {String(rankID) === '1' &&
+                    routesAdmin.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
+                  {String(rankID) === '3' &&
+                    routesMentee.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
               </CommandList>
             </Command>

@@ -62,10 +62,13 @@ export const authenticate = async (
         // Redirecionamento com base no nível do usuário
         switch (decoded.sub) {
           case '1':
-            navigate('/dashboard-admin');
+            navigate('/admin/');
             break;
           case '2':
-            navigate('/dashboard-user');
+            navigate('/mentor/');
+            break;
+          case '3':
+            navigate('/mentee/');
             break;
           default:
             navigate('/');

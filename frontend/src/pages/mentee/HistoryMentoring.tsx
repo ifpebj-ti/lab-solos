@@ -7,11 +7,11 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import ItemTable from '@/components/global/table/Item';
 import { getUserById } from '@/integration/Users';
 import { formatDate, formatDateTime } from '@/function/date';
+import Cookie from 'js-cookie';
 import { getLoansByUserId } from '@/integration/Loans';
-import { useLocation } from 'react-router-dom';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
   instituicao: string;
@@ -59,19 +59,18 @@ export interface IEmprestimo {
   aprovador: unknown | null;
 }
 
-function MentoringHistory() {
+function HistoryMentoring() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
+  const id = Cookie.get('rankID')!;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const location = useLocation();
-  const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
     const fetchGetUserById = async () => {
@@ -201,7 +200,7 @@ function MentoringHistory() {
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.map((rowData, index) => (
-                  <ItemTable
+                  <ClickableItemTable
                     key={index}
                     data={[
                       String(rowData.id),
@@ -213,6 +212,8 @@ function MentoringHistory() {
                     ]}
                     rowIndex={index}
                     columnWidths={columnsLoan.map((column) => column.width)}
+                    destinationRoute='/mentee/history/loan'
+                    id={rowData.id}
                   />
                 ))}
               </div>
@@ -231,4 +232,4 @@ function MentoringHistory() {
   );
 }
 
-export default MentoringHistory;
+export default HistoryMentoring;

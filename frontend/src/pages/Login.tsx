@@ -5,10 +5,11 @@ import logo from '../../public/images/logo.png';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import InputPassword from '../components/global/inputs/Password';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authenticate } from '@/integration/Auth';
 import { toast } from '../components/hooks/use-toast';
 import { AxiosError } from 'axios';
+import Cookie from 'js-cookie';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -27,7 +28,10 @@ function Login() {
     resolver: zodResolver(submitLoginSchema),
   });
   const navigate = useNavigate();
-
+  useEffect(() => {
+    Cookie.remove('rankID');
+    Cookie.remove('doorKey');
+  }, []);
   async function postLogin(data: LoginFormData) {
     setLoading(true);
     try {
@@ -55,6 +59,11 @@ function Login() {
             description: 'Tente novamente mais tarde.',
           });
         }
+      } else {
+        toast({
+          title: 'Erro no login',
+          description: 'Credenciais inválidas.',
+        });
       }
     } finally {
       setLoading(false);

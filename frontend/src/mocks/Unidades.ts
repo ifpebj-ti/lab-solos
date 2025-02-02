@@ -400,8 +400,8 @@ export const itensSelected = [
 
 export const columnsEstudantesSelected = [
   { value: 'Nome', width: '45%' },
-  { value: 'Instituição', width: '25%' },
-  { value: 'Curso', width: '30%' },
+  { value: 'Email', width: '25%' },
+  { value: 'Telefone', width: '30%' },
 ];
 export const estudantesSelected = [
   ['Ana Beatriz', 'UFPE', 'Engenharia de Software'],
