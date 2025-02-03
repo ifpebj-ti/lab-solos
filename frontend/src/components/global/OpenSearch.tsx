@@ -20,22 +20,98 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { useUser } from '../context/UseUser';
 
-const frameworks = [
+const routesAdmin = [
   {
     value: 'home',
     label: 'Home',
-    route: '/', // Adicionando a rota desejada
+    route: '/admin/', // Adicionando a rota desejada
   },
   {
-    value: 'criação de conta',
-    label: 'Criação de conta',
-    route: '/register',
+    value: 'Adicionar Material',
+    label: 'Adicionar Material',
+    route: '/admin/insert',
   },
   {
-    value: 'login',
-    label: 'Login',
-    route: '/login',
+    value: 'Acompanhamento de Alertas',
+    label: 'Acompanhamento de Alertas',
+    route: '/admin/follow-up',
+  },
+  {
+    value: 'Usuários Cadastrados',
+    label: 'Usuários Cadastrados',
+    route: '/admin/users',
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/admin/search-material',
+  },
+  {
+    value: 'Solicitações de Cadastros',
+    label: 'Solicitações de Cadastros',
+    route: '/admin/registered-mentors',
+  },
+];
+const routesMentee = [
+  {
+    value: 'Home',
+    label: 'Home',
+    route: '/mentee/', // Adicionando a rota desejada
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/mentee/search-material',
+  },
+  {
+    value: 'Histórico Pessoal',
+    label: 'Histórico Pessoal',
+    route: '/mentee/history/mentoring',
+  },
+  {
+    value: 'Perfil',
+    label: 'Perfil',
+    route: '/mentee/profile',
+  },
+];
+
+const routesMentor = [
+  {
+    value: 'Home',
+    label: 'Home',
+    route: '/mentor/', // Adicionando a rota desejada
+  },
+  {
+    value: 'Histórico da Turma',
+    label: 'Histórico da Turma',
+    route: '/mentor/history/class',
+  },
+  {
+    value: 'Criar Empréstimo',
+    label: 'Criar Empréstimo',
+    route: '/mentor/loan/creation',
+  },
+  {
+    value: 'Requisições de Usuários',
+    label: 'Requisições de Usuários',
+    route: '/mentor/users-request',
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/mentor/search-material',
+  },
+  {
+    value: 'Minha Turma',
+    label: 'Minha Turma',
+    route: '/mentor/my-class',
+  },
+  {
+    value: 'Perfil',
+    label: 'Perfil',
+    route: '/mentor/profile',
   },
 ];
 
@@ -44,6 +120,7 @@ function OpenSearch() {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [value] = useState('');
   const navigate = useNavigate();
+  const { rankID } = useUser();
 
   // Detecta o clique fora do diálogo
   useEffect(() => {
@@ -81,34 +158,79 @@ function OpenSearch() {
         <AlertDialogHeader>
           <AlertDialogDescription>
             <Command className='border border-borderMy'>
-              <CommandInput placeholder='Search framework...' />
+              <CommandInput placeholder='Pesquisar link' />
               <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
                 Links
               </p>
               <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandEmpty>Link não encontrado.</CommandEmpty>
                 <CommandGroup>
-                  {frameworks.map((framework) => (
-                    <CommandItem
-                      key={framework.value}
-                      value={framework.value}
-                      onSelect={() => {
-                        navigate(framework.route);
-                      }}
-                      className='font-inter-regular'
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === framework.value
-                            ? 'opacity-100'
-                            : 'opacity-0'
-                        )}
-                      />
-                      <LinkIcon />
-                      {framework.label}
-                    </CommandItem>
-                  ))}
+                  {String(rankID) === '1' &&
+                    routesAdmin.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
+                  {String(rankID) === '2' &&
+                    routesMentor.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
+                  {String(rankID) === '3' &&
+                    routesMentee.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
               </CommandList>
             </Command>

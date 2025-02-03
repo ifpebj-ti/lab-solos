@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../components/base/Sidebar';
+import SidebarAdmin from '../components/base/SidebarAdmin';
 import Container from '../components/global/Container';
 
-function Base() {
+function BaseAdmin() {
   return (
     <div className='flex justify-start flex-row w-full h-screen '>
-      <Sidebar />
+      <SidebarAdmin />
       <Container>
         <Outlet />
       </Container>
@@ -13,4 +13,4 @@ function Base() {
   );
 }
 
-export default Base;
+export default BaseAdmin;

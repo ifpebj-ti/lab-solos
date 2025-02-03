@@ -156,7 +156,7 @@ function LoanCreation() {
           </div>
           <div className='w-11/12 mt-9 flex items-center justify-end'>
             <Link
-              to={'/loan/review'}
+              to={'/mentor/loan/review'}
               className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 w-96 rounded-sm hover:bg-opacity-90 flex items-center justify-center'
             >
               Solicitar Empréstimo

@@ -2,7 +2,6 @@ import OpenSearch from '../../components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import FollowUpCard from '@/components/screens/FollowUp';
 import HeaderTable from '@/components/global/table/Header';
-import ItemTable from '@/components/global/table/Item';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
@@ -11,6 +10,7 @@ import LayersIcon from '../../../public/icons/LayersIcon';
 import { useEffect, useRef, useState } from 'react';
 import { getAllProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 export interface IAllProducts {
   id: number;
@@ -206,7 +206,7 @@ function SearchMaterial() {
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
-                    <ItemTable
+                    <ClickableItemTable
                       key={index}
                       data={[
                         String(rowData.id),
@@ -217,6 +217,8 @@ function SearchMaterial() {
                       ]}
                       rowIndex={index}
                       columnWidths={columns.map((column) => column.width)}
+                      destinationRoute='/mentee/verification'
+                      id={rowData.id}
                     />
                   ))
                 )}

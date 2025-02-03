@@ -1,6 +1,6 @@
+import BaseAdmin from './pages/BaseAdmin';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
-import Base from './pages/Base';
 import Register from './pages/insert/Register';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
@@ -14,67 +14,77 @@ import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
-import MentoringHistory from './pages/history/MentoringHistory';
-// essa rota vai ser só pra admim
-// import ClassHistory from './pages/history/ClassHistory';
-import PrivateRoute from './components/base/PrivateRoutes';
+import MentoringHistory from './pages/mentor/MentoringHistory';
 import Page404 from './pages/Page404';
-import LoanCreation from './pages/loan/LoanCreation';
-import LoanReview from './pages/loan/LoanReview';
+import LoanCreation from './pages/mentor/LoanCreation';
+import LoanReview from './pages/mentor/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
 import LoanHistories from './pages/loan/LoanHistories';
-import MyClass from './pages/MyClass';
+import HomeAdmin from './pages/admin/Home';
+import BaseMentee from './pages/BaseMentee';
+import ProfileMentee from './pages/mentee/Profile';
+import HistoryMentoring from './pages/mentee/HistoryMentoring';
+import LoanHistoryMentee from './pages/mentee/LoanHistory';
+import VerificationMentee from './pages/mentee/Verification';
+import BaseMentor from './pages/BaseMentor';
+import ProfileMentor from './pages/mentor/Profile';
+import MyClass from './pages/mentor/MyClass';
+import HistoryClass from './pages/mentor/HistoryClass';
+import PrivateRoute from './components/base/PrivateRoutes';
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Base />}>
-          <Route index element={<Home />}></Route>
-          <Route path='/profile' element={<Profile />}></Route>
-          <Route path='/followUp' element={<FollowUp />}></Route>
-          <Route path='/search/material' element={<SearchMaterial />}></Route>
-          <Route path='/verification' element={<Verification />}></Route>
-          <Route path='/viewClass' element={<ViewClass />}></Route>
-
-          {/* telas de histórico */}
-          <Route path='/history/class' element={<LoanHistories />}></Route>
-          <Route
-            path='/history/mentoring'
-            element={<MentoringHistory />}
-          ></Route>
-
-          {/* insert de bens */}
-          <Route path='/insert/' element={<Register />}></Route>
-          <Route path='/insert/launch' element={<Launch />}></Route>
-
-          {/* Users get */}
-          <Route
-            path='/users'
-            element={
-              <PrivateRoute
-                element={<RegisteredUsers />}
-                requiredRank={['1']}
-              />
-            }
-          ></Route>
-          <Route
-            path='/users/request'
-            element={<RegistrationRequest />}
-          ></Route>
-          {/* loan routes */}
-          <Route path='/loan/creation' element={<LoanCreation />}></Route>
-          <Route path='/loan/review' element={<LoanReview />}></Route>
-          <Route path='/loan/history' element={<LoanHistory />}></Route>
-          <Route path='/loan/histories' element={<LoanHistories />}></Route>
-          <Route path='/me/myclass' element={<MyClass />}></Route>
+        {/* Rotas de Admin  */}
+        <Route path='/admin' element={<BaseAdmin />}>
+          <Route index element={<PrivateRoute element={<HomeAdmin />} requiredRank={[1]} />} />
+          <Route path='profile' element={<PrivateRoute element={<Profile />} requiredRank={[1]} />} />
+          <Route path='insert' element={<PrivateRoute element={<Register />} requiredRank={[1]} />} />
+          <Route path='follow-up' element={<PrivateRoute element={<FollowUp />} requiredRank={[1]} />} />
+          <Route path='users' element={<PrivateRoute element={<RegisteredUsers />} requiredRank={[1]} />} />
+          <Route path='search-material' element={<PrivateRoute element={<SearchMaterial />} requiredRank={[1]} />} />
+          <Route path='view-class' element={<PrivateRoute element={<ViewClass />} requiredRank={[1]} />} />
+          <Route path='verification' element={<PrivateRoute element={<Verification />} requiredRank={[1]} />} />
+          <Route path='history/mentoring' element={<PrivateRoute element={<MentoringHistory />} requiredRank={[1]} />} />
+          <Route path='insert/launch' element={<PrivateRoute element={<Launch />} requiredRank={[1]} />} />
+          <Route path='history/loan' element={<PrivateRoute element={<LoanHistory />} requiredRank={[1]} />} />
+          <Route path='registered-mentors' element={<PrivateRoute element={<RegistrationRequest />} requiredRank={[1]} />} />
         </Route>
-        {/* rotas sem autenticação */}
-        <Route path='/login' element={<Login />}></Route>
-        <Route path='/forgotYourPassword' element={<ForgotPassword />}></Route>
-        <Route path='/resetPassword' element={<ResetPassword />}></Route>
-        <Route path='/createAccount' element={<CreateAccount />}></Route>
-        <Route path='*' element={<Page404 />}></Route>
+
+        {/* Rotas de Mentor */}
+        <Route path='/mentor' element={<BaseMentor />}>
+          <Route index element={<PrivateRoute element={<Home />} requiredRank={[2]} />} />
+          <Route path='profile' element={<PrivateRoute element={<ProfileMentor />} requiredRank={[2]} />} />
+          <Route path='my-class' element={<PrivateRoute element={<MyClass />} requiredRank={[2]} />} />
+          <Route path='verification' element={<PrivateRoute element={<VerificationMentee />} requiredRank={[2]} />} />
+          <Route path='history/class' element={<PrivateRoute element={<HistoryClass />} requiredRank={[2]} />} />
+          <Route path='loan/creation' element={<PrivateRoute element={<LoanCreation />} requiredRank={[2]} />} />
+          <Route path='loan/review' element={<PrivateRoute element={<LoanReview />} requiredRank={[2]} />} />
+          <Route path='users-request' element={<PrivateRoute element={<RegistrationRequest />} requiredRank={[2]} />} />
+          <Route path='search-material' element={<PrivateRoute element={<SearchMaterial />} requiredRank={[2]} />} />
+          <Route path='history/mentee' element={<PrivateRoute element={<LoanCreation />} requiredRank={[2]} />} />
+          <Route path='history/mentoring' element={<PrivateRoute element={<MentoringHistory />} requiredRank={[2]} />} />
+          <Route path='history/loan' element={<PrivateRoute element={<LoanHistory />} requiredRank={[2]} />} />
+          <Route path='loan/histories' element={<PrivateRoute element={<LoanHistories />} requiredRank={[2]} />} />
+        </Route>
+
+        {/* Rotas de Mentee */}
+        <Route path='/mentee' element={<BaseMentee />}>
+          <Route index element={<PrivateRoute element={<Home />} requiredRank={[3]} />} />
+          <Route path='search-material' element={<PrivateRoute element={<SearchMaterial />} requiredRank={[3]} />} />
+          <Route path='profile' element={<PrivateRoute element={<ProfileMentee />} requiredRank={[3]} />} />
+          <Route path='history/mentoring' element={<PrivateRoute element={<HistoryMentoring />} requiredRank={[3]} />} />
+          <Route path='history/loan' element={<PrivateRoute element={<LoanHistoryMentee />} requiredRank={[3]} />} />
+          <Route path='verification' element={<PrivateRoute element={<VerificationMentee />} requiredRank={[3]} />} />
+        </Route>
+
+        {/* Rotas sem autenticação */}
+        <Route path='/login' element={<Login />} />
+        <Route path='/forgotYourPassword' element={<ForgotPassword />} />
+        <Route path='/resetPassword' element={<ResetPassword />} />
+        <Route path='/createAccount' element={<CreateAccount />} />
+        <Route path='*' element={<Page404 />} />
       </Routes>
     </BrowserRouter>
   );
