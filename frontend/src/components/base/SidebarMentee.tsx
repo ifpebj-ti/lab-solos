@@ -18,7 +18,7 @@ function SidebarMentee() {
     {
       to: '/mentee/',
       icon: <HomeIcon fill={currentPage === '/mentee/' ? '#16A34A' : '#fff'} />,
-      label: 'Home'
+      label: 'Home',
     },
     {
       to: '/mentee/search-material',
@@ -28,7 +28,7 @@ function SidebarMentee() {
           tam='18'
         />
       ),
-      label: 'Pesquisar Material'
+      label: 'Pesquisar Material',
     },
     {
       to: '/mentee/history/mentoring',
@@ -40,15 +40,15 @@ function SidebarMentee() {
           tam='18'
         />
       ),
-      label: 'Histórico Pessoal'
-    }
+      label: 'Histórico Pessoal',
+    },
   ];
   return (
     <div className='bg-primaryMy w-[70px] min-h-screen flex items-center flex-col'>
       <img src={logo} className='mt-7 2xl:mt-10 w-12'></img>
       <div className='flex flex-col justify-between w-full mt-14 2xl:mt-20 items-center h-full'>
         <div className='flex items-center flex-col'>
-        {menuItems.map(({ to, icon, label }) => (
+          {menuItems.map(({ to, icon, label }) => (
             <TooltipProvider key={to}>
               <Tooltip>
                 <TooltipTrigger>

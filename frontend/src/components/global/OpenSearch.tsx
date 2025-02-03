@@ -26,17 +26,32 @@ const routesAdmin = [
   {
     value: 'home',
     label: 'Home',
-    route: '/', // Adicionando a rota desejada
+    route: '/admin/', // Adicionando a rota desejada
   },
   {
-    value: 'criação de conta',
-    label: 'Criação de conta',
-    route: '/register',
+    value: 'Adicionar Material',
+    label: 'Adicionar Material',
+    route: '/admin/insert',
   },
   {
-    value: 'login',
-    label: 'Login',
-    route: '/login',
+    value: 'Acompanhamento de Alertas',
+    label: 'Acompanhamento de Alertas',
+    route: '/admin/follow-up',
+  },
+  {
+    value: 'Usuários Cadastrados',
+    label: 'Usuários Cadastrados',
+    route: '/admin/users',
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/admin/search-material',
+  },
+  {
+    value: 'Solicitações de Cadastros',
+    label: 'Solicitações de Cadastros',
+    route: '/admin/registered-mentors',
   },
 ];
 const routesMentee = [
