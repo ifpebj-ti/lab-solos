@@ -19,7 +19,7 @@ namespace LabSolos_Server_DotNet8.Models
         public int? LoteId { get; set; }  
         public Lote? Lote { get; set; }
 
-        public int? EmprestimoId { get; set; }
-        public Emprestimo? Emprestimo { get; set; }
+        // Nova relação many-to-many
+        public List<EmprestimoProduto> EmprestimoProdutos { get; set; } = new();
     }
 }

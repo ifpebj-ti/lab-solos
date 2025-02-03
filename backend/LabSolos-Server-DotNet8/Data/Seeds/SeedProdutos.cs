@@ -8,13 +8,12 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
     {
         public static void Seed(AppDbContext context)
         {
-
             var emprestimo1 = new Emprestimo
             {
                 Id = 1,
                 DataRealizacao = DateTime.UtcNow.AddDays(-7),
                 DataDevolucao = DateTime.UtcNow.AddDays(7),
-                DataAprovacao = DateTime.UtcNow.AddDays(0),
+                DataAprovacao = DateTime.UtcNow,
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 3,
                 AprovadorId = 2
@@ -46,10 +45,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 DataEntrada = DateTime.Now.AddDays(-60),
             };
 
-            // Adicionar os lotes ao contexto
             context.Lotes.AddRange(loteQuimico1, loteVidraria1);
 
-            // Químicos
+            // Produtos
             var quimico1 = new Quimico
             {
                 Id = 1,
@@ -71,8 +69,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Grupo = Grupo.Acido,
                 GrauPureza = "98%",
                 Catmat = "Q1234",
-                LoteId = loteQuimico1.Id,
-                EmprestimoId = emprestimo1.Id
+                LoteId = loteQuimico1.Id
             };
 
             var quimico2 = new Quimico
@@ -96,14 +93,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Grupo = Grupo.Sal,
                 GrauPureza = "P.A.",
                 Catmat = "Q5678",
-                LoteId = loteQuimico1.Id,
-                EmprestimoId = emprestimo2.Id,
+                LoteId = loteQuimico1.Id
             };
 
-            // Adicionar os químicos ao contexto
             context.Quimicos.AddRange(quimico1, quimico2);
 
-            // Vidrarias
             var vidraria1 = new Vidraria
             {
                 Id = 3,
@@ -119,8 +113,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Alta,
                 Capacidade = 500,
                 Graduada = true,
-                LoteId = loteVidraria1.Id,
-                EmprestimoId = emprestimo1.Id
+                LoteId = loteVidraria1.Id
             };
 
             var vidraria2 = new Vidraria
@@ -138,11 +131,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Baixa,
                 Capacidade = 1000,
                 Graduada = false,
-                LoteId = loteVidraria1.Id,
-                EmprestimoId = emprestimo2.Id
+                LoteId = loteVidraria1.Id
             };
 
-            // Adicionar as vidrarias ao contexto
             context.Vidrarias.AddRange(vidraria1, vidraria2);
 
             var outro1 = new Produto
@@ -153,15 +144,26 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Fornecedor = "Fornecedor Limpeza RST",
                 Quantidade = 1,
                 QuantidadeMinima = 1,
-                LocalizacaoProduto = "Jogado, por ai",
-                Status = StatusProduto.Disponivel,
-                EmprestimoId = emprestimo1.Id
+                LocalizacaoProduto = "Jogado, por aí",
+                Status = StatusProduto.Disponivel
             };
 
-            context.Produtos.Add(outro1);            
+            context.Produtos.Add(outro1);
 
-            // Salvar todas as mudanças no banco de dados
-            context.SaveChanges(); 
+            context.SaveChanges();
+
+            // Criando relação Many-to-Many via EmprestimoProduto
+            var emprestimoProdutos = new List<EmprestimoProduto>
+            {
+                new() { Id = 1, ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 500 },
+                new() { Id = 2, ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 200 },
+                new() { Id = 3, ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 2 },
+                new() { Id = 4, ProdutoId = vidraria2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 3 },
+                new() { Id = 5, ProdutoId = outro1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 1 }
+            };
+
+            context.EmprestimoProdutos.AddRange(emprestimoProdutos);
+            context.SaveChanges();
         }
     }
 }
