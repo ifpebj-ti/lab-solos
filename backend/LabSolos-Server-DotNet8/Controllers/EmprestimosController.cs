@@ -12,18 +12,20 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EmprestimosController(ILogger<UsuariosController> logger, IUsuarioService usuarioService, IEmprestimoService emprestimoService) : ControllerBase
+    public class EmprestimosController(ILogger<UsuariosController> logger, IUsuarioService usuarioService, IEmprestimoService emprestimoService, IProdutoService produtoService) : ControllerBase
     {
         private readonly IEmprestimoService _emprestimoService = emprestimoService;
         private readonly IUsuarioService _usuarioService = usuarioService;
+        private readonly IProdutoService _produtoService = produtoService;
+
 
         private readonly ILogger<UsuariosController> _logger = logger;
 
         [HttpGet("usuario/{userId}")]
         public async Task<IActionResult> GetEmprestimosUsuario(int userId)
         {
-            var usuarios = await _emprestimoService.GetEmprestimosUsuario(userId);
-            return Ok(usuarios);
+            var emprestimos = await _emprestimoService.GetEmprestimosUsuario(userId);
+            return Ok(emprestimos);
         }
 
         [HttpGet("solicitados/{userId}")]
@@ -44,7 +46,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> GetEmprestimobyId(int emprestimoId)
         {
             var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
-            
+
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
@@ -56,19 +58,30 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmprestimo([FromBody] AddEmprestimoDTO emprestimoDto)
         {
-            if (emprestimoDto == null || emprestimoDto.ProdutosIds == null || emprestimoDto.ProdutosIds.Count == 0)
+            try
             {
-                return BadRequest("Dados inválidos. Certifique-se de fornecer os produtos e informações do empréstimo.");
-            }
+                if (emprestimoDto == null || emprestimoDto.Produtos == null || emprestimoDto.Produtos.Count == 0)
+                {
+                    return BadRequest("Dados inválidos. Certifique-se de fornecer os produtos e informações do empréstimo.");
+                }
 
-            var novoEmprestimo = await _emprestimoService.AddEmprestimo(emprestimoDto);
-            return CreatedAtAction(nameof(GetEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+                var novoEmprestimo = await _emprestimoService.AddEmprestimo(emprestimoDto);
+                return CreatedAtAction(nameof(GetEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+            }
+            catch (ArgumentException e)
+            {
+
+                return BadRequest(e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+
+                return BadRequest(e.Message);
+            }
         }
 
-
-
-        [HttpPut("aprovar/{emprestimoId}")]
-        public async Task<IActionResult> AprovarEmprestimo(int emprestimoId, [FromBody] AprovarEmprestimoDTO aprovarDto)
+        [HttpPatch("aprovar/{emprestimoId}")]
+        public async Task<IActionResult> AprovarEmprestimo(int emprestimoId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o empréstimo pelo ID
             var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
@@ -91,15 +104,33 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
-            if (solicitante.ResponsavelId != aprovarDto.AprovadorId)
+            if (solicitante.ResponsavelId != aprovadorDto.AprovadorId)
             {
                 return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+            }
+
+            // Reduzir a quantidade dos produtos
+            foreach (var item in emprestimo.EmprestimoProdutos)
+            {
+                var produto = await _produtoService.GetByIdAsync(item.ProdutoId);
+                if (produto == null)
+                {
+                    return NotFound($"Produto com ID {item.ProdutoId} não encontrado.");
+                }
+
+                if (produto.Quantidade < item.Quantidade)
+                {
+                    return BadRequest($"O produto {produto.NomeProduto} não tem estoque suficiente para este empréstimo.");
+                }
+
+                produto.Quantidade -= item.Quantidade;
+                await _produtoService.UpdateAsync(produto);
             }
 
             // Atualizar o status do empréstimo para aprovado
             emprestimo.Status = StatusEmprestimo.Aprovado;
             emprestimo.DataAprovacao = DateTime.UtcNow;
-            emprestimo.AprovadorId = aprovarDto.AprovadorId;
+            emprestimo.AprovadorId = aprovadorDto.AprovadorId;
 
             // Salvar as mudanças no banco de dados
             await _emprestimoService.UpdateAsync(emprestimo);

@@ -1,6 +1,5 @@
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
-using LabSolos_Server_DotNet8.Data.Seeds;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Data.Context
@@ -14,19 +13,21 @@ namespace LabSolos_Server_DotNet8.Data.Context
         public DbSet<Quimico> Quimicos { get; set; }
         public DbSet<Vidraria> Vidrarias { get; set; }
         public DbSet<Emprestimo> Emprestimos { get; set; }
-        public DbSet<Lote> Lotes { get; set; }  
+        public DbSet<Lote> Lotes { get; set; }
+        public DbSet<EmprestimoProduto> EmprestimoProdutos { get; set; }  // Adicionando a tabela intermediária
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuração de herança para Usuario com TipoUsuario como discriminador
+            // Configuração de herança para Usuario
             modelBuilder.Entity<Usuario>()
                 .HasDiscriminator<TipoUsuario>("TipoUsuario")
-                .HasValue<Administrador>(TipoUsuario.Administrador) 
+                .HasValue<Administrador>(TipoUsuario.Administrador)
                 .HasValue<Academico>(TipoUsuario.Academico)
                 .HasValue<Usuario>(TipoUsuario.Comum);
 
-            // Configuração do relacionamento mentor-mentorandos (Responsavel e Dependentes)
+            // Relacionamento mentor-mentorandos (Responsável e Dependentes)
             modelBuilder.Entity<Usuario>()
                 .HasMany(u => u.Dependentes)
                 .WithOne(u => u.Responsavel)
@@ -45,15 +46,24 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .HasOne(p => p.Lote)
                 .WithMany(l => l.Produtos)
                 .HasForeignKey(p => p.LoteId)
-                .OnDelete(DeleteBehavior.SetNull); 
-
-            // Configuração de relacionamento 1:1 entre Produto e Emprestimo
-            modelBuilder.Entity<Produto>()
-                .HasOne(p => p.Emprestimo)
-                .WithMany(e => e.Produtos)
-                .HasForeignKey(e => e.EmprestimoId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
+            // **Configuração da relação Many-to-Many entre Emprestimo e Produto**
+            modelBuilder.Entity<EmprestimoProduto>()
+                .HasKey(ep => new { ep.EmprestimoId, ep.ProdutoId });
+
+            modelBuilder.Entity<EmprestimoProduto>()
+                .HasOne(ep => ep.Emprestimo)
+                .WithMany(e => e.EmprestimoProdutos)
+                .HasForeignKey(ep => ep.EmprestimoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EmprestimoProduto>()
+                .HasOne(ep => ep.Produto)
+                .WithMany(p => p.EmprestimoProdutos)
+                .HasForeignKey(ep => ep.ProdutoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configuração do relacionamento entre Emprestimo e Solicitante
             modelBuilder.Entity<Emprestimo>()
                 .HasOne(e => e.Solicitante)

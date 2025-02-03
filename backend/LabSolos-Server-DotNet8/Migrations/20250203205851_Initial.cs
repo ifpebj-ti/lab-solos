@@ -56,13 +56,58 @@ namespace LabSolos_Server_DotNet8.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Produtos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    NomeProduto = table.Column<string>(type: "TEXT", nullable: false),
+                    Fornecedor = table.Column<string>(type: "TEXT", nullable: true),
+                    Tipo = table.Column<int>(type: "INTEGER", nullable: false),
+                    Quantidade = table.Column<float>(type: "REAL", nullable: false),
+                    QuantidadeMinima = table.Column<float>(type: "REAL", nullable: false),
+                    DataFabricacao = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    DataValidade = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LocalizacaoProduto = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    UltimaModificacao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LoteId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Catmat = table.Column<string>(type: "TEXT", nullable: true),
+                    UnidadeMedida = table.Column<int>(type: "INTEGER", nullable: true),
+                    EstadoFisico = table.Column<int>(type: "INTEGER", nullable: true),
+                    Cor = table.Column<int>(type: "INTEGER", nullable: true),
+                    Odor = table.Column<int>(type: "INTEGER", nullable: true),
+                    Densidade = table.Column<float>(type: "REAL", nullable: true),
+                    PesoMolecular = table.Column<float>(type: "REAL", nullable: true),
+                    GrauPureza = table.Column<string>(type: "TEXT", nullable: true),
+                    FormulaQuimica = table.Column<string>(type: "TEXT", nullable: true),
+                    Grupo = table.Column<int>(type: "INTEGER", nullable: true),
+                    Material = table.Column<int>(type: "INTEGER", nullable: true),
+                    Formato = table.Column<int>(type: "INTEGER", nullable: true),
+                    Altura = table.Column<int>(type: "INTEGER", nullable: true),
+                    Capacidade = table.Column<float>(type: "REAL", nullable: true),
+                    Graduada = table.Column<bool>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Produtos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Produtos_Lotes_LoteId",
+                        column: x => x.LoteId,
+                        principalTable: "Lotes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Emprestimos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     DataRealizacao = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    DataDevolucao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataDevolucao = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    DataAprovacao = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     SolicitanteId = table.Column<int>(type: "INTEGER", nullable: false),
                     AprovadorId = table.Column<int>(type: "INTEGER", nullable: true)
@@ -85,55 +130,35 @@ namespace LabSolos_Server_DotNet8.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Produtos",
+                name: "EmprestimoProdutos",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    NomeProduto = table.Column<string>(type: "TEXT", nullable: false),
-                    Fornecedor = table.Column<string>(type: "TEXT", nullable: true),
-                    Tipo = table.Column<int>(type: "INTEGER", nullable: false),
-                    Quantidade = table.Column<float>(type: "REAL", nullable: false),
-                    QuantidadeMinima = table.Column<float>(type: "REAL", nullable: false),
-                    DataFabricacao = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DataValidade = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LocalizacaoProduto = table.Column<string>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    UltimaModificacao = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LoteId = table.Column<int>(type: "INTEGER", nullable: true),
-                    EmprestimoId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Catmat = table.Column<string>(type: "TEXT", nullable: true),
-                    UnidadeMedida = table.Column<int>(type: "INTEGER", nullable: true),
-                    EstadoFisico = table.Column<int>(type: "INTEGER", nullable: true),
-                    Cor = table.Column<int>(type: "INTEGER", nullable: true),
-                    Odor = table.Column<int>(type: "INTEGER", nullable: true),
-                    Densidade = table.Column<float>(type: "REAL", nullable: true),
-                    PesoMolecular = table.Column<float>(type: "REAL", nullable: true),
-                    GrauPureza = table.Column<string>(type: "TEXT", nullable: true),
-                    FormulaQuimica = table.Column<string>(type: "TEXT", nullable: true),
-                    Grupo = table.Column<int>(type: "INTEGER", nullable: true),
-                    Material = table.Column<int>(type: "INTEGER", nullable: true),
-                    Formato = table.Column<int>(type: "INTEGER", nullable: true),
-                    Altura = table.Column<int>(type: "INTEGER", nullable: true),
-                    Capacidade = table.Column<float>(type: "REAL", nullable: true),
-                    Graduada = table.Column<bool>(type: "INTEGER", nullable: true)
+                    EmprestimoId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProdutoId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Quantidade = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Produtos", x => x.Id);
+                    table.PrimaryKey("PK_EmprestimoProdutos", x => new { x.EmprestimoId, x.ProdutoId });
                     table.ForeignKey(
-                        name: "FK_Produtos_Emprestimos_EmprestimoId",
+                        name: "FK_EmprestimoProdutos_Emprestimos_EmprestimoId",
                         column: x => x.EmprestimoId,
                         principalTable: "Emprestimos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Produtos_Lotes_LoteId",
-                        column: x => x.LoteId,
-                        principalTable: "Lotes",
+                        name: "FK_EmprestimoProdutos_Produtos_ProdutoId",
+                        column: x => x.ProdutoId,
+                        principalTable: "Produtos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmprestimoProdutos_ProdutoId",
+                table: "EmprestimoProdutos",
+                column: "ProdutoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Emprestimos_AprovadorId",
@@ -144,11 +169,6 @@ namespace LabSolos_Server_DotNet8.Migrations
                 name: "IX_Emprestimos_SolicitanteId",
                 table: "Emprestimos",
                 column: "SolicitanteId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Produtos_EmprestimoId",
-                table: "Produtos",
-                column: "EmprestimoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Produtos_LoteId",
@@ -165,16 +185,19 @@ namespace LabSolos_Server_DotNet8.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Produtos");
+                name: "EmprestimoProdutos");
 
             migrationBuilder.DropTable(
                 name: "Emprestimos");
 
             migrationBuilder.DropTable(
-                name: "Lotes");
+                name: "Produtos");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");
+
+            migrationBuilder.DropTable(
+                name: "Lotes");
         }
     }
 }

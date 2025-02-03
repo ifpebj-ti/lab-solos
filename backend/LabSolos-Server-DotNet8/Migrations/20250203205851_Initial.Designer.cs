@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LabSolos_Server_DotNet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250124001126_Initial")]
+    [Migration("20250203205851_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -29,7 +29,10 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<int?>("AprovadorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("DataDevolucao")
+                    b.Property<DateTime?>("DataAprovacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataDevolucao")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataRealizacao")
@@ -48,6 +51,27 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.HasIndex("SolicitanteId");
 
                     b.ToTable("Emprestimos");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmprestimoProduto", b =>
+                {
+                    b.Property<int>("EmprestimoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("EmprestimoId", "ProdutoId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.ToTable("EmprestimoProdutos");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Lote", b =>
@@ -80,9 +104,6 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<DateTime?>("DataValidade")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("EmprestimoId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Fornecedor")
                         .HasColumnType("TEXT");
 
@@ -113,8 +134,6 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmprestimoId");
 
                     b.HasIndex("LoteId");
 
@@ -273,39 +292,58 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Navigation("Solicitante");
                 });
 
-            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmprestimoProduto", b =>
                 {
                     b.HasOne("LabSolos_Server_DotNet8.Models.Emprestimo", "Emprestimo")
-                        .WithMany("Produtos")
+                        .WithMany("EmprestimoProdutos")
                         .HasForeignKey("EmprestimoId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Produto", "Produto")
+                        .WithMany("EmprestimoProdutos")
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Emprestimo");
+
+                    b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>
+                {
                     b.HasOne("LabSolos_Server_DotNet8.Models.Lote", "Lote")
                         .WithMany("Produtos")
                         .HasForeignKey("LoteId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Emprestimo");
 
                     b.Navigation("Lote");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
                 {
-                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", null)
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Responsavel")
                         .WithMany("Dependentes")
                         .HasForeignKey("ResponsavelId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Responsavel");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>
                 {
-                    b.Navigation("Produtos");
+                    b.Navigation("EmprestimoProdutos");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Lote", b =>
                 {
                     b.Navigation("Produtos");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>
+                {
+                    b.Navigation("EmprestimoProdutos");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>

@@ -2,7 +2,6 @@ using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabSolos_Server_DotNet8.Controllers

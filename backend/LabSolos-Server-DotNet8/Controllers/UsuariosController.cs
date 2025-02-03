@@ -1,3 +1,4 @@
+using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -119,6 +120,44 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(dependentesDto);
         }
 
+        [HttpGet("{usuarioId}/dependentes/aprovacao")]
+        public async Task<IActionResult> GetDependentesParaAprovacao(int usuarioId)
+        {
+            // Buscar o usuário principal para garantir que ele existe
+            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            // Buscar os dependentes desse usuário que ainda estão pendentes de aprovação
+            var dependentesPendentes = usuario.Dependentes?
+                .Where(dependente => dependente.Status == StatusUsuario.Pendente)
+                .ToList();
+
+            if (dependentesPendentes is null || dependentesPendentes.Count == 0)
+            {
+                return NotFound("Nenhum dependente aguarda aprovação.");
+            }
+
+            // Mapear para DTO
+            var dependentesDto = dependentesPendentes.Select(dependente => new DependenteDTO
+            {
+                Id = dependente.Id,
+                Email = dependente.Email,
+                NomeCompleto = dependente.NomeCompleto,
+                NivelUsuario = dependente.NivelUsuario.ToString(),
+                Cidade = (dependente as Academico)?.Cidade ?? null,
+                Curso = (dependente as Academico)?.Curso ?? null,
+                Instituicao = (dependente as Academico)?.Instituicao ?? null,
+                Telefone = dependente.Telefone,
+                Status = dependente.Status.ToString(),
+                DataIngresso = dependente.DataIngresso,
+            });
+
+            return Ok(dependentesDto);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add(AddUsuarioDTO usuarioDto)
         {
@@ -196,6 +235,38 @@ namespace LabSolos_Server_DotNet8.Controllers
             await _usuarioService.UpdateAsync(usuario);
             return NoContent();
         }
+
+        [HttpPatch("dependentes/{dependenteId}/aprovar")]
+        public async Task<IActionResult> AprovarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
+        {
+            // Buscar o usuário dependente pelo ID
+            var dependente = await _usuarioService.GetByIdAsync(dependenteId);
+            if (dependente == null)
+            {
+                return NotFound("Usuário dependente não encontrado.");
+            }
+
+            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
+            if (dependente.ResponsavelId != aprovadorDto.AprovadorId)
+            {
+                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+            }
+
+            // Verificar se o usuário já foi aprovado
+            if (dependente.Status != StatusUsuario.Pendente)
+            {
+                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+            }
+
+            // Atualizar o status do usuário para aprovado
+            dependente.Status = StatusUsuario.Habilitado;
+
+            // Salvar a mudança no banco de dados
+            await _usuarioService.UpdateAsync(dependente);
+
+            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
