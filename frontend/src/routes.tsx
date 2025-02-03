@@ -15,17 +15,15 @@ import Verification from './pages/Verification';
 import RegisteredUsers from './pages/RegisteredUsers';
 import RegistrationRequest from './pages/RegistrationRequests';
 import ViewClass from './pages/ViewClass';
-import MentoringHistory from './pages/history/MentoringHistory';
+import MentoringHistory from './pages/mentor/MentoringHistory';
 // essa rota vai ser só pra admim
 // import ClassHistory from './pages/history/ClassHistory';
 import PrivateRoute from './components/base/PrivateRoutes';
 import Page404 from './pages/Page404';
-import LoanCreation from './pages/loan/LoanCreation';
-import LoanReview from './pages/loan/LoanReview';
+import LoanCreation from './pages/mentor/LoanCreation';
+import LoanReview from './pages/mentor/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
 import LoanHistories from './pages/loan/LoanHistories';
-import MyClass from './pages/MyClass';
-
 // rotas admin
 import HomeAdmin from './pages/admin/Home';
 
@@ -35,6 +33,10 @@ import ProfileMentee from './pages/mentee/Profile';
 import HistoryMentoring from './pages/mentee/HistoryMentoring';
 import LoanHistoryMentee from './pages/mentee/LoanHistory';
 import VerificationMentee from './pages/mentee/Verification';
+import BaseMentor from './pages/BaseMentor';
+import ProfileMentor from './pages/mentor/Profile';
+import MyClass from './pages/mentor/MyClass';
+import HistoryClass from './pages/mentor/HistoryClass';
 
 function AppRoutes() {
   return (
@@ -47,6 +49,7 @@ function AppRoutes() {
           <Route path='/search/material' element={<SearchMaterial />}></Route>
           <Route path='/verification' element={<Verification />}></Route>
           <Route path='/viewClass' element={<ViewClass />}></Route>
+          {/* admin acima */}
 
           {/* telas de histórico */}
           <Route path='/history/class' element={<LoanHistories />}></Route>
@@ -84,6 +87,21 @@ function AppRoutes() {
         <Route path='/admin' element={<BaseAdmin />}>
           <Route index element={<HomeAdmin />} />
           <Route path='profile' element={<Profile />} />
+          {/* Adicione mais rotas específicas para admin aqui */}
+        </Route>
+
+        <Route path='/mentor' element={<BaseMentor />}>
+          <Route index element={<Home />} />
+          <Route path='profile' element={<ProfileMentor />} />
+          <Route path='my-class' element={<MyClass />} />
+          <Route path='verification' element={<VerificationMentee />} />
+          {/* falta fazer o proprio de mentor */}
+          <Route path='history/class' element={<HistoryClass />} />
+          <Route path='loan/creation' element={<LoanCreation />} />
+          <Route path='loan/review' element={<LoanReview />} />
+          <Route path='users-request' element={<RegistrationRequest />} />
+          <Route path='search-material' element={<SearchMaterial />} />
+          <Route path='history/mentee' element={<LoanCreation />} />
           {/* Adicione mais rotas específicas para admin aqui */}
         </Route>
 

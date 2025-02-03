@@ -62,6 +62,44 @@ const routesMentee = [
   },
 ];
 
+const routesMentor = [
+  {
+    value: 'Home',
+    label: 'Home',
+    route: '/mentor/', // Adicionando a rota desejada
+  },
+  {
+    value: 'Histórico da Turma',
+    label: 'Histórico da Turma',
+    route: '/mentor/history/class',
+  },
+  {
+    value: 'Criar Empréstimo',
+    label: 'Criar Empréstimo',
+    route: '/mentor/loan/creation',
+  },
+  {
+    value: 'Requisições de Usuários',
+    label: 'Requisições de Usuários',
+    route: '/mentor/users-request',
+  },
+  {
+    value: 'Pesquisar Material',
+    label: 'Pesquisar Material',
+    route: '/mentor/search-material',
+  },
+  {
+    value: 'Minha Turma',
+    label: 'Minha Turma',
+    route: '/mentor/my-class',
+  },
+  {
+    value: 'Perfil',
+    label: 'Perfil',
+    route: '/mentor/profile',
+  },
+];
+
 function OpenSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -105,15 +143,37 @@ function OpenSearch() {
         <AlertDialogHeader>
           <AlertDialogDescription>
             <Command className='border border-borderMy'>
-              <CommandInput placeholder='Search framework...' />
+              <CommandInput placeholder='Pesquisar link' />
               <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
                 Links
               </p>
               <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandEmpty>Link não encontrado.</CommandEmpty>
                 <CommandGroup>
                   {String(rankID) === '1' &&
                     routesAdmin.map((framework) => (
+                      <CommandItem
+                        key={framework.value}
+                        value={framework.value}
+                        onSelect={() => {
+                          navigate(framework.route);
+                        }}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === framework.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {framework.label}
+                      </CommandItem>
+                    ))}
+                  {String(rankID) === '2' &&
+                    routesMentor.map((framework) => (
                       <CommandItem
                         key={framework.value}
                         value={framework.value}
