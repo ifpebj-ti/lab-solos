@@ -26,6 +26,9 @@ namespace LabSolos_Server_DotNet8.Migrations
                     b.Property<int?>("AprovadorId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("DataAprovacao")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("DataDevolucao")
                         .HasColumnType("TEXT");
 
@@ -289,10 +292,12 @@ namespace LabSolos_Server_DotNet8.Migrations
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
                 {
-                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", null)
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Responsavel")
                         .WithMany("Dependentes")
                         .HasForeignKey("ResponsavelId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Responsavel");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>

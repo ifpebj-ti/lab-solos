@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LabSolos_Server_DotNet8.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250124001126_Initial")]
+    [Migration("20250130000632_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -28,6 +28,9 @@ namespace LabSolos_Server_DotNet8.Migrations
 
                     b.Property<int?>("AprovadorId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DataAprovacao")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataDevolucao")
                         .HasColumnType("TEXT");
@@ -292,10 +295,12 @@ namespace LabSolos_Server_DotNet8.Migrations
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
                 {
-                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", null)
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Responsavel")
                         .WithMany("Dependentes")
                         .HasForeignKey("ResponsavelId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Responsavel");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>

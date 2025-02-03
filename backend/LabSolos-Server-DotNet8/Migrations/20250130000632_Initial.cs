@@ -63,6 +63,7 @@ namespace LabSolos_Server_DotNet8.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     DataRealizacao = table.Column<DateTime>(type: "TEXT", nullable: false),
                     DataDevolucao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataAprovacao = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     SolicitanteId = table.Column<int>(type: "INTEGER", nullable: false),
                     AprovadorId = table.Column<int>(type: "INTEGER", nullable: true)

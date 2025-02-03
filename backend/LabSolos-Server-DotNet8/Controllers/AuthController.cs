@@ -20,7 +20,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Credenciais inválidas.");
             }
 
-            var token = _jwtService.GenerateToken(usuario.Id.ToString(), usuario.Email);
+            var token = _jwtService.GenerateToken(usuario.Id.ToString(), usuario.Email, usuario.NivelUsuario.ToString());
             return Ok(new { Token = token });
         }
     }
