@@ -32,6 +32,7 @@ interface ICreateUserData {
 interface JwtPayload {
   sub: string; // ID ou nível do usuário
   role?: string; // Caso tenha uma role específica
+  nivel: string;
 }
 
 export const authenticate = async (
@@ -53,21 +54,26 @@ export const authenticate = async (
       });
 
       const decoded = jwtDecode<JwtPayload>(doorKey);
-      if (decoded.sub) {
+      if (decoded.sub && decoded.nivel) {
         Cookie.set('rankID', decoded.sub, {
           secure: true,
           sameSite: 'Strict',
         });
 
+        Cookie.set('level', decoded.nivel, {
+          secure: true,
+          sameSite: 'Strict',
+        });
+
         // Redirecionamento com base no nível do usuário
-        switch (decoded.sub) {
-          case '1':
+        switch (decoded.nivel) {
+          case 'Administrador':
             navigate('/admin/');
             break;
-          case '2':
+          case 'Mentor':
             navigate('/mentor/');
             break;
-          case '3':
+          case 'Mentorado':
             navigate('/mentee/');
             break;
           default:

@@ -31,6 +31,7 @@ function Login() {
   useEffect(() => {
     Cookie.remove('rankID');
     Cookie.remove('doorKey');
+    Cookie.remove('level');
   }, []);
   async function postLogin(data: LoginFormData) {
     setLoading(true);

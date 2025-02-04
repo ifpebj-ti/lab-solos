@@ -1,6 +1,7 @@
 import {
   AlertDialog,
   AlertDialogContent,
+  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTrigger,
@@ -146,6 +147,7 @@ function OpenSearch() {
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogTitle className='text-transparent'>.</AlertDialogTitle>
       <AlertDialogTrigger asChild>
         <button
           onClick={() => setIsOpen(true)}
@@ -165,7 +167,7 @@ function OpenSearch() {
               <CommandList>
                 <CommandEmpty>Link não encontrado.</CommandEmpty>
                 <CommandGroup>
-                  {String(rankID) === '1' &&
+                  {String(rankID) === 'Administrador' &&
                     routesAdmin.map((framework) => (
                       <CommandItem
                         key={framework.value}
@@ -187,7 +189,7 @@ function OpenSearch() {
                         {framework.label}
                       </CommandItem>
                     ))}
-                  {String(rankID) === '2' &&
+                  {String(rankID) === 'Mentor' &&
                     routesMentor.map((framework) => (
                       <CommandItem
                         key={framework.value}
@@ -209,7 +211,7 @@ function OpenSearch() {
                         {framework.label}
                       </CommandItem>
                     ))}
-                  {String(rankID) === '3' &&
+                  {String(rankID) === 'Mentorado' &&
                     routesMentee.map((framework) => (
                       <CommandItem
                         key={framework.value}

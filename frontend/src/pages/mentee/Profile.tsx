@@ -4,12 +4,10 @@ import { useEffect, useState } from 'react';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { Link } from 'react-router-dom';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
-import { useUser } from '@/components/context/UseUser';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -81,7 +79,6 @@ export interface IEmprestimo {
 }
 
 function ProfileMentee() {
-  const { rankID } = useUser();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<IUser>();
   const id = Cookie.get('rankID')!;
@@ -184,14 +181,6 @@ function ProfileMentee() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              {String(rankID) === '2' && (
-                <Link
-                  to={'/me/myclass'}
-                  className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'
-                >
-                  Minha Turma
-                </Link>
-              )}
               <OpenSearch />
             </div>
           </div>

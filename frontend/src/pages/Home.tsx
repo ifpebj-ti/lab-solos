@@ -1,18 +1,12 @@
 import Laboratory from '../../public/images/laboratory.png';
-import AlertIcon from '../../public/icons/AlertIcon';
-import JoinIcon from '../../public/icons/JoinIcon';
-import LoanIcon from '../../public/icons/LoanIcon';
 import Carousel from '../components/global/Carousel';
-import InfoCard from '../components/screens/InfoCard';
 import analysis from '../../public/images/analysis.png';
 import notebook from '../../public/images/notebook.png';
 import vidraria from '../../public/images/vidraria.png';
 import logo from '../../public/images/logo.png';
 import OpenSearch from '@/components/global/OpenSearch';
-import { useUser } from '@/components/context/UseUser';
 
 function Home() {
-  const { rankID } = useUser();
   const valor = ['721', '283', '43', '728', '815'];
   const informacoes = [
     'Solicitações de Empréstimo',
@@ -50,25 +44,6 @@ function Home() {
           ></img>
         </div>
       </div>
-      {String(rankID) === '1' && (
-        <div className='w-11/12 min-h-24 flex justify-between mt-7'>
-          <InfoCard
-            icon={<AlertIcon />}
-            text='Produtos com Alerta'
-            notify={false}
-          />
-          <InfoCard
-            icon={<JoinIcon />}
-            text='Solicitações de Cadastro'
-            notify={true}
-          />
-          <InfoCard
-            icon={<LoanIcon />}
-            text='Solicitações de Empréstimo'
-            notify={false}
-          />
-        </div>
-      )}
       <div className='w-11/12'>
         <Carousel
           valor={valor}
