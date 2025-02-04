@@ -4,12 +4,10 @@ import { useEffect, useState } from 'react';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { Link } from 'react-router-dom';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
-import { useUser } from '@/components/context/UseUser';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -81,7 +79,6 @@ export interface IEmprestimo {
 }
 
 function Profile() {
-  const { rankID } = useUser();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<IUser>();
   const id = Cookie.get('rankID')!;
@@ -105,17 +102,6 @@ function Profile() {
     };
     fetchGetUserById();
   }, [id]);
-
-  if (rankID === null) {
-    return (
-      <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-        <div className='animate-spin'>
-          <LoadingIcon />
-        </div>
-        Carregando informações do perfil...
-      </div>
-    );
-  }
   const infoItems = [
     {
       title: 'Nome',
@@ -151,25 +137,6 @@ function Profile() {
     { title: 'Curso', value: user?.curso ?? '', width: '100%' },
   ];
 
-  const infoItemsProf = [
-    {
-      title: 'Nome',
-      value: user?.responsavel?.nomeCompleto ?? '',
-      width: '30%',
-    },
-    {
-      title: 'Email',
-      value: user?.responsavel?.email ?? '',
-      width: '30%',
-    },
-    {
-      title: 'Telefone',
-      value: user?.responsavel?.telefone ?? '',
-      width: '20%',
-    },
-    { title: 'Status', value: user?.responsavel?.status ?? '', width: '20%' },
-  ];
-
   // Função para calcular o número total de itens utilizados
   const calcularItensEmprestados = (emprestimos: IEmprestimo[]): number => {
     return emprestimos.reduce((total, emprestimo) => {
@@ -195,14 +162,6 @@ function Profile() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              {String(rankID) === '2' && (
-                <Link
-                  to={'/me/myclass'}
-                  className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'
-                >
-                  Minha Turma
-                </Link>
-              )}
               <OpenSearch />
             </div>
           </div>
@@ -227,11 +186,6 @@ function Profile() {
                 <InfoContainer items={infoItems4} />
                 <InfoContainer items={infoItems5} />
               </div>
-              {String(rankID) === '3' && (
-                <div className='w-full mt-5'>
-                  <InfoContainer items={infoItemsProf} />
-                </div>
-              )}
             </div>
           </div>
         </div>

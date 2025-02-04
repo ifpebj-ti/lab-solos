@@ -3,12 +3,10 @@ import { Navigate, useLocation } from 'react-router-dom';
 import Cookie from 'js-cookie';
 
 // Função para verificar se o usuário está autenticado
-const isAuthenticated = (): boolean => {
-  return !!Cookie.get('doorKey');
-};
+const isAuthenticated = (): boolean => !!Cookie.get('doorKey');
 
 // Tipo para ranks aceitos
-type RankType = string | number; // Ajuste conforme o formato de rank usado
+type RankType = string | number;
 type RequiredRank = RankType[];
 
 // Propriedades esperadas pelo componente PrivateRoute
@@ -19,20 +17,9 @@ interface PrivateRouteProps {
 
 // Função para verificar se o usuário possui o rank necessário
 const hasRequiredRank = (requiredRank: RequiredRank): boolean => {
-  const rankID = Cookie.get('rankID');
+  const rankID = Cookie.get('level');
   if (!rankID) return false;
-
-  try {
-    const parsedRank = JSON.parse(rankID); // Assume que rankID é um JSON armazenado
-    if (Array.isArray(parsedRank)) {
-      return requiredRank.some((rank) => parsedRank.includes(rank));
-    } else {
-      return requiredRank.includes(parsedRank);
-    }
-  } catch (e) {
-    console.error('Invalid JSON:', e);
-    return false;
-  }
+  return requiredRank.includes(rankID); // Remove JSON.parse
 };
 
 // Componente PrivateRoute

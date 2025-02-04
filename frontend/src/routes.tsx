@@ -41,59 +41,59 @@ function AppRoutes() {
           <Route
             index
             element={
-              <PrivateRoute element={<HomeAdmin />} requiredRank={[1]} />
+              <PrivateRoute element={<HomeAdmin />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='profile'
-            element={<PrivateRoute element={<Profile />} requiredRank={[1]} />}
+            element={<PrivateRoute element={<Profile />} requiredRank={['Administrador']} />}
           />
           <Route
             path='insert'
-            element={<PrivateRoute element={<Register />} requiredRank={[1]} />}
+            element={<PrivateRoute element={<Register />} requiredRank={['Administrador']} />}
           />
           <Route
             path='follow-up'
-            element={<PrivateRoute element={<FollowUp />} requiredRank={[1]} />}
+            element={<PrivateRoute element={<FollowUp />} requiredRank={['Administrador']} />}
           />
           <Route
             path='users'
             element={
-              <PrivateRoute element={<RegisteredUsers />} requiredRank={[1]} />
+              <PrivateRoute element={<RegisteredUsers />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='search-material'
             element={
-              <PrivateRoute element={<SearchMaterial />} requiredRank={[1]} />
+              <PrivateRoute element={<SearchMaterial />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='view-class'
             element={
-              <PrivateRoute element={<ViewClass />} requiredRank={[1]} />
+              <PrivateRoute element={<ViewClass />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='verification'
             element={
-              <PrivateRoute element={<Verification />} requiredRank={[1]} />
+              <PrivateRoute element={<Verification />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='history/mentoring'
             element={
-              <PrivateRoute element={<MentoringHistory />} requiredRank={[1]} />
+              <PrivateRoute element={<MentoringHistory />} requiredRank={['Administrador']} />
             }
           />
           <Route
             path='insert/launch'
-            element={<PrivateRoute element={<Launch />} requiredRank={[1]} />}
+            element={<PrivateRoute element={<Launch />} requiredRank={['Administrador']} />}
           />
           <Route
             path='history/loan'
             element={
-              <PrivateRoute element={<LoanHistory />} requiredRank={[1]} />
+              <PrivateRoute element={<LoanHistory />} requiredRank={['Administrador']} />
             }
           />
           <Route
@@ -101,7 +101,7 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<RegistrationRequest />}
-                requiredRank={[1]}
+                requiredRank={['Administrador']}
               />
             }
           />
@@ -111,43 +111,43 @@ function AppRoutes() {
         <Route path='/mentor' element={<BaseMentor />}>
           <Route
             index
-            element={<PrivateRoute element={<Home />} requiredRank={[2]} />}
+            element={<PrivateRoute element={<Home />} requiredRank={['Mentor']} />}
           />
           <Route
             path='profile'
             element={
-              <PrivateRoute element={<ProfileMentor />} requiredRank={[2]} />
+              <PrivateRoute element={<ProfileMentor />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='my-class'
-            element={<PrivateRoute element={<MyClass />} requiredRank={[2]} />}
+            element={<PrivateRoute element={<MyClass />} requiredRank={['Mentor']} />}
           />
           <Route
             path='verification'
             element={
               <PrivateRoute
                 element={<VerificationMentee />}
-                requiredRank={[2]}
+                requiredRank={['Mentor']}
               />
             }
           />
           <Route
             path='history/class'
             element={
-              <PrivateRoute element={<HistoryClass />} requiredRank={[2]} />
+              <PrivateRoute element={<HistoryClass />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='loan/creation'
             element={
-              <PrivateRoute element={<LoanCreation />} requiredRank={[2]} />
+              <PrivateRoute element={<LoanCreation />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='loan/review'
             element={
-              <PrivateRoute element={<LoanReview />} requiredRank={[2]} />
+              <PrivateRoute element={<LoanReview />} requiredRank={['Mentor']} />
             }
           />
           <Route
@@ -155,38 +155,38 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<RegistrationRequest />}
-                requiredRank={[2]}
+                requiredRank={['Mentor']}
               />
             }
           />
           <Route
             path='search-material'
             element={
-              <PrivateRoute element={<SearchMaterial />} requiredRank={[2]} />
+              <PrivateRoute element={<SearchMaterial />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='history/mentee'
             element={
-              <PrivateRoute element={<LoanCreation />} requiredRank={[2]} />
+              <PrivateRoute element={<LoanCreation />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='history/mentoring'
             element={
-              <PrivateRoute element={<MentoringHistory />} requiredRank={[2]} />
+              <PrivateRoute element={<MentoringHistory />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='history/loan'
             element={
-              <PrivateRoute element={<LoanHistory />} requiredRank={[2]} />
+              <PrivateRoute element={<LoanHistory />} requiredRank={['Mentor']} />
             }
           />
           <Route
             path='loan/histories'
             element={
-              <PrivateRoute element={<LoanHistories />} requiredRank={[2]} />
+              <PrivateRoute element={<LoanHistories />} requiredRank={['Mentor']} />
             }
           />
         </Route>
@@ -195,24 +195,24 @@ function AppRoutes() {
         <Route path='/mentee' element={<BaseMentee />}>
           <Route
             index
-            element={<PrivateRoute element={<Home />} requiredRank={[3]} />}
+            element={<PrivateRoute element={<Home />} requiredRank={['Mentorado']} />}
           />
           <Route
             path='search-material'
             element={
-              <PrivateRoute element={<SearchMaterial />} requiredRank={[3]} />
+              <PrivateRoute element={<SearchMaterial />} requiredRank={['Mentorado']} />
             }
           />
           <Route
             path='profile'
             element={
-              <PrivateRoute element={<ProfileMentee />} requiredRank={[3]} />
+              <PrivateRoute element={<ProfileMentee />} requiredRank={['Mentorado']} />
             }
           />
           <Route
             path='history/mentoring'
             element={
-              <PrivateRoute element={<HistoryMentoring />} requiredRank={[3]} />
+              <PrivateRoute element={<HistoryMentoring />} requiredRank={['Mentorado']} />
             }
           />
           <Route
@@ -220,7 +220,7 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<LoanHistoryMentee />}
-                requiredRank={[3]}
+                requiredRank={['Mentorado']}
               />
             }
           />
@@ -229,7 +229,7 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<VerificationMentee />}
-                requiredRank={[3]}
+                requiredRank={['Mentorado']}
               />
             }
           />

@@ -14,11 +14,15 @@ export const UserProvider: React.FC<React.PropsWithChildren> = ({
   const [rankID, setRankID] = useState<number | null>(null);
 
   useEffect(() => {
-    const rawRankID = Cookie.get('rankID');
+    const rawRankID = Cookie.get('level');
 
     if (rawRankID) {
       try {
-        const parsedRankID = JSON.parse(rawRankID);
+        // Se for um número ou uma string simples, não tentar parsear
+        const parsedRankID = rawRankID.startsWith('{') || rawRankID.startsWith('[')
+          ? JSON.parse(rawRankID)
+          : rawRankID;
+
         setRankID(parsedRankID);
       } catch (error) {
         console.error('Erro ao parsear rankID:', error);
