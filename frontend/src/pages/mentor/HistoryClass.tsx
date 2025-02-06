@@ -125,11 +125,17 @@ function HistoryClass() {
     if (!loans || !Array.isArray(loans)) return 0;
 
     if (type === 'devolvido') {
-      return loans.filter(loan => loan.dataDevolucao !== null && loan.dataDevolucao !== undefined).length;
+      return loans.filter(
+        (loan) =>
+          loan.dataDevolucao !== null && loan.dataDevolucao !== undefined
+      ).length;
     }
 
     if (type === 'não devolvido') {
-      return loans.filter(loan => loan.dataDevolucao === null || loan.dataDevolucao === undefined).length;
+      return loans.filter(
+        (loan) =>
+          loan.dataDevolucao === null || loan.dataDevolucao === undefined
+      ).length;
     }
 
     return 0;

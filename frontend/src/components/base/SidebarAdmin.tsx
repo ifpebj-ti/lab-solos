@@ -3,7 +3,7 @@ import logo from './../../../public/images/logo.png';
 import HomeIcon from '../../../public/icons/sidebar/HomeIcon';
 import PlusIcon from '../../../public/icons/sidebar/PlusIcon';
 import FollowUpIcon from '../../../public/icons/sidebar/FollowUpIcon';
-import { UserCircle } from 'lucide-react';
+import { ShieldAlert, UserCircle } from 'lucide-react';
 import ProfileIcon from '../../../public/icons/sidebar/ProfileIcon';
 import SearchIcon from '../../../public/icons/SearchIcon';
 import {
@@ -38,6 +38,15 @@ function SidebarAdmin() {
         />
       ),
       label: 'Acompanhamento',
+    },
+    {
+      to: '/admin/all-loans',
+      icon: (
+        <ShieldAlert
+          stroke={currentPage === '/admin/all-loans' ? '#16A34A' : '#fff'}
+        />
+      ),
+      label: 'Alerta',
     },
     {
       to: '/admin/users',

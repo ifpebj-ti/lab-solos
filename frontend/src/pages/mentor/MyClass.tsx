@@ -38,7 +38,10 @@ function MyClass() {
       setIsLoading(true);
       try {
         const response = await getDependentes();
-        setDependentes(response);
+        const habilitados = response.filter(
+          (user: { status: string }) => user.status === 'Habilitado'
+        );
+        setDependentes(habilitados);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar dados de empréstimos:', error);
@@ -132,7 +135,7 @@ function MyClass() {
                       ]}
                       rowIndex={index}
                       columnWidths={columnsClass.map((column) => column.width)}
-                      destinationRoute='/history/mentoring' // Ajuste conforme necessário
+                      destinationRoute='/mentor/history/mentoring' // Ajuste conforme necessário
                       id={rowData.id}
                     />
                   ))
