@@ -1,12 +1,10 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import FollowUpCard from '@/components/screens/FollowUp';
-import UsersIcon from '../../public/icons/UsersIcon';
 import UserIcon from '../../public/icons/UserIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import SelectInput from '@/components/global/inputs/SelectInput';
-import { columnsButtons, dataButton } from '@/mocks/Unidades';
+import { columnsApproval } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -14,6 +12,7 @@ import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
 import { getDependentesForApproval } from '@/integration/Class';
+import { approveDependente } from '../integration/Class';
 
 interface IUsuario {
   id: number;
@@ -22,7 +21,7 @@ interface IUsuario {
   telefone: string;
   dataIngresso: string; // Pode ser convertido para Date se necessário
   status: string; // Se houver status fixos
-  nivelUsuario: 'Mentor' | 'Aluno' | 'Administrador'; // Ajuste conforme necessário
+  nivelUsuario: 'Mentor' | 'Mentorado' | 'Administrador'; // Ajuste conforme necessário
   cidade: string;
   curso: string;
   instituicao: string;
@@ -30,7 +29,6 @@ interface IUsuario {
 
 function RegistrationRequest() {
   const [isLoading, setIsLoading] = useState(false);
-  const [value, setValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const id = Cookie.get('rankID')!;
@@ -58,16 +56,27 @@ function RegistrationRequest() {
     };
     fetchGetLoansDependentes();
   }, [id]);
+  const handleApprove = async (solicitanteId: number) => {
+    try {
+      await approveDependente(solicitanteId);
+      alert('Aprovação realizada com sucesso!');
 
-  console.log(approval);
-
-  const options = [
-    { value: 'Mentor', label: 'Mentor' },
-    { value: 'Mentorado', label: 'Mentorado' },
-  ];
-
+      // Atualiza a lista após aprovação
+      const response = await getDependentesForApproval(id);
+      setApproval(response);
+    } catch (error) {
+      console.error('Erro ao aprovar dependente:', error);
+      alert('Erro ao aprovar dependente. Tente novamente.');
+    }
+  };
+  const filteredUsers = approval.filter((user) =>
+    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const sortedUsers = isAscending
+    ? [...filteredUsers]
+    : [...filteredUsers].reverse();
   // Cálculo das páginas
-  const currentData = dataButton.slice(
+  const currentData = sortedUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -92,11 +101,10 @@ function RegistrationRequest() {
             </div>
           </div>
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
-            <FollowUpCard title='Mentores' number='3' icon={<UserIcon />} />
             <FollowUpCard
-              title='Mentorandos'
-              number='54'
-              icon={<UsersIcon />}
+              title='Mentores'
+              number={approval.length}
+              icon={<UserIcon />}
             />
           </div>
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
@@ -115,36 +123,44 @@ function RegistrationRequest() {
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 -mt-4'>
-                  <SelectInput
-                    options={options}
-                    onValueChange={(value) => setValue(value)}
-                    value={value}
-                  />
-                </div>
               </div>
             </div>
-            <HeaderTable columns={columnsButtons} />
+            <HeaderTable columns={columnsApproval} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ItemTableButton
-                    key={index}
-                    data={[rowData.name, rowData.institution, rowData.code]}
-                    rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
-                    onClick1={() => console.log('bt1')}
-                    onClick2={() => console.log('bt2')}
-                    icon1={<SquareX width={20} height={20} stroke='#dd1313' />}
-                    icon2={
-                      <SquareCheck width={20} height={20} stroke='#16a34a' />
-                    }
-                  />
-                ))}
+                {currentData.length === 0 ? (
+                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
+                    Nenhum dado disponível para exibição.
+                  </div>
+                ) : (
+                  currentData.map((rowData, index) => (
+                    <ItemTableButton
+                      key={index}
+                      data={[
+                        rowData.nomeCompleto,
+                        rowData.email,
+                        rowData.instituicao,
+                        rowData.curso,
+                      ]}
+                      rowIndex={index}
+                      columnWidths={columnsApproval.map(
+                        (column) => column.width
+                      )}
+                      onClick1={() => console.log('bt1')}
+                      onClick2={() => handleApprove(rowData.id)}
+                      icon1={
+                        <SquareX width={20} height={20} stroke='#dd1313' />
+                      }
+                      icon2={
+                        <SquareCheck width={20} height={20} stroke='#16a34a' />
+                      }
+                    />
+                  ))
+                )}
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={dataButton.length}
+                totalItems={currentData.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}

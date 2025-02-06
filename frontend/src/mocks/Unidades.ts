@@ -156,6 +156,14 @@ export const columnsButtons = [
   { value: 'Curso', width: '20%' },
 ];
 
+export const columnsApproval = [
+  { value: 'Nome', width: '30%' },
+  { value: 'Email', width: '20%' },
+  { value: 'Instituição', width: '20%' },
+  { value: 'Curso', width: '20%' },
+  { value: 'Ação', width: '10%' },
+];
+
 export const columnsLoan = [
   { value: 'Código', width: '25%' },
   { value: 'Data de Uso', width: '25%' },
