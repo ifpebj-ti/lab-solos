@@ -9,7 +9,7 @@ function Page404() {
       <div className='w-full flex justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
         <p className=''>Página não encontrada</p>
         <Link
-          to={'/'}
+          to={'/login'}
           className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
         >
           <ArrowLeft className='mt-[2px]' />

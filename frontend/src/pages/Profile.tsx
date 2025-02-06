@@ -102,39 +102,40 @@ function Profile() {
     };
     fetchGetUserById();
   }, [id]);
+  console.log(loans)
   const infoItems = [
     {
       title: 'Nome',
-      value: user?.nomeCompleto ?? '',
+      value: user?.nomeCompleto ?? 'Não corresponde',
       width: '30%',
     },
     {
       title: 'Email',
-      value: user?.email ?? '',
+      value: user?.email ?? 'Não corresponde',
       width: '30%',
     },
-    { title: 'Instituição', value: user?.instituicao ?? '', width: '20%' },
-    { title: 'Status', value: user?.status ?? '', width: '20%' },
+    { title: 'Instituição', value: user?.instituicao ?? 'Não corresponde', width: '20%' },
+    { title: 'Status', value: user?.status ?? 'Não corresponde', width: '20%' },
   ];
   const infoItems2 = [
-    { title: 'Cidade', value: user?.cidade ?? '', width: '100%' },
+    { title: 'Telefone', value: user?.telefone ?? 'Não corresponde', width: '100%' },
   ];
   const infoItems3 = [
     {
       title: 'Telefone',
-      value: user?.telefone ?? '',
+      value: user?.telefone ?? 'Não corresponde',
       width: '100%',
     },
   ];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
-      value: formatDateTime(user?.dataIngresso) ?? '',
+      value: formatDateTime(user?.dataIngresso) ?? 'Não corresponde',
       width: '100%',
     },
   ];
   const infoItems5 = [
-    { title: 'Curso', value: user?.curso ?? '', width: '100%' },
+    { title: 'Curso', value: user?.curso ?? 'Não corresponde', width: '100%' },
   ];
 
   // Função para calcular o número total de itens utilizados

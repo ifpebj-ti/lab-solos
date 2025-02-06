@@ -1,7 +1,7 @@
 import OpenSearch from '@/components/global/OpenSearch';
-import LoadingIcon from '../../public/icons/LoadingIcon';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 import FollowUpCard from '@/components/screens/FollowUp';
-import UserIcon from '../../public/icons/UserIcon';
+import UserIcon from '../../../public/icons/UserIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import { columnsApproval } from '@/mocks/Unidades';
@@ -12,7 +12,7 @@ import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
 import { getDependentesForApproval } from '@/integration/Class';
-import { approveDependente } from '../integration/Class';
+import { approveDependente } from '../../integration/Class';
 
 interface IUsuario {
   id: number;
@@ -27,7 +27,7 @@ interface IUsuario {
   instituicao: string;
 }
 
-function RegistrationRequest() {
+function LoansRequest() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -94,7 +94,7 @@ function RegistrationRequest() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Solicitações de Cadastro
+              Solicitações de Empréstimos
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
@@ -102,7 +102,7 @@ function RegistrationRequest() {
           </div>
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
             <FollowUpCard
-              title='Mentores'
+              title='Empréstimos'
               number={approval.length}
               icon={<UserIcon />}
             />
@@ -173,4 +173,4 @@ function RegistrationRequest() {
   );
 }
 
-export default RegistrationRequest;
+export default LoansRequest;

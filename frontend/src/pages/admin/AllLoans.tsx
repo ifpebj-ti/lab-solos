@@ -1,9 +1,9 @@
 import OpenSearch from '@/components/global/OpenSearch';
-import LoadingIcon from '../../public/icons/LoadingIcon';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { Link } from 'react-router-dom';
 import FollowUpCard from '@/components/screens/FollowUp';
-import UsersIcon from '../../public/icons/UsersIcon';
-import UserIcon from '../../public/icons/UserIcon';
+import UsersIcon from '../../../public/icons/UsersIcon';
+import UserIcon from '../../../public/icons/UserIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
@@ -11,7 +11,7 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import { getRegisteredUsers } from '@/integration/Users';
-import { formatDate } from '../function/date';
+import { formatDate } from '../../function/date';
 import { ArrowLeft } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 interface RegisteredUser {
@@ -23,7 +23,7 @@ interface RegisteredUser {
   status: string;
 }
 
-function RegisteredUsers() {
+function AllLoans() {
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
@@ -119,14 +119,14 @@ function RegisteredUsers() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Usuários Cadastrados
+              Histórico de Empréstimos
             </h1>
             <div className='flex items-center justify-between gap-x-4'>
               <Link
-                to={'/admin/register-request'}
+                to={'/admin/loans-request'}
                 className='px-7 h-11 flex items-center justify-center font-inter-regular text-clt-2 rounded-md border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200'
               >
-                Solicitações de Cadastro
+                Solicitações de Empréstimos
               </Link>
               <OpenSearch />
             </div>
@@ -228,4 +228,4 @@ function RegisteredUsers() {
   );
 }
 
-export default RegisteredUsers;
+export default AllLoans;

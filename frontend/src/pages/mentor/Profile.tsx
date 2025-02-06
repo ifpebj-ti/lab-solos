@@ -104,6 +104,9 @@ function ProfileMentor() {
     fetchGetUserById();
   }, [id]);
 
+  console.log(loans)
+
+
   const infoItems = [
     {
       title: 'Nome',
