@@ -31,6 +31,7 @@ import ProfileMentor from './pages/mentor/Profile';
 import MyClass from './pages/mentor/MyClass';
 import HistoryClass from './pages/mentor/HistoryClass';
 import PrivateRoute from './components/base/PrivateRoutes';
+import ViewClassMentor from './pages/ViewClassMentor';
 
 function AppRoutes() {
   return (
@@ -75,6 +76,12 @@ function AppRoutes() {
             }
           />
           <Route
+            path='view-class-mentor'
+            element={
+              <PrivateRoute element={<ViewClassMentor />} requiredRank={['Administrador']} />
+            }
+          />
+          <Route
             path='verification'
             element={
               <PrivateRoute element={<Verification />} requiredRank={['Administrador']} />
@@ -97,7 +104,7 @@ function AppRoutes() {
             }
           />
           <Route
-            path='registered-mentors'
+            path='register-request'
             element={
               <PrivateRoute
                 element={<RegistrationRequest />}

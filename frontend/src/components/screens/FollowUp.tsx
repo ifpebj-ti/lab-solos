@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 type FollowUpCardProps = {
   title: string;
-  number: string;
+  number: string | number;
   icon: ReactNode;
 };
 

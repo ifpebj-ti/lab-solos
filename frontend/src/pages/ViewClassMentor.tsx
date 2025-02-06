@@ -7,7 +7,7 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
 import { formatDateTime } from '@/function/date';
@@ -64,7 +64,7 @@ export interface IUser {
 }
 
 // aqui virá a listagem dos integrantes da turma
-function ViewClass() {
+function ViewClassMentor() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -91,6 +91,7 @@ function ViewClass() {
           console.error('Erro ao buscar dados de empréstimos:', error);
         }
         setDependentes([]);
+        setUser(undefined);
       } finally {
         setIsLoading(false);
       }
@@ -160,6 +161,12 @@ function ViewClass() {
               Visualização de Turmas
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
+              <Link
+                to={'/history/class'}
+                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
+              >
+                Empréstimos da Turma
+              </Link>
               <OpenSearch />
             </div>
           </div>
@@ -197,21 +204,25 @@ function ViewClass() {
             <HeaderTable columns={columnsButtons} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ClickableItemTable
-                    key={index}
-                    data={[
-                      rowData.nomeCompleto,
-                      rowData.email,
-                      rowData.instituicao,
-                      rowData.curso,
-                    ]}
-                    rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
-                    id={rowData.id}
-                    destinationRoute='/admin/view-class-mentor'
-                  />
-                ))}
+                {currentData.length > 0 ? (
+                  currentData.map((rowData, index) => (
+                    <ClickableItemTable
+                      key={index}
+                      data={[
+                        rowData.nomeCompleto,
+                        rowData.email,
+                        rowData.instituicao,
+                        rowData.curso,
+                      ]}
+                      rowIndex={index}
+                      columnWidths={columnsButtons.map((column) => column.width)}
+                      id={rowData.id}
+                      destinationRoute='/admin/history/mentoring'
+                    />
+                  ))
+                ) : (
+                  <div className="text-clt-2 text-center mt-4 font-inter-medium">Nenhum dependente encontrado.</div>
+                )}
               </div>
               {/* Componente de Paginação */}
               <Pagination
@@ -224,10 +235,10 @@ function ViewClass() {
           </div>
         </div>
       ) : (
-        <div>Error</div>
+        <div>oq botar aqui?</div>
       )}
     </>
   );
 }
 
-export default ViewClass;
+export default ViewClassMentor;

@@ -150,9 +150,10 @@ export const columnsVer = [
 ];
 
 export const columnsButtons = [
-  { value: 'Utilizador', width: '45%' },
-  { value: 'Identificador', width: '40%' },
-  { value: 'Lote', width: '15%' },
+  { value: 'Nome', width: '30%' },
+  { value: 'Email', width: '30%' },
+  { value: 'Instituição', width: '20%' },
+  { value: 'Curso', width: '20%' },
 ];
 
 export const columnsLoan = [

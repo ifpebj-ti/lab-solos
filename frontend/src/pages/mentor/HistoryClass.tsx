@@ -88,6 +88,7 @@ function HistoryClass() {
     fetchGetLoansDependentes();
   }, []);
 
+  console.log(loans);
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
@@ -120,10 +121,19 @@ function HistoryClass() {
   );
 
   // Contagem de empréstimos por status
-  const getLoanCountText = (status: string) => {
-    return loans.filter((loan) => loan.status === status).length.toString();
-  };
+  const getLoanCountText = (type: string) => {
+    if (!loans || !Array.isArray(loans)) return 0;
 
+    if (type === 'devolvido') {
+      return loans.filter(loan => loan.dataDevolucao !== null && loan.dataDevolucao !== undefined).length;
+    }
+
+    if (type === 'não devolvido') {
+      return loans.filter(loan => loan.dataDevolucao === null || loan.dataDevolucao === undefined).length;
+    }
+
+    return 0;
+  };
   const options = [
     { value: 'todos', label: 'Todos' },
     { value: 'devolvido', label: 'Devolvido' },
@@ -197,11 +207,11 @@ function HistoryClass() {
                     <ItemTable
                       key={index}
                       data={[
-                        String(loan.id),
-                        String(loan.solicitante.nomeCompleto),
-                        formatDateTime(loan.dataRealizacao),
-                        String(loan.produtos.length),
-                        loan.status,
+                        String(loan?.id),
+                        String(loan.solicitante?.nomeCompleto),
+                        formatDateTime(loan?.dataRealizacao),
+                        String(loan.produtos?.length),
+                        loan?.status,
                       ]}
                       rowIndex={index}
                       columnWidths={columnsHistories.map(

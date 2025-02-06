@@ -69,7 +69,6 @@ function LoanHistoryMentee() {
   const [loan, setLoan] = useState<IEmprestimo>();
   const location = useLocation();
   const id = location.state?.id;
-  console.log(id);
 
   useEffect(() => {
     const fetchGetLoan = async () => {

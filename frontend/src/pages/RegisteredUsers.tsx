@@ -11,15 +11,16 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import { getRegisteredUsers } from '@/integration/Users';
-import ItemTable from '@/components/global/table/Item';
 import { formatDate } from '../function/date';
 import { ArrowLeft } from 'lucide-react';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface RegisteredUser {
   nivelUsuario: string;
   dataIngresso: string;
   nomeCompleto: string;
   tipoUsuario: string;
+  id: string | number;
   status: string;
 }
 
@@ -49,6 +50,8 @@ function RegisteredUsers() {
     fetchRegisteredUsers();
   }, []);
 
+  console.log(registeredUsers);
+
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },
     { value: 'Nome', width: '45%' },
@@ -58,10 +61,10 @@ function RegisteredUsers() {
 
   const options = [
     { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
-    { value: '0', label: 'Administradores' },
-    { value: '1', label: 'Mentores' },
-    { value: '2', label: 'Mentorandos' },
-    { value: '3', label: 'Outro Tipo' },
+    { value: 'Administrador', label: 'Administradores' },
+    { value: 'Mentor', label: 'Mentores' },
+    { value: 'Mentorado', label: 'Mentorandos' },
+    { value: 'Outro', label: 'Outro Tipo' },
   ];
 
   const filteredUsers = registeredUsers.filter(
@@ -88,6 +91,19 @@ function RegisteredUsers() {
     return `${count}`;
   };
 
+  const getDestinationRoute = (userType: string) => {
+    switch (userType) {
+      case 'Administrador':
+        return '/admin/view-class';
+      case 'Mentor':
+        return '/admin/view-class-mentor';
+      case 'Mentorado':
+        return '/admin/history/mentoring';
+      default:
+        return '/admin/view-class'; // Rota padrão caso o tipo de usuário não seja reconhecido
+    }
+  };
+
   return (
     <>
       {isLoading ? (
@@ -103,9 +119,9 @@ function RegisteredUsers() {
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Usuários Cadastrados
             </h1>
-            <div className='flex items-center justify-between gap-x-6'>
+            <div className='flex items-center justify-between gap-x-4'>
               <Link
-                to={'/admin/registered-mentors'}
+                to={'/admin/register-request'}
                 className='px-7 h-11 flex items-center justify-center font-inter-regular text-clt-2 rounded-md border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200'
               >
                 Solicitações de Cadastro
@@ -116,17 +132,17 @@ function RegisteredUsers() {
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
             <FollowUpCard
               title='Administradores'
-              number={getUserCountText('0')}
+              number={getUserCountText('Administrador')}
               icon={<UserIcon />}
             />
             <FollowUpCard
               title='Mentores'
-              number={getUserCountText('1')}
+              number={getUserCountText('Mentor')}
               icon={<UserIcon />}
             />
             <FollowUpCard
               title='Mentorandos'
-              number={getUserCountText('2')}
+              number={getUserCountText('Mentorado')}
               icon={<UsersIcon />}
             />
           </div>
@@ -167,16 +183,20 @@ function RegisteredUsers() {
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
-                    <ItemTable
+                    <ClickableItemTable
                       key={index}
                       data={[
                         formatDate(rowData?.dataIngresso),
                         rowData?.nomeCompleto || 'Nome não disponível',
-                        rowData.nivelUsuario,
+                        rowData?.nivelUsuario,
                         rowData?.status || 'Status não disponível',
                       ]}
                       rowIndex={index}
                       columnWidths={headerTable.map((column) => column.width)}
+                      destinationRoute={getDestinationRoute(
+                        rowData?.nivelUsuario
+                      )}
+                      id={rowData.id}
                     />
                   ))
                 )}
