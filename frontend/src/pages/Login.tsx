@@ -105,14 +105,14 @@ function Login() {
               <div className='flex gap-x-1'>
                 <p>Não possui conta?</p>
                 <Link
-                  to={'/createAccount'}
+                  to={'/create-account'}
                   className='text-blue-600 hover:text-blue-800'
                 >
                   Crie a sua agora. ↗
                 </Link>
               </div>
               <Link
-                to={'/forgotYourPassword'}
+                to={'/forgot-your-password'}
                 className='text-blue-600 hover:text-blue-800'
               >
                 Esqueceu sua senha? ↗
