@@ -1,44 +1,20 @@
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import InputPassword from '../components/global/inputs/Password';
 import InputText from '../components/global/inputs/Text';
-import UpDownIcon from '../../public/icons/UpDownIcon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import logo from '../../public/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Check } from 'lucide-react';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { createMentor } from '@/integration/Auth';
 import { toast } from '@/components/hooks/use-toast';
-
-const frameworks = [
-  { value: 'next.js', label: 'Next.js' },
-  { value: 'sveltekit', label: 'SvelteKit' },
-  { value: 'nuxt.js', label: 'Nuxt.js' },
-  { value: 'remix', label: 'Remix' },
-  { value: 'astro', label: 'Astro' },
-];
+import { AxiosError } from 'axios';
 
 const submitCreateAccountSchema = z
   .object({
@@ -64,13 +40,14 @@ const submitCreateAccountSchema = z
       ),
     instituicao: z.string().min(3, 'Digite uma instituição de ensino válida'),
     curso: z.string().min(6, 'Digite um curso válido'),
-    mentorResponsavel: z.string().optional(), // Campo opcional para verificação condicional
+    emailMentor: z.string().email('Digite um email válido').optional(),
   })
   .superRefine((data, ctx) => {
     const nomeParts = data.nome
       .trim()
       .split(' ')
       .filter((part) => part.length > 3);
+
     if (nomeParts.length < 2) {
       ctx.addIssue({
         code: 'custom',
@@ -78,6 +55,7 @@ const submitCreateAccountSchema = z
         message: 'Forneça pelo menos dois nomes com mais de 3 caracteres',
       });
     }
+
     if (data.senha !== data.repeat) {
       ctx.addIssue({
         code: 'custom',
@@ -85,11 +63,13 @@ const submitCreateAccountSchema = z
         message: 'As senhas não coincidem',
       });
     }
-    if (data.tipoUsuario === 'mentorado' && !data.mentorResponsavel) {
+
+    // Se for mentorado, emailMentor é obrigatório
+    if (data.tipoUsuario === 'mentorado' && !data.emailMentor) {
       ctx.addIssue({
         code: 'custom',
-        path: ['mentorResponsavel'],
-        message: 'Selecione o mentor responsável',
+        path: ['emailMentor'],
+        message: 'O email do mentor responsável é obrigatório',
       });
     }
   });
@@ -97,8 +77,6 @@ const submitCreateAccountSchema = z
 type CreateAccountFormData = z.infer<typeof submitCreateAccountSchema>;
 
 function CreateAccount() {
-  const [open, setOpen] = useState(false);
-  const [value2, setValue2] = useState('');
   const {
     register,
     handleSubmit,
@@ -113,33 +91,49 @@ function CreateAccount() {
   const tipoUsuario = watch('tipoUsuario');
 
   const postCreateAccount = async (data: CreateAccountFormData) => {
-    if (data.tipoUsuario === 'mentor') {
-      const mentorData = {
-        nomeCompleto: data.nome,
-        email: data.email,
-        senha: data.senha,
-        telefone: data.telefone,
-        nivelUsuario: 'Comum',
-        tipoUsuario: 'Mentor',
-        instituicao: data.instituicao,
-        cidade: 'Indefinido',
-        curso: data.curso,
-      };
-      try {
-        await createMentor(mentorData);
+    const payload = {
+      nomeCompleto: data.nome,
+      email: data.email,
+      senha: data.senha,
+      telefone: data.telefone,
+      nivelUsuario: data.tipoUsuario === 'mentorado' ? 'Mentorado' : 'Mentor',
+      tipoUsuario: 'Academico',
+      instituicao: data.instituicao,
+      cidade: 'Indefinido',
+      curso: data.curso,
+      responsavelEmail:
+        data.tipoUsuario === 'mentorado'
+          ? data.emailMentor || ''
+          : 'admin@exemplo.com',
+    };
+
+    try {
+      const response = await createMentor(payload);
+      if (response.status === 201) {
         toast({
           title: 'Cadastro submetido à aprovação!',
           description: 'Redirecionando para a página de login...',
         });
-        navigate('/login');
-      } catch (error) {
-        toast({
-          title: 'Erro durante ato de cadastro!',
-          description: 'Verifique seus dados e tente novamente',
-        });
-        if (process.env.NODE_ENV === 'development') {
-          console.error(error);
+      }
+      navigate('/login');
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          toast({
+            title: 'Erro durante cadastro',
+            description: 'Dados inválidos.',
+          });
+        } else {
+          toast({
+            title: 'Erro nos dados fornecidos',
+            description: 'Tente novamente com outras credenciais.',
+          });
         }
+      } else {
+        toast({
+          title: 'Erro durante cadastro',
+          description: 'Dados inválidos.',
+        });
       }
     }
   };
@@ -181,12 +175,6 @@ function CreateAccount() {
                   >
                     Mentorado
                   </SelectItem>
-                  <SelectItem
-                    className='hover:bg-cl-table-item font-inter-regular'
-                    value='comum'
-                  >
-                    Comum
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -222,94 +210,36 @@ function CreateAccount() {
                 error={errors.repeat?.message}
                 name='repeat'
               />
-              {(tipoUsuario === 'mentorado' || tipoUsuario === 'mentor') && (
-                <>
-                  <InputText
-                    label='Instituição'
-                    type='text'
-                    register={register}
-                    error={errors.instituicao?.message}
-                    name='instituicao'
-                  />
-                  <InputText
-                    label='Curso'
-                    type='text'
-                    register={register}
-                    error={errors.curso?.message}
-                    name='curso'
-                  />
-                  <InputText
-                    label='Telefone'
-                    type='text'
-                    register={register}
-                    error={errors.telefone?.message}
-                    name='telefone'
-                  />
-                </>
-              )}
+              <InputText
+                label='Instituição'
+                type='text'
+                register={register}
+                error={errors.instituicao?.message}
+                name='instituicao'
+              />
+              <InputText
+                label='Curso'
+                type='text'
+                register={register}
+                error={errors.curso?.message}
+                name='curso'
+              />
+              <InputText
+                label='Telefone'
+                type='text'
+                register={register}
+                error={errors.telefone?.message}
+                name='telefone'
+              />
               {/* Campo mentorResponsavel que aparece somente se tipoUsuario for 'mentorado' */}
               {tipoUsuario === 'mentorado' && (
-                <div className='flex flex-col gap-y-1'>
-                  <p className='font-inter-regular text-sm text-clt-2 mt-3'>
-                    Selecione o Mentor Responsável
-                  </p>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        role='combobox'
-                        aria-expanded={open}
-                        className={`w-full justify-between flex h-9 rounded-sm items-center px-3 border font-inter-regular text-sm text-clt-2 ${errors.mentorResponsavel ? 'border-danger hover:border-red-700' : 'border-borderMy hover:border-gray-400'}`}
-                      >
-                        {value2
-                          ? frameworks.find(
-                              (framework) => framework.value === value2
-                            )?.label
-                          : 'Clique e selecione...'}
-                        <UpDownIcon />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className='p-0'>
-                      <Command className='border border-borderMy bg-backgroundMy'>
-                        <CommandInput
-                          placeholder='Pesquisar'
-                          className='h-9 font-inter-regular'
-                        />
-                        <CommandList>
-                          <CommandEmpty>Nenhum Mentor encontrado</CommandEmpty>
-                          <CommandGroup>
-                            {frameworks.map((framework) => (
-                              <CommandItem
-                                className='font-inter-regular text-clt-2 hover:bg-slate-500'
-                                key={framework.value}
-                                value={framework.value}
-                                onSelect={(currentValue) => {
-                                  setValue2(
-                                    currentValue === value2 ? '' : currentValue
-                                  );
-                                  setOpen(false);
-                                  setValue(
-                                    'mentorResponsavel',
-                                    currentValue === value2 ? '' : currentValue
-                                  );
-                                }}
-                              >
-                                {framework.label}
-                                <Check
-                                  className={cn(
-                                    'ml-auto h-4 w-4',
-                                    value2 === framework.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0'
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <InputText
+                  label='Email do Mentor Responsável'
+                  type='email'
+                  register={register}
+                  error={errors.emailMentor?.message}
+                  name='emailMentor'
+                />
               )}
             </div>
             <button

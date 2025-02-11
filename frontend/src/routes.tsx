@@ -264,9 +264,9 @@ function AppRoutes() {
 
         {/* Rotas sem autenticação */}
         <Route path='/login' element={<Login />} />
-        <Route path='/forgotYourPassword' element={<ForgotPassword />} />
-        <Route path='/resetPassword' element={<ResetPassword />} />
-        <Route path='/createAccount' element={<CreateAccount />} />
+        <Route path='/forgot-your-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route path='/create-account' element={<CreateAccount />} />
         <Route path='*' element={<Page404 />} />
       </Routes>
     </BrowserRouter>

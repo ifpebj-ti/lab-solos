@@ -26,6 +26,7 @@ interface ICreateUserData {
   instituicao: string;
   cidade: string;
   curso: string;
+  responsavelEmail: string;
 }
 
 // Interface para decodificação do token
@@ -97,7 +98,7 @@ export const authenticate = async (
 export const createMentor = async (data: ICreateUserData) => {
   try {
     const response = await api.post('/Usuarios', data);
-    return response.data;
+    return response;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Erro ao criar mentor', error);

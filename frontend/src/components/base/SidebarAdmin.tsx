@@ -33,8 +33,9 @@ function SidebarAdmin() {
     {
       to: '/admin/follow-up',
       icon: (
-        <FollowUpIcon
-          fill={currentPage === '/admin/follow-up' ? '#16A34A' : '#fff'}
+        <ShieldAlert
+          width={25}
+          stroke={currentPage === '/admin/follow-up' ? '#16A34A' : '#fff'}
         />
       ),
       label: 'Acompanhamento',
@@ -42,11 +43,11 @@ function SidebarAdmin() {
     {
       to: '/admin/all-loans',
       icon: (
-        <ShieldAlert
-          stroke={currentPage === '/admin/all-loans' ? '#16A34A' : '#fff'}
+        <FollowUpIcon
+          fill={currentPage === '/admin/all-loans' ? '#16A34A' : '#fff'}
         />
       ),
-      label: 'Alerta',
+      label: 'Usuários',
     },
     {
       to: '/admin/users',

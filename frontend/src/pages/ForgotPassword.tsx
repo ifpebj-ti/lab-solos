@@ -22,7 +22,7 @@ function ForgotPassword() {
   const navigate = useNavigate();
 
   function postForgotPassword() {
-    navigate('/');
+    navigate('/login');
   }
 
   return (
