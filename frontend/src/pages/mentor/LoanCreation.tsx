@@ -7,7 +7,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import PopoverInput from '@/components/global/inputs/PopoverInput';
 import { unidades } from '@/mocks/Unidades';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getAllProducts } from '@/integration/Product';
+import InputText from '@/components/global/inputs/Text';
+interface Produto {
+  id: number;
+  nomeProduto: string;
+  tipoProduto: string;
+  fornecedor: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  localizacaoProduto: string;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  status: string;
+}
 
 const selectProductSchema = z.object({
   group: z.string().nonempty('Selecione uma unidade de medida'),
@@ -18,23 +32,50 @@ type SelectItemFormData = z.infer<typeof selectProductSchema>;
 
 // aqui virá as informções dos emprestimos da turma por completa
 function LoanCreation() {
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [group, setGroup] = useState('');
   const [item, setItem] = useState('');
   const [quantity, setQuantity] = useState('');
-  const notifyProp = true;
-
+  const [products, setProducts] = useState<Produto[]>([]);
   const {
+    register,
     handleSubmit,
     setValue,
     formState: { errors },
   } = useForm<SelectItemFormData>({
     resolver: zodResolver(selectProductSchema),
   });
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getAllProducts();
+        setProducts(response);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados de empréstimos:', error);
+        }
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAllProducts();
+  }, []);
   function onSubmit() {
     navigate('/');
   }
+
+  console.log(products);
+
+  const unidadesTypes = [
+    { value: 'Quimico', label: 'Químico' },
+    { value: 'Vidraria', label: 'Vidraria' },
+    { value: 'Outro', label: 'Outro' },
+  ];
+
   return (
     <>
       {isLoading ? (
@@ -59,13 +100,6 @@ function LoanCreation() {
               <p className='font-rajdhani-medium text-clt-2 text-xl'>Produto</p>
               <div className='relative'>
                 <ShoppingCart size={25} stroke='#474747' strokeWidth={1.75} />
-                {notifyProp && (
-                  <span className='absolute top-0 left-full transform -translate-x-2 -translate-y-1/2 w-4 h-4 bg-red-500 rounded-full'>
-                    <div className=' flex items-center justify-center font-inter-bold text-[9px] text-white text-center mt-[1px] ml-[1px]'>
-                      +9
-                    </div>
-                  </span>
-                )}
               </div>
             </div>
             <form
@@ -75,7 +109,7 @@ function LoanCreation() {
               <div className='flex items-center justify-between gap-x-5 w-full px-4'>
                 <PopoverInput
                   title='Grupo'
-                  unidades={unidades}
+                  unidades={unidadesTypes}
                   value={group}
                   onChange={(value) => {
                     setGroup(value);
@@ -85,7 +119,10 @@ function LoanCreation() {
                 />
                 <PopoverInput
                   title='Item'
-                  unidades={unidades}
+                  unidades={products.map((produto) => ({
+                    value: String(produto.id), // ID como value
+                    label: produto.nomeProduto, // Nome do produto como label
+                  }))}
                   value={item}
                   onChange={(value) => {
                     setItem(value);
@@ -95,14 +132,11 @@ function LoanCreation() {
                 />
               </div>
               <div className='flex items-center justify-between gap-x-5 w-full px-4 mb-5'>
-                <PopoverInput
-                  title='Quantidade'
-                  unidades={unidades}
-                  value={quantity}
-                  onChange={(value) => {
-                    setQuantity(value);
-                    setValue('quantity', value);
-                  }}
+                <InputText
+                  label={'Quantidade'}
+                  type={'number'}
+                  register={register}
+                  name={'quantity'}
                   error={errors.quantity?.message}
                 />
                 <button
@@ -121,13 +155,6 @@ function LoanCreation() {
               </p>
               <div className='relative'>
                 <Users size={25} stroke='#474747' strokeWidth={1.75} />
-                {notifyProp && (
-                  <span className='absolute top-0 left-full transform -translate-x-2 -translate-y-1/2 w-4 h-4 bg-red-500 rounded-full'>
-                    <div className=' flex items-center justify-center font-inter-bold text-[9px] text-white text-center mt-[1px] ml-[1px]'>
-                      +9
-                    </div>
-                  </span>
-                )}
               </div>
             </div>
             <form

@@ -34,6 +34,7 @@ import PrivateRoute from './components/base/PrivateRoutes';
 import ViewClassMentor from './pages/ViewClassMentor';
 import AllLoans from './pages/admin/AllLoans';
 import LoansRequest from './pages/admin/LoansRequest';
+import VerificationMentor from './pages/mentor/VerificationMentor';
 
 function AppRoutes() {
   return (
@@ -205,7 +206,7 @@ function AppRoutes() {
             path='verification'
             element={
               <PrivateRoute
-                element={<VerificationMentee />}
+                element={<VerificationMentor />}
                 requiredRank={['Mentor']}
               />
             }
