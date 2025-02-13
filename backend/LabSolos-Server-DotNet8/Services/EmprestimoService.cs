@@ -8,6 +8,7 @@ namespace LabSolos_Server_DotNet8.Services
     public interface IEmprestimoService
     {
         Task<Emprestimo?> GetByIdAsync(int id);
+        Task<IEnumerable<Emprestimo>> GetTodosEmprestimos();
         Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId);
@@ -34,6 +35,13 @@ namespace LabSolos_Server_DotNet8.Services
         public async Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId)
         {
             var emprestimos = await _emprestimoRepository.GetEmprestimosSolicitadosUsuario(userId);
+
+            return emprestimos;
+        }
+
+        public async Task<IEnumerable<Emprestimo>> GetTodosEmprestimos()
+        {
+            var emprestimos = await _emprestimoRepository.GetTodosEmprestimos();
 
             return emprestimos;
         }

@@ -44,6 +44,13 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(produtos);
         }
 
+        [HttpGet("emAlerta")]
+        public async Task<ActionResult<Produto>> GetProdutosEmAlerta()
+        {
+            var produtos = await _produtoService.GetProdutosEmAlerta();
+            return Ok(produtos);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Produto>> GetById(int id)
         {
@@ -89,7 +96,5 @@ namespace LabSolos_Server_DotNet8.Controllers
             await _produtoService.DeleteAsync(id);
             return NoContent();
         }
-
-
     }
 }

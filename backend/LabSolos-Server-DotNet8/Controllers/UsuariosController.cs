@@ -267,6 +267,36 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
         }
 
+        [HttpPatch("dependentes/{dependenteId}/rejeitar")]
+        public async Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
+        {
+            // Buscar o usuário dependente pelo ID
+            var dependente = await _usuarioService.GetByIdAsync(dependenteId);
+            if (dependente == null)
+            {
+                return NotFound("Usuário dependente não encontrado.");
+            }
+
+            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
+            if (dependente.ResponsavelId != aprovadorDto.AprovadorId)
+            {
+                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+            }
+
+            // Verificar se o usuário já foi aprovado
+            if (dependente.Status != StatusUsuario.Pendente)
+            {
+                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+            }
+
+            // Atualizar o status do usuário para rejeitado
+            dependente.Status = StatusUsuario.Desabilitado;
+
+            // Salvar a mudança no banco de dados
+            await _usuarioService.UpdateAsync(dependente);
+
+            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
+        }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

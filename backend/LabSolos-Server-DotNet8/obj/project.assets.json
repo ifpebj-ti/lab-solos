@@ -5032,19 +5032,19 @@
     ]
   },
   "packageFolders": {
-    "/home/bearer/.nuget/packages/": {}
+    "C:\\Users\\tomas.abdias\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
+      "projectUniqueName": "D:\\Treinamentos\\lab-solos\\backend\\LabSolos-Server-DotNet8\\LabSolos-Server-DotNet8.csproj",
       "projectName": "LabSolos-Server-DotNet8",
-      "projectPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj",
-      "packagesPath": "/home/bearer/.nuget/packages/",
-      "outputPath": "/home/bearer/Desktop/lab-solos/backend/LabSolos-Server-DotNet8/obj/",
+      "projectPath": "D:\\Treinamentos\\lab-solos\\backend\\LabSolos-Server-DotNet8\\LabSolos-Server-DotNet8.csproj",
+      "packagesPath": "C:\\Users\\tomas.abdias\\.nuget\\packages\\",
+      "outputPath": "D:\\Treinamentos\\lab-solos\\backend\\LabSolos-Server-DotNet8\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/bearer/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\tomas.abdias\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -5062,6 +5062,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -5126,7 +5131,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.112/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.405/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
