@@ -55,6 +55,19 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(emprestimo);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTodosEmprestimos(int emprestimoId)
+        {
+            var emprestimos = await _emprestimoService.GetTodosEmprestimos();
+
+            if (!emprestimos.Any())
+            {
+                return NotFound("Nenhum empréstimo encontrado");
+            }
+
+            return Ok(emprestimos);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddEmprestimo([FromBody] AddEmprestimoDTO emprestimoDto)
         {
@@ -139,5 +152,43 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(new { Message = "Empréstimo aprovado com sucesso.", Emprestimo = emprestimo });
         }
 
+        [HttpPatch("reprovar/{emprestimoId}")]
+        public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId, [FromBody] AprovarDTO aprovadorDto)
+        {
+            // Buscar o empréstimo pelo ID
+            var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
+            if (emprestimo == null)
+            {
+                return NotFound("Empréstimo não encontrado.");
+            }
+
+            // Verificar se o empréstimo já foi aprovado ou rejeitado
+            if (emprestimo.Status != StatusEmprestimo.Pendente)
+            {
+                return BadRequest("Este empréstimo já foi processado (aprovado ou rejeitado).");
+            }
+
+            // Buscar o solicitante do empréstimo
+            var solicitante = await _usuarioService.GetByIdAsync(emprestimo.SolicitanteId);
+            if (solicitante == null)
+            {
+                return NotFound("Solicitante do empréstimo não encontrado.");
+            }
+
+            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
+            if (solicitante.ResponsavelId != aprovadorDto.AprovadorId)
+            {
+                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+            }
+
+            // Atualizar o status do empréstimo para aprovado
+            emprestimo.Status = StatusEmprestimo.Rejeitado;
+
+            // Salvar as mudanças no banco de dados
+            await _emprestimoService.UpdateAsync(emprestimo);
+
+            // Retornar resposta de sucesso
+            return Ok(new { Message = "Empréstimo reprovado com sucesso.", Emprestimo = emprestimo });
+        }
     }
 }

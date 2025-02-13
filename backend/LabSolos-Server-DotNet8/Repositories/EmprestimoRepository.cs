@@ -8,6 +8,7 @@ namespace LabSolos_Server_DotNet8.Repositories
     public interface IEmprestimoRepository
     {
         Task<Emprestimo?> GetByIdAsync(int id);
+        Task<IEnumerable<Emprestimo>> GetTodosEmprestimos();
         Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId);
@@ -25,6 +26,14 @@ namespace LabSolos_Server_DotNet8.Repositories
                 .Include(e => e.Solicitante)
                 .Include(e => e.Aprovador)
                 .FirstOrDefaultAsync(e => e.Id == id);
+        }
+
+        public async Task<IEnumerable<Emprestimo>> GetTodosEmprestimos()
+        {
+            return await _context.Emprestimos
+                .Include(e => e.EmprestimoProdutos)
+                .ThenInclude(e => e.Produto)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId)
