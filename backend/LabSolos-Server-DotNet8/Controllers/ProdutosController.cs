@@ -58,66 +58,14 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpPost]
         public async Task<ActionResult> Add(AddProdutoDTO produtoDTO)
         {
-            Produto produto = produtoDTO.TipoProduto switch
+            // Validar os dados do usuário através do serviço
+            var resultadoValidacao = _produtoService.ValidarEstruturaLote(produtoDTO);
+            if (!resultadoValidacao.Validado)
             {
-                "Quimico" => new Quimico
-                {
-                    NomeProduto = produtoDTO.NomeProduto,
-                    Fornecedor = produtoDTO.Fornecedor,
-                    Tipo = TipoProduto.Quimico,
-                    Quantidade = produtoDTO.Quantidade,
-                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
-                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
-                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
-                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
-                    Status = StatusProduto.Disponivel,
-                    UltimaModificacao = DateTime.Now,
-                    Catmat = produtoDTO.Catmat,
-                    UnidadeMedida = (UnidadeMedida)produtoDTO.UnidadeMedida,
-                    EstadoFisico = (EstadoFisico)produtoDTO.EstadoFisico,
-                    Cor = (Cor)produtoDTO.Cor,
-                    Odor = (Odor)produtoDTO.Odor,
-                    Densidade = produtoDTO.Densidade,
-                    PesoMolecular = produtoDTO.PesoMolecular,
-                    GrauPureza = produtoDTO.GrauPureza,
-                    FormulaQuimica = produtoDTO.FormulaQuimica,
-                    Grupo = (Grupo)produtoDTO.Grupo,
-
-                },
-                "Vidraria" => new Vidraria
-                {
-                    NomeProduto = produtoDTO.NomeProduto,
-                    Fornecedor = produtoDTO.Fornecedor,
-                    Tipo = TipoProduto.Vidraria,
-                    Quantidade = produtoDTO.Quantidade,
-                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
-                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
-                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
-                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
-                    Status = StatusProduto.Disponivel,
-                    UltimaModificacao = DateTime.Now,
-                    Material = (MaterialVidraria)produtoDTO.Material,
-                    Formato = (FormatoVidraria)produtoDTO.Formato,
-                    Altura = (AlturaVidraria)produtoDTO.Altura,
-                    Capacidade = produtoDTO.Capacidade,
-                    Graduada = produtoDTO.Graduada,
-                },
-                "Outro" => new Produto
-                {
-                    NomeProduto = produtoDTO.NomeProduto,
-                    Fornecedor = produtoDTO.Fornecedor,
-                    Tipo = TipoProduto.Outro,
-                    Quantidade = produtoDTO.Quantidade,
-                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
-                    DataFabricacao = _utilsService.ConverterParaDateTime(produtoDTO.DataFabricacao),
-                    DataValidade = _utilsService.ConverterParaDateTime(produtoDTO.DataValidade),
-                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto ?? "Não indicado",
-                    Status = StatusProduto.Disponivel,
-                    UltimaModificacao = DateTime.Now,
-                },
-                _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
-            };
-
+                return BadRequest(new { Message = resultadoValidacao.Mensagem });
+            }
+            var produto = _produtoService.ObterEstruturaProdutoPeloTipo(produtoDTO);
+            produto.UltimaModificacao = DateTime.Now;
 
             await _produtoService.AddAsync(produto);
             return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);

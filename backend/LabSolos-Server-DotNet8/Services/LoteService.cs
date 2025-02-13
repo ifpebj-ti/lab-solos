@@ -16,20 +16,22 @@ namespace LabSolos_Server_DotNet8.Services
 
 
         ResultadoValidacaoDTO ValidarEstruturaLote(AddLoteDTO loteDto);
-        Task AddLoteProdutosAsync(Produto produto, string codigoLote);
+        Task AdicionarProdutoAoLoteAsync(Produto produto, string codigoLote);
         Task<Lote?> GetLoteByIdAsync(int id);
         Task<Lote?> GetLoteByCodigoAsync(string codigoLote);
-        Produto AddProdutoPorTipo(AddLoteDTO loteDto);
+        Produto ObterEstruturaProdutoPeloTipo(AddLoteDTO loteDto);
     }
-    
-    public class LoteService(ILoteRepository loteRepository, IProdutoRepository produtoRepository, IUtilitiesService utilitiesService, ILogger<LoteService> logger) : ILoteService
+
+    public class LoteService(ILoteRepository loteRepository, IProdutoRepository produtoRepository, IUtilitiesService utilitiesService, IProdutoService produtoService, ILogger<LoteService> logger) : ILoteService
     {
         private readonly ILoteRepository _loteRepository = loteRepository;
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
         private readonly IUtilitiesService _utilitiesService = utilitiesService;
+        private readonly IProdutoService _produtoService = produtoService;
+
         private readonly ILogger<LoteService> _logger = logger;
 
-        public async Task AddLoteProdutosAsync(Produto produto, string codigoLote)
+        public async Task AdicionarProdutoAoLoteAsync(Produto produto, string codigoLote)
         {
             // Verifica se já existe um lote com o código fornecido
             var loteExistente = await _loteRepository.GetLoteByCodigoAsync(codigoLote);
@@ -104,9 +106,9 @@ namespace LabSolos_Server_DotNet8.Services
             };
         }
 
-        public Produto AddProdutoPorTipo(AddLoteDTO loteDto)
+        public Produto ObterEstruturaProdutoPeloTipo(AddLoteDTO loteDto)
         {
-            return loteDto.Tipo switch
+            Produto produto = loteDto.Tipo switch
             {
                 "Quimico" => new Quimico
                 {
@@ -146,8 +148,23 @@ namespace LabSolos_Server_DotNet8.Services
                     Capacidade = loteDto.Capacidade,
                     Graduada = loteDto.Graduada,
                 },
+                "Outro" => new Produto
+                {
+                    NomeProduto = loteDto.NomeProduto,
+                    Fornecedor = loteDto.Fornecedor,
+                    Tipo = TipoProduto.Outro,
+                    Quantidade = loteDto.Quantidade,
+                    QuantidadeMinima = loteDto.QuantidadeMinima,
+                    DataFabricacao = _utilitiesService.ConverterParaDateTime(loteDto.DataFabricacao),
+                    DataValidade = _utilitiesService.ConverterParaDateTime(loteDto.DataValidade),
+                    LocalizacaoProduto = loteDto.LocalizacaoProduto,
+                    Status = StatusProduto.Disponivel,
+                    UltimaModificacao = DateTime.Now,
+                },
                 _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
             };
+
+            return produto;
         }
     }
 }

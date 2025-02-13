@@ -1,3 +1,5 @@
+using LabSolos_Server_DotNet8.DTOs;
+using LabSolos_Server_DotNet8.DTOs.Lotes;
 using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -13,11 +15,15 @@ namespace LabSolos_Server_DotNet8.Services
         Task AddAsync(Produto produto);
         Task UpdateAsync(Produto produto);
         Task DeleteAsync(int id);
+        Produto ObterEstruturaProdutoPeloTipo(AddProdutoDTO produtoDTO);
+        ResultadoValidacaoDTO ValidarEstruturaLote(AddProdutoDTO produtoDTO);
     }
-    
-    public class ProdutoService(IProdutoRepository produtoRepository, ILogger<ProdutoService> logger) : IProdutoService
+
+    public class ProdutoService(IProdutoRepository produtoRepository, IUtilitiesService utilitiesService, ILogger<ProdutoService> logger) : IProdutoService
     {
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
+        private readonly IUtilitiesService _utilitiesService = utilitiesService;
+
         private readonly ILogger<ProdutoService> _logger = logger;
 
         public async Task<IEnumerable<object>> GetProdutosByTipoAsync(TipoProduto tipoProduto)
@@ -141,5 +147,103 @@ namespace LabSolos_Server_DotNet8.Services
         {
             await _produtoRepository.DeleteAsync(id);
         }
+
+        public Produto ObterEstruturaProdutoPeloTipo(AddProdutoDTO produtoDTO)
+        {
+            Produto produto = produtoDTO.Tipo switch
+            {
+                "Quimico" => new Quimico
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Quimico,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
+                    DataFabricacao = _utilitiesService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    Status = StatusProduto.Disponivel,
+                    Catmat = produtoDTO.Catmat,
+                    UnidadeMedida = _utilitiesService.ValidarEnum(produtoDTO.UnidadeMedida, nameof(produtoDTO.UnidadeMedida), UnidadeMedida.Indefinido),
+                    EstadoFisico = _utilitiesService.ValidarEnum(produtoDTO.EstadoFisico, nameof(produtoDTO.EstadoFisico), EstadoFisico.Indefinido),
+                    Cor = _utilitiesService.ValidarEnum(produtoDTO.Cor, nameof(produtoDTO.Cor), Cor.Indefinido),
+
+                    Odor = _utilitiesService.ValidarEnum(produtoDTO.Odor, nameof(produtoDTO.Odor), Odor.Indefinido),
+                    PesoMolecular = produtoDTO.PesoMolecular,
+                    GrauPureza = produtoDTO.GrauPureza,
+                    FormulaQuimica = produtoDTO.FormulaQuimica,
+                    Grupo = _utilitiesService.ValidarEnum(produtoDTO.Grupo, nameof(produtoDTO.Grupo), Grupo.Indefinido)
+                },
+                "Vidraria" => new Vidraria
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Quimico,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
+                    DataFabricacao = _utilitiesService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    Status = StatusProduto.Disponivel,
+                    Material = _utilitiesService.ValidarEnum(produtoDTO.Material, nameof(produtoDTO.Material), MaterialVidraria.Indefinido),
+                    Formato = _utilitiesService.ValidarEnum(produtoDTO.Formato, nameof(produtoDTO.Formato), FormatoVidraria.Indefinido),
+                    Altura = _utilitiesService.ValidarEnum(produtoDTO.Altura, nameof(produtoDTO.Altura), AlturaVidraria.Indefinido),
+                    Capacidade = produtoDTO.Capacidade,
+                    Graduada = produtoDTO.Graduada,
+                },
+                "Outro" => new Produto
+                {
+                    NomeProduto = produtoDTO.NomeProduto,
+                    Fornecedor = produtoDTO.Fornecedor,
+                    Tipo = TipoProduto.Outro,
+                    Quantidade = produtoDTO.Quantidade,
+                    QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    DataFabricacao = _utilitiesService.ConverterParaDateTime(produtoDTO.DataFabricacao),
+                    DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
+                    LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
+                    Status = StatusProduto.Disponivel,
+                    UltimaModificacao = DateTime.Now,
+                },
+                _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
+            };
+
+            return produto;
+        }
+
+        public ResultadoValidacaoDTO ValidarEstruturaLote(AddProdutoDTO produtoDTO)
+        {
+            // Verificar se o tipo corresponde aos atributos fornecidos
+            if (produtoDTO.Tipo == "Quimico" && (
+                string.IsNullOrEmpty(produtoDTO.DataValidade) ||
+                string.IsNullOrEmpty(produtoDTO.UnidadeMedida) ||
+                string.IsNullOrEmpty(produtoDTO.FormulaQuimica)))
+            {
+                return new ResultadoValidacaoDTO
+                {
+                    Validado = false,
+                    Mensagem = $"Para o tipo 'Quimico', os campos 'DataValidade', 'UnidadeMedida' e 'FormulaQuimica' são obrigatórios"
+                };
+            }
+
+            // Verificar se o tipo corresponde aos atributos fornecidos
+            if (produtoDTO.Tipo == "Vidraria" && (
+                !produtoDTO.Capacidade.HasValue))
+            {
+                return new ResultadoValidacaoDTO
+                {
+                    Validado = false,
+                    Mensagem = $"Para o tipo 'Vidraria', o campo 'Capacidade' é obrigatório"
+                };
+            }
+
+
+            // Se todas as validações passarem
+            return new ResultadoValidacaoDTO
+            {
+                Validado = true,
+                Mensagem = string.Empty
+            };
+        }
+
     }
 }

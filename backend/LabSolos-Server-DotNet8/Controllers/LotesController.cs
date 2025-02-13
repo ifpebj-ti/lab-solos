@@ -14,7 +14,7 @@ namespace LabSolos_Server_DotNet8.Controllers
     public class LoteController(AppDbContext context, ILoteService loteService) : ControllerBase
     {
         private readonly AppDbContext _context = context;
-        private readonly ILoteService _loteService = loteService;
+        private readonly ILoteService _loteService = loteService;        
 
         [HttpPost("AddLote")]
         public async Task<IActionResult> AddLote([FromBody] AddLoteDTO loteDto)
@@ -31,15 +31,14 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             for (int i = 0; i < loteDto.QuantidadeLote; i++)
             {
-                // Criar o produto com base no tipo
-                var produto = _loteService.AddProdutoPorTipo(loteDto);
+                // Estrutura o produto com base no tipo
+                var produto = _loteService.ObterEstruturaProdutoPeloTipo(loteDto);
 
                 // Adicionar ao lote
-                await _loteService.AddLoteProdutosAsync(produto, codigoLote);
+                await _loteService.AdicionarProdutoAoLoteAsync(produto, codigoLote);
             }
 
             return CreatedAtAction(nameof(GetByCodigo), new { codigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
-
         }
 
         [HttpGet("GetById/{id}")]
