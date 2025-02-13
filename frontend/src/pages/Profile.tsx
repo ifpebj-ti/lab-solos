@@ -102,7 +102,6 @@ function Profile() {
     };
     fetchGetUserById();
   }, [id]);
-  console.log(loans)
   const infoItems = [
     {
       title: 'Nome',
@@ -114,11 +113,19 @@ function Profile() {
       value: user?.email ?? 'Não corresponde',
       width: '30%',
     },
-    { title: 'Instituição', value: user?.instituicao ?? 'Não corresponde', width: '20%' },
+    {
+      title: 'Instituição',
+      value: user?.instituicao ?? 'Não corresponde',
+      width: '20%',
+    },
     { title: 'Status', value: user?.status ?? 'Não corresponde', width: '20%' },
   ];
   const infoItems2 = [
-    { title: 'Telefone', value: user?.telefone ?? 'Não corresponde', width: '100%' },
+    {
+      title: 'Telefone',
+      value: user?.telefone ?? 'Não corresponde',
+      width: '100%',
+    },
   ];
   const infoItems3 = [
     {

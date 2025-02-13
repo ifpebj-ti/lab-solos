@@ -6,7 +6,7 @@ type ITableItem = {
 function ItemOnly({ data, columnWidths }: ITableItem) {
   return (
     <div
-      className={`w-full h-9 flex items-center bg-cl-table-item mb-1 px-3 rounded-sm hover:scale-customScale hover:bg-opacity-60`}
+      className={`w-full h-9 flex items-center bg-backgroundMy mb-1 px-3 rounded-sm hover:scale-customScale hover:bg-cl-table`}
     >
       {data.map((value, index) => (
         <p

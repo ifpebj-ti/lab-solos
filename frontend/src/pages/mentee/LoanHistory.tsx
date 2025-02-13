@@ -4,7 +4,6 @@ import HeaderTable from '@/components/global/table/Header';
 import {
   columnsEstudantesSelected,
   columnsItensSelected,
-  itensSelected,
 } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
@@ -45,8 +44,14 @@ interface IProduto {
   ultimaModificacao: string;
   loteId: number | null;
   lote: unknown | null;
-  emprestimoId: number | null;
-  emprestimo: unknown | null;
+}
+
+interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
 }
 
 interface IEmprestimo {
@@ -55,11 +60,11 @@ interface IEmprestimo {
   dataDevolucao: string;
   dataAprovacao: string;
   status: string;
-  produtos: IProduto[];
+  emprestimoProdutos: IEmprestimoProduto[];
   solicitanteId: number;
-  solicitante: IUsuario;
+  solicitante: IUsuario | null;
   aprovadorId: number;
-  aprovador: IUsuario;
+  aprovador: IUsuario | null;
 }
 
 function LoanHistoryMentee() {
@@ -87,15 +92,16 @@ function LoanHistoryMentee() {
     };
     fetchGetLoan();
   }, [id]);
-
   console.log(loan);
+  console.log(loan?.emprestimoProdutos[0]);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const filteredUsers = itensSelected.filter((item) =>
-    item[1].toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers =
+    loan?.emprestimoProdutos?.filter((item) =>
+      item.produto.nomeProduto.toLowerCase().includes(searchTerm.toLowerCase())
+    ) ?? [];
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
@@ -129,9 +135,9 @@ function LoanHistoryMentee() {
               <div className='w-full items-center flex flex-col min-h-14'>
                 <ItemOnly
                   data={[
-                    String(loan?.solicitante.nomeCompleto),
-                    String(loan?.solicitante.email),
-                    String(loan?.solicitante.telefone),
+                    String(loan?.solicitante?.nomeCompleto),
+                    String(loan?.solicitante?.email),
+                    String(loan?.solicitante?.telefone),
                   ]}
                   columnWidths={columnsEstudantesSelected.map(
                     (column) => column.width
@@ -170,7 +176,13 @@ function LoanHistoryMentee() {
                   sortedUsers.map((rowData, index) => (
                     <ItemTable
                       key={index}
-                      data={rowData}
+                      data={[
+                        String(rowData.produto.id || 'Não Corresponde'),
+                        rowData.produto.nomeProduto || 'Não Corresponde',
+                        rowData.produto.tipo || 'Não Corresponde',
+                        String(rowData.produto.quantidade || 'Não Corresponde'),
+                        String(rowData.produto.loteId || 'Não Corresponde'),
+                      ]}
                       rowIndex={index}
                       columnWidths={columnsItensSelected.map(
                         (column) => column.width
