@@ -10,6 +10,7 @@ namespace LabSolos_Server_DotNet8.Services
     public interface IProdutoService
     {
         Task<IEnumerable<object>> GetAllAsync();
+        Task<IEnumerable<object>> GetProdutosEmAlerta();
         Task<IEnumerable<object>> GetProdutosByTipoAsync(TipoProduto tipoProduto);
         Task<Produto?> GetByIdAsync(int id);
         Task AddAsync(Produto produto);
@@ -113,6 +114,24 @@ namespace LabSolos_Server_DotNet8.Services
         public async Task<IEnumerable<object>> GetAllAsync()
         {
             var produtos = await _produtoRepository.GetAllAsync();
+
+            return produtos.Select(o => new ProdutoDTO
+            {
+                Id = o.Id,
+                NomeProduto = o.NomeProduto,
+                Fornecedor = o.Fornecedor,
+                Quantidade = o.Quantidade,
+                DataFabricacao = o.DataFabricacao.ToString(),
+                DataValidade = o.DataValidade.ToString(),
+                QuantidadeMinima = o.QuantidadeMinima,
+                LocalizacaoProduto = o.LocalizacaoProduto,
+                Status = o.Status.ToString(),
+            });
+        }
+
+        public async Task<IEnumerable<object>> GetProdutosEmAlerta()
+        {
+            var produtos = await _produtoRepository.GetProdutosEmAlerta();
 
             return produtos.Select(o => new ProdutoDTO
             {

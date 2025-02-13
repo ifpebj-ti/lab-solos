@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LabSolos-Server-DotNet8")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f445142fad79a685776d74f35fad67b38eb3ad42")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d401ee1b9792e39c639b3fdd6afb0c76b8e3547c")]
 [assembly: System.Reflection.AssemblyProductAttribute("LabSolos-Server-DotNet8")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LabSolos-Server-DotNet8")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

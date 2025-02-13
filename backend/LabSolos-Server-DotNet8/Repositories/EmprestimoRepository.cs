@@ -25,6 +25,8 @@ namespace LabSolos_Server_DotNet8.Repositories
             return await _context.Emprestimos
                 .Include(e => e.Solicitante)
                 .Include(e => e.Aprovador)
+                .Include(e => e.EmprestimoProdutos)
+                .ThenInclude(e => e.Produto)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 

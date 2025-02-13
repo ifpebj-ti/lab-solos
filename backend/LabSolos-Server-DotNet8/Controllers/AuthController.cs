@@ -1,4 +1,5 @@
 using LabSolos_Server_DotNet8.DTOs.Auth;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,11 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             if (usuario == null){
                 return Unauthorized("Credenciais inválidas.");
+            }
+
+            if (usuario.Status != StatusUsuario.Habilitado)
+            {
+                return Unauthorized("Usuário não habilitado. Contate seu responsável");
             }
 
             var token = _jwtService.GenerateToken(usuario.Id.ToString(), usuario.Email, usuario.NivelUsuario.ToString());

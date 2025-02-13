@@ -137,6 +137,24 @@ namespace LabSolos_Server_DotNet8.Controllers
                 }
 
                 produto.Quantidade -= item.Quantidade;
+
+                if (!(produto.DataValidade < DateTime.Today))
+                {
+                    if (produto.Quantidade > 0)
+                    {
+                        produto.Status = StatusProduto.Disponivel;
+                    }
+                    else
+                    {
+                        produto.Status = StatusProduto.Esgotado;
+
+                    }
+                }
+                else
+                {
+                    produto.Status = StatusProduto.Vencido;
+                }
+                
                 await _produtoService.UpdateAsync(produto);
             }
 
