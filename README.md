@@ -1,3 +1,15 @@
+![Build Status](https://github.com/ifpebj-ti/lab-solos/actions/workflows/main.yml/badge.svg)
+![License](https://img.shields.io/github/license/ifpebj-ti/lab-solos)
+![Last Commit](https://img.shields.io/github/last-commit/ifpebj-ti/lab-solos)
+![Top Languages](https://img.shields.io/github/languages/top/ifpebj-ti/lab-solos)
+![Repo Size](https://img.shields.io/github/repo-size/ifpebj-ti/lab-solos)
+![Contributors](https://img.shields.io/github/contributors/ifpebj-ti/lab-solos)
+![Open Issues](https://img.shields.io/github/issues/ifpebj-ti/lab-solos)
+![Forks](https://img.shields.io/github/forks/ifpebj-ti/lab-solos)
+![Stars](https://img.shields.io/github/stars/ifpebj-ti/lab-solos)
+![Version](https://img.shields.io/github/v/tag/ifpebj-ti/lab-solos)
+
+
 # Labon - Sistema de Controle de Insumos de Laboratório de Química
 
 ## Sobre o Labon
