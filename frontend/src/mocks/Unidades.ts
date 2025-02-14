@@ -399,6 +399,12 @@ export const columnsItensSelected = [
   { value: 'Lote ID', width: '20%' },
 ];
 
+export const loanCreationHeader = [
+  { value: 'Código', width: '20%' },
+  { value: 'Nome do Produto', width: '50%' },
+  { value: 'Quantidade', width: '30%' },
+];
+
 export const itensSelected = [
   ['001', 'Sódio', 'sal', '500', 'grama'],
   ['002', 'Cloro', 'ácido', '250', 'mililitro'],
