@@ -1,167 +1,453 @@
-import OpenSearch from '@/components/global/OpenSearch';
-import LoadingIcon from '../../public/icons/LoadingIcon';
-import SearchInput from '@/components/global/inputs/SearchInput';
-import TopDown from '@/components/global/table/TopDown';
-import { columnsButtons, dataButton } from '@/mocks/Unidades';
-import HeaderTable from '@/components/global/table/Header';
-import Pagination from '@/components/global/table/Pagination';
-import { useEffect, useState } from 'react';
-import InfoContainer from '@/components/screens/InfoContainer';
-import ItemTable from '@/components/global/table/Item';
-import { Link, useLocation } from 'react-router-dom';
-import { getDependentesID } from '@/integration/Class';
-import { getUserById } from '@/integration/Users';
-import { IUser } from './Profile';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  cidade: string;
-  curso: string;
-  instituicao: string;
-}
-
-// aqui virá a listagem dos integrantes da turma
-function ViewClass() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7;
-  const location = useLocation();
-  const id = location.state?.id; // Recupera o ID passado via state
-  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
-  const [user, setUser] = useState<IUser>();
-
-
-  useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getDependentesID(id);
-        const responseMy = await getUserById(id);
-        setDependentes(response);
-        setUser(responseMy);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
-        }
-        setDependentes([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetLoansDependentes();
-  }, [id]);
-
-  console.log(dependentes);
-  console.log(user);
-
-  // Cálculo das páginas
-  const currentData = dataButton.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const infoItems = [
-    { title: 'Nome', value: 'Carlos Emanuel Santos de Oliveira', width: '50%' },
-    {
-      title: 'Email',
-      value: 'carlos.oliveira@belojardim.ifpe.edu.br',
-      width: '30%',
+[
+  {
+    id: 1,
+    dataRealizacao: '2025-01-27T20:59:04.065918',
+    dataDevolucao: '2025-02-10T20:59:04.0659889',
+    dataAprovacao: '2025-02-03T20:59:04.0660613',
+    status: 'Aprovado',
+    emprestimoProdutos: [
+      {
+        id: 1,
+        emprestimoId: 1,
+        emprestimo: null,
+        produtoId: 1,
+        produto: {
+          id: 1,
+          nomeProduto: 'Ácido Sulfúrico',
+          fornecedor: 'Fornecedor Químico XYZ',
+          tipo: 'Quimico',
+          quantidade: 40,
+          quantidadeMinima: 50,
+          dataFabricacao: null,
+          dataValidade: '2026-02-03T17:59:04.1141608',
+          localizacaoProduto: 'Prateleira A',
+          status: 'Solicitado',
+          ultimaModificacao: '0001-01-01T00:00:00',
+          loteId: 1,
+          lote: null,
+          emprestimoProdutos: [
+            null,
+            {
+              id: 0,
+              emprestimoId: 12,
+              emprestimo: {
+                id: 12,
+                dataRealizacao: '2025-02-13T11:16:31.2866121',
+                dataDevolucao: '2025-02-17T00:00:00',
+                dataAprovacao: null,
+                status: 'Pendente',
+                emprestimoProdutos: [null],
+                solicitanteId: 3,
+                solicitante: {
+                  id: 3,
+                  nomeCompleto: 'Aluno Exemplo',
+                  email: 'aluno@exemplo.com',
+                  senhaHash:
+                    'AQAAAAIAAYagAAAAELd8HLqewd5aMbA90Lw9e4slazcriKl6DAH8EKCQbV3FiUNt7wOknRVN5eGyVIvsRA==',
+                  telefone: '5566778899',
+                  dataIngresso: '2025-02-03T20:59:03.8434562',
+                  nivelUsuario: 'Mentorado',
+                  tipoUsuario: 'Academico',
+                  status: 'Habilitado',
+                  emprestimosSolicitados: [null, null],
+                  emprestimosAprovados: null,
+                  responsavelId: 2,
+                  responsavel: {
+                    id: 2,
+                    nomeCompleto: 'Professor Exemplo',
+                    email: 'mentor@exemplo.com',
+                    senhaHash:
+                      'AQAAAAIAAYagAAAAENtsj4mxBj5evOYZXqrK9C5/TXLVUs2BzEzMd+xmKtBTEl4bvy+7pf7J4BurdRESLA==',
+                    telefone: '987654321',
+                    dataIngresso: '2025-02-03T20:59:03.6824626',
+                    nivelUsuario: 'Mentor',
+                    tipoUsuario: 'Academico',
+                    status: 'Habilitado',
+                    emprestimosSolicitados: null,
+                    emprestimosAprovados: [null],
+                    responsavelId: 1,
+                    responsavel: {
+                      id: 1,
+                      nomeCompleto: 'Administrador Exemplo',
+                      email: 'admin@exemplo.com',
+                      senhaHash:
+                        'AQAAAAIAAYagAAAAEAKtAmW0pV/1oi3rxmBXH6jQbtAIw9/l+ofICEJfk3t6/jb3cs4uYUkBHAYZo1flxw==',
+                      telefone: '123456789',
+                      dataIngresso: '2025-02-03T20:59:03.5771479',
+                      nivelUsuario: 'Administrador',
+                      tipoUsuario: 'Administrador',
+                      status: 'Habilitado',
+                      emprestimosSolicitados: null,
+                      emprestimosAprovados: null,
+                      responsavelId: null,
+                      responsavel: null,
+                      dependentes: [null],
+                    },
+                    dependentes: [
+                      null,
+                      {
+                        id: 5,
+                        nomeCompleto: 'Usuario Teste2',
+                        email: 'usuario.teste2@exemplo.com',
+                        senhaHash:
+                          'AQAAAAIAAYagAAAAEIDObVyaSTm00uxr24IszmNKnPozq+Jg++GGVk4B45rAs09u38DQMNpNUWFlGIE2Ng==',
+                        telefone: '123456789',
+                        dataIngresso: '2025-02-13T09:29:08.2861445',
+                        nivelUsuario: 'Mentorado',
+                        tipoUsuario: 'Academico',
+                        status: 'Desabilitado',
+                        emprestimosSolicitados: null,
+                        emprestimosAprovados: null,
+                        responsavelId: 2,
+                        responsavel: null,
+                        dependentes: null,
+                      },
+                      {
+                        id: 6,
+                        nomeCompleto: 'Mara Maravilha',
+                        email: 'maravilha@gmail.com',
+                        senhaHash:
+                          'AQAAAAIAAYagAAAAEJ9EadtVUoyPfEzLqQNsnqAvEONYw0IWqOkc0k5GWLQeuw/GLyTKfiVF04uNwx1kdw==',
+                        telefone: '81982556698',
+                        dataIngresso: '2025-02-13T12:13:29.5498482',
+                        nivelUsuario: 'Mentorado',
+                        tipoUsuario: 'Academico',
+                        status: 'Habilitado',
+                        emprestimosSolicitados: null,
+                        emprestimosAprovados: null,
+                        responsavelId: 2,
+                        responsavel: null,
+                        dependentes: null,
+                      },
+                    ],
+                  },
+                  dependentes: null,
+                },
+                aprovadorId: null,
+                aprovador: null,
+              },
+              produtoId: 1,
+              produto: null,
+              quantidade: 10,
+            },
+          ],
+        },
+        quantidade: 500,
+      },
+      {
+        id: 3,
+        emprestimoId: 1,
+        emprestimo: null,
+        produtoId: 3,
+        produto: {
+          id: 3,
+          nomeProduto: 'Béquer Borossilicato 500ml',
+          fornecedor: 'Fornecedor Vidraria ABC',
+          tipo: 'Vidraria',
+          quantidade: 10,
+          quantidadeMinima: 10,
+          dataFabricacao: null,
+          dataValidade: null,
+          localizacaoProduto: 'Armário Vidraria',
+          status: 'Solicitado',
+          ultimaModificacao: '0001-01-01T00:00:00',
+          loteId: 2,
+          lote: null,
+          emprestimoProdutos: [null],
+        },
+        quantidade: 2,
+      },
+      {
+        id: 5,
+        emprestimoId: 1,
+        emprestimo: null,
+        produtoId: 5,
+        produto: {
+          id: 5,
+          nomeProduto: 'Mop',
+          fornecedor: 'Fornecedor Limpeza RST',
+          tipo: 'Outro',
+          quantidade: 0,
+          quantidadeMinima: 1,
+          dataFabricacao: null,
+          dataValidade: null,
+          localizacaoProduto: 'Jogado, por aí',
+          status: 'Solicitado',
+          ultimaModificacao: '0001-01-01T00:00:00',
+          loteId: null,
+          lote: null,
+          emprestimoProdutos: [null],
+        },
+        quantidade: 1,
+      },
+    ],
+    solicitanteId: 3,
+    solicitante: {
+      id: 3,
+      nomeCompleto: 'Aluno Exemplo',
+      email: 'aluno@exemplo.com',
+      senhaHash:
+        'AQAAAAIAAYagAAAAELd8HLqewd5aMbA90Lw9e4slazcriKl6DAH8EKCQbV3FiUNt7wOknRVN5eGyVIvsRA==',
+      telefone: '5566778899',
+      dataIngresso: '2025-02-03T20:59:03.8434562',
+      nivelUsuario: 'Mentorado',
+      tipoUsuario: 'Academico',
+      status: 'Habilitado',
+      emprestimosSolicitados: [
+        null,
+        {
+          id: 12,
+          dataRealizacao: '2025-02-13T11:16:31.2866121',
+          dataDevolucao: '2025-02-17T00:00:00',
+          dataAprovacao: null,
+          status: 'Pendente',
+          emprestimoProdutos: [
+            {
+              id: 0,
+              emprestimoId: 12,
+              emprestimo: null,
+              produtoId: 1,
+              produto: {
+                id: 1,
+                nomeProduto: 'Ácido Sulfúrico',
+                fornecedor: 'Fornecedor Químico XYZ',
+                tipo: 'Quimico',
+                quantidade: 40,
+                quantidadeMinima: 50,
+                dataFabricacao: null,
+                dataValidade: '2026-02-03T17:59:04.1141608',
+                localizacaoProduto: 'Prateleira A',
+                status: 'Solicitado',
+                ultimaModificacao: '0001-01-01T00:00:00',
+                loteId: 1,
+                lote: null,
+                emprestimoProdutos: [
+                  {
+                    id: 1,
+                    emprestimoId: 1,
+                    emprestimo: null,
+                    produtoId: 1,
+                    produto: null,
+                    quantidade: 500,
+                  },
+                  null,
+                ],
+              },
+              quantidade: 10,
+            },
+          ],
+          solicitanteId: 3,
+          solicitante: null,
+          aprovadorId: null,
+          aprovador: null,
+        },
+      ],
+      emprestimosAprovados: null,
+      responsavelId: 2,
+      responsavel: {
+        id: 2,
+        nomeCompleto: 'Professor Exemplo',
+        email: 'mentor@exemplo.com',
+        senhaHash:
+          'AQAAAAIAAYagAAAAENtsj4mxBj5evOYZXqrK9C5/TXLVUs2BzEzMd+xmKtBTEl4bvy+7pf7J4BurdRESLA==',
+        telefone: '987654321',
+        dataIngresso: '2025-02-03T20:59:03.6824626',
+        nivelUsuario: 'Mentor',
+        tipoUsuario: 'Academico',
+        status: 'Habilitado',
+        emprestimosSolicitados: null,
+        emprestimosAprovados: [null],
+        responsavelId: 1,
+        responsavel: {
+          id: 1,
+          nomeCompleto: 'Administrador Exemplo',
+          email: 'admin@exemplo.com',
+          senhaHash:
+            'AQAAAAIAAYagAAAAEAKtAmW0pV/1oi3rxmBXH6jQbtAIw9/l+ofICEJfk3t6/jb3cs4uYUkBHAYZo1flxw==',
+          telefone: '123456789',
+          dataIngresso: '2025-02-03T20:59:03.5771479',
+          nivelUsuario: 'Administrador',
+          tipoUsuario: 'Administrador',
+          status: 'Habilitado',
+          emprestimosSolicitados: null,
+          emprestimosAprovados: null,
+          responsavelId: null,
+          responsavel: null,
+          dependentes: [null],
+        },
+        dependentes: [
+          null,
+          {
+            id: 5,
+            nomeCompleto: 'Usuario Teste2',
+            email: 'usuario.teste2@exemplo.com',
+            senhaHash:
+              'AQAAAAIAAYagAAAAEIDObVyaSTm00uxr24IszmNKnPozq+Jg++GGVk4B45rAs09u38DQMNpNUWFlGIE2Ng==',
+            telefone: '123456789',
+            dataIngresso: '2025-02-13T09:29:08.2861445',
+            nivelUsuario: 'Mentorado',
+            tipoUsuario: 'Academico',
+            status: 'Desabilitado',
+            emprestimosSolicitados: null,
+            emprestimosAprovados: null,
+            responsavelId: 2,
+            responsavel: null,
+            dependentes: null,
+          },
+          {
+            id: 6,
+            nomeCompleto: 'Mara Maravilha',
+            email: 'maravilha@gmail.com',
+            senhaHash:
+              'AQAAAAIAAYagAAAAEJ9EadtVUoyPfEzLqQNsnqAvEONYw0IWqOkc0k5GWLQeuw/GLyTKfiVF04uNwx1kdw==',
+            telefone: '81982556698',
+            dataIngresso: '2025-02-13T12:13:29.5498482',
+            nivelUsuario: 'Mentorado',
+            tipoUsuario: 'Academico',
+            status: 'Habilitado',
+            emprestimosSolicitados: null,
+            emprestimosAprovados: null,
+            responsavelId: 2,
+            responsavel: null,
+            dependentes: null,
+          },
+        ],
+      },
+      dependentes: null,
     },
-    { title: 'Instituição', value: 'IFPE', width: '20%' },
-  ];
-  const infoItems2 = [{ title: 'CPF', value: '134.255.168-65', width: '100%' }];
-  const infoItems3 = [
-    { title: 'Número para Contato', value: '(81) 98126-5571', width: '100%' },
-  ];
-  const infoItems4 = [
-    { title: 'Data de Ingresso', value: '29/11/2024 09:54', width: '100%' },
-  ];
-  const infoItems5 = [{ title: 'Curso', value: 'Eng. Hídrica', width: '100%' }];
-  return (
-    <>
-      {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
-            <LoadingIcon />
-          </div>
-          Carregando...
-        </div>
-      ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Visualização de Turmas
-            </h1>
-            <div className='flex items-center justify-between gap-x-6'>
-              <OpenSearch />
-              <Link
-                to={'/history/class'}
-                className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
-              >
-                Empréstimos da Turma
-              </Link>
-            </div>
-          </div>
-          <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems} />
-            <div className='w-full flex gap-x-8 mt-5'>
-              <InfoContainer items={infoItems2} />
-              <InfoContainer items={infoItems3} />
-              <InfoContainer items={infoItems4} />
-              <InfoContainer items={infoItems5} />
-            </div>
-          </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={() => console.log('build')}
-                  value='1'
-                />
-              </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown onClick={() => console.log('s')} top={true} />
-                  <TopDown onClick={() => console.log('s')} top={false} />
-                </div>
-                <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
-                  <p>TOTAL:</p>
-                  <p>{dataButton.length}</p>
-                </div>
-              </div>
-            </div>
-            <HeaderTable columns={columnsButtons} />
-            <div className='w-full items-center flex flex-col justify-between min-h-72'>
-              <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ItemTable
-                    key={index}
-                    data={[rowData.name, rowData.institution, rowData.code]}
-                    rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
-                  />
-                ))}
-              </div>
-              {/* Componente de Paginação */}
-              <Pagination
-                totalItems={dataButton.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-export default ViewClass;
+    aprovadorId: 2,
+    aprovador: {
+      id: 2,
+      nomeCompleto: 'Professor Exemplo',
+      email: 'mentor@exemplo.com',
+      senhaHash:
+        'AQAAAAIAAYagAAAAENtsj4mxBj5evOYZXqrK9C5/TXLVUs2BzEzMd+xmKtBTEl4bvy+7pf7J4BurdRESLA==',
+      telefone: '987654321',
+      dataIngresso: '2025-02-03T20:59:03.6824626',
+      nivelUsuario: 'Mentor',
+      tipoUsuario: 'Academico',
+      status: 'Habilitado',
+      emprestimosSolicitados: null,
+      emprestimosAprovados: [null],
+      responsavelId: 1,
+      responsavel: {
+        id: 1,
+        nomeCompleto: 'Administrador Exemplo',
+        email: 'admin@exemplo.com',
+        senhaHash:
+          'AQAAAAIAAYagAAAAEAKtAmW0pV/1oi3rxmBXH6jQbtAIw9/l+ofICEJfk3t6/jb3cs4uYUkBHAYZo1flxw==',
+        telefone: '123456789',
+        dataIngresso: '2025-02-03T20:59:03.5771479',
+        nivelUsuario: 'Administrador',
+        tipoUsuario: 'Administrador',
+        status: 'Habilitado',
+        emprestimosSolicitados: null,
+        emprestimosAprovados: null,
+        responsavelId: null,
+        responsavel: null,
+        dependentes: [null],
+      },
+      dependentes: [
+        {
+          id: 3,
+          nomeCompleto: 'Aluno Exemplo',
+          email: 'aluno@exemplo.com',
+          senhaHash:
+            'AQAAAAIAAYagAAAAELd8HLqewd5aMbA90Lw9e4slazcriKl6DAH8EKCQbV3FiUNt7wOknRVN5eGyVIvsRA==',
+          telefone: '5566778899',
+          dataIngresso: '2025-02-03T20:59:03.8434562',
+          nivelUsuario: 'Mentorado',
+          tipoUsuario: 'Academico',
+          status: 'Habilitado',
+          emprestimosSolicitados: [
+            null,
+            {
+              id: 12,
+              dataRealizacao: '2025-02-13T11:16:31.2866121',
+              dataDevolucao: '2025-02-17T00:00:00',
+              dataAprovacao: null,
+              status: 'Pendente',
+              emprestimoProdutos: [
+                {
+                  id: 0,
+                  emprestimoId: 12,
+                  emprestimo: null,
+                  produtoId: 1,
+                  produto: {
+                    id: 1,
+                    nomeProduto: 'Ácido Sulfúrico',
+                    fornecedor: 'Fornecedor Químico XYZ',
+                    tipo: 'Quimico',
+                    quantidade: 40,
+                    quantidadeMinima: 50,
+                    dataFabricacao: null,
+                    dataValidade: '2026-02-03T17:59:04.1141608',
+                    localizacaoProduto: 'Prateleira A',
+                    status: 'Solicitado',
+                    ultimaModificacao: '0001-01-01T00:00:00',
+                    loteId: 1,
+                    lote: null,
+                    emprestimoProdutos: [
+                      {
+                        id: 1,
+                        emprestimoId: 1,
+                        emprestimo: null,
+                        produtoId: 1,
+                        produto: null,
+                        quantidade: 500,
+                      },
+                      null,
+                    ],
+                  },
+                  quantidade: 10,
+                },
+              ],
+              solicitanteId: 3,
+              solicitante: null,
+              aprovadorId: null,
+              aprovador: null,
+            },
+          ],
+          emprestimosAprovados: null,
+          responsavelId: 2,
+          responsavel: null,
+          dependentes: null,
+        },
+        {
+          id: 5,
+          nomeCompleto: 'Usuario Teste2',
+          email: 'usuario.teste2@exemplo.com',
+          senhaHash:
+            'AQAAAAIAAYagAAAAEIDObVyaSTm00uxr24IszmNKnPozq+Jg++GGVk4B45rAs09u38DQMNpNUWFlGIE2Ng==',
+          telefone: '123456789',
+          dataIngresso: '2025-02-13T09:29:08.2861445',
+          nivelUsuario: 'Mentorado',
+          tipoUsuario: 'Academico',
+          status: 'Desabilitado',
+          emprestimosSolicitados: null,
+          emprestimosAprovados: null,
+          responsavelId: 2,
+          responsavel: null,
+          dependentes: null,
+        },
+        {
+          id: 6,
+          nomeCompleto: 'Mara Maravilha',
+          email: 'maravilha@gmail.com',
+          senhaHash:
+            'AQAAAAIAAYagAAAAEJ9EadtVUoyPfEzLqQNsnqAvEONYw0IWqOkc0k5GWLQeuw/GLyTKfiVF04uNwx1kdw==',
+          telefone: '81982556698',
+          dataIngresso: '2025-02-13T12:13:29.5498482',
+          nivelUsuario: 'Mentorado',
+          tipoUsuario: 'Academico',
+          status: 'Habilitado',
+          emprestimosSolicitados: null,
+          emprestimosAprovados: null,
+          responsavelId: 2,
+          responsavel: null,
+          dependentes: null,
+        },
+      ],
+    },
+  },
+];

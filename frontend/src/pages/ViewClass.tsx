@@ -99,7 +99,8 @@ function ViewClass() {
   }, [id]);
 
   console.log(dependentes);
-  const filteredUsers = dependentes.filter((user) => user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = dependentes.filter((user) =>
+    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -111,7 +112,8 @@ function ViewClass() {
     currentPage * itemsPerPage
   );
 
-  const infoItems = user ? [
+  const infoItems = user
+    ? [
         { title: 'Nome', value: user?.nomeCompleto, width: '50%' },
         {
           title: 'Email',
@@ -123,13 +125,14 @@ function ViewClass() {
           value: user?.instituicao ? user.instituicao : 'Não Corresponde',
           width: '20%',
         },
-    ] : [];
+      ]
+    : [];
   const infoItems5 = user
     ? [{ title: 'Status', value: user?.status, width: '100%' }]
     : [];
   const infoItems3 = user
-    ?  [{ title: 'Número para Contato', value: user?.telefone, width: '100%' },
-    ] : [];
+    ? [{ title: 'Número para Contato', value: user?.telefone, width: '100%' }]
+    : [];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',

@@ -49,3 +49,26 @@ export const getLoansById = async ({ id }: ILoansByUserId) => {
     throw error;
   }
 };
+
+interface IProduto {
+  produtoId: number | string;
+  quantidade: number | string;
+}
+
+interface ICreateLoan {
+  diasParaDevolucao: number | string;
+  solicitanteId: number | string;
+  produtos: IProduto[];
+}
+
+export const createLoan = async (data: ICreateLoan) => {
+  try {
+    const response = await api.post('/Emprestimos', data);
+    return response;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao criar mentor', error);
+    }
+    throw error;
+  }
+};

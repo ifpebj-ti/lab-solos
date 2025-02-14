@@ -52,8 +52,6 @@ function RegisteredUsers() {
     fetchRegisteredUsers();
   }, []);
 
-  console.log(registeredUsers);
-
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },
     { value: 'Nome', width: '45%' },

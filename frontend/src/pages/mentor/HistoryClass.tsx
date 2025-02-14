@@ -2,7 +2,6 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
 import { columnsHistories } from '@/mocks/Unidades';
-import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -12,6 +11,7 @@ import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
   id: number;
@@ -44,8 +44,14 @@ interface IProduto {
   ultimaModificacao: string;
   loteId: number | null;
   lote: unknown | null;
-  emprestimoId: number | null;
-  emprestimo: unknown | null;
+}
+
+interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
 }
 
 interface IEmprestimo {
@@ -54,11 +60,11 @@ interface IEmprestimo {
   dataDevolucao: string;
   dataAprovacao: string;
   status: string;
-  produtos: IProduto[];
+  emprestimoProdutos: IEmprestimoProduto[];
   solicitanteId: number;
-  solicitante: IUsuario;
+  solicitante: IUsuario | null;
   aprovadorId: number;
-  aprovador: IUsuario;
+  aprovador: IUsuario | null;
 }
 
 function HistoryClass() {
@@ -97,7 +103,7 @@ function HistoryClass() {
   const filteredLoans = loans.filter((loan) => {
     const matchesText =
       loan.id.toString().includes(searchTerm) ||
-      loan.solicitante.nomeCompleto
+      loan.solicitante?.nomeCompleto
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -210,19 +216,21 @@ function HistoryClass() {
                   </div>
                 ) : (
                   currentData.map((loan, index) => (
-                    <ItemTable
+                    <ClickableItemTable
                       key={index}
                       data={[
                         String(loan?.id),
                         String(loan.solicitante?.nomeCompleto),
                         formatDateTime(loan?.dataRealizacao),
-                        String(loan.produtos?.length),
+                        String(loan.emprestimoProdutos.length),
                         loan?.status,
                       ]}
                       rowIndex={index}
                       columnWidths={columnsHistories.map(
                         (column) => column.width
                       )}
+                      id={loan.id}
+                      destinationRoute='/mentor/history/loan'
                     />
                   ))
                 )}

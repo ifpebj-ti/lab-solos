@@ -4,39 +4,107 @@ import HeaderTable from '@/components/global/table/Header';
 import {
   columnsEstudantesSelected,
   columnsItensSelected,
-  estudantesSelected,
-  itensSelected,
 } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
+import { getLoansById } from '@/integration/Loans';
+import { useLocation } from 'react-router-dom';
+import ItemOnly from '@/components/global/table/ItemOnly';
 
-function LoanHistory() {
-  const isLoading = false;
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: unknown[] | null;
+  emprestimosAprovados: unknown[] | null;
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: IUsuario[] | null;
+}
+
+interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null;
+}
+
+interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
+}
+
+interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  emprestimoProdutos: IEmprestimoProduto[];
+  solicitanteId: number;
+  solicitante: IUsuario | null;
+  aprovadorId: number;
+  aprovador: IUsuario | null;
+}
+
+function LoanHistoryMentee() {
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
+  const [loan, setLoan] = useState<IEmprestimo>();
+  const location = useLocation();
+  const id = location.state?.id;
+
+  useEffect(() => {
+    const fetchGetLoan = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getLoansById({ id });
+        setLoan(response);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao buscar dados de empréstimos:', error);
+        }
+        setLoan(undefined);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGetLoan();
+  }, [id]);
+  console.log(loan);
+  console.log(loan?.emprestimoProdutos[0]);
+
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const filteredUsers = itensSelected.filter((item) =>
-    item[1].toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers =
+    loan?.emprestimoProdutos?.filter((item) =>
+      item.produto.nomeProduto.toLowerCase().includes(searchTerm.toLowerCase())
+    ) ?? [];
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
-
-  const [searchTerm2, setSearchTerm2] = useState('');
-  const [isAscending2, setIsAscending2] = useState(true); // Novo estado para a ordem
-  const toggleSortOrder2 = (ascending2: boolean) => {
-    setIsAscending2(ascending2);
-  };
-  const filteredUsers2 = estudantesSelected.filter((item) =>
-    item[1].toLowerCase().includes(searchTerm2.toLowerCase())
-  );
-  const sortedUsers2 = isAscending2
-    ? [...filteredUsers2]
-    : [...filteredUsers2].reverse();
   return (
     <>
       {isLoading ? (
@@ -59,41 +127,22 @@ function LoanHistory() {
           <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
             <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
-                Mentorados Selecionados
+                Mentorado Vinculado
               </p>
             </div>
             <div className='flex flex-col items-center justify-center w-full px-4'>
-              <div className='flex items-center justify-start gap-x-7 mt-5 w-full'>
-                <div className='w-[40%]'>
-                  <SearchInput
-                    name='search'
-                    onChange={(e) => setSearchTerm2(e.target.value)} // Atualiza o estado 'searchTerm'
-                    value={searchTerm2}
-                  />
-                </div>
-                <TopDown
-                  onClick={() => toggleSortOrder2(!isAscending2)}
-                  top={isAscending2}
-                />
-              </div>
               <HeaderTable columns={columnsEstudantesSelected} />
-              <div className='w-full items-center flex flex-col min-h-40'>
-                {sortedUsers2.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
-                  </div>
-                ) : (
-                  sortedUsers2.map((rowData, index) => (
-                    <ItemTable
-                      key={index}
-                      data={rowData}
-                      rowIndex={index}
-                      columnWidths={columnsEstudantesSelected.map(
-                        (column) => column.width
-                      )}
-                    />
-                  ))
-                )}
+              <div className='w-full items-center flex flex-col min-h-14'>
+                <ItemOnly
+                  data={[
+                    String(loan?.solicitante?.nomeCompleto),
+                    String(loan?.solicitante?.email),
+                    String(loan?.solicitante?.telefone),
+                  ]}
+                  columnWidths={columnsEstudantesSelected.map(
+                    (column) => column.width
+                  )}
+                />
               </div>
             </div>
           </div>
@@ -127,7 +176,13 @@ function LoanHistory() {
                   sortedUsers.map((rowData, index) => (
                     <ItemTable
                       key={index}
-                      data={rowData}
+                      data={[
+                        String(rowData.produto.id || 'Não Corresponde'),
+                        rowData.produto.nomeProduto || 'Não Corresponde',
+                        rowData.produto.tipo || 'Não Corresponde',
+                        String(rowData.produto.quantidade || 'Não Corresponde'),
+                        String(rowData.produto.loteId || 'Não Corresponde'),
+                      ]}
                       rowIndex={index}
                       columnWidths={columnsItensSelected.map(
                         (column) => column.width
@@ -144,4 +199,4 @@ function LoanHistory() {
   );
 }
 
-export default LoanHistory;
+export default LoanHistoryMentee;

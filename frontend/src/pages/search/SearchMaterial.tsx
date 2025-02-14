@@ -217,7 +217,7 @@ function SearchMaterial() {
                       ]}
                       rowIndex={index}
                       columnWidths={columns.map((column) => column.width)}
-                      destinationRoute='/mentee/verification'
+                      destinationRoute='/mentor/verification'
                       id={rowData.id}
                     />
                   ))

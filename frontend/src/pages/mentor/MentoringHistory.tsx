@@ -7,11 +7,11 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import ItemTable from '@/components/global/table/Item';
 import { getUserById } from '@/integration/Users';
 import { formatDate, formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
+import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
   instituicao: string;
@@ -201,7 +201,7 @@ function MentoringHistory() {
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.map((rowData, index) => (
-                  <ItemTable
+                  <ClickableItemTable
                     key={index}
                     data={[
                       String(rowData.id),
@@ -213,6 +213,8 @@ function MentoringHistory() {
                     ]}
                     rowIndex={index}
                     columnWidths={columnsLoan.map((column) => column.width)}
+                    id={rowData.id}
+                    destinationRoute='/mentor/history/loan'
                   />
                 ))}
               </div>

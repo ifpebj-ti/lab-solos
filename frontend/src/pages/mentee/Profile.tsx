@@ -102,7 +102,7 @@ function ProfileMentee() {
     };
     fetchGetUserById();
   }, [id]);
-  console.log(loans)
+  console.log(loans);
 
   const infoItems = [
     {

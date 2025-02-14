@@ -130,3 +130,32 @@ export const approveDependente = async (solicitanteId: string | number) => {
     throw error;
   }
 };
+
+export const rejectDependente = async (solicitanteId: string | number) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    const rankID = Cookie.get('rankID');
+
+    if (!doorKey || !rankID) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'PATCH',
+      url: `/Usuarios/dependentes/${solicitanteId}/rejeitar`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+      data: {
+        aprovadorId: Number(rankID),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao aprovar dependente:', error);
+    }
+    throw error;
+  }
+};

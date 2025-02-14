@@ -19,9 +19,10 @@ export const UserProvider: React.FC<React.PropsWithChildren> = ({
     if (rawRankID) {
       try {
         // Se for um número ou uma string simples, não tentar parsear
-        const parsedRankID = rawRankID.startsWith('{') || rawRankID.startsWith('[')
-          ? JSON.parse(rawRankID)
-          : rawRankID;
+        const parsedRankID =
+          rawRankID.startsWith('{') || rawRankID.startsWith('[')
+            ? JSON.parse(rawRankID)
+            : rawRankID;
 
         setRankID(parsedRankID);
       } catch (error) {

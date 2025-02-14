@@ -11,8 +11,12 @@ import { useEffect, useState } from 'react';
 import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
-import { getDependentesForApproval } from '@/integration/Class';
+import {
+  getDependentesForApproval,
+  rejectDependente,
+} from '@/integration/Class';
 import { approveDependente } from '../integration/Class';
+import { toast } from '@/components/hooks/use-toast';
 
 interface IUsuario {
   id: number;
@@ -56,17 +60,39 @@ function RegistrationRequest() {
     };
     fetchGetLoansDependentes();
   }, [id]);
+
   const handleApprove = async (solicitanteId: number) => {
     try {
       await approveDependente(solicitanteId);
-      alert('Aprovação realizada com sucesso!');
-
-      // Atualiza a lista após aprovação
+      toast({
+        title: 'Solicitação aceita',
+        description: 'Usuário autorizado para acesso à plataforma...',
+      });
       const response = await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
       console.error('Erro ao aprovar dependente:', error);
-      alert('Erro ao aprovar dependente. Tente novamente.');
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+  const handleReject = async (solicitanteId: number) => {
+    try {
+      await rejectDependente(solicitanteId);
+      toast({
+        title: 'Solicitação rejeitada',
+        description: 'Usuário não autorizado para acesso à plataforma...',
+      });
+      const response = await getDependentesForApproval(id);
+      setApproval(response);
+    } catch (error) {
+      console.error('Erro ao aprovar dependente:', error);
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
     }
   };
   const filteredUsers = approval.filter((user) =>
@@ -146,7 +172,7 @@ function RegistrationRequest() {
                       columnWidths={columnsApproval.map(
                         (column) => column.width
                       )}
-                      onClick1={() => console.log('bt1')}
+                      onClick1={() => handleReject(rowData.id)}
                       onClick2={() => handleApprove(rowData.id)}
                       icon1={
                         <SquareX width={20} height={20} stroke='#dd1313' />

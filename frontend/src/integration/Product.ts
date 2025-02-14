@@ -37,7 +37,7 @@ export const getAllProducts = async () => {
     }
     const response = await api({
       method: 'GET',
-      url: `produtos`,
+      url: `Produtos`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },

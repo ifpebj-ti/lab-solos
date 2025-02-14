@@ -100,7 +100,8 @@ function ViewClassMentor() {
   }, [id]);
 
   console.log(dependentes);
-  const filteredUsers = dependentes.filter((user) => user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = dependentes.filter((user) =>
+    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -112,7 +113,8 @@ function ViewClassMentor() {
     currentPage * itemsPerPage
   );
 
-  const infoItems = user ? [
+  const infoItems = user
+    ? [
         { title: 'Nome', value: user?.nomeCompleto, width: '50%' },
         {
           title: 'Email',
@@ -124,13 +126,14 @@ function ViewClassMentor() {
           value: user?.instituicao ? user.instituicao : 'Não Corresponde',
           width: '20%',
         },
-    ] : [];
+      ]
+    : [];
   const infoItems5 = user
     ? [{ title: 'Status', value: user?.status, width: '100%' }]
     : [];
   const infoItems3 = user
-    ?  [{ title: 'Número para Contato', value: user?.telefone, width: '100%' },
-    ] : [];
+    ? [{ title: 'Número para Contato', value: user?.telefone, width: '100%' }]
+    : [];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
@@ -215,13 +218,17 @@ function ViewClassMentor() {
                         rowData.curso,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsButtons.map((column) => column.width)}
+                      columnWidths={columnsButtons.map(
+                        (column) => column.width
+                      )}
                       id={rowData.id}
                       destinationRoute='/admin/history/mentoring'
                     />
                   ))
                 ) : (
-                  <div className="text-clt-2 text-center mt-4 font-inter-medium">Nenhum dependente encontrado.</div>
+                  <div className='text-clt-2 text-center mt-4 font-inter-medium'>
+                    Nenhum dependente encontrado.
+                  </div>
                 )}
               </div>
               {/* Componente de Paginação */}
