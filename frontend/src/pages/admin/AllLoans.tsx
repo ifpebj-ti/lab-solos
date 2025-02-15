@@ -14,13 +14,59 @@ import { getRegisteredUsers } from '@/integration/Users';
 import { formatDate } from '../../function/date';
 import { ArrowLeft } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-interface RegisteredUser {
-  nivelUsuario: string;
-  dataIngresso: string;
+import { getAllLoans } from '@/integration/Loans';
+interface IUsuario {
+  id: number;
   nomeCompleto: string;
+  email: string;
+  senhaHash: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: string;
   tipoUsuario: string;
-  id: string | number;
   status: string;
+  emprestimosSolicitados: unknown[] | null;
+  emprestimosAprovados: unknown[] | null;
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: IUsuario[] | null;
+}
+
+interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null;
+}
+
+interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
+}
+
+interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  emprestimoProdutos: IEmprestimoProduto[];
+  solicitanteId: number;
+  solicitante: IUsuario | null;
+  aprovadorId: number;
+  aprovador: IUsuario | null;
 }
 
 function AllLoans() {
@@ -28,31 +74,28 @@ function AllLoans() {
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>([]);
+  const [loan, setLoan] = useState<IEmprestimo[]>([]);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchRegisteredUsers = async () => {
+    const fetchAllLoans = async () => {
       try {
-        const processedRegisteredUsers = await getRegisteredUsers();
-        const habilitados = processedRegisteredUsers.filter(
-          (user: { status: string }) => user.status === 'Habilitado'
-        );
-        setRegisteredUsers(habilitados);
+        const response = await getAllLoans();
+        setLoan(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar usuários', error);
         }
-        setRegisteredUsers([]);
+        setLoan([]);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)
       }
     };
-    fetchRegisteredUsers();
+    fetchAllLoans();
   }, []);
 
-  console.log(registeredUsers);
+  console.log(loan);
 
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },
@@ -69,10 +112,8 @@ function AllLoans() {
     { value: 'Outro', label: 'Outro Tipo' },
   ];
 
-  const filteredUsers = registeredUsers.filter(
-    (user) =>
-      (value === 'todos' || user.nivelUsuario.toString() === value) &&
-      user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = loan.filter((user) =>
+    user.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -86,24 +127,11 @@ function AllLoans() {
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const getUserCountText = (userType: string) => {
-    const count = registeredUsers.filter(
-      (user) => user.nivelUsuario == userType
+  const getUserCountText = (statusLoan: string) => {
+    const count = loan.filter(
+      (user) => user.status == statusLoan
     ).length;
     return `${count}`;
-  };
-
-  const getDestinationRoute = (userType: string) => {
-    switch (userType) {
-      case 'Administrador':
-        return '/admin/view-class';
-      case 'Mentor':
-        return '/admin/view-class-mentor';
-      case 'Mentorado':
-        return '/admin/history/mentoring';
-      default:
-        return '/admin/view-class'; // Rota padrão caso o tipo de usuário não seja reconhecido
-    }
   };
 
   return (
@@ -115,7 +143,7 @@ function AllLoans() {
           </div>
           Carregando...
         </div>
-      ) : registeredUsers.length != 0 ? (
+      ) : currentData.length != 0 ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
@@ -188,23 +216,21 @@ function AllLoans() {
                     <ClickableItemTable
                       key={index}
                       data={[
-                        formatDate(rowData?.dataIngresso),
-                        rowData?.nomeCompleto || 'Nome não disponível',
-                        rowData?.nivelUsuario,
+                        formatDate(rowData?.dataRealizacao),
+                        rowData?.status || 'Nome não disponível',
+                        rowData?.status || 'Nome não disponível',
                         rowData?.status || 'Status não disponível',
                       ]}
                       rowIndex={index}
                       columnWidths={headerTable.map((column) => column.width)}
-                      destinationRoute={getDestinationRoute(
-                        rowData?.nivelUsuario
-                      )}
+                      destinationRoute={'/admin/history/loan'}
                       id={rowData.id}
                     />
                   ))
                 )}
               </div>
               <Pagination
-                totalItems={registeredUsers.length}
+                totalItems={currentData.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
