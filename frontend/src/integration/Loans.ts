@@ -72,3 +72,83 @@ export const createLoan = async (data: ICreateLoan) => {
     throw error;
   }
 };
+
+export const getAllLoans = async () => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+    const response = await api({
+      method: 'GET',
+      url: `Emprestimos`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao buscar emprestimos', error);
+    }
+    throw error;
+  }
+};
+
+export const approveLoan = async (EmprestimoId: string | number) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    const rankID = Cookie.get('rankID');
+
+    if (!doorKey || !rankID) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'PATCH',
+      url: `/Emprestimos/aprovar/${EmprestimoId}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+      data: {
+        aprovadorId: Number(rankID),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao aprovar dependente:', error);
+    }
+    throw error;
+  }
+};
+
+export const rejectLoan = async (EmprestimoId: string | number) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    const rankID = Cookie.get('rankID');
+
+    if (!doorKey || !rankID) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'PATCH',
+      url: `/Emprestimos/reprovar/${EmprestimoId}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+      data: {
+        aprovadorId: Number(rankID),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao aprovar dependente:', error);
+    }
+    throw error;
+  }
+};

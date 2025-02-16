@@ -172,10 +172,11 @@ export const columnsLoan = [
 ];
 
 export const columns = [
-  { value: 'Nome', width: '20%' },
-  { value: 'Endereço', width: '30%' },
-  { value: 'Profissão', width: '30%' },
-  { value: 'Email', width: '20%' },
+  { value: 'Nome', width: '30%' },
+  { value: 'Quantidade Atual', width: '17.5%' },
+  { value: 'Quantidade Mínima', width: '17.5%' },
+  { value: 'Data de Validade', width: '17.5%' },
+  { value: 'Status', width: '17.5%' },
 ];
 export const dataVer = [
   {

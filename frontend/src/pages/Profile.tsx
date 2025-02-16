@@ -1,13 +1,14 @@
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
 import { useEffect, useState } from 'react';
-import FollowUpCard from '@/components/screens/FollowUp';
-import LayersIcon from '../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
-import { getLoansByUserId } from '@/integration/Loans';
+import { Link } from 'react-router-dom';
+import { LogOutIcon } from 'lucide-react';
+import FollowUpCard from '@/components/screens/FollowUp';
+import LayersIcon from '../../public/icons/LayersIcon';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -82,14 +83,10 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<IUser>();
   const id = Cookie.get('rankID')!;
-  const [loans, setLoans] = useState<IEmprestimo[]>([]);
-
   useEffect(() => {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        const responseLoans = await getLoansByUserId({ id });
-        setLoans(responseLoans);
         setUser(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -145,15 +142,6 @@ function Profile() {
     { title: 'Curso', value: user?.curso ?? 'Não corresponde', width: '100%' },
   ];
 
-  // Função para calcular o número total de itens utilizados
-  const calcularItensEmprestados = (emprestimos: IEmprestimo[]): number => {
-    return emprestimos.reduce((total, emprestimo) => {
-      const produtosEmprestados = emprestimo.produtos?.length || 0; // Conta o número de produtos
-      return total + produtosEmprestados;
-    }, 0);
-  };
-  const totalItens = calcularItensEmprestados(loans);
-
   return (
     <>
       {loading ? (
@@ -170,19 +158,20 @@ function Profile() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
+              <Link
+                to={'/login'}
+                className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150 hover:bg-cl-table-item'
+              >
+                <LogOutIcon stroke='#232323' width={18} />
+              </Link>
               <OpenSearch />
             </div>
           </div>
           <div className='w-11/12 mt-7'>
             <div className='flex gap-x-5 h-32'>
               <FollowUpCard
-                title='Empréstimos Realizados'
-                number={String(loans.length)}
-                icon={<LayersIcon />}
-              />
-              <FollowUpCard
-                title='Itens Utilizados'
-                number={String(totalItens)}
+                title='Dependentes'
+                number={String(user?.dependentes.length)}
                 icon={<LayersIcon />}
               />
             </div>

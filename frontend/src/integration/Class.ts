@@ -159,3 +159,30 @@ export const rejectDependente = async (solicitanteId: string | number) => {
     throw error;
   }
 };
+
+interface IIdMentorClass {
+  id: string | number;
+}
+
+export const getLoansByClass = async ({ id }: IIdMentorClass) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+    const response = await api({
+      method: 'GET',
+      url: `Usuarios/${id}/dependentes/emprestimos`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao buscar produtos', error);
+    }
+    throw error;
+  }
+};

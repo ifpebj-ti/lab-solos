@@ -9,6 +9,7 @@ import { formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import LayersIcon from '../../../public/icons/LayersIcon';
+import { LogOutIcon } from 'lucide-react';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -165,12 +166,18 @@ function ProfileMentor() {
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Perfil
             </h1>
-            <div className='flex items-center justify-between gap-x-6'>
+            <div className='flex items-center justify-between gap-x-4'>
               <Link
                 to={'/mentor/my-class'}
-                className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular'
+                className='border border-borderMy rounded-md h-11 px-7 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 font-inter-regular mr-5'
               >
                 Minha Turma
+              </Link>
+              <Link
+                to={'/login'}
+                className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150'
+              >
+                <LogOutIcon stroke='#232323' width={18} />
               </Link>
               <OpenSearch />
             </div>

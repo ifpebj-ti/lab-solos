@@ -17,7 +17,6 @@ import ViewClass from './pages/ViewClass';
 import MentoringHistory from './pages/mentor/MentoringHistory';
 import Page404 from './pages/Page404';
 import LoanCreation from './pages/mentor/LoanCreation';
-import LoanReview from './pages/mentor/LoanReview';
 import LoanHistory from './pages/loan/LoanHistory';
 import LoanHistories from './pages/loan/LoanHistories';
 import HomeAdmin from './pages/admin/Home';
@@ -35,6 +34,7 @@ import ViewClassMentor from './pages/ViewClassMentor';
 import AllLoans from './pages/admin/AllLoans';
 import LoansRequest from './pages/admin/LoansRequest';
 import VerificationMentor from './pages/mentor/VerificationMentor';
+import ClassLoan from './pages/admin/ClassLoan';
 
 function AppRoutes() {
   return (
@@ -110,6 +110,15 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<ViewClassMentor />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='view-history-class-by-id'
+            element={
+              <PrivateRoute
+                element={<ClassLoan />}
                 requiredRank={['Administrador']}
               />
             }
@@ -225,15 +234,6 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<LoanCreation />}
-                requiredRank={['Mentor']}
-              />
-            }
-          />
-          <Route
-            path='loan/review'
-            element={
-              <PrivateRoute
-                element={<LoanReview />}
                 requiredRank={['Mentor']}
               />
             }

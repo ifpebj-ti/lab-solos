@@ -5,14 +5,15 @@ interface IInfoCardProps {
   icon: React.ReactNode;
   text: string;
   notify: boolean;
+  link: string;
 }
 
-function InfoCard({ icon, text, notify }: IInfoCardProps) {
+function InfoCard({ icon, text, notify, link }: IInfoCardProps) {
   const notifyProp = notify;
 
   return (
     <Link
-      to={'/profile'}
+      to={link}
       className='relative w-1/4 gap-x-4 h-full border-borderMy border rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm'
     >
       <div className='min-w-7'>{icon}</div>

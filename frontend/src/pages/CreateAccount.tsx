@@ -15,6 +15,8 @@ import { z } from 'zod';
 import { createMentor } from '@/integration/Auth';
 import { toast } from '@/components/hooks/use-toast';
 import { AxiosError } from 'axios';
+import { useEffect } from 'react';
+import Cookie from 'js-cookie';
 
 const submitCreateAccountSchema = z
   .object({
@@ -137,6 +139,12 @@ function CreateAccount() {
       }
     }
   };
+
+  useEffect(() => {
+    Cookie.remove('rankID');
+    Cookie.remove('doorKey');
+    Cookie.remove('level');
+  }, []);
 
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>

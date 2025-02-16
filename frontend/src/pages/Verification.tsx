@@ -19,7 +19,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 const chartConfig = {
   desktop: {
@@ -61,7 +61,8 @@ function Verification() {
   const [value, setValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [productsById, setProductsById] = useState<IProduto>();
-  const id = 1;
+  const location = useLocation();
+  const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
     const fetchProductsById = async () => {
