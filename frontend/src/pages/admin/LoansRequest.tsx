@@ -56,7 +56,7 @@ interface IEmprestimoProduto {
   emprestimo: IEmprestimo | null;
 }
 
-interface IEmprestimo {
+export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;

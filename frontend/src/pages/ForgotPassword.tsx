@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../../public/images/logo.png';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useEffect } from 'react';
+import Cookie from 'js-cookie';
 
 const submitForgotPasswordSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -24,6 +26,12 @@ function ForgotPassword() {
   function postForgotPassword() {
     navigate('/login');
   }
+
+  useEffect(() => {
+    Cookie.remove('rankID');
+    Cookie.remove('doorKey');
+    Cookie.remove('level');
+  }, []);
 
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>

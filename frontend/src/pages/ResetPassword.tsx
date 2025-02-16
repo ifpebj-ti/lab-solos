@@ -4,6 +4,8 @@ import logo from '../../public/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useEffect } from 'react';
+import Cookie from 'js-cookie';
 
 const submitResetPasswordSchema = z
   .object({
@@ -35,6 +37,12 @@ function ResetPassword() {
   function postResetPassword() {
     navigate('/login');
   }
+
+  useEffect(() => {
+    Cookie.remove('rankID');
+    Cookie.remove('doorKey');
+    Cookie.remove('level');
+  }, []);
 
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
