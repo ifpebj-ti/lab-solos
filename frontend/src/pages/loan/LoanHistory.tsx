@@ -92,8 +92,6 @@ function LoanHistoryMentee() {
     };
     fetchGetLoan();
   }, [id]);
-  console.log(loan);
-  console.log(loan?.emprestimoProdutos[0]);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);

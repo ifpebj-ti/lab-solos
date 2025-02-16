@@ -34,6 +34,7 @@ import ViewClassMentor from './pages/ViewClassMentor';
 import AllLoans from './pages/admin/AllLoans';
 import LoansRequest from './pages/admin/LoansRequest';
 import VerificationMentor from './pages/mentor/VerificationMentor';
+import ClassLoan from './pages/admin/ClassLoan';
 
 function AppRoutes() {
   return (
@@ -109,6 +110,15 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<ViewClassMentor />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='view-history-class-by-id'
+            element={
+              <PrivateRoute
+                element={<ClassLoan />}
                 requiredRank={['Administrador']}
               />
             }

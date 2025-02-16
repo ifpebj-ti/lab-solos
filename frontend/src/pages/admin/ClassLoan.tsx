@@ -9,9 +9,10 @@ import SelectInput from '@/components/global/inputs/SelectInput';
 import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
-import { getLoansByDependentes } from '@/integration/Class';
+import { getLoansByClass } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import { useLocation } from 'react-router-dom';
 
 interface IUsuario {
   id: number;
@@ -67,20 +68,22 @@ interface IEmprestimo {
   aprovador: IUsuario | null;
 }
 
-function HistoryClass() {
+function ClassLoan() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true);
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  const location = useLocation();
+  const id = location.state?.id;
   const itemsPerPage = 7;
 
   useEffect(() => {
     const fetchGetLoansDependentes = async () => {
       setIsLoading(true);
       try {
-        const response = await getLoansByDependentes();
+        const response = await getLoansByClass({ id });
         setLoans(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -92,7 +95,9 @@ function HistoryClass() {
       }
     };
     fetchGetLoansDependentes();
-  }, []);
+  }, [id]);
+
+  console.log(id)
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
@@ -229,7 +234,7 @@ function HistoryClass() {
                         (column) => column.width
                       )}
                       id={loan.id}
-                      destinationRoute='/mentor/history/loan'
+                      destinationRoute='/admin/history/loan'
                     />
                   ))
                 )}
@@ -250,4 +255,4 @@ function HistoryClass() {
   );
 }
 
-export default HistoryClass;
+export default ClassLoan;

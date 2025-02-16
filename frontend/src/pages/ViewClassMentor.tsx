@@ -7,7 +7,7 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
 import { formatDateTime } from '@/function/date';
@@ -67,6 +67,7 @@ export interface IUser {
 function ViewClassMentor() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
   const itemsPerPage = 7;
   const location = useLocation();
   const id = location.state?.id; // Recupera o ID passado via state
@@ -148,6 +149,9 @@ function ViewClassMentor() {
       width: '100%',
     },
   ];
+  const handleClick = () => {
+    navigate('/admin/view-history-class-by-id', { state: { id } });
+  };
   return (
     <>
       {isLoading ? (
@@ -164,12 +168,12 @@ function ViewClassMentor() {
               Visualização de Turmas
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Link
-                to={'/history/class'}
+              <button
+                onClick={handleClick}
                 className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
               >
                 Empréstimos da Turma
-              </Link>
+              </button>
               <OpenSearch />
             </div>
           </div>
