@@ -10,67 +10,138 @@ import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
-import Cookie from 'js-cookie';
-import { getDependentesForApproval } from '@/integration/Class';
-import { approveDependente } from '../../integration/Class';
+import { approveLoan, getAllLoans, rejectLoan } from '@/integration/Loans';
+import { toast } from '@/components/hooks/use-toast';
 
 interface IUsuario {
   id: number;
   nomeCompleto: string;
   email: string;
+  senhaHash: string;
   telefone: string;
-  dataIngresso: string; // Pode ser convertido para Date se necessário
-  status: string; // Se houver status fixos
-  nivelUsuario: 'Mentor' | 'Mentorado' | 'Administrador'; // Ajuste conforme necessário
-  cidade: string;
-  curso: string;
-  instituicao: string;
+  dataIngresso: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  emprestimosSolicitados: IEmprestimo[] | null;
+  emprestimosAprovados: IEmprestimo[] | null;
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: IUsuario[] | null;
+}
+
+interface IProduto {
+  id: number;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
+  status: string;
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null;
+  emprestimoProdutos: IEmprestimoProduto[] | null;
+}
+
+interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto | null;
+  quantidade: number;
+  emprestimo: IEmprestimo | null;
+}
+
+interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string | null;
+  status: string;
+  emprestimoProdutos: (IEmprestimoProduto | null)[]; // Permite null no array
+  solicitanteId: number;
+  solicitante: IUsuario | null;
+  aprovadorId: number | null;
+  aprovador: IUsuario | null;
 }
 
 function LoansRequest() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const id = Cookie.get('rankID')!;
-  const [approval, setApproval] = useState<IUsuario[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
+  const [loan, setLoan] = useState<IEmprestimo[]>([]);
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
 
   useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
+    const fetchAllLoans = async () => {
       setIsLoading(true);
       try {
-        const response = await getDependentesForApproval(id);
-        setApproval(response);
+        const response = await getAllLoans();
+        const filteredLoans = response.filter(
+          (loan: { status: string }) => loan.status === 'Pendente'
+        );
+        setLoan(filteredLoans);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.error('Erro ao buscar usuários', error);
         }
-        setApproval([]);
+        setLoan([]);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Stop loading after fetch (success or failure)
       }
     };
-    fetchGetLoansDependentes();
-  }, [id]);
+    fetchAllLoans();
+  }, []);
   const handleApprove = async (solicitanteId: number) => {
     try {
-      await approveDependente(solicitanteId);
-      alert('Aprovação realizada com sucesso!');
-
-      // Atualiza a lista após aprovação
-      const response = await getDependentesForApproval(id);
-      setApproval(response);
+      await approveLoan(solicitanteId);
+      toast({
+        title: 'Solicitação aceita',
+        description: 'Usuário autorizado para acesso à plataforma...',
+      });
+      const response = await getAllLoans();
+      const filteredLoans = response.filter(
+        (loan: { status: string }) => loan.status === 'Pendente'
+      );
+      setLoan(filteredLoans);
     } catch (error) {
       console.error('Erro ao aprovar dependente:', error);
-      alert('Erro ao aprovar dependente. Tente novamente.');
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
     }
   };
-  const filteredUsers = approval.filter((user) =>
-    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleReject = async (solicitanteId: number) => {
+    try {
+      await rejectLoan(solicitanteId);
+      toast({
+        title: 'Solicitação rejeitada',
+        description: 'Usuário não autorizado para acesso à plataforma...',
+      });
+      const response = await getAllLoans();
+      const filteredLoans = response.filter(
+        (loan: { status: string }) => loan.status === 'Pendente'
+      );
+      setLoan(filteredLoans);
+    } catch (error) {
+      console.error('Erro ao aprovar dependente:', error);
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+  const filteredUsers = loan.filter((user) =>
+    user.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -80,6 +151,11 @@ function LoansRequest() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const getUserCountText = (statusLoan: string) => {
+    const count = loan.filter((user) => user.status == statusLoan).length;
+    return `${count}`;
+  };
 
   return (
     <>
@@ -103,7 +179,7 @@ function LoansRequest() {
           <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
             <FollowUpCard
               title='Empréstimos'
-              number={approval.length}
+              number={getUserCountText('Pendente')}
               icon={<UserIcon />}
             />
           </div>
@@ -137,16 +213,16 @@ function LoansRequest() {
                     <ItemTableButton
                       key={index}
                       data={[
-                        rowData.nomeCompleto,
-                        rowData.email,
-                        rowData.instituicao,
-                        rowData.curso,
+                        String(rowData.id),
+                        rowData.status,
+                        rowData.status,
+                        rowData.status,
                       ]}
                       rowIndex={index}
                       columnWidths={columnsApproval.map(
                         (column) => column.width
                       )}
-                      onClick1={() => console.log('bt1')}
+                      onClick1={() => handleReject(rowData.id)}
                       onClick2={() => handleApprove(rowData.id)}
                       icon1={
                         <SquareX width={20} height={20} stroke='#dd1313' />
@@ -160,7 +236,7 @@ function LoansRequest() {
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={currentData.length}
+                totalItems={sortedUsers.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
