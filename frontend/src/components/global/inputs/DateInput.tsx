@@ -10,11 +10,12 @@ import { cn } from '../../../lib/utils';
 import { Calendar } from '../../../components/ui/calendar';
 import { UseFormSetValue, Path } from 'react-hook-form';
 import { CreateOutrosFormData } from '../forms/create/FormOutros';
+import { CreateQuimicoFormData } from '../forms/create/FormQuimicos';
 
 interface IDateInput {
   nome: string;
-  name: Path<CreateOutrosFormData>; // Agora aceita apenas nomes válidos
-  setValue: UseFormSetValue<CreateOutrosFormData>; // UseFormSetValue tipado corretamente
+  name: Path<CreateQuimicoFormData>; // Agora aceita apenas nomes válidos
+  setValue: UseFormSetValue<CreateQuimicoFormData>; // UseFormSetValue tipado corretamente
   error?: string;
   disabled?: boolean; // Adicionando a prop disabled
 }

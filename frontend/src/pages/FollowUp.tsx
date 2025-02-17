@@ -162,11 +162,11 @@ function FollowUp() {
                   <ClickableItemTable
                     key={index}
                     data={[
-                      rowData.nomeProduto,
-                      String(rowData.quantidade),
-                      String(rowData.quantidadeMinima),
-                      String(rowData.dataValidade),
-                      rowData.status,
+                      rowData.nomeProduto || 'Não corresponde',
+                      String(rowData.quantidade) || 'Não corresponde',
+                      String(rowData.quantidadeMinima) || 'Não corresponde',
+                      String(rowData.dataValidade) || 'Não corresponde',
+                      rowData.status || 'Não corresponde',
                     ]}
                     rowIndex={index}
                     columnWidths={columns.map((column) => column.width)}

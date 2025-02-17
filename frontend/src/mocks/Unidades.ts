@@ -286,112 +286,6 @@ export const dataVer = [
   },
 ];
 
-export const dataButton = [
-  {
-    name: 'Maria Oliveira',
-    institution: 'Universidade de São Paulo',
-    code: '4823',
-  },
-  {
-    name: 'João Silva',
-    institution: 'Universidade Federal do Rio de Janeiro',
-    code: '1924',
-  },
-  {
-    name: 'Ana Souza',
-    institution: 'Universidade Estadual de Campinas',
-    code: '3019',
-  },
-  {
-    name: 'Carlos Lima',
-    institution: 'Universidade Federal de Minas Gerais',
-    code: '7193',
-  },
-  {
-    name: 'Beatriz Santos',
-    institution: 'Universidade de Brasília',
-    code: '8451',
-  },
-  {
-    name: 'Rafael Almeida',
-    institution: 'Universidade Federal do Ceará',
-    code: '2156',
-  },
-  {
-    name: 'Fernanda Costa',
-    institution: 'Universidade Federal de Santa Catarina',
-    code: '9073',
-  },
-  {
-    name: 'Luiz Pereira',
-    institution: 'Universidade Federal do Pará',
-    code: '1348',
-  },
-  {
-    name: 'Carolina Ramos',
-    institution: 'Universidade Federal do Rio Grande do Sul',
-    code: '4981',
-  },
-  {
-    name: 'Felipe Ferreira',
-    institution: 'Universidade Estadual Paulista',
-    code: '3629',
-  },
-  {
-    name: 'Larissa Mendes',
-    institution: 'Universidade Federal de Pernambuco',
-    code: '6514',
-  },
-  {
-    name: 'Ricardo Barbosa',
-    institution: 'Universidade Federal de Goiás',
-    code: '2765',
-  },
-  {
-    name: 'Juliana Rocha',
-    institution: 'Universidade Federal da Bahia',
-    code: '3892',
-  },
-  {
-    name: 'Gustavo Souza',
-    institution: 'Universidade Federal do Paraná',
-    code: '7432',
-  },
-  {
-    name: 'Vanessa Ribeiro',
-    institution: 'Universidade Federal do Amazonas',
-    code: '5817',
-  },
-];
-
-export const testData = [
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  ['Pedro', 'Rua A, 123', 'Engenheiro', 'pedro@email.com'],
-  ['Ana', 'Av. B, 456', 'Médica', 'ana@email.com'],
-  ['João', 'Rua C, 789', 'Professor', 'joao@email.com'],
-  ['Carla', 'Av. D, 101', 'Advogada', 'carla@email.com'],
-  // Adicione mais dados conforme necessário
-];
-
 export const columnsItensSelected = [
   { value: 'Código', width: '15%' },
   { value: 'Nome', width: '25%' },
@@ -442,15 +336,29 @@ export const columnsClass = [
   { value: 'Status', width: '10%' },
 ];
 
-export const registrosHistories = [
-  ['001', '2025-01-01', '5', '12', 'devolvido'],
-  ['002', '2025-01-02', '8', '10', 'não devolvido'],
-  ['003', '2025-01-03', '14', '6', 'devolvido'],
-  ['004', '2025-01-04', '7', '9', 'não devolvido'],
-  ['005', '2025-01-05', '3', '15', 'devolvido'],
-  ['006', '2025-01-06', '13', '8', 'não devolvido'],
-  ['007', '2025-01-07', '10', '11', 'devolvido'],
-  ['008', '2025-01-08', '4', '14', 'não devolvido'],
-  ['009', '2025-01-09', '9', '7', 'devolvido'],
-  ['010', '2025-01-10', '6', '13', 'não devolvido'],
+export const unidadesMedida = [
+  { value: 'Litro', label: 'Litro' },
+  { value: 'Mililitro', label: 'Mililitro' },
+  { value: 'Metro_cubico', label: 'Metro Cúbico' },
+  { value: 'Grama', label: 'Grama' },
+  { value: 'Quilograma', label: 'Quilograma' },
+  { value: 'Tonelada', label: 'Tonelada' },
+  { value: 'Centimetro_cubico', label: 'Centímetro Cúbico' },
+  { value: 'Miligrama', label: 'Miligrama' },
+  { value: 'Unidade', label: 'Unidade' },
+  { value: 'Metro', label: 'Metro' },
+  { value: 'Centimetro', label: 'Centímetro' },
+  { value: 'iMlimetro', label: 'Milímetro' },
+  { value: 'Outro', label: 'Outro' },
+  { value: 'Indefinido', label: 'Indefinido' },
+];
+
+export const categoriasQuimicas = [
+  { value: 'Acido', label: 'Ácido' },
+  { value: 'Base', label: 'Base' },
+  { value: 'Oxido', label: 'Óxido' },
+  { value: 'Sal', label: 'Sal' },
+  { value: 'Hidroxido', label: 'Hidróxido' },
+  { value: 'Outros', label: 'Outros' },
+  { value: 'Indefinido', label: 'Indefinido' },
 ];

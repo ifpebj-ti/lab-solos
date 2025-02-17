@@ -1,13 +1,14 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import InputText from '../../inputs/Text';
 import SelectInput from '../../inputs/SelectInput';
 import PopoverInput from '../../inputs/PopoverInput';
 import DateInput from '../../inputs/DateInput';
-import { options, unidades } from '@/mocks/Unidades';
+import { categoriasQuimicas, unidadesMedida } from '@/mocks/Unidades';
+import { createProduct } from '@/integration/Product';
+import { toast } from '@/components/hooks/use-toast';
 
 const submitCreateQuimicoSchema = z.object({
   nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
@@ -31,30 +32,74 @@ const submitCreateQuimicoSchema = z.object({
     .refine((val) => Number.isInteger(val) && val > 0, {
       message: 'Quantidade mínima deve ser um número inteiro positivo.',
     }),
-  lote: z.string().min(5, 'O lote deve ter mais de 4 caracteres'),
   localizacao: z
     .string()
     .min(21, 'A localização deve ter mais de 20 caracteres'),
   medida: z.string().nonempty('Selecione uma unidade de medida'),
   grupo: z.string().nonempty('Selecione um grupo'),
+  dataFabricacao: z.string().date('Data de fabricação inválida'),
+  dataValidade: z.string().date('Data de validade inválida'),
+  marca: z.string().min(8, 'Marca deve ter pelo menos 8 caracteres'),
 });
 
-type CreateQuimicoFormData = z.infer<typeof submitCreateQuimicoSchema>;
+export type CreateQuimicoFormData = z.infer<typeof submitCreateQuimicoSchema>;
 
 function FormQuimicos() {
-  const navigate = useNavigate();
   const [medida, setMedida] = useState('');
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CreateQuimicoFormData>({
     resolver: zodResolver(submitCreateQuimicoSchema),
   });
 
-  function onSubmit() {
-    navigate('/');
+  async function onSubmit(data: CreateQuimicoFormData) {
+    try {
+      const dataPost = {
+        nomeProduto: data.nome,
+        fornecedor: data.marca,
+        tipo: 'Quimico',
+        quantidade: data.quantidade,
+        quantidadeMinima: data.minimo,
+        localizacaoProduto: data.localizacao,
+        dataFabricacao: data.dataFabricacao, // Já vem no formato ISO (yyyy-MM-dd)
+        dataValidade: data.dataValidade, // Já vem no formato ISO (yyyy-MM-dd)
+        catmat: data.catmat,
+        unidadeMedida: data.medida,
+        estadoFisico: '',
+        cor: '',
+        odor: '',
+        formulaQuimica: data.formula,
+        pesoMolecular: 0,
+        densidade: 0,
+        grauPureza: '',
+        grupo: data.grupo,
+        material: '',
+        formato: '',
+        altura: '',
+        capacidade: 0,
+        graduada: false,
+      };
+
+      await createProduct(dataPost);
+      toast({
+        title: 'Produto criado',
+        description: 'Verifique o estoque para validação...',
+      });
+      reset();
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao buscar dados de empréstimos:', error);
+      }
+      toast({
+        title: 'Erro ao criar produto',
+        description: 'Verifique os dados e tente novamente...',
+      });
+      console.error('Erro ao adicionar produto:', error);
+    }
   }
 
   return (
@@ -86,6 +131,13 @@ function FormQuimicos() {
           type={'text'}
         />
         <InputText
+          label='Fornecedor'
+          register={register}
+          error={errors.marca?.message}
+          name='marca'
+          type='text'
+        />
+        <InputText
           label='Quantidade'
           type='number'
           register={register}
@@ -100,13 +152,6 @@ function FormQuimicos() {
           name='minimo'
         />
         <InputText
-          label='Lote'
-          register={register}
-          error={errors.lote?.message}
-          name='lote'
-          type={'text'}
-        />
-        <InputText
           label='Localização do Produto'
           register={register}
           error={errors.localizacao?.message}
@@ -115,20 +160,33 @@ function FormQuimicos() {
         />
         <SelectInput
           label='Grupo'
-          options={options}
+          options={categoriasQuimicas}
           onValueChange={(value) => setValue('grupo', value)}
           error={errors.grupo?.message}
           value={''}
         />
-        <DateInput />
         <PopoverInput
-          unidades={unidades}
+          unidades={unidadesMedida}
           value={medida}
           onChange={(value) => {
             setMedida(value);
             setValue('medida', value);
           }}
           error={errors.medida?.message}
+        />
+        <DateInput
+          nome='Data de Fabricação'
+          name='dataFabricacao'
+          setValue={setValue}
+          error={errors.dataFabricacao?.message}
+          disabled={false}
+        />
+        <DateInput
+          nome='Data de Validade'
+          name='dataValidade'
+          setValue={setValue}
+          error={errors.dataValidade?.message}
+          disabled={true}
         />
       </div>
       <div className='flex gap-x-5'>

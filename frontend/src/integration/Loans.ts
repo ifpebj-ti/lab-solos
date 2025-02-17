@@ -118,7 +118,7 @@ export const approveLoan = async (EmprestimoId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao aprovar dependente:', error);
+      console.error('Erro ao aprovar empréstimo:', error);
     }
     throw error;
   }
@@ -147,7 +147,7 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao aprovar dependente:', error);
+      console.error('Erro ao aprovar empréstimo:', error);
     }
     throw error;
   }
