@@ -75,7 +75,8 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             foreach (var dependente in dependentes)
             {
-                var emprestimos = await _emprestimoService.GetEmprestimosSolicitadosUsuario(dependente.Id);
+                var emprestimosDTO = await _emprestimoService.GetEmprestimosSolicitadosUsuario(dependente.Id);
+                var emprestimos = emprestimosDTO.Select(e => Emprestimo.MapFromDTO(e)).ToList();
                 emprestimosDependentes.AddRange(emprestimos);
             }
 

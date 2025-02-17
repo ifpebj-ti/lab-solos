@@ -56,9 +56,9 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTodosEmprestimos(int emprestimoId)
+        public async Task<IActionResult> GetTodosEmprestimosAsync()
         {
-            var emprestimos = await _emprestimoService.GetTodosEmprestimos();
+            var emprestimos = await _emprestimoService.GetTodosEmprestimosAsync();
 
             if (!emprestimos.Any())
             {
