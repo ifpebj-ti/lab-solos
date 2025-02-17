@@ -5,18 +5,39 @@ import {
   PopoverContent,
 } from '@radix-ui/react-popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { format } from 'date-fns'; // Para formatação de data
-import { cn } from '../../../lib/utils'; // Função cn para juntar classes (se necessário)
+import { format } from 'date-fns';
+import { cn } from '../../../lib/utils';
 import { Calendar } from '../../../components/ui/calendar';
+import { UseFormSetValue, Path } from 'react-hook-form';
+import { CreateOutrosFormData } from '../forms/create/FormOutros';
 
-function DateInput() {
-  const [date, setDate] = useState<Date | undefined>(undefined); // Estado para armazenar a data selecionada
+interface IDateInput {
+  nome: string;
+  name: Path<CreateOutrosFormData>; // Agora aceita apenas nomes válidos
+  setValue: UseFormSetValue<CreateOutrosFormData>; // UseFormSetValue tipado corretamente
+  error?: string;
+  disabled?: boolean; // Adicionando a prop disabled
+}
+
+function DateInput({
+  nome,
+  name,
+  setValue,
+  error,
+  disabled = true,
+}: IDateInput) {
+  const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      setValue(name, format(selectedDate, 'yyyy-MM-dd')); // Formato compatível com o Zod
+    }
+  };
 
   return (
     <div className='flex flex-col gap-y-1 w-full'>
-      <p className='font-inter-regular text-sm text-clt-2 mt-3'>
-        Data de Validade
-      </p>
+      <p className='font-inter-regular text-sm text-clt-2 mt-3'>{nome}</p>
       <Popover>
         <PopoverTrigger asChild>
           <button
@@ -27,23 +48,24 @@ function DateInput() {
           >
             <CalendarIcon className='w-4 text-[#2e2e2e]' />
             {date ? (
-              format(date, 'dd/MM/yyyy') // Formata a data selecionada
+              format(date, 'dd/MM/yyyy')
             ) : (
-              <span>Selecione uma data</span> // Texto quando nenhuma data for selecionada
+              <span>Selecione uma data</span>
             )}
           </button>
         </PopoverTrigger>
         <PopoverContent className='w-auto p-0' align='start'>
           <Calendar
             mode='single'
-            selected={date} // Data selecionada
-            onSelect={setDate} // Atualiza a data ao selecionar
-            disabled={(date) => date < new Date()} // Desabilita datas passadas
+            selected={date}
+            onSelect={handleDateSelect}
+            disabled={(date) => disabled && date < new Date()} // Bloqueia apenas datas passadas quando disablePastDates=true
             initialFocus
             className='border border-borderMy rounded-sm bg-backgroundMy'
           />
         </PopoverContent>
       </Popover>
+      {error && <p className='text-red-500 text-xs'>{error}</p>}
     </div>
   );
 }

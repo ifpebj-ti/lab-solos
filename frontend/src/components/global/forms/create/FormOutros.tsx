@@ -1,15 +1,13 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
 import InputText from '../../inputs/Text';
-import SelectInput from '../../inputs/SelectInput';
-import { outros } from '@/mocks/Unidades';
+import DateInput from '../../inputs/DateInput';
+import { createProduct } from '@/integration/Product';
+import { toast } from '@/components/hooks/use-toast';
 
 const submitCreateOutrosSchema = z.object({
-  id: z.string().min(6, 'O id deve ter pelo menos 6 caracteres'),
   nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
-  medida: z.string().nonempty('Selecione uma unidade de medida'),
   marca: z.string().min(8, 'Marca deve ter pelo menos 8 caracteres'),
   quantidade: z
     .string()
@@ -26,25 +24,67 @@ const submitCreateOutrosSchema = z.object({
   localizacao: z
     .string()
     .min(10, 'A localização deve ter mais de 10 caracteres'),
-  restricoes: z.string().min(10, 'Restrições deve ter mais de 10 caracteres'),
-  lote: z.string().min(10, 'O lote deve ter pelo menos 8 caracteres'),
+  dataFabricacao: z.string().date('Data de fabricação inválida'),
+  dataValidade: z.string().date('Data de validade inválida'),
 });
 
-type CreateOutrosFormData = z.infer<typeof submitCreateOutrosSchema>;
+export type CreateOutrosFormData = z.infer<typeof submitCreateOutrosSchema>;
 
 function FormOutros() {
-  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CreateOutrosFormData>({
     resolver: zodResolver(submitCreateOutrosSchema),
   });
 
-  function onSubmit() {
-    navigate('/');
+  async function onSubmit(data: CreateOutrosFormData) {
+    try {
+      const dataPost = {
+        nomeProduto: data.nome,
+        fornecedor: data.marca,
+        tipo: 'Outro',
+        quantidade: data.quantidade,
+        quantidadeMinima: data.minimo,
+        localizacaoProduto: data.localizacao,
+        dataFabricacao: data.dataFabricacao, // Já vem no formato ISO (yyyy-MM-dd)
+        dataValidade: data.dataValidade, // Já vem no formato ISO (yyyy-MM-dd)
+        catmat: '',
+        unidadeMedida: '',
+        estadoFisico: '',
+        cor: '',
+        odor: '',
+        formulaQuimica: '',
+        pesoMolecular: 0,
+        densidade: 0,
+        grauPureza: '',
+        grupo: '',
+        material: '',
+        formato: '',
+        altura: '',
+        capacidade: 0,
+        graduada: false,
+      };
+
+      await createProduct(dataPost);
+      toast({
+        title: 'Produto criado',
+        description: 'Verifique o estoque para validação...',
+      });
+      reset();
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao buscar dados de empréstimos:', error);
+      }
+      toast({
+        title: 'Erro ao criar produto',
+        description: 'Verifique os dados e tente novamente...',
+      });
+      console.error('Erro ao adicionar produto:', error);
+    }
   }
 
   return (
@@ -54,13 +94,6 @@ function FormOutros() {
     >
       <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
         <InputText
-          label='ID'
-          register={register}
-          error={errors.id?.message}
-          name='id'
-          type='text'
-        />
-        <InputText
           label='Nome'
           register={register}
           error={errors.nome?.message}
@@ -68,31 +101,17 @@ function FormOutros() {
           type='text'
         />
         <InputText
-          label='Marca/Fabricante'
+          label='Fornecedor'
           register={register}
           error={errors.marca?.message}
           name='marca'
           type='text'
         />
-        <SelectInput
-          label='Medida'
-          options={outros}
-          error={errors.medida?.message}
-          value=''
-          onValueChange={(value) => setValue('medida', value)}
-        />
-        <InputText
-          label='Lote'
-          register={register}
-          error={errors.lote?.message}
-          name='lote'
-          type='text'
-        />
         <InputText
           label='Quantidade Inserida'
           register={register}
-          error={errors.minimo?.message}
-          name='minimo'
+          error={errors.quantidade?.message}
+          name='quantidade'
           type='number'
         />
         <InputText
@@ -109,14 +128,24 @@ function FormOutros() {
           name='localizacao'
           type='text'
         />
-        <InputText
-          label='Restrições de Uso'
-          register={register}
-          error={errors.restricoes?.message}
-          name='restricoes'
-          type='text'
+
+        {/* Corrigimos a tipagem de `setValue` */}
+        <DateInput
+          nome='Data de Fabricação'
+          name='dataFabricacao'
+          setValue={setValue}
+          error={errors.dataFabricacao?.message}
+          disabled={false}
+        />
+        <DateInput
+          nome='Data de Validade'
+          name='dataValidade'
+          setValue={setValue}
+          error={errors.dataValidade?.message}
+          disabled={true}
         />
       </div>
+
       <div className='flex gap-x-5'>
         <button
           type='button'

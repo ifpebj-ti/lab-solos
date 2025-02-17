@@ -108,7 +108,8 @@ function AllLoans() {
     { value: 'Rejeitado', label: 'Rejeitado' },
   ];
 
-  const filteredUsers = loan.filter((user) =>
+  const filteredUsers = loan.filter(
+    (user) =>
       (value === 'todos' || user.status.toString() === value) &&
       user.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -163,7 +164,7 @@ function AllLoans() {
             <FollowUpCard
               title='Pendentes'
               number={getUserCountText('Pendente')}
-              icon={<Timer stroke='#A9A9A9' width={20}/>}
+              icon={<Timer stroke='#A9A9A9' width={20} />}
             />
             <FollowUpCard
               title='Rejeitados'
@@ -212,8 +213,10 @@ function AllLoans() {
                       key={index}
                       data={[
                         formatDate(rowData?.dataRealizacao),
-                        rowData?.solicitante?.nomeCompleto || 'Nome não disponível',
-                        rowData?.solicitante?.responsavel?.nomeCompleto || 'Responsável não disponível',
+                        rowData?.solicitante?.nomeCompleto ||
+                          'Nome não disponível',
+                        rowData?.solicitante?.responsavel?.nomeCompleto ||
+                          'Responsável não disponível',
                         rowData?.status || 'Status não disponível',
                       ]}
                       rowIndex={index}

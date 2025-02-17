@@ -69,3 +69,51 @@ export const getAlertProducts = async () => {
     throw error;
   }
 };
+interface IProduto {
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  localizacaoProduto: string;
+  dataFabricacao: string; // Formato ISO (YYYY-MM-DD) recomendado para APIs
+  dataValidade: string;
+  catmat: string;
+  unidadeMedida: string;
+  estadoFisico: string;
+  cor: string;
+  odor: string;
+  formulaQuimica: string;
+  pesoMolecular: number;
+  densidade: number;
+  grauPureza: string;
+  grupo: string;
+  material: string;
+  formato: string;
+  altura: string;
+  capacidade: number;
+  graduada: boolean;
+}
+
+export const createProduct = async (dados: IProduto) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api.post('/produtos', dados, {
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao criar produto:', error);
+    }
+    throw error;
+  }
+};
