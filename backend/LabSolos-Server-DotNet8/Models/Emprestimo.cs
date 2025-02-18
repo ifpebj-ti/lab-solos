@@ -36,8 +36,20 @@ namespace LabSolos_Server_DotNet8.Models
                 DataDevolucao = emprestimo.DataDevolucao,
                 DataAprovacao = emprestimo.DataAprovacao,
                 Status = emprestimo.Status.ToString(),
-                Solicitante = emprestimo.Solicitante != null ? new UsuarioDTO { Id = emprestimo.Solicitante.Id, NomeCompleto = emprestimo.Solicitante.NomeCompleto, Email = emprestimo.Solicitante.Email } : null,
-                Aprovador = emprestimo.Aprovador != null ? new UsuarioDTO { Id = emprestimo.Aprovador.Id, NomeCompleto = emprestimo.Aprovador.NomeCompleto, Email = emprestimo.Aprovador.Email } : null,
+                Solicitante = emprestimo.Solicitante != null ? new UsuarioDTO
+                {
+                    Id = emprestimo.Solicitante.Id,
+                    NomeCompleto = emprestimo.Solicitante.NomeCompleto,
+                    Email = emprestimo.Solicitante.Email,
+                    NomeResponsavel = emprestimo.Solicitante.Responsavel?.NomeCompleto ?? null,
+                    ResponsavelId = emprestimo.Solicitante.ResponsavelId
+                } : null,
+                Aprovador = emprestimo.Aprovador != null ? new UsuarioDTO
+                {
+                    Id = emprestimo.Aprovador.Id,
+                    NomeCompleto = emprestimo.Aprovador.NomeCompleto,
+                    Email = emprestimo.Aprovador.Email
+                } : null,
                 EmprestimoProdutos = emprestimo.EmprestimoProdutos.Select(ep => new EmprestimoProdutoDTO
                 {
                     Id = ep.Id,

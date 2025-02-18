@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using LabSolos_Server_DotNet8.Dtos.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
@@ -94,8 +96,33 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("aprovar/{emprestimoId}")]
-        public async Task<IActionResult> AprovarEmprestimo(int emprestimoId, [FromBody] AprovarDTO aprovadorDto)
+        public async Task<IActionResult> AprovarEmprestimo(int emprestimoId)
         {
+            // Obter usuário autenticado
+            var user = HttpContext.User;
+
+            if (user == null)
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+            
+            // Obter o ID do usuário autenticado
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
+
+            // Verificar se o usuário tem o papel de admin
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == "nivel");
+            if (nivelClaim == null || nivelClaim.Value != "Administrador")
+            {
+                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+
             // Buscar o empréstimo pelo ID
             var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
             if (emprestimo == null)
@@ -114,12 +141,6 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (solicitante == null)
             {
                 return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
-            if (solicitante.ResponsavelId != aprovadorDto.AprovadorId)
-            {
-                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
             }
 
             // Reduzir a quantidade dos produtos
@@ -161,7 +182,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             // Atualizar o status do empréstimo para aprovado
             emprestimo.Status = StatusEmprestimo.Aprovado;
             emprestimo.DataAprovacao = DateTime.UtcNow;
-            emprestimo.AprovadorId = aprovadorDto.AprovadorId;
+            emprestimo.AprovadorId = userId;
 
             // Salvar as mudanças no banco de dados
             await _emprestimoService.UpdateAsync(emprestimo);
@@ -171,8 +192,32 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("reprovar/{emprestimoId}")]
-        public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId, [FromBody] AprovarDTO aprovadorDto)
+        public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId)
         {
+            // Obter usuário autenticado
+            var user = HttpContext.User;
+
+            if (user == null)
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            // Obter o ID do usuário autenticado
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            // Verificar se o usuário tem o papel de admin
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == "nivel");
+            if (nivelClaim == null || nivelClaim.Value != "Administrador")
+            {
+                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
+            }
+
             // Buscar o empréstimo pelo ID
             var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
             if (emprestimo == null)
@@ -191,12 +236,6 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (solicitante == null)
             {
                 return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
-            if (solicitante.ResponsavelId != aprovadorDto.AprovadorId)
-            {
-                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
             }
 
             // Atualizar o status do empréstimo para aprovado
