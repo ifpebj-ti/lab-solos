@@ -25,22 +25,30 @@ export interface IAllProducts {
   status: string;
 }
 
-interface ISystemQuantities {
-  $id: string;
+interface DashboardData {
   produtos: {
-    $id: string;
     Quimico: number;
     Vidraria: number;
     Outro: number;
     Total: number;
   };
+  alertas: {
+    ProdutosVencidos: number;
+    ProdutosEmBaixa: number;
+  };
   usuarios: {
-    $id: string;
     Administrador: number;
     Mentor: number;
     Mentorado: number;
     Total: number;
   };
+  emprestimos: {
+    Aprovado: number;
+    Pendente: number;
+    Rejeitado: number;
+    Total: number;
+  };
+  totalProdutosEmprestados: number;
 }
 
 function SearchMaterial() {
@@ -51,7 +59,7 @@ function SearchMaterial() {
   // scroll
   const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<IAllProducts[]>([]);
-  const [system, setSystem] = useState<ISystemQuantities>();
+  const [system, setSystem] = useState<DashboardData>();
 
   useEffect(() => {
     const fetchAllProducts = async () => {
@@ -70,6 +78,8 @@ function SearchMaterial() {
     };
     fetchAllProducts();
   }, []);
+
+  console.log(system)
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));

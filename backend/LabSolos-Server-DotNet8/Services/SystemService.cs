@@ -10,13 +10,13 @@ namespace LabSolos_Server_DotNet8.Services
     {
         Task<QuantitiesDTO> GetSystemQuantitiesAsync();
     }
-    
-    public class SystemService(IProdutoRepository produtoRepository, IUsuarioRepository usuarioRepository) : ISystemService
+
+    public class SystemService(IProdutoRepository produtoRepository, IUsuarioRepository usuarioRepository, IEmprestimoRepository emprestimoRepository) : ISystemService
     {
 
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
         private readonly IUsuarioRepository _usuarioRepository = usuarioRepository;
-
+        private readonly IEmprestimoRepository _emprestimoRepository = emprestimoRepository;
 
         public async Task<QuantitiesDTO> GetSystemQuantitiesAsync()
         {
@@ -39,7 +39,7 @@ namespace LabSolos_Server_DotNet8.Services
             var usuarios = await _usuarioRepository.GetAllAsync();
 
             var userCountByType = usuarios
-                .GroupBy(p => p.NivelUsuario)
+                .GroupBy(u => u.NivelUsuario)
                     .ToDictionary(
                         g => g.Key.ToString(), // Converte o enum para string
                         g => g.Count()         // Conta os produtos no grupo
@@ -47,11 +47,40 @@ namespace LabSolos_Server_DotNet8.Services
 
             userCountByType["Total"] = usuarios.Count();
 
+            var emprestimos = await _emprestimoRepository.GetTodosEmprestimosAsync();
+
+            var emprestimosAgrupadosPeloStatus = emprestimos
+                .GroupBy(e => e.Status)
+                    .ToDictionary(
+                        g => g.Key.ToString(), // Converte o enum para string
+                        g => g.Count()
+                    );
+
+            // Total de empréstimos
+            emprestimosAgrupadosPeloStatus["Total"] = emprestimos.Count();
+
+            // Contagem total de produtos emprestados
+            int totalProdutosEmprestados = emprestimos
+                .SelectMany(e => e.EmprestimoProdutos)
+                .Count();
+
+            var produtosEmAlerta = await _produtoRepository.GetProdutosEmAlerta();
+
+            // Agrupa por tipo e conta os produtos em cada grupo
+            var alertas = new Dictionary<string, int>
+            {
+                { "ProdutosVencidos", produtosEmAlerta.Count(p => p.DataValidade < DateTime.Today.AddDays(-10)) },
+                { "ProdutosEmBaixa", produtosEmAlerta.Count(p => p.Quantidade < p.QuantidadeMinima) }
+            };
+
             // Cria e retorna o DTO
             return new QuantitiesDTO
             {
                 Produtos = productCountsByType,
+                Alertas = alertas,
                 Usuarios = userCountByType,
+                Emprestimos = emprestimosAgrupadosPeloStatus,
+                TotalProdutosEmprestados = totalProdutosEmprestados
             };
         }
     }

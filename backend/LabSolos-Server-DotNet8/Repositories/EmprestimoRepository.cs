@@ -8,7 +8,7 @@ namespace LabSolos_Server_DotNet8.Repositories
     public interface IEmprestimoRepository
     {
         Task<Emprestimo?> GetByIdAsync(int id);
-        Task<IEnumerable<Emprestimo>> GetTodosEmprestimos();
+        Task<IEnumerable<Emprestimo>> GetTodosEmprestimosAsync();
         Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosUsuario(int userId);
@@ -26,15 +26,17 @@ namespace LabSolos_Server_DotNet8.Repositories
                 .Include(e => e.Solicitante)
                 .Include(e => e.Aprovador)
                 .Include(e => e.EmprestimoProdutos)
-                .ThenInclude(e => e.Produto)
+                    .ThenInclude(ep => ep.Produto)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<IEnumerable<Emprestimo>> GetTodosEmprestimos()
+        public async Task<IEnumerable<Emprestimo>> GetTodosEmprestimosAsync()
         {
             return await _context.Emprestimos
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
                 .Include(e => e.EmprestimoProdutos)
-                .ThenInclude(e => e.Produto)
+                    .ThenInclude(ep => ep.Produto)
                 .ToListAsync();
         }
 
@@ -42,8 +44,10 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             return await _context.Emprestimos
                 .Where(e => e.SolicitanteId == userId || e.AprovadorId == userId)
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
                 .Include(e => e.EmprestimoProdutos)
-                .ThenInclude(e => e.Produto)
+                    .ThenInclude(ep => ep.Produto)
                 .ToListAsync();
         }
 
@@ -51,8 +55,10 @@ namespace LabSolos_Server_DotNet8.Repositories
         {            
             return await _context.Emprestimos
                 .Where(e => e.SolicitanteId == userId)
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
                 .Include(e => e.EmprestimoProdutos)
-                .ThenInclude(e => e.Produto)
+                    .ThenInclude(ep => ep.Produto)
                 .ToListAsync();
         }
 
@@ -60,8 +66,10 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             return await _context.Emprestimos
                 .Where(e => e.AprovadorId == userId)
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
                 .Include(e => e.EmprestimoProdutos)
-                .ThenInclude(e => e.Produto)
+                    .ThenInclude(ep => ep.Produto)
                 .ToListAsync();
         }
 

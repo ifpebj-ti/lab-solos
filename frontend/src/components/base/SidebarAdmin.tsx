@@ -47,7 +47,7 @@ function SidebarAdmin() {
           fill={currentPage === '/admin/all-loans' ? '#16A34A' : '#fff'}
         />
       ),
-      label: 'Usuários',
+      label: 'Empréstimos',
     },
     {
       to: '/admin/users',

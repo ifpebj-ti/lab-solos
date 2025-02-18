@@ -9,6 +9,7 @@ namespace LabSolos_Server_DotNet8.Enums
         Esgotado, //Acabou
         Vencido, //Deve ser descartado, em tese
         Perdido, //Não se sabe o paradeiro
-        Solicitado // Alguém deseja usar
+        Solicitado, // Alguém deseja usar
+        Indefinido
     }
 }

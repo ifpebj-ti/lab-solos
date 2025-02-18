@@ -16,6 +16,7 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
 import { getAlertProducts } from '@/integration/Product';
+import { getSystemQuantities } from '@/integration/System';
 interface IUsuario {
   id: number;
   nomeCompleto: string;
@@ -41,14 +42,39 @@ interface IProduto {
   dataValidade: string | null;
   status: string;
 }
+interface DashboardData {
+  produtos: {
+    Quimico: number;
+    Vidraria: number;
+    Outro: number;
+    Total: number;
+  };
+  alertas: {
+    ProdutosVencidos: number;
+    ProdutosEmBaixa: number;
+  };
+  usuarios: {
+    Administrador: number;
+    Mentor: number;
+    Mentorado: number;
+    Total: number;
+  };
+  emprestimos: {
+    Aprovado: number;
+    Pendente: number;
+    Rejeitado: number;
+    Total: number;
+  };
+  totalProdutosEmprestados: number;
+}
 
 function Home() {
-  const valor = ['721', '283', '43', '728', '815'];
   const [isLoading, setIsLoading] = useState(false);
   const id = Cookie.get('rankID')!;
   const [approval, setApproval] = useState<IUsuario[]>([]);
   const [loan, setLoan] = useState<IEmprestimo[]>([]);
   const [alert, setAlert] = useState<IProduto[]>([]);
+  const [system, setSystem] = useState<DashboardData>();
 
   useEffect(() => {
     const fetchGetLoansDependentes = async () => {
@@ -56,6 +82,8 @@ function Home() {
       try {
         const response = await getDependentesForApproval(id);
         const responseAllLoans = await getAllLoans();
+        const systemQuant = await getSystemQuantities();
+        setSystem(systemQuant);
         const filteredLoans = responseAllLoans.filter(
           (loan: { status: string }) => loan.status === 'Pendente'
         );
@@ -81,8 +109,15 @@ function Home() {
     'Solicitações de Empréstimo',
     'Itens Monitorados',
     'Empréstimos Realizados',
-    'Empréstimos Monitorados',
+    'Usuários Cadatrados',
     'Solicitações de Itens',
+  ];
+  const valor = [
+    String(system?.emprestimos.Total),
+    String(system?.produtos.Total),
+    String(system?.emprestimos.Aprovado),
+    String(system?.usuarios.Total),
+    String(system?.totalProdutosEmprestados),
   ];
   const imagesSrc = [analysis, notebook, vidraria, notebook, vidraria];
   return (

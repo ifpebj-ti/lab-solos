@@ -12,10 +12,12 @@ import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import { approveLoan, getAllLoans, rejectLoan } from '@/integration/Loans';
 import { toast } from '@/components/hooks/use-toast';
+import { formatDateTime } from '@/function/date';
 
 interface IUsuario {
   id: number;
   nomeCompleto: string;
+  nomeResponsavel: string;
   email: string;
   senhaHash: string;
   telefone: string;
@@ -105,7 +107,7 @@ function LoansRequest() {
       await approveLoan(solicitanteId);
       toast({
         title: 'Solicitação aceita',
-        description: 'Usuário autorizado para acesso à plataforma...',
+        description: 'Empréstimo autorizado para uso...',
       });
       const response = await getAllLoans();
       const filteredLoans = response.filter(
@@ -113,7 +115,7 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.error('Erro ao aprovar dependente:', error);
+      console.error('Erro ao aprovar empréstimo:', error);
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -125,7 +127,7 @@ function LoansRequest() {
       await rejectLoan(solicitanteId);
       toast({
         title: 'Solicitação rejeitada',
-        description: 'Usuário não autorizado para acesso à plataforma...',
+        description: 'Empréstimo não autorizado para uso...',
       });
       const response = await getAllLoans();
       const filteredLoans = response.filter(
@@ -133,7 +135,7 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.error('Erro ao aprovar dependente:', error);
+      console.error('Erro ao reprovar empréstimo:', error);
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -141,7 +143,7 @@ function LoansRequest() {
     }
   };
   const filteredUsers = loan.filter((user) =>
-    user.status.toLowerCase().includes(searchTerm.toLowerCase())
+    user.solicitante?.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -157,6 +159,7 @@ function LoansRequest() {
     return `${count}`;
   };
 
+  console.log(currentData)
   return (
     <>
       {isLoading ? (
@@ -213,10 +216,10 @@ function LoansRequest() {
                     <ItemTableButton
                       key={index}
                       data={[
-                        String(rowData.id),
-                        rowData.status,
-                        rowData.status,
-                        rowData.status,
+                        formatDateTime(String(rowData.dataRealizacao)) || 'Não corresponde',
+                        String(rowData.solicitante?.nomeCompleto) || 'Não corresponde',
+                        String(rowData.solicitante?.email) || 'Não corresponde',
+                        String(rowData.solicitante?.nomeResponsavel) || 'Não corresponde',
                       ]}
                       rowIndex={index}
                       columnWidths={columnsApproval.map(

@@ -111,6 +111,7 @@ namespace LabSolos_Server_DotNet8.Services
                     throw new NotImplementedException("Tipo de produto não implementado.");
             }
         }
+
         public async Task<IEnumerable<object>> GetAllAsync()
         {
             var produtos = await _produtoRepository.GetAllAsync();
@@ -119,6 +120,7 @@ namespace LabSolos_Server_DotNet8.Services
             {
                 Id = o.Id,
                 NomeProduto = o.NomeProduto,
+                TipoProduto = o.Tipo.ToString(),
                 Fornecedor = o.Fornecedor,
                 Quantidade = o.Quantidade,
                 DataFabricacao = o.DataFabricacao.ToString(),
@@ -186,7 +188,6 @@ namespace LabSolos_Server_DotNet8.Services
                     UnidadeMedida = _utilitiesService.ValidarEnum(produtoDTO.UnidadeMedida, nameof(produtoDTO.UnidadeMedida), UnidadeMedida.Indefinido),
                     EstadoFisico = _utilitiesService.ValidarEnum(produtoDTO.EstadoFisico, nameof(produtoDTO.EstadoFisico), EstadoFisico.Indefinido),
                     Cor = _utilitiesService.ValidarEnum(produtoDTO.Cor, nameof(produtoDTO.Cor), Cor.Indefinido),
-
                     Odor = _utilitiesService.ValidarEnum(produtoDTO.Odor, nameof(produtoDTO.Odor), Odor.Indefinido),
                     PesoMolecular = produtoDTO.PesoMolecular,
                     GrauPureza = produtoDTO.GrauPureza,
@@ -197,7 +198,7 @@ namespace LabSolos_Server_DotNet8.Services
                 {
                     NomeProduto = produtoDTO.NomeProduto,
                     Fornecedor = produtoDTO.Fornecedor,
-                    Tipo = TipoProduto.Quimico,
+                    Tipo = TipoProduto.Vidraria,
                     Quantidade = produtoDTO.Quantidade,
                     QuantidadeMinima = produtoDTO.QuantidadeMinima,
                     LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
@@ -208,7 +209,7 @@ namespace LabSolos_Server_DotNet8.Services
                     Formato = _utilitiesService.ValidarEnum(produtoDTO.Formato, nameof(produtoDTO.Formato), FormatoVidraria.Indefinido),
                     Altura = _utilitiesService.ValidarEnum(produtoDTO.Altura, nameof(produtoDTO.Altura), AlturaVidraria.Indefinido),
                     Capacidade = produtoDTO.Capacidade,
-                    Graduada = produtoDTO.Graduada,
+                    Graduada = produtoDTO.Graduada ?? null
                 },
                 "Outro" => new Produto
                 {
