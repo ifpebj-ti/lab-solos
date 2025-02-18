@@ -82,6 +82,7 @@ function AllLoans() {
       try {
         const response = await getAllLoans();
         setLoan(response);
+        console.log(response)
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar usuários', error);
