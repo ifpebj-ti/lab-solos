@@ -135,7 +135,7 @@ namespace LabSolos_Server_DotNet8.Services
                 {
                     NomeProduto = loteDto.NomeProduto,
                     Fornecedor = loteDto.Fornecedor,
-                    Tipo = TipoProduto.Quimico,
+                    Tipo = TipoProduto.Vidraria,
                     Quantidade = loteDto.Quantidade,
                     QuantidadeMinima = loteDto.QuantidadeMinima,
                     LocalizacaoProduto = loteDto.LocalizacaoProduto,
