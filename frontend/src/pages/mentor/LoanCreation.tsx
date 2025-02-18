@@ -166,7 +166,7 @@ function LoanCreation() {
     } catch {
       toast({
         title: 'Erro na criação do empréstimo',
-        description: 'Tente novamente mais tarde...',
+        description: 'Verifique disponibilidade dos produtos selecionados e tente novamente...',
       });
     } finally {
       setIsLoading(false);
