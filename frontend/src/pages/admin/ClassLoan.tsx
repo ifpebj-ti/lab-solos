@@ -97,7 +97,7 @@ function ClassLoan() {
     fetchGetLoansDependentes();
   }, [id]);
 
-  console.log(id)
+  console.log(id);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);

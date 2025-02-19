@@ -144,7 +144,7 @@ function LoanCreation() {
 
   const handleSubmitLoan = async () => {
     if (!userSelected || selectedProducts.length === 0) {
-      alert("Selecione um usuário e adicione pelo menos um produto.");
+      alert('Selecione um usuário e adicione pelo menos um produto.');
       return;
     }
 

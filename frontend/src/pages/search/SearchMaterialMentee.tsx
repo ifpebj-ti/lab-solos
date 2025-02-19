@@ -51,7 +51,7 @@ interface DashboardData {
   totalProdutosEmprestados: number;
 }
 
-function SearchMaterial() {
+function SearchMaterialMentee() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -227,7 +227,7 @@ function SearchMaterial() {
                       ]}
                       rowIndex={index}
                       columnWidths={columns.map((column) => column.width)}
-                      destinationRoute='/admin/verification'
+                      destinationRoute='/mentee/verification'
                       id={rowData.id}
                     />
                   ))
@@ -248,4 +248,4 @@ function SearchMaterial() {
   );
 }
 
-export default SearchMaterial;
+export default SearchMaterialMentee;

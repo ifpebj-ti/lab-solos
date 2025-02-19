@@ -4,7 +4,7 @@ import FollowUpCard from '@/components/screens/FollowUp';
 import UserIcon from '../../public/icons/UserIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsApproval } from '@/mocks/Unidades';
+import { columnsApproval22 } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -151,7 +151,7 @@ function RegistrationRequest() {
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsApproval} />
+            <HeaderTable columns={columnsApproval22} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.length === 0 ? (
@@ -163,13 +163,13 @@ function RegistrationRequest() {
                     <ItemTableButton
                       key={index}
                       data={[
-                        rowData.nomeCompleto,
-                        rowData.email,
-                        rowData.instituicao,
-                        rowData.curso,
+                        String(rowData.dataIngresso) || 'Não corresponde',
+                        String(rowData.nomeCompleto) || 'Não corresponde',
+                        String(rowData.email) || 'Não corresponde',
+                        String(rowData.instituicao) || 'Não corresponde',
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsApproval.map(
+                      columnWidths={columnsApproval22.map(
                         (column) => column.width
                       )}
                       onClick1={() => handleReject(rowData.id)}
