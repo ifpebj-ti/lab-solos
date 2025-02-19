@@ -50,22 +50,50 @@ export const outros = [
   { value: 'cm', label: 'Caminhão' },
 ];
 
-export const vidrarias = [
-  { value: 'pipeta', label: 'Pipeta' },
-  { value: 'bureta', label: 'Bureta' },
-  { value: 'proveta', label: 'Proveta (Cilindro Graduado)' },
-  { value: 'bequer', label: 'Béquer' },
-  { value: 'erlenmeyer', label: 'Erlenmeyer' },
-  { value: 'balao_volumetrico', label: 'Balão Volumétrico' },
-  { value: 'funil', label: 'Funil' },
-  { value: 'dessecador', label: 'Dessecador' },
-  { value: 'condensador', label: 'Condensador' },
-  { value: 'placa_petri', label: 'Placa de Petri' },
-  { value: 'frasco_reagentes', label: 'Frasco de Reagentes' },
-  { value: 'balao_fundo_redondo', label: 'Balão de Fundo Redondo' },
-  { value: 'tubo_ensaio', label: 'Tubo de Ensaio' },
-  { value: 'kitasato', label: 'Kitasato' },
-  { value: 'vidro_relogio', label: 'Vidro de Relógio' },
+export const materiais = [
+  { value: 'VidroBorossilicato', label: 'Vidro Borossilicato' },
+  { value: 'VidroSodaCal', label: 'Vidro Soda-Cal' },
+  { value: 'Polimetilpentano', label: 'Polimetilpentano' },
+  { value: 'Polipropileno', label: 'Polipropileno' },
+  { value: 'Policarbonato', label: 'Policarbonato' },
+  { value: 'Polietileno', label: 'Polietileno' },
+  { value: 'Teflon', label: 'Teflon' },
+  { value: 'Agata', label: 'Ágata' },
+  { value: 'Aluminio', label: 'Alumínio' },
+  { value: 'Quartzo', label: 'Quartzo' },
+  { value: 'Poliestireno', label: 'Poliestireno' },
+  { value: 'AcoInoxidavel', label: 'Aço Inoxidável' },
+  { value: 'Outro', label: 'Outro' },
+  { value: 'Indefinido', label: 'Indefinido' },
+];
+
+export const formatos = [
+  { value: 'Cilindrica', label: 'Cilíndrica' },
+  { value: 'Conica', label: 'Cônica' },
+  { value: 'Esferica', label: 'Esférica' },
+  { value: 'CilindricaComBaseLarga', label: 'Cilíndrica com Base Larga' },
+  { value: 'Pipeta', label: 'Pipeta' },
+  { value: 'Funil', label: 'Funil' },
+  { value: 'Plana', label: 'Plana' },
+  { value: 'ConicaInvertida', label: 'Cônica Invertida' },
+  { value: 'Coluna', label: 'Coluna' },
+  { value: 'TuboFormaU', label: 'Tubo em Forma de U' },
+  { value: 'Oval', label: 'Oval' },
+  { value: 'Disco', label: 'Disco' },
+  { value: 'Outro', label: 'Outro' },
+  { value: 'Indefinido', label: 'Indefinido' },
+];
+
+export const grausPureza = [
+  { value: 'Alta', label: 'Alta' },
+  { value: 'Intermediaria', label: 'Intermediária' },
+  { value: 'Baixa', label: 'Baixa' },
+  { value: 'Indefinido', label: 'Indefinido' },
+];
+
+export const TrueFalse = [
+  { value: 'true', label: 'Sim' },
+  { value: 'false', label: 'Não' },
 ];
 
 export type ChemicalData = {

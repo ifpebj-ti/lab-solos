@@ -2,9 +2,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import InputText from '../../inputs/Text';
-import DateInput from '../../inputs/DateInput';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
+import DateInputOutros from '../../inputs/DateInputOutros';
 
 const submitCreateOutrosSchema = z.object({
   nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
@@ -130,14 +130,14 @@ function FormOutros() {
         />
 
         {/* Corrigimos a tipagem de `setValue` */}
-        <DateInput
+        <DateInputOutros
           nome='Data de Fabricação'
           name='dataFabricacao'
           setValue={setValue}
           error={errors.dataFabricacao?.message}
           disabled={false}
         />
-        <DateInput
+        <DateInputOutros
           nome='Data de Validade'
           name='dataValidade'
           setValue={setValue}

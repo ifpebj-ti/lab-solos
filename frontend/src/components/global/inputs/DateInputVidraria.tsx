@@ -9,17 +9,17 @@ import { format } from 'date-fns';
 import { cn } from '../../../lib/utils';
 import { Calendar } from '../../../components/ui/calendar';
 import { UseFormSetValue, Path } from 'react-hook-form';
-import { CreateQuimicoFormData } from '../forms/create/FormQuimicos';
+import { CreateVidrariaFormData } from '../forms/create/FormVidraria';
 
 interface IDateInput {
   nome: string;
-  name: Path<CreateQuimicoFormData>; // Agora aceita apenas nomes válidos
-  setValue: UseFormSetValue<CreateQuimicoFormData>; // UseFormSetValue tipado corretamente
+  name: Path<CreateVidrariaFormData>; // Agora aceita apenas nomes válidos
+  setValue: UseFormSetValue<CreateVidrariaFormData>; // UseFormSetValue tipado corretamente
   error?: string;
   disabled?: boolean; // Adicionando a prop disabled
 }
 
-function DateInput({
+function DateInputVidraria({
   nome,
   name,
   setValue,
@@ -70,4 +70,4 @@ function DateInput({
   );
 }
 
-export default DateInput;
+export default DateInputVidraria;

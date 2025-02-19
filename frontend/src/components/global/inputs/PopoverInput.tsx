@@ -17,7 +17,7 @@ import UpDownIcon from '../../../../public/icons/UpDownIcon';
 import { cn } from '@/lib/utils';
 
 type PopoverInputProps = {
-  unidades: { value: string; label: string }[]; // tipo das unidades que serão passadas via props
+  unidades: { value: string | boolean; label: string }[]; // tipo das unidades que serão passadas via props
   value: string;
   onChange: (value: string) => void; // função para alterar o valor selecionado
   error?: string; // opcional: mensagem de erro
