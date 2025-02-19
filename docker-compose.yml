@@ -16,21 +16,21 @@ services:
     restart: always
     ports:
       - "5000:5000"
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/labsolos
+#    environment:
+#      - DATABASE_URL=postgres://postgres:postgres@db:5432/labsolos
 
-  db:
-    image: postgres:15
-    container_name: database
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: labsolos
-    volumes:
-      - pg_data:/var/lib/postgresql/data
+#  db:
+#    image: postgres:15
+#    container_name: database
+#    restart: always
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: labsolos
+#    volumes:
+#      - pg_data:/var/lib/postgresql/data
 
-volumes:
-  pg_data:
+#volumes:
+#  pg_data:
