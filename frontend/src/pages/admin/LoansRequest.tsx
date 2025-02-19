@@ -8,11 +8,11 @@ import { columnsApproval } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
-import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import { approveLoan, getAllLoans, rejectLoan } from '@/integration/Loans';
 import { toast } from '@/components/hooks/use-toast';
 import { formatDateTime } from '@/function/date';
+import ItemTableButtonLink from '@/components/global/table/ItemButtonLink';
 
 interface IUsuario {
   id: number;
@@ -91,6 +91,7 @@ function LoansRequest() {
           (loan: { status: string }) => loan.status === 'Pendente'
         );
         setLoan(filteredLoans);
+        console.log(filteredLoans);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar usuários', error);
@@ -213,7 +214,7 @@ function LoansRequest() {
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
-                    <ItemTableButton
+                    <ItemTableButtonLink
                       key={index}
                       data={[
                         formatDateTime(String(rowData.dataRealizacao)) || 'Não corresponde',
@@ -233,6 +234,8 @@ function LoansRequest() {
                       icon2={
                         <SquareCheck width={20} height={20} stroke='#16a34a' />
                       }
+                      id={rowData.id}
+                      destinationRoute='/admin/history/loan'
                     />
                   ))
                 )}

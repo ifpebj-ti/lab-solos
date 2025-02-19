@@ -35,6 +35,8 @@ import AllLoans from './pages/admin/AllLoans';
 import LoansRequest from './pages/admin/LoansRequest';
 import VerificationMentor from './pages/mentor/VerificationMentor';
 import ClassLoan from './pages/admin/ClassLoan';
+import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
+import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 
 function AppRoutes() {
   return (
@@ -251,7 +253,7 @@ function AppRoutes() {
             path='search-material'
             element={
               <PrivateRoute
-                element={<SearchMaterial />}
+                element={<SearchMaterialMentor />}
                 requiredRank={['Mentor']}
               />
             }
@@ -306,7 +308,7 @@ function AppRoutes() {
             path='search-material'
             element={
               <PrivateRoute
-                element={<SearchMaterial />}
+                element={<SearchMaterialMentee />}
                 requiredRank={['Mentorado']}
               />
             }
