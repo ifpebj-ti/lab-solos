@@ -1,0 +1,36 @@
+# Ignorar dependências locais do Node.js
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Ignorar arquivos de configuração e cache
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignorar arquivos do build local
+.vscode/
+dist/
+build/
+.next/
+out/
+
+# Ignorar arquivos de pacotes e logs
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignorar cache do TypeScript
+*.tsbuildinfo
+
+# Ignorar arquivos gerados por editores
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignorar cache do sistema
+Thumbs.db
