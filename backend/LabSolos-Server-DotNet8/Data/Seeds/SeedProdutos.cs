@@ -8,12 +8,13 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
     {
         public static void Seed(AppDbContext context)
         {
+            // Criando novos empréstimos com diferentes solicitantes e status
             var emprestimo1 = new Emprestimo
             {
                 Id = 1,
-                DataRealizacao = DateTime.UtcNow.AddDays(-7),
-                DataDevolucao = DateTime.UtcNow.AddDays(7),
-                DataAprovacao = DateTime.UtcNow,
+                DataRealizacao = DateTime.UtcNow.AddDays(-10),
+                DataDevolucao = DateTime.UtcNow.AddDays(10),
+                DataAprovacao = DateTime.UtcNow.AddDays(-9),
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 3,
                 AprovadorId = 2
@@ -22,116 +23,117 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             var emprestimo2 = new Emprestimo
             {
                 Id = 2,
-                DataRealizacao = DateTime.UtcNow.AddDays(-3),
-                DataDevolucao = DateTime.UtcNow.AddDays(4),
+                DataRealizacao = DateTime.UtcNow.AddDays(-5),
+                DataDevolucao = DateTime.UtcNow.AddDays(5),
                 Status = StatusEmprestimo.Pendente,
-                SolicitanteId = 2
+                SolicitanteId = 4
             };
 
-            context.Emprestimos.AddRange(emprestimo1, emprestimo2);
-
-            // Lotes
-            var loteQuimico1 = new Lote
+            var emprestimo3 = new Emprestimo
             {
-                Id = 1,
-                CodigoLote = "LQ001",
-                DataEntrada = DateTime.Now.AddDays(-30),
+                Id = 3,
+                DataRealizacao = DateTime.UtcNow.AddDays(-2),
+                DataDevolucao = DateTime.UtcNow.AddDays(6),
+                Status = StatusEmprestimo.Aprovado,
+                SolicitanteId = 5,
+                AprovadorId = 1
             };
 
-            var loteVidraria1 = new Lote
-            {
-                Id = 2,
-                CodigoLote = "LV001",
-                DataEntrada = DateTime.Now.AddDays(-60),
-            };
+            context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3);
 
-            context.Lotes.AddRange(loteQuimico1, loteVidraria1);
+            // Criando lotes para diferentes tipos de produtos
+            var loteQuimico = new Lote { Id = 1, CodigoLote = "LQ002", DataEntrada = DateTime.Now.AddDays(-45) };
+            var loteVidraria = new Lote { Id = 2, CodigoLote = "LV002", DataEntrada = DateTime.Now.AddDays(-90) };
+            var loteEquipamento = new Lote { Id = 3, CodigoLote = "LE001", DataEntrada = DateTime.Now.AddDays(-30) };
 
-            // Produtos
+            context.Lotes.AddRange(loteQuimico, loteVidraria, loteEquipamento);
+
+            // Criando novos produtos químicos
             var quimico1 = new Quimico
             {
                 Id = 1,
-                NomeProduto = "Ácido Sulfúrico",
+                NomeProduto = "Ácido Clorídrico",
                 Tipo = TipoProduto.Quimico,
-                Fornecedor = "Fornecedor Químico XYZ",
-                Quantidade = 200,
-                QuantidadeMinima = 50,
+                Fornecedor = "Fornecedor Químico ABC",
+                Quantidade = 150,
+                QuantidadeMinima = 20,
                 DataValidade = DateTime.Now.AddYears(1),
-                LocalizacaoProduto = "Prateleira A",
+                LocalizacaoProduto = "Prateleira C",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Mililitro,
                 Cor = Cor.Incolor,
                 Odor = Odor.Pungente,
                 EstadoFisico = EstadoFisico.Liquido,
-                FormulaQuimica = "H2SO4",
-                PesoMolecular = 98.079f,
-                Densidade = 1.84f,
+                FormulaQuimica = "HCl",
+                PesoMolecular = 36.46f,
+                Densidade = 1.18f,
                 Grupo = Grupo.Acido,
-                GrauPureza = "98%",
-                Catmat = "Q1234",
-                LoteId = loteQuimico1.Id
+                GrauPureza = "37%",
+                Catmat = "Q9102",
+                LoteId = loteQuimico.Id
             };
 
             var quimico2 = new Quimico
             {
                 Id = 2,
-                NomeProduto = "Cloreto de Sódio",
+                NomeProduto = "Sulfato de Cobre",
                 Tipo = TipoProduto.Quimico,
                 Fornecedor = "Fornecedor Químico XYZ",
-                Quantidade = 300,
-                QuantidadeMinima = 30,
+                Quantidade = 500,
+                QuantidadeMinima = 50,
                 DataValidade = DateTime.Now.AddYears(2),
-                LocalizacaoProduto = "Prateleira B",
+                LocalizacaoProduto = "Prateleira D",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Grama,
-                Cor = Cor.Branco,
+                Cor = Cor.Azul,
                 Odor = Odor.Inodoro,
                 EstadoFisico = EstadoFisico.Solido,
-                FormulaQuimica = "NaCl",
-                PesoMolecular = 58.44f,
-                Densidade = 2.16f,
+                FormulaQuimica = "CuSO4",
+                PesoMolecular = 159.609f,
+                Densidade = 3.6f,
                 Grupo = Grupo.Sal,
                 GrauPureza = "P.A.",
-                Catmat = "Q5678",
-                LoteId = loteQuimico1.Id
+                Catmat = "Q6789",
+                LoteId = loteQuimico.Id
             };
 
             context.Quimicos.AddRange(quimico1, quimico2);
 
+            // Criando novos produtos de vidraria
             var vidraria1 = new Vidraria
             {
                 Id = 3,
-                NomeProduto = "Béquer Borossilicato 500ml",
+                NomeProduto = "Pipeta Graduada 10ml",
                 Tipo = TipoProduto.Vidraria,
-                Fornecedor = "Fornecedor Vidraria ABC",
-                Quantidade = 50,
-                QuantidadeMinima = 10,
-                LocalizacaoProduto = "Armário Vidraria",
+                Fornecedor = "Fornecedor Vidraria LMN",
+                Quantidade = 100,
+                QuantidadeMinima = 20,
+                LocalizacaoProduto = "Armário Pipetas",
                 Status = StatusProduto.Disponivel,
                 Material = MaterialVidraria.VidroBorossilicato,
                 Formato = FormatoVidraria.Cilindrica,
-                Altura = AlturaVidraria.Alta,
-                Capacidade = 500,
+                Altura = AlturaVidraria.Intermediaria,
+                Capacidade = 10,
                 Graduada = true,
-                LoteId = loteVidraria1.Id
+                LoteId = loteVidraria.Id
             };
 
             var vidraria2 = new Vidraria
             {
                 Id = 4,
-                NomeProduto = "Recipiente Polipropileno 1L",
+                NomeProduto = "Erlenmeyer 250ml",
                 Tipo = TipoProduto.Vidraria,
                 Fornecedor = "Fornecedor Vidraria ABC",
-                Quantidade = 30,
-                QuantidadeMinima = 5,
+                Quantidade = 60,
+                QuantidadeMinima = 10,
                 LocalizacaoProduto = "Armário Vidraria",
                 Status = StatusProduto.Disponivel,
-                Material = MaterialVidraria.Polipropileno,
+                Material = MaterialVidraria.VidroBorossilicato,
                 Formato = FormatoVidraria.Conica,
-                Altura = AlturaVidraria.Baixa,
-                Capacidade = 1000,
-                Graduada = false,
-                LoteId = loteVidraria1.Id
+                Altura = AlturaVidraria.Alta,
+                Capacidade = 250,
+                Graduada = true,
+                LoteId = loteVidraria.Id
             };
 
             context.Vidrarias.AddRange(vidraria1, vidraria2);
@@ -139,12 +141,12 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             var outro1 = new Produto
             {
                 Id = 5,
-                NomeProduto = "Mop",
-                Tipo = TipoProduto.Outro,
-                Fornecedor = "Fornecedor Limpeza RST",
-                Quantidade = 1,
-                QuantidadeMinima = 1,
-                LocalizacaoProduto = "Jogado, por aí",
+                NomeProduto = "Luvas de Proteção",
+                Tipo = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
+                Fornecedor = "Fornecedor de Equipamentos ABC",
+                Quantidade = 100,
+                QuantidadeMinima = 10,
+                LocalizacaoProduto = "Armário de EPIs",
                 Status = StatusProduto.Disponivel
             };
 
@@ -152,14 +154,13 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             context.SaveChanges();
 
-            // Criando relação Many-to-Many via EmprestimoProduto
+            // Criando relações Many-to-Many via EmprestimoProduto
             var emprestimoProdutos = new List<EmprestimoProduto>
             {
-                new() { Id = 1, ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 500 },
-                new() { Id = 2, ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 200 },
-                new() { Id = 3, ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 2 },
-                new() { Id = 4, ProdutoId = vidraria2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 3 },
-                new() { Id = 5, ProdutoId = outro1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 1 }
+                new() { Id = 1, ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 100 },
+                new() { Id = 2, ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 50 },
+                new() { Id = 3, ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 10 },
+                new() { Id = 4, ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 }
             };
 
             context.EmprestimoProdutos.AddRange(emprestimoProdutos);
