@@ -1,4 +1,3 @@
-import DateInput from '@/components/global/inputs/DateInput';
 import InputText from '@/components/global/inputs/Text';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
@@ -59,7 +58,6 @@ function LaunchQuimicos() {
           error={errors.quantidade?.message}
           name='quantidade'
         />
-        <DateInput />
       </div>
       <div className='flex gap-x-5'>
         <button
