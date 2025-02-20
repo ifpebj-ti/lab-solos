@@ -159,74 +159,115 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(dependentesDto);
         }
 
+        [HttpGet("aprovacao")]
+        public async Task<IActionResult> GetUsuariosParaAprovacao()
+        {
+            // Buscar o usuário principal para garantir que ele existe
+            var usuarios = await _usuarioService.GetAllAsync();
+            if (!usuarios.Any())
+            {
+                return NotFound("Nenhum usuário recebido");
+            }
+            
+            // Mapear para DTO
+            var dependentesDto = usuarios
+            .Where(u => u.Status == StatusUsuario.Pendente)
+            .Select(dependente => new DependenteDTO
+            {
+                Id = dependente.Id,
+                Email = dependente.Email,
+                NomeCompleto = dependente.NomeCompleto,
+                NivelUsuario = dependente.NivelUsuario.ToString(),
+                Cidade = (dependente as Academico)?.Cidade ?? null,
+                Curso = (dependente as Academico)?.Curso ?? null,
+                Instituicao = (dependente as Academico)?.Instituicao ?? null,
+                Telefone = dependente.Telefone,
+                Status = dependente.Status.ToString(),
+                DataIngresso = dependente.DataIngresso,
+            });
+
+            return Ok(dependentesDto);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add(AddUsuarioDTO usuarioDto)
         {
-
-            var responsavel = await _usuarioService.GetByEmailAsync(usuarioDto.ResponsavelEmail);
-
-            if (responsavel == null) return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
-
-            var niveisAcademico = new[] { "Mentor", "Mentorado" };
-
-            // Validar os dados do usuário através do serviço
-            var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
-            if (!resultadoValidacao.Validado)
+            try
             {
-                return BadRequest(new { Message = resultadoValidacao.Mensagem });
+                int? responsavelId = null;
+
+                if (usuarioDto.TipoUsuario == "Mentorado" && usuarioDto.ResponsavelEmail is not null)
+                {
+                    var responsavel = await _usuarioService.GetByEmailAsync(usuarioDto.ResponsavelEmail);
+
+                    if (responsavel == null)
+                        return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
+
+                    responsavelId = responsavel.Id;
+                }
+
+                // Validar os dados do usuário através do serviço
+                var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
+                if (!resultadoValidacao.Validado)
+                {
+                    return BadRequest(new { Message = resultadoValidacao.Mensagem });
+                }
+
+                // Criar o objeto de acordo com o tipo
+                Usuario usuario = usuarioDto.NivelUsuario switch
+                {
+                    "Mentor" => new Academico
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Mentor,
+                        TipoUsuario = TipoUsuario.Academico,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now,
+                        Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentores."),
+                        Cidade = usuarioDto.Cidade,
+                        Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentores.")
+                    },
+                    "Mentorado" => new Academico
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        ResponsavelId = responsavelId ?? throw new ArgumentException("Mentorados precisam ter um responsável."),
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Mentorado,
+                        TipoUsuario = TipoUsuario.Academico,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now,
+                        Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentorados."),
+                        Cidade = usuarioDto.Cidade,
+                        Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentorados.")
+                    },
+                    "Comum" => new Usuario
+                    {
+                        NomeCompleto = usuarioDto.NomeCompleto,
+                        Email = usuarioDto.Email,
+                        SenhaHash = usuarioDto.Senha,
+                        ResponsavelId = responsavelId, // Aqui pode ser null sem problema
+                        Telefone = usuarioDto.Telefone,
+                        NivelUsuario = NivelUsuario.Comum,
+                        TipoUsuario = TipoUsuario.Comum,
+                        Status = StatusUsuario.Pendente,
+                        DataIngresso = DateTime.Now
+                    },
+                    _ => throw new InvalidOperationException("O nível fornecido não é suportado.")
+                };
+
+                await _usuarioService.AddAsync(usuario);
+
+                return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
             }
-
-            // Criar o objeto de acordo com o tipo
-            Usuario usuario = usuarioDto.NivelUsuario switch
-            {
-                "Mentor" => new Academico
-                {
-                    NomeCompleto = usuarioDto.NomeCompleto,
-                    Email = usuarioDto.Email,
-                    SenhaHash = usuarioDto.Senha,
-                    ResponsavelId = responsavel.Id,
-                    Telefone = usuarioDto.Telefone,
-                    NivelUsuario = NivelUsuario.Mentor,
-                    TipoUsuario = TipoUsuario.Academico,
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now,
-                    Instituicao = usuarioDto.Instituicao!,
-                    Cidade = usuarioDto.Cidade,
-                    Curso = usuarioDto.Curso!
-                },
-                "Mentorado" => new Academico
-                {
-                    NomeCompleto = usuarioDto.NomeCompleto,
-                    Email = usuarioDto.Email,
-                    SenhaHash = usuarioDto.Senha,
-                    ResponsavelId = responsavel.Id,
-                    Telefone = usuarioDto.Telefone,
-                    NivelUsuario = NivelUsuario.Mentorado,
-                    TipoUsuario = TipoUsuario.Academico,
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now,
-                    Instituicao = usuarioDto.Instituicao!,
-                    Cidade = usuarioDto.Cidade,
-                    Curso = usuarioDto.Curso!
-                },
-                "Comum" => new Usuario
-                {
-                    NomeCompleto = usuarioDto.NomeCompleto,
-                    Email = usuarioDto.Email,
-                    SenhaHash = usuarioDto.Senha,
-                    ResponsavelId = responsavel.Id,
-                    Telefone = usuarioDto.Telefone,
-                    NivelUsuario = NivelUsuario.Comum,
-                    TipoUsuario = TipoUsuario.Comum,
-                    Status = StatusUsuario.Pendente,
-                    DataIngresso = DateTime.Now
-                },
-                _ => throw new InvalidOperationException("O nivel fornecido não é suportado.")
-            };
-
-            await _usuarioService.AddAsync(usuario);
-
-            return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
+            catch (ArgumentException e)
+            {                
+                return BadRequest(e.Message);
+            }           
         }
 
         [HttpPut("{id}")]
@@ -268,6 +309,31 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
         }
 
+        [HttpPatch("{usuarioId}/aprovar")]
+        public async Task<IActionResult> AdminAprovarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
+        {
+            // Buscar o usuário dependente pelo ID
+            var dependente = await _usuarioService.GetByIdAsync(usuarioId);
+            if (dependente == null)
+            {
+                return NotFound("Usuário dependente não encontrado.");
+            }
+
+            // Verificar se o usuário já foi aprovado
+            if (dependente.Status != StatusUsuario.Pendente)
+            {
+                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+            }
+
+            // Atualizar o status do usuário para aprovado
+            dependente.Status = StatusUsuario.Habilitado;
+
+            // Salvar a mudança no banco de dados
+            await _usuarioService.UpdateAsync(dependente);
+
+            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
+        }
+
         [HttpPatch("dependentes/{dependenteId}/rejeitar")]
         public async Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
         {
@@ -282,6 +348,31 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (dependente.ResponsavelId != aprovadorDto.AprovadorId)
             {
                 return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+            }
+
+            // Verificar se o usuário já foi aprovado
+            if (dependente.Status != StatusUsuario.Pendente)
+            {
+                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+            }
+
+            // Atualizar o status do usuário para rejeitado
+            dependente.Status = StatusUsuario.Desabilitado;
+
+            // Salvar a mudança no banco de dados
+            await _usuarioService.UpdateAsync(dependente);
+
+            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
+        }
+
+        [HttpPatch("{usuarioId}/rejeitar")]
+        public async Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
+        {
+            // Buscar o usuário dependente pelo ID
+            var dependente = await _usuarioService.GetByIdAsync(usuarioId);
+            if (dependente == null)
+            {
+                return NotFound("Usuário dependente não encontrado.");
             }
 
             // Verificar se o usuário já foi aprovado
