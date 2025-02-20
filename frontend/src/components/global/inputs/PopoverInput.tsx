@@ -60,10 +60,10 @@ const PopoverInput = ({
               <CommandGroup>
                 {unidades.map((unidade) => (
                   <CommandItem
-                    key={unidade.value}
-                    value={unidade.value}
+                    key={String(unidade.value)}
+                    value={String(unidade.value)}
                     onSelect={(currentValue) => {
-                      onChange(currentValue === value ? '' : currentValue); // altera o valor com base na seleção
+                      onChange(currentValue === value ? '' : currentValue);
                       setOpen(false);
                     }}
                   >
@@ -71,7 +71,9 @@ const PopoverInput = ({
                     <Check
                       className={cn(
                         'ml-auto h-4 w-4',
-                        value === unidade.value ? 'opacity-100' : 'opacity-0'
+                        value === String(unidade.value)
+                          ? 'opacity-100'
+                          : 'opacity-0'
                       )}
                     />
                   </CommandItem>
