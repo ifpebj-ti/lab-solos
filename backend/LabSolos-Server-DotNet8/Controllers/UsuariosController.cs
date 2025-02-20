@@ -196,7 +196,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 int? responsavelId = null;
 
-                if (usuarioDto.TipoUsuario == "Mentorado" && usuarioDto.ResponsavelEmail is not null)
+                if (usuarioDto.NivelUsuario == "Mentorado" && usuarioDto.ResponsavelEmail is not null)
                 {
                     var responsavel = await _usuarioService.GetByEmailAsync(usuarioDto.ResponsavelEmail);
 

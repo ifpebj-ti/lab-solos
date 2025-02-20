@@ -352,7 +352,7 @@ function AppRoutes() {
         </Route>
 
         {/* Rotas sem autenticação */}
-        <Route path='/login' element={<Login />} />
+        <Route index path='/login' element={<Login />} />
         <Route path='/forgot-your-password' element={<ForgotPassword />} />
         <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/create-account' element={<CreateAccount />} />

@@ -11,7 +11,7 @@ import LoanIcon from '../../../public/icons/LoanIcon';
 import Carousel from '@/components/global/Carousel';
 import Cookie from 'js-cookie';
 import { useEffect, useState } from 'react';
-import { getAllUsersForApproval } from '@/integration/Class';
+import { getDependentesForApproval } from '@/integration/Class';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
@@ -80,7 +80,7 @@ function Home() {
     const fetchGetLoansDependentes = async () => {
       setIsLoading(true);
       try {
-        const response = await getAllUsersForApproval();
+        const response = await getDependentesForApproval(id);
         const responseAllLoans = await getAllLoans();
         const systemQuant = await getSystemQuantities();
         setSystem(systemQuant);

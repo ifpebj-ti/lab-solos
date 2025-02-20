@@ -11,7 +11,10 @@ import { useEffect, useState } from 'react';
 import ItemTableButton from '@/components/global/table/ItemButton';
 import { SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
-import { getAllUsersForApproval, rejectDependente } from '@/integration/Class';
+import {
+  getDependentesForApproval,
+  rejectDependente,
+} from '@/integration/Class';
 import { approveDependente } from '../integration/Class';
 import { toast } from '@/components/hooks/use-toast';
 
@@ -44,7 +47,7 @@ function RegistrationRequest() {
     const fetchGetLoansDependentes = async () => {
       setIsLoading(true);
       try {
-        const response = await getAllUsersForApproval();
+        const response = await getDependentesForApproval(id);
         setApproval(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -65,7 +68,7 @@ function RegistrationRequest() {
         title: 'Solicitação aceita',
         description: 'Usuário autorizado para acesso à plataforma...',
       });
-      const response = await getAllUsersForApproval();
+      const response = await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
       console.error('Erro ao aprovar dependente:', error);
@@ -82,7 +85,7 @@ function RegistrationRequest() {
         title: 'Solicitação rejeitada',
         description: 'Usuário não autorizado para acesso à plataforma...',
       });
-      const response = await getAllUsersForApproval();
+      const response = await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
       console.error('Erro ao aprovar dependente:', error);
