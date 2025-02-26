@@ -42,7 +42,7 @@ builder.Services.AddScoped<ILoteRepository, LoteRepository>();
 builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 // Configurar o Serilog para escrever os logs em um arquivo
 Log.Logger = new LoggerConfiguration()
