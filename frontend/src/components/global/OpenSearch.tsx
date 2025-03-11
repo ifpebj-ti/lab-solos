@@ -21,7 +21,14 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useUser } from '../context/UseUser';
+import Cookie from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string; // ID ou nível do usuário
+  role?: string; // Caso tenha uma role específica
+  nivel: string;
+}
 
 const routesAdmin = [
   {
@@ -121,7 +128,8 @@ function OpenSearch() {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [value] = useState('');
   const navigate = useNavigate();
-  const { rankID } = useUser();
+  const auth = Cookie.get('doorKey');
+  const decoded = jwtDecode<JwtPayload>(auth!);
 
   // Detecta o clique fora do diálogo
   useEffect(() => {
@@ -167,7 +175,7 @@ function OpenSearch() {
               <CommandList>
                 <CommandEmpty>Link não encontrado.</CommandEmpty>
                 <CommandGroup>
-                  {String(rankID) === 'Administrador' &&
+                  {decoded.nivel === 'Administrador' &&
                     routesAdmin.map((framework) => (
                       <CommandItem
                         key={framework.value}
@@ -189,7 +197,7 @@ function OpenSearch() {
                         {framework.label}
                       </CommandItem>
                     ))}
-                  {String(rankID) === 'Mentor' &&
+                  {decoded.nivel === 'Mentor' &&
                     routesMentor.map((framework) => (
                       <CommandItem
                         key={framework.value}
@@ -211,7 +219,7 @@ function OpenSearch() {
                         {framework.label}
                       </CommandItem>
                     ))}
-                  {String(rankID) === 'Mentorado' &&
+                  {decoded.nivel === 'Mentorado' &&
                     routesMentee.map((framework) => (
                       <CommandItem
                         key={framework.value}

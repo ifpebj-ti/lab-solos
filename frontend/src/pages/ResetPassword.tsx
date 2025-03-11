@@ -35,7 +35,7 @@ function ResetPassword() {
   const navigate = useNavigate();
 
   function postResetPassword() {
-    navigate('/login');
+    navigate('/');
   }
 
   useEffect(() => {

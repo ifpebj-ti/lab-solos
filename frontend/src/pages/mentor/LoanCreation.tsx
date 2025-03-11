@@ -1,6 +1,6 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
-import { ShoppingCart, Users } from 'lucide-react';
+import { ShoppingCart, SquareX, Users } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,9 +11,9 @@ import InputText from '@/components/global/inputs/Text';
 import { getDependentes } from '@/integration/Class';
 import HeaderTable from '@/components/global/table/Header';
 import { loanCreationHeader } from '@/mocks/Unidades';
-import ItemTable from '@/components/global/table/Item';
 import { createLoan } from '@/integration/Loans';
 import { toast } from '@/components/hooks/use-toast';
+import ItemDelete from '@/components/global/table/ItemDelete';
 
 interface Produto {
   id: number;
@@ -77,6 +77,7 @@ function LoanCreation() {
     { produtoId: number; quantidade: number }[]
   >([]);
   const [dependentes, setDependentes] = useState<IUsuario[]>([]);
+  const [itemStatus, setItemStatus] = useState<string>('Selecione o item');
 
   const {
     register,
@@ -98,6 +99,7 @@ function LoanCreation() {
         );
         setDependentes(habilitados);
         setProducts(response);
+        console.log(response);
         setFilteredProducts(response); // Inicialmente, todos os produtos são exibidos
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -140,6 +142,7 @@ function LoanCreation() {
     setValue('group', ''); // Reseta o campo "Grupo"
     setValue('item', ''); // Reseta o campo "Item"
     setValue('quantity', 0); // Reseta o campo "Quantidade"
+    setItemStatus('Selecione o item');
   };
 
   const handleSubmitLoan = async () => {
@@ -166,7 +169,8 @@ function LoanCreation() {
     } catch {
       toast({
         title: 'Erro na criação do empréstimo',
-        description: 'Verifique disponibilidade dos produtos selecionados e tente novamente...',
+        description:
+          'Verifique disponibilidade dos produtos selecionados e tente novamente...',
       });
     } finally {
       setIsLoading(false);
@@ -230,12 +234,6 @@ function LoanCreation() {
                   }}
                   error={errors.user?.message}
                 />
-                <button
-                  type='submit'
-                  className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90 transition-all ease-in-out duration-150'
-                >
-                  Adicionar
-                </button>
               </div>
             </form>
           </div>
@@ -273,24 +271,44 @@ function LoanCreation() {
                   onChange={(value) => {
                     setItem(value);
                     setValue('item', value);
+                    const selectedProduct = products.find(
+                      (produto) => produto.id === Number(value)
+                    );
+                    setItemStatus(
+                      selectedProduct
+                        ? selectedProduct.status
+                        : 'Selecione o item'
+                    );
                   }}
                   error={errors.item?.message}
                 />
               </div>
-              <div className='flex items-center justify-between gap-x-5 w-full px-4 mb-5'>
-                <InputText
-                  label={'Quantidade'}
-                  type={'number'}
-                  register={register}
-                  name={'quantity'}
-                  error={errors.quantity?.message}
-                />
-                <button
-                  type='submit'
-                  className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-9 w-full rounded-sm hover:bg-opacity-90 transition-all ease-in-out duration-150'
-                >
-                  Adicionar
-                </button>
+              <div className='flex items-center justify-center gap-x-5 w-full px-4 mb-5'>
+                <div className='w-1/2'>
+                  <InputText
+                    label={'Quantidade'}
+                    type={'number'}
+                    register={register}
+                    name={'quantity'}
+                    error={errors.quantity?.message}
+                  />
+                </div>
+                <div className='w-1/2 flex gap-x-5'>
+                  <div className='w-1/2 flex flex-col'>
+                    <p className='font-inter-regular text-clt-2 text-sm mt-3'>
+                      Unidade de Medida
+                    </p>
+                    <div className='w-full flex items-center pl-3 text-clt-2 font-inter-regular text-sm h-9 border border-borderMy mt-1'>
+                      {itemStatus}
+                    </div>
+                  </div>
+                  <button
+                    type='submit'
+                    className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-9 w-1/2  rounded-sm hover:bg-opacity-90 transition-all ease-in-out duration-150'
+                  >
+                    Adicionar
+                  </button>
+                </div>
               </div>
             </form>
             <div className='w-full border-t border-borderMy pb-4 px-4 pt-2 rounded-b-md flex flex-col items-center justify-center'>
@@ -303,7 +321,7 @@ function LoanCreation() {
                     </div>
                   ) : (
                     selectedProducts.map((rowData, index) => (
-                      <ItemTable
+                      <ItemDelete
                         key={index}
                         data={[
                           String(rowData.produtoId),
@@ -314,6 +332,16 @@ function LoanCreation() {
                         columnWidths={loanCreationHeader.map(
                           (column) => column.width
                         )}
+                        icon1={
+                          <SquareX width={20} height={20} stroke='#dd1313' />
+                        }
+                        onClick={() => {
+                          setSelectedProducts((prev) =>
+                            prev.filter(
+                              (p) => p.produtoId !== rowData.produtoId
+                            )
+                          );
+                        }}
                       />
                     ))
                   )}

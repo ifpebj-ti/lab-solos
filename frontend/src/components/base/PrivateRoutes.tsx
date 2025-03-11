@@ -29,7 +29,7 @@ const PrivateRoute = ({ element, requiredRank }: PrivateRouteProps) => {
   return isAuthenticated() && hasRequiredRank(requiredRank) ? (
     element
   ) : (
-    <Navigate to='/login' state={{ from: location }} replace />
+    <Navigate to='/' state={{ from: location }} replace />
   );
 };
 

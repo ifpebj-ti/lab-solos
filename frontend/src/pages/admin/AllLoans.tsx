@@ -12,6 +12,7 @@ import { formatDate } from '../../function/date';
 import { ArrowLeft, Check, ShieldAlert, Timer } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
+import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 interface IUsuario {
   id: number;
   nomeCompleto: string;
@@ -74,6 +75,7 @@ function AllLoans() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const [loan, setLoan] = useState<IEmprestimo[]>([]);
+  const [loanNotify, setLoanNotify] = useState<IEmprestimo[]>([]);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -81,8 +83,12 @@ function AllLoans() {
     const fetchAllLoans = async () => {
       try {
         const response = await getAllLoans();
+        const filteredLoans = response.filter(
+          (loan: { status: string }) => loan.status === 'Pendente'
+        );
+
         setLoan(response);
-        console.log(response)
+        setLoanNotify(filteredLoans);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar usuários', error);
@@ -147,12 +153,12 @@ function AllLoans() {
               Histórico de Empréstimos
             </h1>
             <div className='flex items-center justify-between gap-x-4'>
-              <Link
-                to={'/admin/loans-request'}
-                className='px-7 h-11 flex items-center justify-center font-inter-regular text-clt-2 rounded-md border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200'
-              >
-                Solicitações de Empréstimos
-              </Link>
+              <ButtonLinkNotify
+                text='Solicitações de Empréstimo'
+                notify={loanNotify.length != 0 ? true : false}
+                quant={loanNotify.length}
+                link='/admin/loans-request'
+              />
               <OpenSearch />
             </div>
           </div>

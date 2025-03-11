@@ -332,8 +332,9 @@ export const columnsItensSelected = [
 
 export const loanCreationHeader = [
   { value: 'Código', width: '20%' },
-  { value: 'Nome do Produto', width: '50%' },
+  { value: 'Nome do Produto', width: '40%' },
   { value: 'Quantidade', width: '30%' },
+  { value: 'Ação', width: '10%' },
 ];
 
 export const itensSelected = [

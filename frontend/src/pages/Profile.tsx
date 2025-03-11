@@ -159,7 +159,7 @@ function Profile() {
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <Link
-                to={'/login'}
+                to={'/'}
                 className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150 hover:bg-cl-table-item'
               >
                 <LogOutIcon stroke='#232323' width={18} />

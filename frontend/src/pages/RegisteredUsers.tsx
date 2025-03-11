@@ -14,6 +14,10 @@ import { getRegisteredUsers } from '@/integration/Users';
 import { formatDate } from '../function/date';
 import { ArrowLeft } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
+import { IUsuario } from './admin/Home';
+import { getDependentesForApproval } from '@/integration/Class';
+import Cookie from 'js-cookie';
 interface RegisteredUser {
   nivelUsuario: string;
   dataIngresso: string;
@@ -25,21 +29,25 @@ interface RegisteredUser {
 
 function RegisteredUsers() {
   const [isLoading, setIsLoading] = useState(true);
+  const id = Cookie.get('rankID')!;
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>([]);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
+  const [approval, setApproval] = useState<IUsuario[]>([]);
 
   useEffect(() => {
     const fetchRegisteredUsers = async () => {
       try {
+        const response = await getDependentesForApproval(id);
         const processedRegisteredUsers = await getRegisteredUsers();
         const habilitados = processedRegisteredUsers.filter(
           (user: { status: string }) => user.status === 'Habilitado'
         );
         setRegisteredUsers(habilitados);
+        setApproval(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Erro ao buscar usuários', error);
@@ -120,12 +128,12 @@ function RegisteredUsers() {
               Usuários Cadastrados
             </h1>
             <div className='flex items-center justify-between gap-x-4'>
-              <Link
-                to={'/admin/register-request'}
-                className='px-7 h-11 flex items-center justify-center font-inter-regular text-clt-2 rounded-md border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200'
-              >
-                Solicitações de Cadastro
-              </Link>
+              <ButtonLinkNotify
+                text='Solicitações de Cadastro'
+                notify={approval.length != 0 ? true : false}
+                quant={approval.length}
+                link='/admin/register-request'
+              />
               <OpenSearch />
             </div>
           </div>
