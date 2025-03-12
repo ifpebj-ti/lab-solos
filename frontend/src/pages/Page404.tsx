@@ -11,7 +11,7 @@ function Page404() {
     Cookie.remove('level');
   }, []);
   return (
-    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
+    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5] min-h-screen pb-9'>
       <img src={img404} className='w-96'></img>
       <div className='w-full flex justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
         <p className=''>Página não encontrada</p>

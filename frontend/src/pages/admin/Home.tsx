@@ -130,7 +130,7 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
+        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home

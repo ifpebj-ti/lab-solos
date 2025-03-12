@@ -45,7 +45,7 @@ function ResetPassword() {
   }, []);
 
   return (
-    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>
+    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5] min-h-screen'>
       <div className='w-96 bg-backgroundMy border border-borderMy rounded-md shadow-lg'>
         <div className='w-full bg-primaryMy h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]'>
           <img alt='Logo' src={logo} className='w-24' />
