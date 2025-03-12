@@ -144,7 +144,9 @@ function LoansRequest() {
     }
   };
   const filteredUsers = loan.filter((user) =>
-    user.solicitante?.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
+    user.solicitante?.nomeCompleto
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
     ? [...filteredUsers]
@@ -160,7 +162,7 @@ function LoansRequest() {
     return `${count}`;
   };
 
-  console.log(currentData)
+  console.log(currentData);
   return (
     <>
       {isLoading ? (
@@ -217,10 +219,13 @@ function LoansRequest() {
                     <ItemTableButtonLink
                       key={index}
                       data={[
-                        formatDateTime(String(rowData.dataRealizacao)) || 'Não corresponde',
-                        String(rowData.solicitante?.nomeCompleto) || 'Não corresponde',
+                        formatDateTime(String(rowData.dataRealizacao)) ||
+                          'Não corresponde',
+                        String(rowData.solicitante?.nomeCompleto) ||
+                          'Não corresponde',
                         String(rowData.solicitante?.email) || 'Não corresponde',
-                        String(rowData.solicitante?.nomeResponsavel) || 'Não corresponde',
+                        String(rowData.solicitante?.nomeResponsavel) ||
+                          'Não corresponde',
                       ]}
                       rowIndex={index}
                       columnWidths={columnsApproval.map(

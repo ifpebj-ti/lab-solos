@@ -58,7 +58,7 @@ function RegisteredUsers() {
       }
     };
     fetchRegisteredUsers();
-  }, []);
+  }, [id]);
 
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },

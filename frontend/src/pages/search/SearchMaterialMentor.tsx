@@ -79,7 +79,7 @@ function SearchMaterialMentor() {
     fetchAllProducts();
   }, []);
 
-  console.log(system)
+  console.log(system);
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));

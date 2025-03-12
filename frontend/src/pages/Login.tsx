@@ -47,7 +47,7 @@ function Login() {
           description: 'Redirecionando...',
         });
       }
-      console.log(response)
+      console.log(response);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
@@ -73,7 +73,6 @@ function Login() {
       setLoading(false);
     }
   }
-
 
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5]'>

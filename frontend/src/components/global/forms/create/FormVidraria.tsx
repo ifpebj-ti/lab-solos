@@ -38,7 +38,8 @@ const submitCreateVidrariaSchema = z.object({
   formato: z.string().nonempty('Selecione um formato de vidraria'),
   material: z.string().nonempty('Selecione um material de vidraria'),
   altura: z.string().nonempty('Selecione um altura de vidraria'),
-  graduada: z.boolean(),});
+  graduada: z.boolean(),
+});
 
 export type CreateVidrariaFormData = z.infer<typeof submitCreateVidrariaSchema>;
 

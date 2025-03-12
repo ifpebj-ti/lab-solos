@@ -77,7 +77,7 @@ function Verification() {
       }
     };
     fetchProductsById();
-  }, []);
+  }, [id]);
 
   const infoItems = productsById
     ? [
