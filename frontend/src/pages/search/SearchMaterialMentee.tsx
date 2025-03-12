@@ -163,8 +163,7 @@ function SearchMaterialMentee() {
             onMouseLeave={stopDrag}
             onMouseUp={stopDrag}
             onMouseMove={onDrag}
-            className='w-11/12 h-32 mt-7 flex items-center gap-x-8 overflow-x-auto scrollbar-hide'
-            style={{ cursor: 'grab' }}
+            className='w-11/12 h-32 mt-7 flex items-center gap-x-8'
           >
             <FollowUpCard
               title='Tipos de Vidrarias'

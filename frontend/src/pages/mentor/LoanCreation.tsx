@@ -207,7 +207,7 @@ function LoanCreation() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
+          <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col shadow-sm'>
             <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Utilizadores
@@ -237,7 +237,7 @@ function LoanCreation() {
               </div>
             </form>
           </div>
-          <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
+          <div className='w-11/12 min-h-32 mt-9 rounded-md border border-borderMy flex flex-col shadow-sm'>
             <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos

@@ -8,8 +8,7 @@ import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
-import { Link } from 'react-router-dom';
-import { LogOutIcon } from 'lucide-react';
+import ButtonLogout from '@/components/global/ButtonLogout';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -185,12 +184,7 @@ function ProfileMentee() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Link
-                to={'/'}
-                className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150'
-              >
-                <LogOutIcon stroke='#232323' width={18} />
-              </Link>
+              <ButtonLogout />
               <OpenSearch />
             </div>
           </div>

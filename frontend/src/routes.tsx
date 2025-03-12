@@ -37,6 +37,7 @@ import VerificationMentor from './pages/mentor/VerificationMentor';
 import ClassLoan from './pages/admin/ClassLoan';
 import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
+import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 
 function AppRoutes() {
   return (
@@ -138,7 +139,7 @@ function AppRoutes() {
             path='history/mentoring'
             element={
               <PrivateRoute
-                element={<MentoringHistory />}
+                element={<MentoringHistoryAdm />}
                 requiredRank={['Administrador']}
               />
             }
