@@ -17,7 +17,7 @@ import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
 import { getAlertProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
-interface IUsuario {
+export interface IUsuario {
   id: number;
   nomeCompleto: string;
   email: string;
@@ -130,7 +130,7 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
+        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home
@@ -163,18 +163,21 @@ function Home() {
               text='Produtos com Alerta'
               notify={alert.length != 0 ? true : false}
               link={'/admin/follow-up'}
+              quant={alert.length}
             />
             <InfoCard
               icon={<JoinIcon />}
               text='Solicitações de Cadastro'
               notify={approval.length != 0 ? true : false}
               link={'/admin/register-request'}
+              quant={approval.length}
             />
             <InfoCard
               icon={<LoanIcon />}
               text='Solicitações de Empréstimo'
               notify={loan.length != 0 ? true : false}
               link={'/admin/loans-request'}
+              quant={loan.length}
             />
           </div>
           <div className='w-11/12'>

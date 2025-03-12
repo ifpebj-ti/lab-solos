@@ -21,7 +21,20 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useUser } from '../context/UseUser';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import Cookie from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string; // ID ou nível do usuário
+  role?: string; // Caso tenha uma role específica
+  nivel: string;
+}
 
 const routesAdmin = [
   {
@@ -121,7 +134,8 @@ function OpenSearch() {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [value] = useState('');
   const navigate = useNavigate();
-  const { rankID } = useUser();
+  const auth = Cookie.get('doorKey');
+  const decoded = jwtDecode<JwtPayload>(auth!);
 
   // Detecta o clique fora do diálogo
   useEffect(() => {
@@ -146,100 +160,109 @@ function OpenSearch() {
   }, [isOpen]);
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTitle className='text-transparent'>.</AlertDialogTitle>
-      <AlertDialogTrigger asChild>
-        <button
-          onClick={() => setIsOpen(true)}
-          className='border border-borderMy rounded-md h-11 w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
-        >
-          <SearchIcon fill='#232323' />
-        </button>
-      </AlertDialogTrigger>
-      <AlertDialogContent ref={dialogRef}>
-        <AlertDialogHeader>
-          <AlertDialogDescription>
-            <Command className='border border-borderMy'>
-              <CommandInput placeholder='Pesquisar link' />
-              <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
-                Links
-              </p>
-              <CommandList>
-                <CommandEmpty>Link não encontrado.</CommandEmpty>
-                <CommandGroup>
-                  {String(rankID) === 'Administrador' &&
-                    routesAdmin.map((framework) => (
-                      <CommandItem
-                        key={framework.value}
-                        value={framework.value}
-                        onSelect={() => {
-                          navigate(framework.route);
-                        }}
-                        className='font-inter-regular'
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value === framework.value
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <LinkIcon />
-                        {framework.label}
-                      </CommandItem>
-                    ))}
-                  {String(rankID) === 'Mentor' &&
-                    routesMentor.map((framework) => (
-                      <CommandItem
-                        key={framework.value}
-                        value={framework.value}
-                        onSelect={() => {
-                          navigate(framework.route);
-                        }}
-                        className='font-inter-regular'
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value === framework.value
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <LinkIcon />
-                        {framework.label}
-                      </CommandItem>
-                    ))}
-                  {String(rankID) === 'Mentorado' &&
-                    routesMentee.map((framework) => (
-                      <CommandItem
-                        key={framework.value}
-                        value={framework.value}
-                        onSelect={() => {
-                          navigate(framework.route);
-                        }}
-                        className='font-inter-regular'
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value === framework.value
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <LinkIcon />
-                        {framework.label}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-      </AlertDialogContent>
-    </AlertDialog>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger className='flex'>
+          <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogTitle className='text-transparent'>.</AlertDialogTitle>
+            <AlertDialogTrigger asChild>
+              <button
+                onClick={() => setIsOpen(true)}
+                className='border border-borderMy rounded-md h-11 w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
+              >
+                <SearchIcon fill='#232323' />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent ref={dialogRef}>
+              <AlertDialogHeader>
+                <AlertDialogDescription>
+                  <Command className='border border-borderMy'>
+                    <CommandInput placeholder='Pesquisar link' />
+                    <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
+                      Links
+                    </p>
+                    <CommandList>
+                      <CommandEmpty>Link não encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {decoded.nivel === 'Administrador' &&
+                          routesAdmin.map((framework) => (
+                            <CommandItem
+                              key={framework.value}
+                              value={framework.value}
+                              onSelect={() => {
+                                navigate(framework.route);
+                              }}
+                              className='font-inter-regular'
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  value === framework.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                )}
+                              />
+                              <LinkIcon />
+                              {framework.label}
+                            </CommandItem>
+                          ))}
+                        {decoded.nivel === 'Mentor' &&
+                          routesMentor.map((framework) => (
+                            <CommandItem
+                              key={framework.value}
+                              value={framework.value}
+                              onSelect={() => {
+                                navigate(framework.route);
+                              }}
+                              className='font-inter-regular'
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  value === framework.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                )}
+                              />
+                              <LinkIcon />
+                              {framework.label}
+                            </CommandItem>
+                          ))}
+                        {decoded.nivel === 'Mentorado' &&
+                          routesMentee.map((framework) => (
+                            <CommandItem
+                              key={framework.value}
+                              value={framework.value}
+                              onSelect={() => {
+                                navigate(framework.route);
+                              }}
+                              className='font-inter-regular'
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  value === framework.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                )}
+                              />
+                              <LinkIcon />
+                              {framework.label}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className='font-inter-medium'>Abrir rotas</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

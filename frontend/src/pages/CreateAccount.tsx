@@ -117,7 +117,7 @@ function CreateAccount() {
           description: 'Redirecionando para a página de login...',
         });
       }
-      navigate('/login');
+      navigate('/');
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {

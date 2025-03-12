@@ -24,7 +24,7 @@ function ForgotPassword() {
   const navigate = useNavigate();
 
   function postForgotPassword() {
-    navigate('/login');
+    navigate('/');
   }
 
   useEffect(() => {

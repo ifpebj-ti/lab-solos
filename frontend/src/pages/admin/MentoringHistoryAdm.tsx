@@ -1,107 +1,103 @@
 import OpenSearch from '@/components/global/OpenSearch';
-import LoadingIcon from '../../public/icons/LoadingIcon';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsButtons } from '@/mocks/Unidades';
+import { columnsLoan } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { useLocation } from 'react-router-dom';
-import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
-import { formatDateTime } from '@/function/date';
+import { formatDate, formatDateTime } from '@/function/date';
+import { getLoansByUserId } from '@/integration/Loans';
+import { useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
+  instituicao: string;
+  cidade: string;
+  curso: string;
   id: number;
   nomeCompleto: string;
   email: string;
+  senhaHash: string;
   telefone: string;
   dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  cidade: string;
-  curso: string;
-  instituicao: string;
+  nivelUsuario: number;
+  tipoUsuario: number;
+  status: number;
+  emprestimosSolicitados: null;
+  emprestimosAprovados: null;
 }
-export interface IResponsible {
+export interface IProduto {
   id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
+  nomeProduto: string;
+  fornecedor: string;
+  tipo: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  localizacaoProduto: string;
   status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário, pois não há exemplo de dados
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Recursivamente permite responsáveis aninhados
-  dependentes: (IResponsible | null)[]; // Array de dependentes, pode conter `null`
+  ultimaModificacao: string;
+  loteId: number | null;
+  lote: unknown | null; // Use `unknown` para tipo indefinido
+  emprestimoId: number;
+  emprestimo: unknown | null;
+}
+export interface IEmprestimo {
+  id: number;
+  dataRealizacao: string;
+  dataDevolucao: string;
+  dataAprovacao: string;
+  status: string;
+  produtos: IProduto[];
+  solicitanteId: number;
+  solicitante: unknown | null; // Use `unknown` para tipo indefinido
+  aprovadorId: number;
+  aprovador: unknown | null;
 }
 
-// Interface para o usuário principal
-export interface IUser {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Referência ao responsável
-  dependentes: unknown[]; // Pode ser ajustado para incluir uma interface se necessário
-}
-
-// aqui virá a listagem dos integrantes da turma
-function ViewClass() {
-  const [isLoading, setIsLoading] = useState(false);
+function MentoringHistoryAdm() {
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState<IUsuario>();
   const itemsPerPage = 7;
-  const location = useLocation();
-  const id = location.state?.id; // Recupera o ID passado via state
-  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
-  const [user, setUser] = useState<IUser>();
+  const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
+  const location = useLocation();
+  const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
-      setIsLoading(true);
+    const fetchGetUserById = async () => {
       try {
-        const response = await getDependentesID(id);
-        const responseUser = await getUserById({ id });
-        setDependentes(response);
-        setUser(responseUser);
+        const response = await getUserById({ id });
+        const loansResponse = await getLoansByUserId({ id });
+        setUser(response);
+        setLoans(loansResponse);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.error('Erro ao buscar dados usuários', error);
         }
-        setDependentes([]);
+        setUser(undefined);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    fetchGetLoansDependentes();
+    fetchGetUserById();
   }, [id]);
 
-  console.log(dependentes);
-  const filteredUsers = dependentes.filter((user) =>
-    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = loans.filter((item) => {
+    const searchName = item.dataRealizacao
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return searchName;
+  });
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
@@ -114,53 +110,57 @@ function ViewClass() {
 
   const infoItems = user
     ? [
-        { title: 'Nome', value: user?.nomeCompleto, width: '50%' },
         {
-          title: 'Email',
-          value: user?.email,
-          width: '30%',
+          title: 'Nome',
+          value: user.nomeCompleto,
+          width: '50%',
         },
         {
-          title: 'Instituição',
-          value: user?.instituicao ? user.instituicao : 'Não Corresponde',
-          width: '20%',
+          title: 'Email',
+          value: user.email,
+          width: '30%',
+        },
+        { title: 'Instituição', value: user.instituicao, width: '20%' },
+      ]
+    : [];
+  const infoItems2 = user
+    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
+    : [];
+  const infoItems3 = user
+    ? [
+        {
+          title: 'Número para Contato',
+          value: user.telefone,
+          width: '100%',
+        },
+      ]
+    : [];
+  const infoItems4 = user
+    ? [
+        {
+          title: 'Data de Ingresso',
+          value: formatDate(user.dataIngresso),
+          width: '100%',
         },
       ]
     : [];
   const infoItems5 = user
-    ? [{ title: 'Status', value: user?.status, width: '100%' }]
+    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
     : [];
-  const infoItems3 = user
-    ? [{ title: 'Número para Contato', value: user?.telefone, width: '100%' }]
-    : [];
-  const infoItems4 = [
-    {
-      title: 'Data de Ingresso',
-      value: formatDateTime(user?.dataIngresso),
-      width: '100%',
-    },
-  ];
-  const infoItems2 = [
-    {
-      title: 'Curso',
-      value: user?.curso ? user.curso : 'Não Corresponde',
-      width: '100%',
-    },
-  ];
   return (
     <>
-      {isLoading ? (
+      {loading ? (
         <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
-      ) : user && dependentes ? (
+      ) : (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Visualização de Turmas
+              Histórico de Mentorados
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
@@ -193,26 +193,28 @@ function ViewClass() {
                 </div>
                 <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
-                  <p>{currentData.length}</p>
+                  <p>{loans.length}</p>
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsButtons} />
+            <HeaderTable columns={columnsLoan} />
             <div className='w-full items-center flex flex-col justify-between min-h-72'>
               <div className='w-full'>
                 {currentData.map((rowData, index) => (
                   <ClickableItemTable
                     key={index}
                     data={[
-                      rowData.nomeCompleto,
-                      rowData.email,
-                      rowData.instituicao,
-                      rowData.curso,
+                      String(rowData.id),
+                      formatDateTime(rowData.dataRealizacao),
+                      Array.isArray(rowData.produtos)
+                        ? String(rowData.produtos.length)
+                        : '0',
+                      rowData.status,
                     ]}
                     rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
+                    columnWidths={columnsLoan.map((column) => column.width)}
                     id={rowData.id}
-                    destinationRoute='/admin/view-class-mentor'
+                    destinationRoute='/admin/history/loan'
                   />
                 ))}
               </div>
@@ -226,11 +228,9 @@ function ViewClass() {
             </div>
           </div>
         </div>
-      ) : (
-        <div>Error</div>
       )}
     </>
   );
 }
 
-export default ViewClass;
+export default MentoringHistoryAdm;

@@ -148,7 +148,7 @@ function SearchMaterialMentor() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy'>
+        <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Pesquisa
@@ -163,8 +163,7 @@ function SearchMaterialMentor() {
             onMouseLeave={stopDrag}
             onMouseUp={stopDrag}
             onMouseMove={onDrag}
-            className='w-11/12 h-32 mt-7 flex items-center gap-x-8 overflow-x-auto scrollbar-hide'
-            style={{ cursor: 'grab' }}
+            className='w-11/12 h-32 mt-7 flex items-center gap-x-8'
           >
             <FollowUpCard
               title='Tipos de Vidrarias'
