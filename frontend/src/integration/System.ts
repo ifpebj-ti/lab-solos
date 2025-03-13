@@ -17,7 +17,7 @@ export const getSystemQuantities = async () => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.debug('Error fetching products:', error);
     throw error;
   }
 };

@@ -50,7 +50,7 @@ function RegisteredUsers() {
         setApproval(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar usuários', error);
+          console.debug('Erro ao buscar usuários', error);
         }
         setRegisteredUsers([]);
       } finally {

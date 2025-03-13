@@ -22,7 +22,7 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar emprestimos', error);
+      console.debug('Erro ao buscar emprestimos', error);
     }
     throw error;
   }
@@ -44,7 +44,7 @@ export const getLoansById = async ({ id }: ILoansByUserId) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar emprestimos', error);
+      console.debug('Erro ao buscar emprestimos', error);
     }
     throw error;
   }
@@ -67,7 +67,7 @@ export const createLoan = async (data: ICreateLoan) => {
     return response;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao criar mentor', error);
+      console.debug('Erro ao criar mentor', error);
     }
     throw error;
   }
@@ -89,7 +89,7 @@ export const getAllLoans = async () => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar emprestimos', error);
+      console.debug('Erro ao buscar emprestimos', error);
     }
     throw error;
   }
@@ -118,7 +118,7 @@ export const approveLoan = async (EmprestimoId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao aprovar empréstimo:', error);
+      console.debug('Erro ao aprovar empréstimo:', error);
     }
     throw error;
   }
@@ -147,7 +147,7 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao aprovar empréstimo:', error);
+      console.debug('Erro ao aprovar empréstimo:', error);
     }
     throw error;
   }

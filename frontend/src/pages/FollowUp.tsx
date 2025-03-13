@@ -44,7 +44,7 @@ function FollowUp() {
         setAlert(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', error);
         }
         setAlert([]);
       } finally {
@@ -53,8 +53,6 @@ function FollowUp() {
     };
     fetchGetLoansDependentes();
   }, []);
-
-  console.log(alert);
 
   const options = [
     { value: 'todos', label: 'Todos' },

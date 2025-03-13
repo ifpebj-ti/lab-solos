@@ -47,7 +47,6 @@ function Login() {
           description: 'Redirecionando...',
         });
       }
-      console.log(response);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
@@ -67,7 +66,6 @@ function Login() {
           description:
             'Credenciais inválidas ou cadastro aguardando aprovação.',
         });
-        console.log(error);
       }
     } finally {
       setLoading(false);

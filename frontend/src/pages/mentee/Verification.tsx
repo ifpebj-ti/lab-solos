@@ -66,7 +66,7 @@ function VerificationMentee() {
         const processedRegisteredUsers = await getProductById({ id });
         setProductsById(processedRegisteredUsers);
       } catch (error) {
-        console.error('Erro ao buscar usuários', error);
+        console.debug('Erro ao buscar usuários', error);
         setProductsById(undefined);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)

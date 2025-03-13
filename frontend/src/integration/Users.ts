@@ -20,7 +20,7 @@ export const getRegisteredUsers = async () => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.debug('Error fetching users:', error);
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const getUserById = async ({ id }: IUserById) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.debug('Error fetching user:', error);
     throw error;
   }
 };

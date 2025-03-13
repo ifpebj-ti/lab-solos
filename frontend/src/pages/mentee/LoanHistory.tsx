@@ -83,7 +83,7 @@ function LoanHistoryMentee() {
         setLoan(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', error);
         }
         setLoan(undefined);
       } finally {
@@ -92,8 +92,6 @@ function LoanHistoryMentee() {
     };
     fetchGetLoan();
   }, [id]);
-  console.log(loan);
-  console.log(loan?.emprestimoProdutos[0]);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
