@@ -73,7 +73,7 @@ function VerificationMentee() {
       }
     };
     fetchProductsById();
-  }, []);
+  }, [id]);
 
   const infoItems = productsById
     ? [
