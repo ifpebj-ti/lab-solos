@@ -70,7 +70,9 @@ function Verification() {
         const processedRegisteredUsers = await getProductById({ id });
         setProductsById(processedRegisteredUsers);
       } catch (error) {
-        console.error('Erro ao buscar usuários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Erro ao buscar usuários', error);
+        }
         setProductsById(undefined);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)

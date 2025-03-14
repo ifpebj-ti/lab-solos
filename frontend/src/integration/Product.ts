@@ -22,7 +22,7 @@ export const getProductById = async ({ id }: IGetProductById) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar produtos', error);
+      console.debug('Erro ao buscar produtos', error);
     }
     throw error;
   }
@@ -44,7 +44,7 @@ export const getAllProducts = async () => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.debug('Error fetching products:', error);
     throw error;
   }
 };
@@ -65,7 +65,7 @@ export const getAlertProducts = async () => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.debug('Error fetching products:', error);
     throw error;
   }
 };
@@ -112,7 +112,7 @@ export const createProduct = async (dados: IProduto) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao criar produto:', error);
+      console.debug('Erro ao criar produto:', error);
     }
     throw error;
   }

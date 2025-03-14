@@ -91,10 +91,9 @@ function LoansRequest() {
           (loan: { status: string }) => loan.status === 'Pendente'
         );
         setLoan(filteredLoans);
-        console.log(filteredLoans);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar usuários', error);
+          console.debug('Erro ao buscar usuários', error);
         }
         setLoan([]);
       } finally {
@@ -116,7 +115,9 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.error('Erro ao aprovar empréstimo:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao aprovar empréstimo:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -136,7 +137,9 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.error('Erro ao reprovar empréstimo:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao reprovar empréstimo:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -161,8 +164,6 @@ function LoansRequest() {
     const count = loan.filter((user) => user.status == statusLoan).length;
     return `${count}`;
   };
-
-  console.log(currentData);
   return (
     <>
       {isLoading ? (

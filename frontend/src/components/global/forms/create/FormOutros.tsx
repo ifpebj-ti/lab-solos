@@ -77,13 +77,12 @@ function FormOutros() {
       reset();
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Erro ao buscar dados de empréstimos:', error);
+        console.debug('Erro ao buscar dados de empréstimos:', error);
       }
       toast({
         title: 'Erro ao criar produto',
         description: 'Verifique os dados e tente novamente...',
       });
-      console.error('Erro ao adicionar produto:', error);
     }
   }
 

@@ -20,7 +20,7 @@ export const getLoansByDependentes = async () => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar produtos', error);
+      console.debug('Erro ao buscar produtos', error);
     }
     throw error;
   }
@@ -44,7 +44,7 @@ export const getDependentes = async () => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar produtos', error);
+      console.debug('Erro ao buscar produtos', error);
     }
     throw error;
   }
@@ -70,7 +70,7 @@ export const getDependentesID = async (rankID: string) => {
       return []; // Retorna um array vazio se não houver dependentes
     }
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar produtos', error);
+      console.debug('Erro ao buscar produtos', error);
     }
     throw error;
   }
@@ -96,7 +96,7 @@ export const getDependentesForApproval = async (rankID: string) => {
       return []; // Retorna um array vazio se não houver dependentes
     }
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar dependentes para aprovação', error);
+      console.debug('Erro ao buscar dependentes para aprovação', error);
     }
     throw error;
   }
@@ -122,7 +122,7 @@ export const getAllUsersForApproval = async () => {
       return []; // Retorna um array vazio se não houver dependentes
     }
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar usuários para aprovação', error);
+      console.debug('Erro ao buscar usuários para aprovação', error);
     }
     throw error;
   }
@@ -151,7 +151,7 @@ export const approveDependente = async (solicitanteId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao aprovar dependente:', error);
+      console.debug('Erro ao aprovar dependente:', error);
     }
     throw error;
   }
@@ -180,7 +180,7 @@ export const rejectDependente = async (solicitanteId: string | number) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao rejeitar dependente:', error);
+      console.debug('Erro ao rejeitar dependente:', error);
     }
     throw error;
   }
@@ -207,7 +207,7 @@ export const getLoansByClass = async ({ id }: IIdMentorClass) => {
     return response.data;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao buscar produtos', error);
+      console.debug('Erro ao buscar produtos', error);
     }
     throw error;
   }

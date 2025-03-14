@@ -70,7 +70,7 @@ function SearchMaterial() {
         setSystem(systemQuant);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados necessários', error);
+          console.debug('Erro ao buscar dados necessários', error);
         }
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)
@@ -79,7 +79,6 @@ function SearchMaterial() {
     fetchAllProducts();
   }, []);
 
-  console.log(system);
   const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));

@@ -44,7 +44,7 @@ function MyClass() {
         setDependentes(habilitados);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', error);
         }
         setDependentes([]);
       } finally {
@@ -53,8 +53,6 @@ function MyClass() {
     };
     fetchGetLoansDependentes();
   }, []);
-
-  console.log(dependentes);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);

@@ -94,7 +94,7 @@ function ProfileMentee() {
         setUser(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar usuários', error);
+          console.debug('Erro ao buscar usuários', error);
         }
         setUser(undefined);
       } finally {
@@ -103,7 +103,6 @@ function ProfileMentee() {
     };
     fetchGetUserById();
   }, [id]);
-  console.log(loans);
 
   const infoItems = [
     {

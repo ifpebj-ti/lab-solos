@@ -99,11 +99,10 @@ function LoanCreation() {
         );
         setDependentes(habilitados);
         setProducts(response);
-        console.log(response);
         setFilteredProducts(response); // Inicialmente, todos os produtos são exibidos
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', error);
         }
         setProducts([]);
         setDependentes([]);
@@ -147,7 +146,6 @@ function LoanCreation() {
 
   const handleSubmitLoan = async () => {
     if (!userSelected || selectedProducts.length === 0) {
-      alert('Selecione um usuário e adicione pelo menos um produto.');
       return;
     }
 

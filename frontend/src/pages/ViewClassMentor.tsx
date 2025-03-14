@@ -89,7 +89,7 @@ function ViewClassMentor() {
         setUser(responseUser);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', error);
         }
         setDependentes([]);
         setUser(undefined);
@@ -100,7 +100,6 @@ function ViewClassMentor() {
     fetchGetLoansDependentes();
   }, [id]);
 
-  console.log(dependentes);
   const filteredUsers = dependentes.filter((user) =>
     user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
   );
