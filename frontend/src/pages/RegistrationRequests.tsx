@@ -71,7 +71,9 @@ function RegistrationRequest() {
       const response = await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
-      console.debug('Erro ao aprovar dependente:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao aprovar dependente:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -88,7 +90,9 @@ function RegistrationRequest() {
       const response = await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
-      console.debug('Erro ao aprovar dependente:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao aprovar dependente:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',

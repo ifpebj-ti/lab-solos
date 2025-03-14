@@ -89,7 +89,9 @@ function VerificationMentor() {
         const processedGetUserById = await getProductById({ id });
         setProductsById(processedGetUserById);
       } catch (error) {
-        console.debug('Erro ao buscar usuários', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Erro ao buscar usuários', error);
+        }
         setProductsById(undefined);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)

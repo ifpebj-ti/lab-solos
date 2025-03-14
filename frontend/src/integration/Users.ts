@@ -20,7 +20,9 @@ export const getRegisteredUsers = async () => {
     });
     return response.data;
   } catch (error) {
-    console.debug('Error fetching users:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Error fetching users:', error);
+    }
     throw error;
   }
 };
@@ -41,7 +43,9 @@ export const getUserById = async ({ id }: IUserById) => {
     });
     return response.data;
   } catch (error) {
-    console.debug('Error fetching user:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Error fetching user:', error);
+    }
     throw error;
   }
 };

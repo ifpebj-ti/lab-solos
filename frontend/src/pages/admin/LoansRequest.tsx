@@ -115,7 +115,9 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.debug('Erro ao aprovar empréstimo:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao aprovar empréstimo:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
@@ -135,7 +137,9 @@ function LoansRequest() {
       );
       setLoan(filteredLoans);
     } catch (error) {
-      console.debug('Erro ao reprovar empréstimo:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao reprovar empréstimo:', error);
+      }
       toast({
         title: 'Erro durante requisição',
         description: 'Tente novamente mais tarde...',
