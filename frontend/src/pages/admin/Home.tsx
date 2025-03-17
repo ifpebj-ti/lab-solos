@@ -1,14 +1,10 @@
 import Laboratory from '../../../public/images/laboratory.png';
-import analysis from '../../../public/images/analysis.png';
-import notebook from '../../../public/images/notebook.png';
-import vidraria from '../../../public/images/vidraria.png';
 import logo from '../../../public/images/logo.png';
 import OpenSearch from '@/components/global/OpenSearch';
 import InfoCard from '@/components/screens/InfoCard';
 import AlertIcon from '../../../public/icons/AlertIcon';
 import JoinIcon from '../../../public/icons/JoinIcon';
 import LoanIcon from '../../../public/icons/LoanIcon';
-import Carousel from '@/components/global/Carousel';
 import Cookie from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { getDependentesForApproval } from '@/integration/Class';
@@ -16,7 +12,6 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
 import { getAlertProducts } from '@/integration/Product';
-import { getSystemQuantities } from '@/integration/System';
 export interface IUsuario {
   id: number;
   nomeCompleto: string;
@@ -42,31 +37,6 @@ interface IProduto {
   dataValidade: string | null;
   status: string;
 }
-interface DashboardData {
-  produtos: {
-    Quimico: number;
-    Vidraria: number;
-    Outro: number;
-    Total: number;
-  };
-  alertas: {
-    ProdutosVencidos: number;
-    ProdutosEmBaixa: number;
-  };
-  usuarios: {
-    Administrador: number;
-    Mentor: number;
-    Mentorado: number;
-    Total: number;
-  };
-  emprestimos: {
-    Aprovado: number;
-    Pendente: number;
-    Rejeitado: number;
-    Total: number;
-  };
-  totalProdutosEmprestados: number;
-}
 
 function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +44,6 @@ function Home() {
   const [approval, setApproval] = useState<IUsuario[]>([]);
   const [loan, setLoan] = useState<IEmprestimo[]>([]);
   const [alert, setAlert] = useState<IProduto[]>([]);
-  const [system, setSystem] = useState<DashboardData>();
 
   useEffect(() => {
     const fetchGetLoansDependentes = async () => {
@@ -82,8 +51,6 @@ function Home() {
       try {
         const response = await getDependentesForApproval(id);
         const responseAllLoans = await getAllLoans();
-        const systemQuant = await getSystemQuantities();
-        setSystem(systemQuant);
         const filteredLoans = responseAllLoans.filter(
           (loan: { status: string }) => loan.status === 'Pendente'
         );
@@ -105,21 +72,6 @@ function Home() {
     fetchGetLoansDependentes();
   }, [id]);
 
-  const informacoes = [
-    'Solicitações de Empréstimo',
-    'Itens Monitorados',
-    'Empréstimos Realizados',
-    'Usuários Cadatrados',
-    'Solicitações de Itens',
-  ];
-  const valor = [
-    String(system?.emprestimos.Total),
-    String(system?.produtos.Total),
-    String(system?.emprestimos.Aprovado),
-    String(system?.usuarios.Total),
-    String(system?.totalProdutosEmprestados),
-  ];
-  const imagesSrc = [analysis, notebook, vidraria, notebook, vidraria];
   return (
     <>
       {isLoading ? (
@@ -179,16 +131,6 @@ function Home() {
               link={'/admin/loans-request'}
               quant={loan.length}
             />
-          </div>
-          <div className='w-11/12'>
-            <Carousel
-              valor={valor}
-              informacoes={informacoes}
-              imageSrc={imagesSrc}
-            />
-          </div>
-          <div className='w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy'>
-            .
           </div>
           <div className='w-full min-h-44 bg-primaryMy mt-16 flex items-center justify-center'>
             <div className='w-11/12 flex items-center justify-between h-full text-white'>

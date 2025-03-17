@@ -52,13 +52,6 @@ function Home() {
     };
     fetchGetSystem();
   }, []);
-  const valor = [
-    String(system?.emprestimos.Total),
-    String(system?.produtos.Total),
-    String(system?.emprestimos.Aprovado),
-    String(system?.usuarios.Total),
-    String(system?.totalProdutosEmprestados),
-  ];
   const informacoes = [
     'Solicitações de Empréstimo',
     'Itens Monitorados',
@@ -105,11 +98,7 @@ function Home() {
             </div>
           </div>
           <div className='w-11/12'>
-            <Carousel
-              valor={valor}
-              informacoes={informacoes}
-              imageSrc={imagesSrc}
-            />
+            <Carousel informacoes={informacoes} imageSrc={imagesSrc} />
           </div>
           <div className='w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy'>
             .
