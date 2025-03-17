@@ -38,6 +38,7 @@ import ClassLoan from './pages/admin/ClassLoan';
 import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
+import BootScreen from './pages/BootScreen';
 
 function AppRoutes() {
   return (
@@ -353,6 +354,7 @@ function AppRoutes() {
         </Route>
 
         {/* Rotas sem autenticação */}
+        <Route index path='/boot' element={<BootScreen />} />
         <Route index path='/' element={<Login />} />
         <Route path='/forgot-your-password' element={<ForgotPassword />} />
         <Route path='/reset-password' element={<ResetPassword />} />
