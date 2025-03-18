@@ -24,7 +24,6 @@ namespace LabSolos_Server_DotNet8.Services
     {
         private readonly IProdutoRepository _produtoRepository = produtoRepository;
         private readonly IUtilitiesService _utilitiesService = utilitiesService;
-
         private readonly ILogger<ProdutoService> _logger = logger;
 
         public async Task<IEnumerable<object>> GetProdutosByTipoAsync(TipoProduto tipoProduto)
@@ -141,6 +140,7 @@ namespace LabSolos_Server_DotNet8.Services
                 NomeProduto = o.NomeProduto,
                 Fornecedor = o.Fornecedor,
                 Quantidade = o.Quantidade,
+                UnidadeMedida = o.UnidadeMedida.ToString(),
                 DataFabricacao = o.DataFabricacao.ToString(),
                 DataValidade = o.DataValidade.ToString(),
                 QuantidadeMinima = o.QuantidadeMinima,
@@ -202,6 +202,7 @@ namespace LabSolos_Server_DotNet8.Services
                     Quantidade = produtoDTO.Quantidade,
                     QuantidadeMinima = produtoDTO.QuantidadeMinima,
                     LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
+                    UnidadeMedida = _utilitiesService.ValidarEnum(produtoDTO.UnidadeMedida, nameof(produtoDTO.UnidadeMedida), UnidadeMedida.Indefinido),
                     DataFabricacao = _utilitiesService.ConverterParaDateTime(produtoDTO.DataFabricacao),
                     DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
                     Status = StatusProduto.Disponivel,
@@ -218,6 +219,7 @@ namespace LabSolos_Server_DotNet8.Services
                     Tipo = TipoProduto.Outro,
                     Quantidade = produtoDTO.Quantidade,
                     QuantidadeMinima = produtoDTO.QuantidadeMinima,
+                    UnidadeMedida = _utilitiesService.ValidarEnum(produtoDTO.UnidadeMedida, nameof(produtoDTO.UnidadeMedida), UnidadeMedida.Indefinido),
                     DataFabricacao = _utilitiesService.ConverterParaDateTime(produtoDTO.DataFabricacao),
                     DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
                     LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
