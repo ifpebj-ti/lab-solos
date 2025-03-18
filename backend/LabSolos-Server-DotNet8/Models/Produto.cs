@@ -5,6 +5,7 @@ namespace LabSolos_Server_DotNet8.Models
     public class Produto
     {
         public int Id { get; set; }
+        public string? Catmat { get; set; }
         public required string NomeProduto { get; set; }
         public string? Fornecedor { get; set; }
         public TipoProduto Tipo { get; set; } // Enum
