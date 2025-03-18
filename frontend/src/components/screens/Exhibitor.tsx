@@ -13,7 +13,7 @@ function Exhibitor({ icon, text, number }: IExhibitorProps) {
         <img src={estoque} alt='Icone retratando dado' className='w-14'></img>
         <p className='text-white text-4xl font-rajdhani-semibold'>+2000</p>
       </div>
-      <p className='w-full text-center font-rajdhani-medium text-white text-lg'>produtos monitorados</p>
+      <p className='w-full text-center font-rajdhani-medium text-white'>produtos monitorados</p>
     </div>
   );
 }
