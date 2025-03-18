@@ -39,6 +39,7 @@ import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
+import LoanReport from './pages/pdf/UsersPdf';
 
 function AppRoutes() {
   return (
@@ -360,6 +361,9 @@ function AppRoutes() {
         <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/create-account' element={<CreateAccount />} />
         <Route path='*' element={<Page404 />} />
+
+        {/* pdf */}
+        <Route path='/loan-report' element={<LoanReport />} />
       </Routes>
     </BrowserRouter>
   );
