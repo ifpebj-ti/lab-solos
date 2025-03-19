@@ -40,6 +40,7 @@ import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
 import LoanReport from './pages/pdf/UsersPdf';
+import PreLab from './pages/prelab/PreLab';
 
 function AppRoutes() {
   return (
@@ -354,8 +355,11 @@ function AppRoutes() {
           />
         </Route>
 
-        {/* Rotas sem autenticação */}
+        {/* prelab */}
         <Route index path='/boot' element={<BootScreen />} />
+        <Route index path='/pre' element={<PreLab />} />
+
+        {/* Rotas sem autenticação */}
         <Route index path='/' element={<Login />} />
         <Route path='/forgot-your-password' element={<ForgotPassword />} />
         <Route path='/reset-password' element={<ResetPassword />} />

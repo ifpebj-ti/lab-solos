@@ -1,19 +1,18 @@
 import React from 'react';
-import estoque from '../../../public/images/estoque.png';
-
 interface IExhibitorProps {
   icon?: React.ReactNode;
   text?: string;
   number?: number;
+  wid: string;
 }
-function Exhibitor({ icon, text, number }: IExhibitorProps) {
+function Exhibitor({ icon, text, number, wid }: IExhibitorProps) {
   return (
     <div className='flex flex-col'>
       <div className='flex items-center justify-center'>
-        <img src={estoque} alt='Icone retratando dado' className='w-14'></img>
-        <p className='text-white text-4xl font-rajdhani-semibold'>+2000</p>
+        <img src={icon} alt='Icone retratando dado' className={`w-${wid}`}></img>
+        <p className='text-primaryMy text-4xl font-rajdhani-semibold'>+{number}</p>
       </div>
-      <p className='w-full text-center font-rajdhani-medium text-white'>produtos monitorados</p>
+      <p className='w-full text-center font-rajdhani-semibold text-primaryMy mt-1'>{text}</p>
     </div>
   );
 }
