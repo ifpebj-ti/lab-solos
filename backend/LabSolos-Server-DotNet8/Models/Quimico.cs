@@ -5,7 +5,6 @@ namespace LabSolos_Server_DotNet8.Models
     public class Quimico : Produto
     {
         public string? Catmat { get; set; }
-        public required UnidadeMedida UnidadeMedida { get; set; } // Enum
         public EstadoFisico? EstadoFisico { get; set; }
         public required Cor Cor { get; set; }
         public required Odor Odor { get; set; }

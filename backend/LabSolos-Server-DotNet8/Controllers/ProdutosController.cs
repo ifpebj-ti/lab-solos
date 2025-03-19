@@ -13,7 +13,6 @@ namespace LabSolos_Server_DotNet8.Controllers
     {
         private readonly IProdutoService _produtoService = produtoService;
         private readonly IUtilitiesService _utilsService = utilsService;
-
         private readonly ILogger<ProdutosController> _logger = logger;
 
         [HttpGet("tipo/{tipoProduto}")]
