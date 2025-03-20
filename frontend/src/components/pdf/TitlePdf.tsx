@@ -1,7 +1,6 @@
 import { View, StyleSheet, Text } from '@react-pdf/renderer';
 import { ReactNode } from 'react';
 
-
 interface UnderlinedTextProps {
   children: ReactNode;
 }
@@ -26,7 +25,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const TitlePdf : React.FC<UnderlinedTextProps> = ({ children }) => {
+export const TitlePdf: React.FC<UnderlinedTextProps> = ({ children }) => {
   const textContent = String(children); // Garantir que seja tratado como string
   return (
     <View style={styles.textContainer}>
@@ -37,4 +36,4 @@ export const TitlePdf : React.FC<UnderlinedTextProps> = ({ children }) => {
       />
     </View>
   );
-}
+};

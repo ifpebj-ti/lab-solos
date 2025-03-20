@@ -6,7 +6,7 @@ import LoanIcon from '../../public/icons/LoanIcon';
 import CardBoot from '@/components/screens/CardBoot';
 import { LinkedinIcon, Mail, Phone } from 'lucide-react';
 import Exhibitor from '@/components/screens/Exhibitor';
-import laboratory from '../../public/images/laboratory.png'
+import laboratory from '../../public/images/laboratory.png';
 
 function BootScreen() {
   return (
@@ -53,10 +53,10 @@ function BootScreen() {
         <div className='w-full h-[20%]'>
           <div className='w-full h-full bg-primaryMy flex items-center justify-center'>
             <div className='w-11/12 h-full flex items-center justify-between'>
-              <Exhibitor/>
-              <Exhibitor/>
-              <Exhibitor/>
-              <Exhibitor/>
+              <Exhibitor />
+              <Exhibitor />
+              <Exhibitor />
+              <Exhibitor />
             </div>
           </div>
         </div>

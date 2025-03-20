@@ -10,13 +10,15 @@ import { Info } from 'lucide-react';
 
 const submitPreLabSchema = z
   .object({
-    nome: z
-      .string()
-      .toLowerCase(),
+    nome: z.string().toLowerCase(),
     email: z.string().email('Digite um email válido').toLowerCase(),
     instituicao: z.string().min(3, 'Digite uma instituição de ensino válida'),
-    descricao: z.string().min(30, 'Digite uma descrição válida com mais de 30 caracteres'),
-    motivo: z.string().min(30,'Digite um motivo válido com mais de 30 caracteres'),
+    descricao: z
+      .string()
+      .min(30, 'Digite uma descrição válida com mais de 30 caracteres'),
+    motivo: z
+      .string()
+      .min(30, 'Digite um motivo válido com mais de 30 caracteres'),
     cargo: z.string().min(6, 'Digite um texto válido'),
   })
   .superRefine((data, ctx) => {
@@ -62,7 +64,9 @@ function PreLab() {
         <div className='w-full bg-primaryMy h-24 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]'>
           <img alt='Logo' src={logo} className='w-14' />
           <div className='text-white gap-y-1 flex items-center'>
-            <h1 className='font-rajdhani-semibold text-3xl mt-2'>Solicite Acesso ao LabON</h1>
+            <h1 className='font-rajdhani-semibold text-3xl mt-2'>
+              Solicite Acesso ao LabON
+            </h1>
             <Info stroke='#fff' width={50} strokeWidth={2.5} className='mt-1' />
           </div>
         </div>
