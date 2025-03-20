@@ -17,7 +17,6 @@ import estoque from '../../public/images/estoque-pronto.png';
 import pessoas from '../../public/images/silhueta-de-multiplos-usuarios.png';
 import folha from '../../public/images/contrato.png';
 
-
 function BootScreen() {
   return (
     <div className='h-screen max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy'>
@@ -39,9 +38,16 @@ function BootScreen() {
       </div>
       <div className='w-11/12 h-[33%] flex items-center justify-between '>
         <div className='w-[50%] h-full flex flex-col items-start justify-end'>
-          <p className='font-rajdhani-semibold text-4xl text-clt-2'>Conheça o <span className='text-primaryMy'>LabON</span>: A Solução </p>
-          <p className='font-rajdhani-semibold text-4xl text-clt-2'>Completa para <span className='text-primaryMy'>Gestão</span> de </p>
-          <p className='font-rajdhani-semibold text-4xl text-primaryMy'>Laboratórios</p>
+          <p className='font-rajdhani-semibold text-4xl text-clt-2'>
+            Conheça o <span className='text-primaryMy'>LabON</span>: A
+            Solução{' '}
+          </p>
+          <p className='font-rajdhani-semibold text-4xl text-clt-2'>
+            Completa para <span className='text-primaryMy'>Gestão</span> de{' '}
+          </p>
+          <p className='font-rajdhani-semibold text-4xl text-primaryMy'>
+            Laboratórios
+          </p>
           <p className='font-rajdhani-medium text-clt-2'>
             Descubra como o LabON pode transformar a gestão do seu laboratório
             com eficiência, segurança e praticidade.
@@ -70,10 +76,30 @@ function BootScreen() {
       <div className='w-full h-[20%]'>
         <div className='w-full h-full bg-backgroundMy flex items-center justify-center'>
           <div className='w-11/12 h-full flex items-center justify-between px-3 border-y border-borderMy'>
-            <Exhibitor icon={lab} text='laboratórios ativos' number={25} wid='10' />
-            <Exhibitor icon={folha} text='empréstimos realizados' number={6682} wid='9' />
-            <Exhibitor icon={estoque} text='produtos monitorados' number={279} wid='11' />
-            <Exhibitor icon={pessoas} text='usuários ativos' number={643} wid='10' />
+            <Exhibitor
+              icon={lab}
+              text='laboratórios ativos'
+              number={25}
+              wid='10'
+            />
+            <Exhibitor
+              icon={folha}
+              text='empréstimos realizados'
+              number={6682}
+              wid='9'
+            />
+            <Exhibitor
+              icon={estoque}
+              text='produtos monitorados'
+              number={279}
+              wid='11'
+            />
+            <Exhibitor
+              icon={pessoas}
+              text='usuários ativos'
+              number={643}
+              wid='10'
+            />
           </div>
         </div>
       </div>

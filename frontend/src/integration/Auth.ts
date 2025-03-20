@@ -83,7 +83,7 @@ export const authenticate = async (
         }
       } else {
         if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro: o valor de "sub" está indefinido.');
+          console.error('Erro: o valor de "sub" está indefinido.');
         }
       }
     }
@@ -103,7 +103,7 @@ export const createMentor = async (data: ICreateUserData) => {
     return response;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao criar mentor', error);
+      console.error('Erro ao criar mentor', error);
     }
     throw error;
   }
