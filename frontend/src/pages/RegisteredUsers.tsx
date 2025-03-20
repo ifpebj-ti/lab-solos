@@ -12,12 +12,14 @@ import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import { getRegisteredUsers } from '@/integration/Users';
 import { formatDate } from '../function/date';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import { IUsuario } from './admin/Home';
 import { getDependentesForApproval } from '@/integration/Class';
 import Cookie from 'js-cookie';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { MyDocument } from '@/components/pdf/MyDocument';
 interface RegisteredUser {
   nivelUsuario: string;
   dataIngresso: string;
@@ -37,6 +39,23 @@ function RegisteredUsers() {
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
   const [approval, setApproval] = useState<IUsuario[]>([]);
+  const columnsExport = [
+    { value: 'Nome', width: '40%' },
+    { value: 'Nível', width: '15%' },
+    { value: 'Ingresso', width: '15%' },
+    { value: 'Status', width: '15%' },
+    { value: 'ID Responsável', width: '15%' },
+  ];
+  const columnWidthsExport = ['40%', '15%', '15%', '15%', '15%'];
+  const rowData = [
+    ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
+    ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
+    ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
+    ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
+    ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
+    ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
+    ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
+  ];
 
   useEffect(() => {
     const fetchRegisteredUsers = async () => {
@@ -155,31 +174,53 @@ function RegisteredUsers() {
             />
           </div>
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
+            <div className='w-full flex justify-between items-center mt-3'>
+              <div className='w-2/6'>
                 <SearchInput
                   name='search'
                   onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
                   value={searchTerm}
                 />
               </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown
-                    onClick={() => toggleSortOrder(!isAscending)}
-                    top={isAscending}
-                  />
-                </div>
-                <div className='w-1/2 -mt-4'>
-                  <SelectInput
-                    options={options}
-                    onValueChange={(value) => {
-                      setValue(value);
-                      setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
-                    }}
-                    value={value}
-                  />
-                </div>
+              <div className='w-2/6 flex justify-evenly'>
+                <TopDown
+                  onClick={() => toggleSortOrder(!isAscending)}
+                  top={isAscending}
+                />
+                <button className='border border-borderMy rounded-sm h-9 w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200' >
+                  <PDFDownloadLink
+                    document={
+                      <MyDocument
+                        data={currentData.map((user) => [
+                          String(user.nomeCompleto),
+                          String(user.nivelUsuario),
+                          String(formatDate(user.dataIngresso)),
+                          String(user.status),
+                          String(user.id),
+                        ])}
+                        title='Usuários Cadastrados'
+                        columnWidths={columnWidthsExport}
+                        columns={columnsExport}
+                      />
+                    }
+                    fileName='teste.pdf'
+                    className='flex items-center justify-center'
+                  >
+                    <button>
+                      <FileText stroke='#232323' width={21} strokeWidth={1.5} />
+                    </button>
+                  </PDFDownloadLink>
+                </button>
+              </div>
+              <div className='w-2/6 -mt-4'>
+                <SelectInput
+                  options={options}
+                  onValueChange={(value) => {
+                    setValue(value);
+                    setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
+                  }}
+                  value={value}
+                />
               </div>
             </div>
             <HeaderTable columns={headerTable} />
