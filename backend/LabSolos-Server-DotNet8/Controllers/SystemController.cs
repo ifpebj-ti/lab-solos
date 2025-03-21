@@ -16,7 +16,6 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpGet("quantities")]
         public async Task<IActionResult> GetSystemQuantities()
         {
-
             var result = await _systemService.GetSystemQuantitiesAsync();
             return Ok(result);
         }

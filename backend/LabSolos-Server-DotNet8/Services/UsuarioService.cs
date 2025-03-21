@@ -9,111 +9,15 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public interface IUsuarioService
     {
-        Task<IEnumerable<Usuario>> GetAllAsync();
-        Task<IEnumerable<object>> GetUsuariosByTipoAsync(TipoUsuario tipoUsuario);
-        Task<Usuario?> GetByIdAsync(int id);
-        Task<Usuario?> GetByEmailAsync(string email);
-        Task AddAsync(Usuario usuario);
-        Task UpdateAsync(Usuario usuario);
-        Task DeleteAsync(int id);
-        Task<Usuario?> ValidarUsuarioAsync(string email, string password);
         ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto);
     }
     
-    public class UsuarioService(IUsuarioRepository usuarioRepository, ILogger<UsuarioService> logger) : IUsuarioService
+    public class UsuarioService(ILogger<UsuarioService> logger) : IUsuarioService
     {
-        private readonly IUsuarioRepository _usuarioRepository = usuarioRepository;
         private readonly ILogger<UsuarioService> _logger = logger;
 
         public readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
 
-        public async Task<Usuario?> ValidarUsuarioAsync(string email, string password)
-        {
-            return await _usuarioRepository.ValidarUsuarioAsync(email, password);
-        }
-    
-        public async Task<IEnumerable<object>> GetUsuariosByTipoAsync(TipoUsuario tipoUsuario)
-        {
-            _logger.LogInformation("Iniciando operação para obter usuários do tipo {TipoUsuario}.", tipoUsuario);
-            var usuarios = await _usuarioRepository.GetAllAsync();
-
-            switch (tipoUsuario)
-            {
-                case TipoUsuario.Administrador:
-                    var administradores = usuarios
-                        .OfType<Administrador>()
-                        .Select(a => new AdministradorDTO
-                        {
-                            Id = a.Id,
-                            NomeCompleto = a.NomeCompleto,
-                            Email = a.Email,
-                            Telefone = a.Telefone,
-                            DataIngresso = a.DataIngresso,
-                            Status = a.Status.ToString()
-                        }).ToList<object>();
-
-                    _logger.LogInformation("{Count} administradores obtidos.", administradores.Count);
-                    return administradores;
-
-                case TipoUsuario.Academico:
-                    var academicos = usuarios
-                        .OfType<Academico>()
-                        .Select(m => new AcademicoDTO
-                        {
-                            Id = m.Id,
-                            NomeCompleto = m.NomeCompleto,
-                            NivelUsuario = m.NivelUsuario.ToString(),
-                            Email = m.Email,
-                            Telefone = m.Telefone,
-                            Instituicao = m.Instituicao,
-                            Curso = m.Curso,
-                            Status = m.Status.ToString()
-                        }).ToList<object>();
-
-                    _logger.LogInformation("{Count} academicos obtidos.", academicos.Count);
-                    return academicos;
-
-                default:
-                    _logger.LogWarning("Tipo de usuário especificado ({TipoUsuario}) ainda não tem implementação.", tipoUsuario);
-                    throw new NotImplementedException("Tipo de usuário não implementado.");
-            }
-        }
-
-
-        public async Task<IEnumerable<Usuario>> GetAllAsync()
-        {
-            return await _usuarioRepository.GetAllAsync();
-        }
-
-        public async Task<Usuario?> GetByIdAsync(int id)
-        {
-            return await _usuarioRepository.GetByIdAsync(id);
-        }
-
-        public async Task AddAsync(Usuario usuario)
-        {
-            _logger.LogInformation("{id} id do usuario",usuario.Id.ToString());
-
-            var usuarioExistente = await _usuarioRepository.GetByEmailAsync(usuario.Email);
-
-            if (usuarioExistente is not null) 
-            {
-                _logger.LogWarning("Tentativa de adicionar um usuário com e-mail já existente: {Email}.", usuario.Email);
-                throw new InvalidOperationException("Já existe um usuário cadastrado com este e-mail.");
-            }
-
-            await _usuarioRepository.AddAsync(usuario);
-        }
-
-        public async Task UpdateAsync(Usuario usuario)
-        {
-            await _usuarioRepository.UpdateAsync(usuario);
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            await _usuarioRepository.DeleteAsync(id);
-        }
 
         public ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto)
         {
@@ -143,11 +47,6 @@ namespace LabSolos_Server_DotNet8.Services
                 Validado = true, 
                 Mensagem = string.Empty
             };
-        }
-
-        public async Task<Usuario?> GetByEmailAsync(string email)
-        {
-            return await _usuarioRepository.GetByEmailAsync(email);
         }
     }
 }

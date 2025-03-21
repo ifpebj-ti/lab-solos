@@ -22,7 +22,7 @@ namespace LabSolos_Server_DotNet8.Services
                 [
                     new Claim(JwtRegisteredClaimNames.Sub, userId),
                     new Claim(JwtRegisteredClaimNames.Email, userEmail),
-                    new Claim("nivel", nivel),
+                    new Claim(ClaimTypes.Role, nivel),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(_expiresInMinutes),

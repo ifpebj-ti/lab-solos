@@ -22,27 +22,36 @@ builder.Services.AddControllers(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+}).AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
-
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
-builder.Services.AddScoped<IEmprestimoService, EmprestimoService>();
 
+//AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
-builder.Services.AddScoped<ILoteRepository, LoteRepository>();
-builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+if (builder.Environment.IsProduction())
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("SQLiteConnection")));
+}
 
 // Configurar o Serilog para escrever os logs em um arquivo
 Log.Logger = new LoggerConfiguration()
@@ -61,7 +70,6 @@ builder.Host.UseSerilog();
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -87,7 +95,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Políticas baseadas em roles
+    options.AddPolicy("ApenasAdministradores", policy =>
+        policy.RequireRole("Administrador"));
+
+    options.AddPolicy("ApenasResponsaveis", policy =>
+        policy.RequireRole("Mentor"));
+
+    options.AddPolicy("ApenasDependentes", policy =>
+        policy.RequireRole("Mentorado"));
+});
 
 // Configurar CORS
 builder.Services.AddCors(options =>

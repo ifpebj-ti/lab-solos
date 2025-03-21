@@ -1,6 +1,6 @@
 namespace LabSolos_Server_DotNet8.Models
 {
-    public class Dependentes
+    public class Dependente
     {
         public int Id { get; set; }
         public int ResponsavelId { get; set; } // ID do Mentor responsável
