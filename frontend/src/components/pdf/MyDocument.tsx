@@ -17,7 +17,10 @@ type TableProps = {
   columns: Column[];
   title: string;
   data: string[][]; // Agora aceita um array bidimensional
+  name: string;
+  nivel: string;
   columnWidths: string[]; // Larguras dinâmicas das colunas
+  signer: string;
 };
 
 Font.register({
@@ -64,12 +67,15 @@ export const MyDocument = ({
   title,
   data,
   columnWidths,
+  name,
+  nivel,
+  signer,
 }: TableProps) => (
   <Document>
     <Page size='A4' style={styles.page}>
       <HeaderPdf />
       <LinePdf />
-      <HeaderDescription />
+      <HeaderDescription name={name} nivel={nivel} />
       <LinePdf />
       <TitlePdf children={title} />
       <DescriptionPdf />
@@ -85,8 +91,7 @@ export const MyDocument = ({
         ))}
       </View>
       <View style={styles.sign}>
-        <ToSign />
-        <ToSign />
+        <ToSign name={signer}/>
       </View>
     </Page>
   </Document>

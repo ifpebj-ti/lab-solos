@@ -28,9 +28,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ToSign = () => (
+interface IToSign {
+  name: string;
+}
+
+const formatUserName = (fullName: string): string => {
+  const names = fullName.trim().split(' ');
+  return names.slice(0, 2).join(' '); // Pega no máximo os dois primeiros nomes
+};
+
+export const ToSign = ({ name }: IToSign) => (
   <View style={styles.unique}>
     <View style={styles.line}></View>
-    <Text style={styles.text}>Rosemberg Teixeira</Text>
+    <Text style={styles.text}>{formatUserName(name)}</Text>
   </View>
 );

@@ -14,6 +14,13 @@ import { getProductById } from '@/integration/Product';
 import { formatDate } from '@/function/date';
 import { useEffect, useState } from 'react';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
+import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
@@ -30,19 +37,19 @@ const chartConfig = {
 
 interface IProduto {
   catmat: string; // Código do material
-  unidadeMedida: number; // Unidade de medida representada por um número
+  unidadeMedida: string; // Unidade de medida representada por um número
   estadoFisico: number; // Estado físico representado por um número
   cor: number; // Código representando a cor
   odor: number; // Código representando o odor
   densidade: number; // Densidade do produto
   pesoMolecular: number; // Peso molecular do produto
-  grauPureza: string; // Grau de pureza, em formato string (ex.: "98%")
+  grauPureza: string; // Grau de pureza, em formato string (ex.: '98%')
   formulaQuimica: string; // Fórmula química do produto
   grupo: number; // Grupo químico representado por um número
   id: number; // ID único do produto
   nomeProduto: string; // Nome do produto
   fornecedor: string; // Nome do fornecedor
-  tipo: number; // Tipo do produto representado por um número
+  tipo: string; // Tipo do produto representado por um número
   quantidade: number; // Quantidade disponível do produto
   quantidadeMinima: number; // Quantidade mínima recomendada
   dataFabricacao: string | null; // Data de fabricação em formato ISO 8601 ou null
@@ -54,6 +61,10 @@ interface IProduto {
   lote: string | null; // Informações do lote ou null
   emprestimo: string | null; // Informações sobre empréstimo ou null
   capacidade: string | number;
+  altura: string;
+  formato: string;
+  graduada: string;
+  material: string;
 }
 
 function Verification() {
@@ -93,44 +104,155 @@ function Verification() {
   const infoItemsVidraria = productsById
     ? [
         { title: 'Item', value: productsById.nomeProduto, width: '40%' },
-        { title: 'Capacidade', value: productsById.capacidade, width: '20%' },
+        {
+          title: 'Capacidade (ml)',
+          value:
+            productsById.capacidade,
+          width: '20%',
+        },
         { title: 'Tipo', value: productsById.tipo, width: '20%' },
         { title: 'Situação', value: productsById.status, width: '20%' },
       ]
     : [];
-  const infoItems2 = productsById
+
+
+    const infoItemsOutros = productsById
+    ? [
+      { title: 'Item', value: productsById.nomeProduto, width: '40%' },
+      { title: 'Tipo', value: productsById.tipo, width: '20%' },
+      { title: 'Situação', value: productsById.status, width: '20%' },
+      {
+        title: 'Data de Validade',
+        value: formatDate(productsById.dataValidade),
+        width: '20%',
+      },
+    ]
+    : [];
+    const infoItems2 = productsById
+    ? [
+      {
+        title: 'Estoque Atual',
+        value: productsById?.quantidade,
+        width: '100%',
+      },
+    ]
+    : [];
+    const infoItems2Vd = productsById
+    ? [
+      {
+        title: 'Estoque Atual (Un)',
+        value: productsById?.quantidade,
+        width: '100%',
+      },
+    ]
+    : [];
+    const infoItems3 = productsById
+    ? [
+      {
+        title: 'Última Modificação do Estoque',
+        value: formatDate(productsById?.ultimaModificacao),
+        width: '100%',
+      },
+    ]
+    : [];
+
+    const infoItems6 = productsById
+    ? [
+      {
+        title: 'Localização',
+        value: productsById?.localizacaoProduto,
+        width: '100%',
+      },
+    ]
+    : [];
+
+    const infoItems5 = productsById
+    ? [
+      {
+        title: 'Data de Validade',
+        value: formatDate(productsById?.dataValidade),
+        width: '100%',
+      },
+    ]
+    : [];
+
+  const moreInformationsQuimico = productsById
     ? [
         {
-          title: 'Estoque Atual',
-          value: productsById?.quantidade,
-          width: '100%',
+          title: 'Localização',
+          value: productsById.localizacaoProduto,
+          width: '40%',
         },
+        {
+          title: 'Catmat',
+          value:
+            productsById.catmat,
+          width: '20%',
+        },
+        { title: 'Unidade de Medida', value: productsById.unidadeMedida, width: '20%' },
       ]
     : [];
-  const infoItems3 = productsById
+    const moreInformationsVidraria = productsById
     ? [
         {
-          title: 'Última Inserção',
-          value: formatDate(productsById?.ultimaModificacao),
-          width: '100%',
+          title: 'Localização',
+          value: productsById.localizacaoProduto,
+          width: '40%',
         },
+        {
+          title: 'Catmat',
+          value:
+            productsById.catmat ?? 'Não corresponde',
+          width: '20%',
+        },
+        {
+          title: 'Altura',
+          value:
+            productsById.altura,
+          width: '20%',
+        },
+
+        { title: 'Capacidade (ml)', value: productsById.capacidade, width: '20%' },
       ]
     : [];
-  const infoItems4 = productsById
+
+  const moreInformationsVidraria2 = productsById
     ? [
         {
-          title: 'Última Retirada',
-          value: formatDate(productsById?.ultimaModificacao),
-          width: '100%',
-        },
+          title: 'Material',
+          value: productsById.material,
+          width: '40%',
+        }
       ]
     : [];
+    const moreInformationsVidraria3 = productsById
+    ? [
+        {
+          title: 'Altura',
+          value: productsById.altura,
+          width: '40%',
+        }
+      ]
+    : [];
+    const moreInformationsVidraria4 = productsById
+    ? [
+        {
+          title: 'Formato',
+          value: productsById.formato,
+          width: '40%',
+        }
+      ]
+    : [];
+
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const currentData = dataVer.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  console.log(productsById);
 
   return (
     <>
@@ -151,22 +273,66 @@ function Verification() {
               <OpenSearch />
             </div>
           </div>
-          {productsById?.grupo == 0 ? (
+          {productsById?.tipo === 'Quimico' &&
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItems} />
               <div className='w-full flex gap-x-8 mt-5'>
                 <InfoContainer items={infoItems2} />
+                <InfoContainer items={infoItems5} />
                 <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
+              </div>
+                <div className='w-full mt-7 min-h-9'>
+                <Accordion
+                  type='single'
+                  collapsible
+                  className='w-full bg-backgroundMy px-4 border border-borderMy rounded-md font-inter-medium text-clt-2'
+                >
+                  <AccordionItem value='item-1'>
+                    <AccordionTrigger>Mais Informações</AccordionTrigger>
+                    <AccordionContent>
+                      <InfoContainer items={moreInformationsQuimico} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
             </div>
-          ) : (
+          }
+          {productsById?.tipo === 'Vidraria' &&
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsVidraria} />
               <div className='w-full flex gap-x-8 mt-5'>
+                <InfoContainer items={infoItems2Vd} />
+                <InfoContainer items={infoItems5} />
+                <InfoContainer items={infoItems3} />
+              </div>
+              <div className='w-full mt-7 min-h-9'>
+                <Accordion
+                  type='single'
+                  collapsible
+                  className='w-full bg-backgroundMy px-4 border border-borderMy rounded-md font-inter-medium text-clt-2'
+                >
+                  <AccordionItem value='item-1'>
+                    <AccordionTrigger>Mais Informações</AccordionTrigger>
+                    <AccordionContent>
+                      <InfoContainer items={moreInformationsVidraria} />
+                      <div className='w-full flex gap-x-8 mt-5'>
+                        <InfoContainer items={moreInformationsVidraria2} />
+                        <InfoContainer items={moreInformationsVidraria3} />
+                        <InfoContainer items={moreInformationsVidraria4} />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </div>
+          }
+          {productsById?.tipo === 'Outro' && (
+            <div className='w-11/12 mt-7'>
+              <InfoContainer items={infoItemsOutros} />
+              <div className='w-full flex gap-x-8 mt-5'>
                 <InfoContainer items={infoItems2} />
                 <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
+                <InfoContainer items={infoItems6} />
               </div>
             </div>
           )}
@@ -260,7 +426,7 @@ function Verification() {
                       rowData.name,
                       rowData.institution,
                       rowData.code,
-                      rowData.quantity,
+                      rowData.quantity+ 'un',
                     ]}
                     rowIndex={index}
                     columnWidths={columnsVer.map((column) => column.width)}

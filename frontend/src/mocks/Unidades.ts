@@ -343,10 +343,32 @@ export const unidadesMedida = [
   { value: 'Unidade', label: 'Unidade' },
   { value: 'Metro', label: 'Metro' },
   { value: 'Centimetro', label: 'Centímetro' },
-  { value: 'iMlimetro', label: 'Milímetro' },
+  { value: 'Milimetro', label: 'Milímetro' },
   { value: 'Outro', label: 'Outro' },
   { value: 'Indefinido', label: 'Indefinido' },
 ];
+
+export const getUnidadeSigla = (value: string): string => {
+  const siglas: Record<string, string> = {
+    Litro: 'L',
+    Mililitro: 'mL',
+    Metro_cubico: 'm³',
+    Grama: 'g',
+    Quilograma: 'kg',
+    Tonelada: 't',
+    Centimetro_cubico: 'cm³',
+    Miligrama: 'mg',
+    Unidade: 'un',
+    Metro: 'm',
+    Centimetro: 'cm',
+    Milimetro: 'mm', // Corrigindo o erro de digitação para 'Milímetro'
+    Outro: 'Outro',
+    Indefinido: 'Indef',
+  };
+
+  return siglas[value] || value;
+};
+
 
 export const categoriasQuimicas = [
   { value: 'Acido', label: 'Ácido' },
