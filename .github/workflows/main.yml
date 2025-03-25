@@ -24,6 +24,11 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
+
       - name: Install dependencies
         run: |
           cd frontend
