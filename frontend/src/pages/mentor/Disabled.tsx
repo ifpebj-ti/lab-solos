@@ -132,7 +132,9 @@ function Disabled() {
                         rowData.status,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsDisabled.map((column) => column.width)}
+                      columnWidths={columnsDisabled.map(
+                        (column) => column.width
+                      )}
                       destinationRoute='/mentor/history/mentoring' // Ajuste conforme necessário
                       id={rowData.id}
                     />

@@ -378,7 +378,6 @@ export const getUnidadeSigla = (value: string): string => {
   return siglas[value] || value;
 };
 
-
 export const categoriasQuimicas = [
   { value: 'Acido', label: 'Ácido' },
   { value: 'Base', label: 'Base' },

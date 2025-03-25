@@ -86,7 +86,7 @@ function LoanHistoryMentee() {
     fetchGetLoan();
   }, [id]);
 
-  console.log(loan)
+  console.log(loan);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
@@ -173,9 +173,7 @@ function LoanHistoryMentee() {
                         String(rowData.produto.id || 'Não Corresponde'),
                         rowData.produto.nomeProduto || 'Não Corresponde',
                         rowData.produto.tipo || 'Não Corresponde',
-                        String(
-                          rowData.quantidade || 'Não Corresponde'
-                        ) +
+                        String(rowData.quantidade || 'Não Corresponde') +
                           getUnidadeSigla(
                             String(rowData.produto.unidadeMedida)
                           ),

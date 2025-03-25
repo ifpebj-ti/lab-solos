@@ -83,7 +83,7 @@ function FollowUp() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  console.log(filteredAlerts)
+  console.log(filteredAlerts);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);

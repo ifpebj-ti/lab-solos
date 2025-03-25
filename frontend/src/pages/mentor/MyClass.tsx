@@ -89,7 +89,12 @@ function MyClass() {
               Minha Turma
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Link to={'/mentor/my-class/disabled'} className='px-5 h-11 flex items-center justify-center rounded-md border border-borderMy font-inter-regular'>Mentorados desativados</Link>
+              <Link
+                to={'/mentor/my-class/disabled'}
+                className='px-5 h-11 flex items-center justify-center rounded-md border border-borderMy font-inter-regular'
+              >
+                Mentorados desativados
+              </Link>
               <OpenSearch />
             </div>
           </div>

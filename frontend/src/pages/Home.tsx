@@ -52,7 +52,7 @@ function Home() {
     fetchGetSystem();
   }, []);
 
-  console.log(system)
+  console.log(system);
   const informacoes = [
     'Solicitações de Empréstimo',
     'Itens Monitorados',

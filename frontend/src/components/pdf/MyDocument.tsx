@@ -28,7 +28,6 @@ Font.register({
   src: '../../../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf', // Caminho da fonte dentro do projeto
 });
 
-
 // Create styles
 const styles = StyleSheet.create({
   page: {
@@ -91,7 +90,7 @@ export const MyDocument = ({
         ))}
       </View>
       <View style={styles.sign}>
-        <ToSign name={signer}/>
+        <ToSign name={signer} />
       </View>
     </Page>
   </Document>

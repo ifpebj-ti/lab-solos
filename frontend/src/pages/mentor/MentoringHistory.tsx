@@ -123,7 +123,7 @@ function MentoringHistory() {
     currentPage * itemsPerPage
   );
 
-  console.log(currentData)
+  console.log(currentData);
 
   const infoItems = user
     ? [
@@ -180,7 +180,12 @@ function MentoringHistory() {
               Histórico de Mentorados
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Link to={'/login'} className='px-5 h-11 flex items-center justify-center rounded-md border border-danger font-inter-regular text-danger hover:bg-slate-200 transition-all ease-in-out duration-150'>Desativar Mentorado</Link>
+              <Link
+                to={'/login'}
+                className='px-5 h-11 flex items-center justify-center rounded-md border border-danger font-inter-regular text-danger hover:bg-slate-200 transition-all ease-in-out duration-150'
+              >
+                Desativar Mentorado
+              </Link>
               <OpenSearch />
             </div>
           </div>

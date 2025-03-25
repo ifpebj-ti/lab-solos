@@ -106,8 +106,7 @@ function Verification() {
         { title: 'Item', value: productsById.nomeProduto, width: '40%' },
         {
           title: 'Capacidade (ml)',
-          value:
-            productsById.capacidade,
+          value: productsById.capacidade,
           width: '20%',
         },
         { title: 'Tipo', value: productsById.tipo, width: '20%' },
@@ -115,65 +114,64 @@ function Verification() {
       ]
     : [];
 
-
-    const infoItemsOutros = productsById
+  const infoItemsOutros = productsById
     ? [
-      { title: 'Item', value: productsById.nomeProduto, width: '40%' },
-      { title: 'Tipo', value: productsById.tipo, width: '20%' },
-      { title: 'Situação', value: productsById.status, width: '20%' },
-      {
-        title: 'Data de Validade',
-        value: formatDate(productsById.dataValidade),
-        width: '20%',
-      },
-    ]
+        { title: 'Item', value: productsById.nomeProduto, width: '40%' },
+        { title: 'Tipo', value: productsById.tipo, width: '20%' },
+        { title: 'Situação', value: productsById.status, width: '20%' },
+        {
+          title: 'Data de Validade',
+          value: formatDate(productsById.dataValidade),
+          width: '20%',
+        },
+      ]
     : [];
-    const infoItems2 = productsById
+  const infoItems2 = productsById
     ? [
-      {
-        title: 'Estoque Atual',
-        value: productsById?.quantidade,
-        width: '100%',
-      },
-    ]
+        {
+          title: 'Estoque Atual',
+          value: productsById?.quantidade,
+          width: '100%',
+        },
+      ]
     : [];
-    const infoItems2Vd = productsById
+  const infoItems2Vd = productsById
     ? [
-      {
-        title: 'Estoque Atual (Un)',
-        value: productsById?.quantidade,
-        width: '100%',
-      },
-    ]
+        {
+          title: 'Estoque Atual (Un)',
+          value: productsById?.quantidade,
+          width: '100%',
+        },
+      ]
     : [];
-    const infoItems3 = productsById
+  const infoItems3 = productsById
     ? [
-      {
-        title: 'Última Modificação do Estoque',
-        value: formatDate(productsById?.ultimaModificacao),
-        width: '100%',
-      },
-    ]
-    : [];
-
-    const infoItems6 = productsById
-    ? [
-      {
-        title: 'Localização',
-        value: productsById?.localizacaoProduto,
-        width: '100%',
-      },
-    ]
+        {
+          title: 'Última Modificação do Estoque',
+          value: formatDate(productsById?.ultimaModificacao),
+          width: '100%',
+        },
+      ]
     : [];
 
-    const infoItems5 = productsById
+  const infoItems6 = productsById
     ? [
-      {
-        title: 'Data de Validade',
-        value: formatDate(productsById?.dataValidade),
-        width: '100%',
-      },
-    ]
+        {
+          title: 'Localização',
+          value: productsById?.localizacaoProduto,
+          width: '100%',
+        },
+      ]
+    : [];
+
+  const infoItems5 = productsById
+    ? [
+        {
+          title: 'Data de Validade',
+          value: formatDate(productsById?.dataValidade),
+          width: '100%',
+        },
+      ]
     : [];
 
   const moreInformationsQuimico = productsById
@@ -185,14 +183,17 @@ function Verification() {
         },
         {
           title: 'Catmat',
-          value:
-            productsById.catmat,
+          value: productsById.catmat,
           width: '20%',
         },
-        { title: 'Unidade de Medida', value: productsById.unidadeMedida, width: '20%' },
+        {
+          title: 'Unidade de Medida',
+          value: productsById.unidadeMedida,
+          width: '20%',
+        },
       ]
     : [];
-    const moreInformationsVidraria = productsById
+  const moreInformationsVidraria = productsById
     ? [
         {
           title: 'Localização',
@@ -201,14 +202,12 @@ function Verification() {
         },
         {
           title: 'Catmat',
-          value:
-            productsById.catmat ?? 'Não corresponde',
+          value: productsById.catmat ?? 'Não corresponde',
           width: '20%',
         },
         {
           title: 'Altura',
-          value:
-            productsById.altura,
+          value: productsById.altura,
           width: '20%',
         },
 
@@ -226,28 +225,27 @@ function Verification() {
           title: 'Material',
           value: productsById.material,
           width: '40%',
-        }
+        },
       ]
     : [];
-    const moreInformationsVidraria3 = productsById
+  const moreInformationsVidraria3 = productsById
     ? [
         {
           title: 'Altura',
           value: productsById.altura,
           width: '40%',
-        }
+        },
       ]
     : [];
-    const moreInformationsVidraria4 = productsById
+  const moreInformationsVidraria4 = productsById
     ? [
         {
           title: 'Formato',
           value: productsById.formato,
           width: '40%',
-        }
+        },
       ]
     : [];
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -277,7 +275,7 @@ function Verification() {
               <OpenSearch />
             </div>
           </div>
-          {productsById?.tipo === 'Quimico' &&
+          {productsById?.tipo === 'Quimico' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItems} />
               <div className='w-full flex gap-x-8 mt-5'>
@@ -285,7 +283,7 @@ function Verification() {
                 <InfoContainer items={infoItems5} />
                 <InfoContainer items={infoItems3} />
               </div>
-                <div className='w-full mt-7 min-h-9'>
+              <div className='w-full mt-7 min-h-9'>
                 <Accordion
                   type='single'
                   collapsible
@@ -300,8 +298,8 @@ function Verification() {
                 </Accordion>
               </div>
             </div>
-          }
-          {productsById?.tipo === 'Vidraria' &&
+          )}
+          {productsById?.tipo === 'Vidraria' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsVidraria} />
               <div className='w-full flex gap-x-8 mt-5'>
@@ -329,7 +327,7 @@ function Verification() {
                 </Accordion>
               </div>
             </div>
-          }
+          )}
           {productsById?.tipo === 'Outro' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsOutros} />
@@ -430,7 +428,7 @@ function Verification() {
                       rowData.name,
                       rowData.institution,
                       rowData.code,
-                      rowData.quantity+ 'un',
+                      rowData.quantity + 'un',
                     ]}
                     rowIndex={index}
                     columnWidths={columnsVer.map((column) => column.width)}

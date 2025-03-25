@@ -224,7 +224,8 @@ function SearchMaterial() {
                         String(rowData.id),
                         String(rowData.nomeProduto),
                         String(rowData.tipoProduto),
-                        (String(rowData.quantidade) + getUnidadeSigla(String(rowData.unidadeMedida))),
+                        String(rowData.quantidade) +
+                          getUnidadeSigla(String(rowData.unidadeMedida)),
                         String(rowData.status),
                       ]}
                       rowIndex={index}

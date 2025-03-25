@@ -168,7 +168,8 @@ function RegistrationRequest() {
                     <ItemTableButton
                       key={index}
                       data={[
-                        String(formatDateTime(rowData.dataIngresso)) || 'Não corresponde',
+                        String(formatDateTime(rowData.dataIngresso)) ||
+                          'Não corresponde',
                         String(rowData.nomeCompleto) || 'Não corresponde',
                         String(rowData.email) || 'Não corresponde',
                         String(rowData.instituicao) || 'Não corresponde',
