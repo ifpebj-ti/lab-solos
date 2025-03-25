@@ -254,8 +254,6 @@ function Verification() {
     currentPage * itemsPerPage
   );
 
-  console.log(productsById);
-
   return (
     <>
       {isLoading ? (

@@ -44,15 +44,15 @@ function Home() {
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', system);
         }
       } finally {
         setIsLoading(false);
       }
     };
     fetchGetSystem();
-  }, []);
+  }, [system]);
 
-  console.log(system);
   const informacoes = [
     'Solicitações de Empréstimo',
     'Itens Monitorados',

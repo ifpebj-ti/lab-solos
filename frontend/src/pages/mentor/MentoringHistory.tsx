@@ -123,8 +123,6 @@ function MentoringHistory() {
     currentPage * itemsPerPage
   );
 
-  console.log(currentData);
-
   const infoItems = user
     ? [
         {

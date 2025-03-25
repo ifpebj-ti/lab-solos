@@ -105,8 +105,6 @@ function CreateAccount() {
       responsavelEmail: data.emailMentor,
     };
 
-    console.log(payload);
-
     try {
       const response = await createMentor(payload);
       if (response.status === 201) {

@@ -166,7 +166,6 @@ function MentoringHistoryAdm() {
     ? [{ title: 'Curso', value: user.curso, width: '100%' }]
     : [];
 
-  console.log(user);
   return (
     <>
       {loading ? (

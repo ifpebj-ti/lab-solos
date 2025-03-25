@@ -86,8 +86,6 @@ function LoanHistoryMentee() {
     fetchGetLoan();
   }, [id]);
 
-  console.log(loan);
-
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };

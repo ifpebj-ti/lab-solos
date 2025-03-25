@@ -140,7 +140,6 @@ function SearchMaterial() {
     currentPage * itemsPerPage
   );
 
-  console.log(filteredProducts);
   return (
     <>
       {isLoading ? (

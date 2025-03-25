@@ -97,7 +97,6 @@ function Profile() {
     fetchGetUserById();
   }, [id]);
 
-  console.log(user);
   const infoItems = [
     {
       title: 'Nome',

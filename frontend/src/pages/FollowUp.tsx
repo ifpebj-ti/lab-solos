@@ -42,7 +42,6 @@ function FollowUp() {
       setIsLoading(true);
       try {
         const response = await getAlertProducts();
-        console.log(response);
         setAlert(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -83,8 +82,6 @@ function FollowUp() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  console.log(filteredAlerts);
-
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };

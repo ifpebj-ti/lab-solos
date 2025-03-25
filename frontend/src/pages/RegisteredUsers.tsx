@@ -130,7 +130,6 @@ function RegisteredUsers() {
     { value: 'Tipo de Usuário', width: '15%' },
     { value: 'Status', width: '15%' },
   ];
-  console.log(user);
 
   const options = [
     { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
