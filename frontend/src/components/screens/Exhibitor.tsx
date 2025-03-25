@@ -1,19 +1,24 @@
 import React from 'react';
+
 interface IExhibitorProps {
-  icon?: React.ReactNode;
+  icon?: React.ReactNode; // Mantemos a flexibilidade para aceitar componentes
   text?: string;
   number?: number;
   wid: string;
 }
+
 function Exhibitor({ icon, text, number, wid }: IExhibitorProps) {
   return (
     <div className='flex flex-col'>
       <div className='flex items-center justify-center'>
-        <img
-          src={icon}
-          alt='Icone retratando dado'
-          className={`w-${wid}`}
-        ></img>
+        {/* Se `icon` for uma string (URL), renderiza como `<img>` */}
+        {typeof icon === 'string' ? (
+          <img src={icon} alt='Ícone' className={`w-${wid}`} />
+        ) : (
+          // Se `icon` for um componente React, renderiza diretamente
+          <span className={`w-${wid}`}>{icon}</span>
+        )}
+
         <p className='text-primaryMy text-4xl font-rajdhani-semibold'>
           +{number}
         </p>
