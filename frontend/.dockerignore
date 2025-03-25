@@ -20,7 +20,6 @@ build/
 out/
 
 # Ignorar arquivos de pacotes e logs
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
