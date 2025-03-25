@@ -39,7 +39,6 @@ import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
-import LoanReport from './pages/pdf/UsersPdf';
 import PreLab from './pages/prelab/PreLab';
 import Disabled from './pages/mentor/Disabled';
 
@@ -374,7 +373,6 @@ function AppRoutes() {
         <Route path='*' element={<Page404 />} />
 
         {/* pdf */}
-        <Route path='/loan-report' element={<LoanReport />} />
       </Routes>
     </BrowserRouter>
   );
