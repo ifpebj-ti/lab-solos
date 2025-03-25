@@ -24,15 +24,15 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Run ESLint
-        run: |
-          cd frontend
-          npm run lint
-
       - name: Install dependencies
         run: |
           cd frontend
           npm install
+
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
 
       - name: Build Docker image for frontend
         run: |
