@@ -212,7 +212,11 @@ function Verification() {
           width: '20%',
         },
 
-        { title: 'Capacidade (ml)', value: productsById.capacidade, width: '20%' },
+        {
+          title: 'Capacidade (ml)',
+          value: productsById.capacidade,
+          width: '20%',
+        },
       ]
     : [];
 

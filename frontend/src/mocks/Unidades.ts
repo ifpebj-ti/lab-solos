@@ -331,6 +331,15 @@ export const columnsClass = [
   { value: 'Status', width: '10%' },
 ];
 
+export const columnsDisabled = [
+  { value: 'Nome', width: '22%' },
+  { value: 'Email', width: '22%' },
+  { value: 'Data Desativação', width: '15%' },
+  { value: 'Curso', width: '16%' },
+  { value: 'Instituição', width: '15%' },
+  { value: 'Ação', width: '10%' },
+];
+
 export const unidadesMedida = [
   { value: 'Litro', label: 'Litro' },
   { value: 'Mililitro', label: 'Mililitro' },

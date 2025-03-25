@@ -53,7 +53,7 @@ const submitCreateAccountSchema = z
       ),
     instituicao: z.string().min(3, 'Digite uma instituição de ensino válida'),
     curso: z.string().min(6, 'Digite um curso válido'),
-    emailMentor: z.string().email('Digite um email válido').optional(),
+    emailMentor: z.string().email('Digite um email válido'),
   })
   .superRefine((data, ctx) => {
     const nomeParts = data.nome

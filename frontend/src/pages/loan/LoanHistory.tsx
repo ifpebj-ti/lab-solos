@@ -4,6 +4,7 @@ import HeaderTable from '@/components/global/table/Header';
 import {
   columnsEstudantesSelected,
   columnsItensSelected,
+  getUnidadeSigla,
 } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
@@ -13,40 +14,22 @@ import { getLoansById } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown[] | null;
-  emprestimosAprovados: unknown[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
-}
-
-interface IProduto {
+export interface IProduto {
   id: number;
   nomeProduto: string;
-  fornecedor: string;
   tipo: string;
+  fornecedor: string;
+  unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
+  localizacaoProduto: string;
   dataFabricacao: string | null;
   dataValidade: string | null;
-  localizacaoProduto: string;
   status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
+  loteId: string;
 }
 
-interface IEmprestimoProduto {
+export interface IEmprestimoProduto {
   id: number;
   emprestimoId: number;
   produtoId: number;
@@ -54,17 +37,27 @@ interface IEmprestimoProduto {
   quantidade: number;
 }
 
-interface IEmprestimo {
+export interface IUsuarioII {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string | null;
+  dataIngresso: string;
+  status: string | null;
+  nivelUsuario: string | null;
+  nomeResponsavel: string | null;
+  responsavelId: number | null;
+}
+
+export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;
-  dataAprovacao: string;
+  dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: IEmprestimoProduto[];
-  solicitanteId: number;
-  solicitante: IUsuario | null;
-  aprovadorId: number;
-  aprovador: IUsuario | null;
+  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
+  solicitante: IUsuarioII;
+  aprovador: IUsuarioII | null; // Pode ser `null`
 }
 
 function LoanHistoryMentee() {
@@ -92,6 +85,8 @@ function LoanHistoryMentee() {
     };
     fetchGetLoan();
   }, [id]);
+
+  console.log(loan)
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
@@ -178,7 +173,12 @@ function LoanHistoryMentee() {
                         String(rowData.produto.id || 'Não Corresponde'),
                         rowData.produto.nomeProduto || 'Não Corresponde',
                         rowData.produto.tipo || 'Não Corresponde',
-                        String(rowData.produto.quantidade || 'Não Corresponde'),
+                        String(
+                          rowData.quantidade || 'Não Corresponde'
+                        ) +
+                          getUnidadeSigla(
+                            String(rowData.produto.unidadeMedida)
+                          ),
                         String(rowData.produto.loteId || 'Não Corresponde'),
                       ]}
                       rowIndex={index}

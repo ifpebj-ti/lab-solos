@@ -140,7 +140,7 @@ function SearchMaterial() {
     currentPage * itemsPerPage
   );
 
-  console.log(filteredProducts)
+  console.log(filteredProducts);
   return (
     <>
       {isLoading ? (
@@ -224,12 +224,7 @@ function SearchMaterial() {
                         String(rowData.id),
                         String(rowData.nomeProduto),
                         String(rowData.tipoProduto),
-                        String(rowData.quantidade) +
-                          getUnidadeSigla(
-                            String(rowData.unidadeMedida) === ''
-                              ? 'xx'
-                              : 'Centimetro_cubico'
-                          ),
+                        (String(rowData.quantidade) + getUnidadeSigla(String(rowData.unidadeMedida))),
                         String(rowData.status),
                       ]}
                       rowIndex={index}

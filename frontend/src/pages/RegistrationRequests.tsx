@@ -17,6 +17,7 @@ import {
 } from '@/integration/Class';
 import { approveDependente } from '../integration/Class';
 import { toast } from '@/components/hooks/use-toast';
+import { formatDateTime } from '@/function/date';
 
 interface IUsuario {
   id: number;
@@ -167,7 +168,7 @@ function RegistrationRequest() {
                     <ItemTableButton
                       key={index}
                       data={[
-                        String(rowData.dataIngresso) || 'Não corresponde',
+                        String(formatDateTime(rowData.dataIngresso)) || 'Não corresponde',
                         String(rowData.nomeCompleto) || 'Não corresponde',
                         String(rowData.email) || 'Não corresponde',
                         String(rowData.instituicao) || 'Não corresponde',
