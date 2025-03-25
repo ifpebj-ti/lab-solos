@@ -41,6 +41,7 @@ import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
 import LoanReport from './pages/pdf/UsersPdf';
 import PreLab from './pages/prelab/PreLab';
+import Disabled from './pages/mentor/Disabled';
 
 function AppRoutes() {
   return (
@@ -296,6 +297,12 @@ function AppRoutes() {
                 element={<LoanHistories />}
                 requiredRank={['Mentor']}
               />
+            }
+          />
+          <Route
+            path='my-class/disabled'
+            element={
+              <PrivateRoute element={<Disabled />} requiredRank={['Mentor']} />
             }
           />
         </Route>

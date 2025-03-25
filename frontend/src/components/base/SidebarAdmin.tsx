@@ -71,7 +71,7 @@ function SidebarAdmin() {
   ];
 
   return (
-    <div className='bg-primaryMy w-[70px] min-h-screen flex items-center flex-col'>
+    <div className='bg-primaryMy w-[60px] min-h-screen flex items-center flex-col'>
       <img src={logo} className='mt-7 2xl:mt-10 w-12' alt='Logo' />
       <div className='flex flex-col justify-between w-full mt-14 2xl:mt-20 items-center h-full'>
         <div className='flex items-center flex-col'>
@@ -81,7 +81,7 @@ function SidebarAdmin() {
                 <TooltipTrigger>
                   <Link
                     to={to}
-                    className={`w-11 h-11 ${
+                    className={`w-10 h-10 ${
                       currentPage === to
                         ? 'bg-backgroundMy hover:bg-opacity-90'
                         : 'bg-primaryMy hover:bg-green-700'
@@ -103,7 +103,7 @@ function SidebarAdmin() {
               <TooltipTrigger>
                 <Link
                   to='/admin/profile'
-                  className={`w-11 h-11 ${
+                  className={`w-10 h-10 ${
                     currentPage === '/admin/profile'
                       ? 'bg-backgroundMy hover:bg-opacity-90'
                       : 'bg-primaryMy hover:bg-green-700'

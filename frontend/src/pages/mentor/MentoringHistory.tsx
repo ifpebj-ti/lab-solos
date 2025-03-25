@@ -10,7 +10,7 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import { formatDate, formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
 interface IUsuario {
@@ -32,31 +32,46 @@ interface IUsuario {
 export interface IProduto {
   id: number;
   nomeProduto: string;
+  tipoProduto: string;
   fornecedor: string;
-  tipo: string;
+  unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
+  localizacaoProduto: string;
   dataFabricacao: string | null;
   dataValidade: string | null;
-  localizacaoProduto: string;
   status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null; // Use `unknown` para tipo indefinido
-  emprestimoId: number;
-  emprestimo: unknown | null;
 }
+
+export interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
+}
+
+export interface IUsuarioII {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string | null;
+  dataIngresso: string;
+  status: string | null;
+  nivelUsuario: string | null;
+  nomeResponsavel: string | null;
+  responsavelId: number | null;
+}
+
 export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;
-  dataAprovacao: string;
+  dataAprovacao: string | null;
   status: string;
-  produtos: IProduto[];
-  solicitanteId: number;
-  solicitante: unknown | null; // Use `unknown` para tipo indefinido
-  aprovadorId: number;
-  aprovador: unknown | null;
+  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
+  solicitante: IUsuarioII;
+  aprovador: IUsuarioII | null; // Pode ser `null`
 }
 
 function MentoringHistory() {
@@ -163,6 +178,12 @@ function MentoringHistory() {
               Histórico de Mentorados
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
+              <Link
+                to={'/login'}
+                className='px-5 h-11 flex items-center justify-center rounded-md border border-danger font-inter-regular text-danger hover:bg-slate-200 transition-all ease-in-out duration-150'
+              >
+                Desativar Mentorado
+              </Link>
               <OpenSearch />
             </div>
           </div>
@@ -206,9 +227,7 @@ function MentoringHistory() {
                     data={[
                       String(rowData.id),
                       formatDateTime(rowData.dataRealizacao),
-                      Array.isArray(rowData.produtos)
-                        ? String(rowData.produtos.length)
-                        : '0',
+                      String(rowData.emprestimoProdutos.length),
                       rowData.status,
                     ]}
                     rowIndex={index}

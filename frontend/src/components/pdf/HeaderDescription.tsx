@@ -23,15 +23,28 @@ const styles = StyleSheet.create({
   },
 });
 
+interface IHeaderDescription {
+  name: string;
+  nivel: string;
+}
+
+const getCurrentDate = (): string => {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Mês começa do 0
+  const year = today.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 // Create Document Component
-export const HeaderDescription = () => (
+export const HeaderDescription = ({ name, nivel }: IHeaderDescription) => (
   <View style={styles.section}>
     <Text style={styles.titulo}>
       Laboratórios de Solos e Sustentabilidade Ambiental - IFPE
     </Text>
     <Text style={styles.dataText}>
-      Rosemberg Vasconcelos de Sousa - Administrador
+      {name} - {nivel}
     </Text>
-    <Text style={styles.dataText}>15/05/2024 - N° 25586</Text>
+    <Text style={styles.dataText}>{getCurrentDate()}</Text>
   </View>
 );

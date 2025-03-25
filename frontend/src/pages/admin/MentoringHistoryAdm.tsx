@@ -23,42 +23,59 @@ interface IUsuario {
   senhaHash: string;
   telefone: string;
   dataIngresso: string;
-  nivelUsuario: number;
-  tipoUsuario: number;
-  status: number;
-  emprestimosSolicitados: null;
-  emprestimosAprovados: null;
+  nivelUsuario: string; // Alterado para string
+  tipoUsuario: string; // Alterado para string
+  status: string; // Alterado para string
+  emprestimosSolicitados: unknown[] | null; // Pode ser um array ou null (idealmente, criar uma interface para empréstimos)
+  emprestimosAprovados: unknown[] | null; // Pode ser um array ou null
+  responsavelId: number | null;
+  responsavel: IUsuario | null;
+  dependentes: (IUsuario | null)[]; // Array de usuários ou null
 }
 export interface IProduto {
   id: number;
   nomeProduto: string;
+  tipoProduto: string;
   fornecedor: string;
-  tipo: string;
+  unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
+  localizacaoProduto: string;
   dataFabricacao: string | null;
   dataValidade: string | null;
-  localizacaoProduto: string;
   status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null; // Use `unknown` para tipo indefinido
-  emprestimoId: number;
-  emprestimo: unknown | null;
 }
+
+export interface IEmprestimoProduto {
+  id: number;
+  emprestimoId: number;
+  produtoId: number;
+  produto: IProduto;
+  quantidade: number;
+}
+
+export interface IUsuarioII {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string | null;
+  dataIngresso: string;
+  status: string | null;
+  nivelUsuario: string | null;
+  nomeResponsavel: string | null;
+  responsavelId: number | null;
+}
+
 export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;
-  dataAprovacao: string;
+  dataAprovacao: string | null;
   status: string;
-  produtos: IProduto[];
-  solicitanteId: number;
-  solicitante: unknown | null; // Use `unknown` para tipo indefinido
-  aprovadorId: number;
-  aprovador: unknown | null;
+  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
+  solicitante: IUsuarioII;
+  aprovador: IUsuarioII | null; // Pode ser `null`
 }
-
 function MentoringHistoryAdm() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,14 +130,15 @@ function MentoringHistoryAdm() {
         {
           title: 'Nome',
           value: user.nomeCompleto,
-          width: '50%',
+          width: '40%',
         },
         {
           title: 'Email',
           value: user.email,
           width: '30%',
         },
-        { title: 'Instituição', value: user.instituicao, width: '20%' },
+        { title: 'Instituição', value: user.instituicao, width: '15%' },
+        { title: 'Telefone', value: user.telefone, width: '15%' },
       ]
     : [];
   const infoItems2 = user
@@ -129,8 +147,8 @@ function MentoringHistoryAdm() {
   const infoItems3 = user
     ? [
         {
-          title: 'Número para Contato',
-          value: user.telefone,
+          title: 'Responsável',
+          value: user.responsavel?.nomeCompleto ?? 'Não Corresponde',
           width: '100%',
         },
       ]
@@ -147,6 +165,7 @@ function MentoringHistoryAdm() {
   const infoItems5 = user
     ? [{ title: 'Curso', value: user.curso, width: '100%' }]
     : [];
+
   return (
     <>
       {loading ? (
@@ -206,10 +225,8 @@ function MentoringHistoryAdm() {
                     data={[
                       String(rowData.id),
                       formatDateTime(rowData.dataRealizacao),
-                      Array.isArray(rowData.produtos)
-                        ? String(rowData.produtos.length)
-                        : '0',
-                      rowData.status,
+                      String(rowData.emprestimoProdutos.length),
+                      String(rowData.status),
                     ]}
                     rowIndex={index}
                     columnWidths={columnsLoan.map((column) => column.width)}

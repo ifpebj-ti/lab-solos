@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getAllProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import { getUnidadeSigla } from '@/mocks/Unidades';
 
 export interface IAllProducts {
   id: number;
@@ -23,6 +24,7 @@ export interface IAllProducts {
   dataFabricacao: string; // Pode ser null ou vazio
   dataValidade: string; // Data no formato string
   status: string;
+  unidadeMedida: string;
 }
 
 interface DashboardData {
@@ -121,7 +123,7 @@ function SearchMaterial() {
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
-  const filteredUsers = products.filter((item) => {
+  const filteredProducts = products.filter((item) => {
     const searchName = item.nomeProduto
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -129,14 +131,15 @@ function SearchMaterial() {
     return searchName && matchesType;
   });
   const sortedUsers = isAscending
-    ? [...filteredUsers]
-    : [...filteredUsers].reverse();
+    ? [...filteredProducts]
+    : [...filteredProducts].reverse();
 
   // Cálculo das páginas
   const currentData = sortedUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   return (
     <>
       {isLoading ? (
@@ -220,7 +223,8 @@ function SearchMaterial() {
                         String(rowData.id),
                         String(rowData.nomeProduto),
                         String(rowData.tipoProduto),
-                        String(rowData.quantidade),
+                        String(rowData.quantidade) +
+                          getUnidadeSigla(String(rowData.unidadeMedida)),
                         String(rowData.status),
                       ]}
                       rowIndex={index}
@@ -233,7 +237,7 @@ function SearchMaterial() {
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={filteredUsers.length}
+                totalItems={filteredProducts.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}

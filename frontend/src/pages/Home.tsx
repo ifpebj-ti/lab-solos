@@ -3,7 +3,6 @@ import Carousel from '../components/global/Carousel';
 import analysis from '../../public/images/analysis.png';
 import notebook from '../../public/images/notebook.png';
 import vidraria from '../../public/images/vidraria.png';
-import logo from '../../public/images/logo.png';
 import OpenSearch from '@/components/global/OpenSearch';
 import { useEffect, useState } from 'react';
 import LoadingIcon from '../../public/icons/LoadingIcon';
@@ -45,13 +44,15 @@ function Home() {
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
+          console.debug('Erro ao buscar dados de empréstimos:', system);
         }
       } finally {
         setIsLoading(false);
       }
     };
     fetchGetSystem();
-  }, []);
+  }, [system]);
+
   const informacoes = [
     'Solicitações de Empréstimo',
     'Itens Monitorados',
@@ -79,8 +80,9 @@ function Home() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>
-            <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl xl:text-6xl text-clt-2 gap-y-3'>
+          <div className='w-11/12 h-[45%] flex items-center justify-between mt-6'>
+            <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl text-clt-2 gap-y-3'>
+              <p>Bem-vindo(a) ao</p>
               <p>
                 Laboratório de <span className='text-primaryMy'>Solos</span>
               </p>
@@ -97,46 +99,8 @@ function Home() {
               ></img>
             </div>
           </div>
-          <div className='w-11/12'>
+          <div className='w-11/12 mt-10'>
             <Carousel informacoes={informacoes} imageSrc={imagesSrc} />
-          </div>
-          <div className='w-5/12 h-2 bg-primaryMy rounded-lg text-backgroundMy'>
-            .
-          </div>
-          <div className='w-full min-h-44 bg-primaryMy mt-16 flex items-center justify-center'>
-            <div className='w-11/12 flex items-center justify-between h-full text-white'>
-              <div className='flex items-center justify-center'>
-                <img src={logo} alt='Logo' className='w-36' />
-                <div className='flex-col mt-2'>
-                  <p className='text-4xl font-rajdhani-semibold'>Lab-On</p>
-                  <p className='font-rajdhani-medium text-base'>
-                    Gerenciamento de Laboratórios Químicos Online
-                  </p>
-                  <div className='flex space-x-1 font-rajdhani-medium text-base'>
-                    <a
-                      href='mailto:jessica.roberta@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Jessica Roberta
-                    </a>
-                    ,&nbsp;
-                    <a
-                      href='mailto:ricardo.espindola@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Ricardo Espíndola
-                    </a>
-                    &nbsp; e&nbsp;
-                    <a
-                      href='mailto:ricardoespindola128@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Tomás Abdias
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}

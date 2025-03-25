@@ -5,9 +5,9 @@ import InputText from '../../inputs/Text';
 import { formatos, grausPureza, materiais, TrueFalse } from '@/mocks/Unidades';
 import PopoverInput from '../../inputs/PopoverInput';
 import { useState } from 'react';
-import DateInputVidraria from '../../inputs/DateInputVidraria';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
+import DateInputVd from '../../inputs/DateInputVidraria';
 
 const submitCreateVidrariaSchema = z.object({
   nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
@@ -124,14 +124,28 @@ function FormVidrarias() {
           name='marca'
           type='string'
         />
-        <DateInputVidraria
+        <InputText
+          label='Quantidade Inserida (Un)'
+          register={register}
+          error={errors.quantidade?.message}
+          name='quantidade'
+          type='number'
+        />
+        <InputText
+          label='Quantidade Mínima (Un)'
+          register={register}
+          error={errors.minimo?.message}
+          name='minimo'
+          type='number'
+        />
+        <DateInputVd
           nome='Data de Fabricação'
           name='dataFabricacao'
           setValue={setValue}
           error={errors.dataFabricacao?.message}
           disabled={false}
         />
-        <DateInputVidraria
+        <DateInputVd
           nome='Data de Validade'
           name='dataValidade'
           setValue={setValue}
@@ -139,21 +153,7 @@ function FormVidrarias() {
           disabled={true}
         />
         <InputText
-          label='Quantidade Inserida'
-          register={register}
-          error={errors.quantidade?.message}
-          name='quantidade'
-          type='number'
-        />
-        <InputText
-          label='Quantidade Mínima'
-          register={register}
-          error={errors.minimo?.message}
-          name='minimo'
-          type='number'
-        />
-        <InputText
-          label='Capacidade'
+          label='Capacidade (ml)'
           register={register}
           error={errors.capacidade?.message}
           name='capacidade'

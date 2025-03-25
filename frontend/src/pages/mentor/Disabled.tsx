@@ -1,7 +1,7 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../..//public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsClass } from '@/mocks/Unidades';
+import { columnsDisabled } from '@/mocks/Unidades';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -11,7 +11,6 @@ import Pagination from '@/components/global/table/Pagination';
 import { getDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-import { Link } from 'react-router-dom';
 
 interface IUsuario {
   id: number;
@@ -26,7 +25,7 @@ interface IUsuario {
   instituicao: string;
 }
 
-function MyClass() {
+function Disabled() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
@@ -89,12 +88,6 @@ function MyClass() {
               Minha Turma
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Link
-                to={'/mentor/my-class/disabled'}
-                className='px-5 h-11 flex items-center justify-center rounded-md border border-borderMy font-inter-regular'
-              >
-                Mentorados desativados
-              </Link>
               <OpenSearch />
             </div>
           </div>
@@ -120,7 +113,7 @@ function MyClass() {
                   top={isAscending}
                 />
               </div>
-              <HeaderTable columns={columnsClass} />
+              <HeaderTable columns={columnsDisabled} />
               <div className='w-full items-center flex flex-col min-h-72'>
                 {currentData.length === 0 ? (
                   <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
@@ -139,7 +132,9 @@ function MyClass() {
                         rowData.status,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsClass.map((column) => column.width)}
+                      columnWidths={columnsDisabled.map(
+                        (column) => column.width
+                      )}
                       destinationRoute='/mentor/history/mentoring' // Ajuste conforme necessário
                       id={rowData.id}
                     />
@@ -162,4 +157,4 @@ function MyClass() {
   );
 }
 
-export default MyClass;
+export default Disabled;

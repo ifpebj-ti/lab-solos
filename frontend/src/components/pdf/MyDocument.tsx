@@ -8,29 +8,25 @@ import { HeaderTablePdf } from './table/Header';
 import { ItemTablePdf } from './table/Item';
 import { ToSign } from './ToSign';
 
+type Column = {
+  value: string;
+  width: string;
+};
+
+type TableProps = {
+  columns: Column[];
+  title: string;
+  data: string[][]; // Agora aceita um array bidimensional
+  name: string;
+  nivel: string;
+  columnWidths: string[]; // Larguras dinâmicas das colunas
+  signer: string;
+};
+
 Font.register({
   family: 'fontPadrao',
   src: '../../../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf', // Caminho da fonte dentro do projeto
 });
-
-const columns = [
-  { value: 'Nome', width: '40%' },
-  { value: 'Nível', width: '15%' },
-  { value: 'Ingresso', width: '15%' },
-  { value: 'Status', width: '15%' },
-  { value: 'ID Responsável', width: '15%' },
-];
-
-const columnWidths = ['40%', '15%', '15%', '15%', '15%'];
-const rowData = [
-  ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
-  ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
-  ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
-  ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
-  ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
-  ['Mouse Logitech', '10', 'Emprestado', 'Habilitado', '22'],
-  ['Notebook Dell', '5', 'Disponível', 'Habilitado', '22'],
-];
 
 // Create styles
 const styles = StyleSheet.create({
@@ -65,29 +61,36 @@ const styles = StyleSheet.create({
 });
 
 // Create Document Component
-export const MyDocument = () => (
+export const MyDocument = ({
+  columns,
+  title,
+  data,
+  columnWidths,
+  name,
+  nivel,
+  signer,
+}: TableProps) => (
   <Document>
     <Page size='A4' style={styles.page}>
       <HeaderPdf />
       <LinePdf />
-      <HeaderDescription />
+      <HeaderDescription name={name} nivel={nivel} />
       <LinePdf />
-      <TitlePdf children='Usuários Cadastrados' />
+      <TitlePdf children={title} />
       <DescriptionPdf />
       <HeaderTablePdf columns={columns} />
       <View style={styles.container}>
-        {rowData.map((data, index) => (
+        {data.map((datax, index) => (
           <ItemTablePdf
             key={index}
-            data={data}
+            data={Array.isArray(datax) ? datax : [datax]} // Garante que seja um array de strings
             rowIndex={index}
             columnWidths={columnWidths}
           />
         ))}
       </View>
       <View style={styles.sign}>
-        <ToSign />
-        <ToSign />
+        <ToSign name={signer} />
       </View>
     </Page>
   </Document>

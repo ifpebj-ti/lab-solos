@@ -5,8 +5,6 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
-import FollowUpCard from '@/components/screens/FollowUp';
-import LayersIcon from '../../public/icons/LayersIcon';
 import ButtonLogout from '@/components/global/ButtonLogout';
 
 // Interface para o responsável
@@ -98,6 +96,7 @@ function Profile() {
     };
     fetchGetUserById();
   }, [id]);
+
   const infoItems = [
     {
       title: 'Nome',
@@ -110,8 +109,8 @@ function Profile() {
       width: '30%',
     },
     {
-      title: 'Instituição',
-      value: user?.instituicao ?? 'Não corresponde',
+      title: 'Nivel de Usuário',
+      value: user?.nivelUsuario ?? 'Não corresponde',
       width: '20%',
     },
     { title: 'Status', value: user?.status ?? 'Não corresponde', width: '20%' },
@@ -162,14 +161,7 @@ function Profile() {
             </div>
           </div>
           <div className='w-11/12 mt-7'>
-            <div className='flex gap-x-5 h-32'>
-              <FollowUpCard
-                title='Dependentes'
-                number={String(user?.dependentes.length)}
-                icon={<LayersIcon />}
-              />
-            </div>
-            <div className='w-full mt-7'>
+            <div className='w-full'>
               <InfoContainer items={infoItems} />
               <div className='w-full flex gap-x-8 mt-5'>
                 <InfoContainer items={infoItems2} />

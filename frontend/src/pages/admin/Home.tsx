@@ -1,5 +1,4 @@
 import Laboratory from '../../../public/images/laboratory.png';
-import logo from '../../../public/images/logo.png';
 import OpenSearch from '@/components/global/OpenSearch';
 import InfoCard from '@/components/screens/InfoCard';
 import AlertIcon from '../../../public/icons/AlertIcon';
@@ -82,7 +81,7 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen'>
+        <div className='h-screen max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy overflow-hidden '>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home
@@ -92,7 +91,8 @@ function Home() {
             </div>
           </div>
           <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>
-            <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl xl:text-6xl text-clt-2 gap-y-3'>
+            <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl  text-clt-2 gap-y-3'>
+              <p>Bem-vindo(a) ao</p>
               <p>
                 Laboratório de <span className='text-primaryMy'>Solos</span>
               </p>
@@ -109,7 +109,7 @@ function Home() {
               ></img>
             </div>
           </div>
-          <div className='w-11/12 min-h-24 flex justify-between mt-7'>
+          <div className='w-11/12 min-h-24 flex justify-between mt-14'>
             <InfoCard
               icon={<AlertIcon />}
               text='Produtos com Alerta'
@@ -131,41 +131,6 @@ function Home() {
               link={'/admin/loans-request'}
               quant={loan.length}
             />
-          </div>
-          <div className='w-full min-h-44 bg-primaryMy mt-16 flex items-center justify-center'>
-            <div className='w-11/12 flex items-center justify-between h-full text-white'>
-              <div className='flex items-center justify-center'>
-                <img src={logo} alt='Logo' className='w-36' />
-                <div className='flex-col mt-2'>
-                  <p className='text-4xl font-rajdhani-semibold'>Lab-On</p>
-                  <p className='font-rajdhani-medium text-base'>
-                    Gerenciamento de Laboratórios Químicos Online
-                  </p>
-                  <div className='flex space-x-1 font-rajdhani-medium text-base'>
-                    <a
-                      href='mailto:jessica.roberta@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Jessica Roberta
-                    </a>
-                    ,&nbsp;
-                    <a
-                      href='mailto:ricardo.espindola@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Ricardo Espíndola
-                    </a>
-                    &nbsp; e&nbsp;
-                    <a
-                      href='mailto:ricardoespindola128@gmail.com'
-                      className='hover:underline hover:text-blue-600 cursor-pointer'
-                    >
-                      Tomás Abdias
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}

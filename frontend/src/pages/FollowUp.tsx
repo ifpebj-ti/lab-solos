@@ -10,7 +10,7 @@ import CalendarIcon from '../../public/icons/CalendarIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useEffect, useState } from 'react';
-import { columns } from '@/mocks/Unidades';
+import { columns, getUnidadeSigla } from '@/mocks/Unidades';
 import { getAlertProducts } from '@/integration/Product';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
@@ -25,6 +25,7 @@ interface IProduto {
   dataFabricacao: string | Date | null;
   dataValidade: string | null;
   status: string;
+  unidadeMedida: string;
 }
 
 function FollowUp() {
@@ -81,7 +82,6 @@ function FollowUp() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
@@ -161,8 +161,12 @@ function FollowUp() {
                     key={index}
                     data={[
                       rowData.nomeProduto || 'Não corresponde',
-                      String(rowData.quantidade) || 'Não corresponde',
-                      String(rowData.quantidadeMinima) || 'Não corresponde',
+                      String(rowData.quantidade) +
+                        getUnidadeSigla(String(rowData.unidadeMedida)) ||
+                        'Não corresponde',
+                      String(rowData.quantidadeMinima) +
+                        getUnidadeSigla(String(rowData.unidadeMedida)) ||
+                        'Não corresponde',
                       String(rowData.dataValidade) || 'Não corresponde',
                       rowData.status || 'Não corresponde',
                     ]}

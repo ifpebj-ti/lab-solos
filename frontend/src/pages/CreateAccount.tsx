@@ -53,7 +53,7 @@ const submitCreateAccountSchema = z
       ),
     instituicao: z.string().min(3, 'Digite uma instituição de ensino válida'),
     curso: z.string().min(6, 'Digite um curso válido'),
-    emailMentor: z.string().email('Digite um email válido').optional(),
+    emailMentor: z.string().email('Digite um email válido'),
   })
   .superRefine((data, ctx) => {
     const nomeParts = data.nome
@@ -104,8 +104,6 @@ function CreateAccount() {
       curso: data.curso,
       responsavelEmail: data.emailMentor,
     };
-
-    console.log(payload);
 
     try {
       const response = await createMentor(payload);
@@ -266,74 +264,187 @@ function CreateAccount() {
                         regras e diretrizes estabelecidas neste documento.
                       </SheetDescription>
                     </SheetHeader>
-                    <div className="grid gap-4 py-4">
-        1. Aceitação dos Termos
-      </div>
-      <p className="text-sm text-clt-1 font-inter-regular">
-        Ao se cadastrar e utilizar o LabON, você declara que leu, entendeu e concorda com estes Termos e Condições. Se não
-        concordar com qualquer parte deste documento, não utilize nossos serviços.
-      </p>
+                    <div className='grid gap-4 py-4'>
+                      1. Aceitação dos Termos
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Ao se cadastrar e utilizar o LabON, você declara que leu,
+                      entendeu e concorda com estes Termos e Condições. Se não
+                      concordar com qualquer parte deste documento, não utilize
+                      nossos serviços.
+                    </p>
 
-      <div className="grid gap-4 py-4">2. Cadastro e Responsabilidades do Usuário</div>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Pré-Cadastro:</p>
-      <ul className="list-disc list-inside text-sm text-clt-1 font-inter-regular">
-        <li>
-          Para utilizar o LabON, é necessário solicitar acesso através do pré-cadastro, fornecendo informações verdadeiras
-          e atualizadas, como nome, email institucional, instituição de ensino e descrição do laboratório.
-        </li>
-        <li>O acesso será validado manualmente pela equipe do LabON para garantir que o solicitante seja vinculado a uma instituição de ensino pública.</li>
-      </ul>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Segurança da Conta:</p>
-      <ul className="list-disc list-inside text-sm text-clt-1 font-inter-regular">
-        <li>Você é responsável por manter a segurança de suas credenciais (login e senha) e por todas as atividades realizadas em sua conta.</li>
-        <li>Em caso de uso não autorizado ou suspeita de violação de segurança, notifique imediatamente a equipe do LabON pelo e-mail [EMAIL DE SUPORTE].</li>
-      </ul>
+                    <div className='grid gap-4 py-4'>
+                      2. Cadastro e Responsabilidades do Usuário
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Pré-Cadastro:
+                    </p>
+                    <ul className='list-disc list-inside text-sm text-clt-1 font-inter-regular'>
+                      <li>
+                        Para utilizar o LabON, é necessário solicitar acesso
+                        através do pré-cadastro, fornecendo informações
+                        verdadeiras e atualizadas, como nome, email
+                        institucional, instituição de ensino e descrição do
+                        laboratório.
+                      </li>
+                      <li>
+                        O acesso será validado manualmente pela equipe do LabON
+                        para garantir que o solicitante seja vinculado a uma
+                        instituição de ensino pública.
+                      </li>
+                    </ul>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Segurança da Conta:
+                    </p>
+                    <ul className='list-disc list-inside text-sm text-clt-1 font-inter-regular'>
+                      <li>
+                        Você é responsável por manter a segurança de suas
+                        credenciais (login e senha) e por todas as atividades
+                        realizadas em sua conta.
+                      </li>
+                      <li>
+                        Em caso de uso não autorizado ou suspeita de violação de
+                        segurança, notifique imediatamente a equipe do LabON
+                        pelo e-mail [EMAIL DE SUPORTE].
+                      </li>
+                    </ul>
 
-      <div className="grid gap-4 py-4">3. Uso Permitido</div>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Finalidade Educacional:</p>
-      <ul className="list-disc list-inside text-sm text-clt-1 font-inter-regular">
-        <li>O LabON é destinado exclusivamente ao gerenciamento de laboratórios de instituições de ensino públicas.</li>
-        <li>O uso comercial ou para fins não educacionais é expressamente proibido.</li>
-      </ul>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Conduta do Usuário:</p>
-      <ul className="list-disc list-inside text-sm text-clt-1 font-inter-regular">
-        <li>O usuário se compromete a utilizar a aplicação de maneira ética e legal, sem violar direitos de terceiros ou comprometer a segurança e integridade do sistema.</li>
-        <li>É proibido qualquer uso que possa prejudicar o funcionamento da aplicação, como tentativas de acesso não autorizado, distribuição de malware ou manipulação de dados.</li>
-      </ul>
+                    <div className='grid gap-4 py-4'>3. Uso Permitido</div>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Finalidade Educacional:
+                    </p>
+                    <ul className='list-disc list-inside text-sm text-clt-1 font-inter-regular'>
+                      <li>
+                        O LabON é destinado exclusivamente ao gerenciamento de
+                        laboratórios de instituições de ensino públicas.
+                      </li>
+                      <li>
+                        O uso comercial ou para fins não educacionais é
+                        expressamente proibido.
+                      </li>
+                    </ul>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Conduta do Usuário:
+                    </p>
+                    <ul className='list-disc list-inside text-sm text-clt-1 font-inter-regular'>
+                      <li>
+                        O usuário se compromete a utilizar a aplicação de
+                        maneira ética e legal, sem violar direitos de terceiros
+                        ou comprometer a segurança e integridade do sistema.
+                      </li>
+                      <li>
+                        É proibido qualquer uso que possa prejudicar o
+                        funcionamento da aplicação, como tentativas de acesso
+                        não autorizado, distribuição de malware ou manipulação
+                        de dados.
+                      </li>
+                    </ul>
 
-      <div className="grid gap-4 py-4">4. Privacidade e Proteção de Dados</div>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Coleta de Dados:</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Coletamos e tratamos dados conforme nossa [Política de Privacidade], que descreve como suas informações pessoais e institucionais são utilizadas.</p>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Direitos do Usuário:</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Você tem o direito de acessar, corrigir ou excluir suas informações pessoais, conforme a legislação aplicável (ex: Lei Geral de Proteção de Dados - LGPD).</p>
+                    <div className='grid gap-4 py-4'>
+                      4. Privacidade e Proteção de Dados
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Coleta de Dados:
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Coletamos e tratamos dados conforme nossa [Política de
+                      Privacidade], que descreve como suas informações pessoais
+                      e institucionais são utilizadas.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Direitos do Usuário:
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Você tem o direito de acessar, corrigir ou excluir suas
+                      informações pessoais, conforme a legislação aplicável (ex:
+                      Lei Geral de Proteção de Dados - LGPD).
+                    </p>
 
-      <div className="grid gap-4 py-4">5. Propriedade Intelectual</div>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Direitos Autorais:</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Todo o conteúdo da aplicação (textos, imagens, código-fonte, etc.) é protegido por direitos autorais e não pode ser copiado, distribuído ou modificado sem autorização prévia.</p>
-      <p className="text-sm text-clt-1 font-inter-regular font-semibold">Licença Open-Source:</p>
-      <p className="text-sm text-clt-1 font-inter-regular">O LabON é um projeto open-source, e o código-fonte está disponível sob a licença [NOME DA LICENÇA]. Consulte o repositório oficial para mais detalhes.</p>
+                    <div className='grid gap-4 py-4'>
+                      5. Propriedade Intelectual
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Direitos Autorais:
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Todo o conteúdo da aplicação (textos, imagens,
+                      código-fonte, etc.) é protegido por direitos autorais e
+                      não pode ser copiado, distribuído ou modificado sem
+                      autorização prévia.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular font-semibold'>
+                      Licença Open-Source:
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      O LabON é um projeto open-source, e o código-fonte está
+                      disponível sob a licença [NOME DA LICENÇA]. Consulte o
+                      repositório oficial para mais detalhes.
+                    </p>
 
-      <div className="grid gap-4 py-4">6. Modificações nos Termos</div>
-      <p className="text-sm text-clt-1 font-inter-regular">Reservamo-nos o direito de modificar estes Termos a qualquer momento. As alterações serão comunicadas por e-mail ou através de notificações na aplicação.</p>
-      <p className="text-sm text-clt-1 font-inter-regular">O uso contínuo do LabON após alterações indica sua aceitação das novas condições.</p>
+                    <div className='grid gap-4 py-4'>
+                      6. Modificações nos Termos
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Reservamo-nos o direito de modificar estes Termos a
+                      qualquer momento. As alterações serão comunicadas por
+                      e-mail ou através de notificações na aplicação.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      O uso contínuo do LabON após alterações indica sua
+                      aceitação das novas condições.
+                    </p>
 
-      <div className="grid gap-4 py-4">7. Encerramento de Conta</div>
-      <p className="text-sm text-clt-1 font-inter-regular">Podemos suspender ou encerrar sua conta caso identifiquemos qualquer violação destes Termos ou uso inadequado da aplicação.</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Em caso de encerramento, você poderá entrar em contato conosco para solicitar revisão da decisão.</p>
+                    <div className='grid gap-4 py-4'>
+                      7. Encerramento de Conta
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Podemos suspender ou encerrar sua conta caso
+                      identifiquemos qualquer violação destes Termos ou uso
+                      inadequado da aplicação.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Em caso de encerramento, você poderá entrar em contato
+                      conosco para solicitar revisão da decisão.
+                    </p>
 
-      <div className="grid gap-4 py-4">8. Limitação de Responsabilidade</div>
-      <p className="text-sm text-clt-1 font-inter-regular">O LabON é fornecido "no estado em que se encontra", sem garantias de desempenho ou disponibilidade contínua.</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Não nos responsabilizamos por danos diretos ou indiretos resultantes do uso ou incapacidade de uso da aplicação.</p>
+                    <div className='grid gap-4 py-4'>
+                      8. Limitação de Responsabilidade
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      O LabON é fornecido "no estado em que se encontra", sem
+                      garantias de desempenho ou disponibilidade contínua.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Não nos responsabilizamos por danos diretos ou indiretos
+                      resultantes do uso ou incapacidade de uso da aplicação.
+                    </p>
 
-      <div className="grid gap-4 py-4">9. Disposições Gerais</div>
-      <p className="text-sm text-clt-1 font-inter-regular">Estes Termos são regidos pelas leis de [PAÍS/ESTADO], e quaisquer disputas serão resolvidas nos tribunais competentes.</p>
-      <p className="text-sm text-clt-1 font-inter-regular">Caso tenha dúvidas ou precise de suporte, entre em contato pelo e-mail [EMAIL DE SUPORTE].</p>
+                    <div className='grid gap-4 py-4'>9. Disposições Gerais</div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Estes Termos são regidos pelas leis de [PAÍS/ESTADO], e
+                      quaisquer disputas serão resolvidas nos tribunais
+                      competentes.
+                    </p>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      Caso tenha dúvidas ou precise de suporte, entre em contato
+                      pelo e-mail [EMAIL DE SUPORTE].
+                    </p>
 
-      <div className="grid gap-4 py-4">10. Licença Open-Source</div>
-      <p className="text-sm text-clt-1 font-inter-regular">O código-fonte do LabON está disponível publicamente sob a licença [NOME DA LICENÇA]. Consulte o repositório oficial para mais informações sobre uso, modificação e distribuição.</p>
+                    <div className='grid gap-4 py-4'>
+                      10. Licença Open-Source
+                    </div>
+                    <p className='text-sm text-clt-1 font-inter-regular'>
+                      O código-fonte do LabON está disponível publicamente sob a
+                      licença [NOME DA LICENÇA]. Consulte o repositório oficial
+                      para mais informações sobre uso, modificação e
+                      distribuição.
+                    </p>
                     <SheetFooter>
                       <SheetClose asChild>
-                        <button className='bg-primaryMy font-rajdhani-semibold text-white shadow-md h-9 px-6 rounded-md'>Fechar</button>
+                        <button className='bg-primaryMy font-rajdhani-semibold text-white shadow-md h-9 px-6 rounded-md'>
+                          Fechar
+                        </button>
                       </SheetClose>
                     </SheetFooter>
                   </SheetContent>

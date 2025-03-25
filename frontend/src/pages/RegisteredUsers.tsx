@@ -10,14 +10,23 @@ import SelectInput from '@/components/global/inputs/SelectInput';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
-import { getRegisteredUsers } from '@/integration/Users';
+import { getRegisteredUsers, getUserById } from '@/integration/Users';
 import { formatDate } from '../function/date';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import { IUsuario } from './admin/Home';
 import { getDependentesForApproval } from '@/integration/Class';
 import Cookie from 'js-cookie';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { MyDocument } from '@/components/pdf/MyDocument';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import ExcelJS from 'exceljs';
+import * as FileSaver from 'file-saver';
 interface RegisteredUser {
   nivelUsuario: string;
   dataIngresso: string;
@@ -25,6 +34,15 @@ interface RegisteredUser {
   tipoUsuario: string;
   id: string | number;
   status: string;
+}
+
+export interface IUser {
+  instituicao: string;
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
 }
 
 function RegisteredUsers() {
@@ -37,15 +55,60 @@ function RegisteredUsers() {
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
   const [approval, setApproval] = useState<IUsuario[]>([]);
+  const [user, setUser] = useState<IUser>();
+  const columnsExport = [
+    { value: 'Nome', width: '40%' },
+    { value: 'Nível', width: '15%' },
+    { value: 'Ingresso', width: '15%' },
+    { value: 'Status', width: '15%' },
+    { value: 'ID Responsável', width: '15%' },
+  ];
+  const columnWidthsExport = ['40%', '15%', '15%', '15%', '15%'];
+
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Usuários Cadastrados');
+
+    // Definir os cabeçalhos da planilha
+    worksheet.columns = [
+      { header: 'Nome', key: 'nomeCompleto', width: 30 },
+      { header: 'Nível', key: 'nivelUsuario', width: 20 },
+      { header: 'Ingresso', key: 'dataIngresso', width: 20 },
+      { header: 'Status', key: 'status', width: 20 },
+      { header: 'ID Responsável', key: 'id', width: 20 },
+    ];
+
+    // Adicionar os dados da tabela
+    currentData.forEach((user) => {
+      worksheet.addRow({
+        nomeCompleto: user.nomeCompleto,
+        nivelUsuario: user.nivelUsuario,
+        dataIngresso: formatDate(user.dataIngresso),
+        status: user.status,
+        id: user.id,
+      });
+    });
+
+    // Criar o arquivo Excel
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    // Baixar o arquivo
+    FileSaver.saveAs(blob, 'usuarios.xlsx');
+  };
 
   useEffect(() => {
     const fetchRegisteredUsers = async () => {
       try {
         const response = await getDependentesForApproval(id);
         const processedRegisteredUsers = await getRegisteredUsers();
+        const responseID = await getUserById({ id });
         const habilitados = processedRegisteredUsers.filter(
           (user: { status: string }) => user.status === 'Habilitado'
         );
+        setUser(responseID);
         setRegisteredUsers(habilitados);
         setApproval(response);
       } catch (error) {
@@ -53,6 +116,7 @@ function RegisteredUsers() {
           console.debug('Erro ao buscar usuários', error);
         }
         setRegisteredUsers([]);
+        setUser(undefined);
       } finally {
         setIsLoading(false); // Stop loading after fetch (success or failure)
       }
@@ -155,31 +219,95 @@ function RegisteredUsers() {
             />
           </div>
           <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
+            <div className='w-full flex justify-between items-center mt-3'>
+              <div className='w-2/6'>
                 <SearchInput
                   name='search'
                   onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
                   value={searchTerm}
                 />
               </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown
-                    onClick={() => toggleSortOrder(!isAscending)}
-                    top={isAscending}
-                  />
-                </div>
-                <div className='w-1/2 -mt-4'>
-                  <SelectInput
-                    options={options}
-                    onValueChange={(value) => {
-                      setValue(value);
-                      setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
-                    }}
-                    value={value}
-                  />
-                </div>
+              <div className='w-2/6 flex justify-evenly'>
+                <TopDown
+                  onClick={() => toggleSortOrder(!isAscending)}
+                  top={isAscending}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className='border border-borderMy rounded-sm h-9 w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
+                      <FileText stroke='#232323' width={21} strokeWidth={1.5} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className='w-32 shadow-lg border border-borderMy bg-backgroundMy p-2'>
+                    <ul className='w-full flex flex-col items-start gap-y-1'>
+                      <li className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center'>
+                        <PDFDownloadLink
+                          document={
+                            <MyDocument
+                              name={
+                                user?.nomeCompleto
+                                  ? user?.nomeCompleto
+                                  : 'Não encontrado'
+                              }
+                              nivel={
+                                user?.nivelUsuario
+                                  ? user?.nivelUsuario
+                                  : 'Não encontrado'
+                              }
+                              data={currentData.map((user) => [
+                                String(user.nomeCompleto),
+                                String(user.nivelUsuario),
+                                String(formatDate(user.dataIngresso)),
+                                String(user.status),
+                                String(user.id),
+                              ])}
+                              title='Usuários Cadastrados'
+                              columnWidths={columnWidthsExport}
+                              columns={columnsExport}
+                              signer={
+                                user?.nomeCompleto
+                                  ? user?.nomeCompleto
+                                  : 'Não encontrado'
+                              }
+                            />
+                          }
+                          fileName='usuarios_cadastrados.pdf'
+                          className='flex items-center justify-center'
+                        >
+                          <FileText
+                            stroke='#232323'
+                            width={18}
+                            strokeWidth={1.5}
+                            className='mr-1 mt-[2px]'
+                          />
+                          PDF
+                        </PDFDownloadLink>
+                      </li>
+                      <li
+                        className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center cursor-pointer'
+                        onClick={exportToExcel}
+                      >
+                        <FileText
+                          stroke='#232323'
+                          width={18}
+                          strokeWidth={1.5}
+                          className='mr-1 mt-[2px]'
+                        />
+                        Excel
+                      </li>
+                    </ul>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className='w-2/6 -mt-4'>
+                <SelectInput
+                  options={options}
+                  onValueChange={(value) => {
+                    setValue(value);
+                    setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
+                  }}
+                  value={value}
+                />
               </div>
             </div>
             <HeaderTable columns={headerTable} />

@@ -33,7 +33,7 @@ function ItemTableButtonLink({
   };
   return (
     <div
-      className={`w-full h-9 flex items-center ${backgroundColor} mb-1 px-3 rounded-sm hover:scale-customScale ${isOdd ? 'hover:bg-cl-table' : 'hover:bg-opacity-60'}`}
+      className={`w-full h-9 flex items-center ${backgroundColor} mb-1 px-3 rounded-sm hover:scale-customScale cursor-pointer ${isOdd ? 'hover:bg-cl-table' : 'hover:bg-opacity-60'}`}
       onClick={handleClick}
     >
       {data.map((value, index) => (

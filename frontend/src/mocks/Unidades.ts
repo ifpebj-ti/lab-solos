@@ -331,6 +331,15 @@ export const columnsClass = [
   { value: 'Status', width: '10%' },
 ];
 
+export const columnsDisabled = [
+  { value: 'Nome', width: '22%' },
+  { value: 'Email', width: '22%' },
+  { value: 'Data Desativação', width: '15%' },
+  { value: 'Curso', width: '16%' },
+  { value: 'Instituição', width: '15%' },
+  { value: 'Ação', width: '10%' },
+];
+
 export const unidadesMedida = [
   { value: 'Litro', label: 'Litro' },
   { value: 'Mililitro', label: 'Mililitro' },
@@ -343,10 +352,31 @@ export const unidadesMedida = [
   { value: 'Unidade', label: 'Unidade' },
   { value: 'Metro', label: 'Metro' },
   { value: 'Centimetro', label: 'Centímetro' },
-  { value: 'iMlimetro', label: 'Milímetro' },
+  { value: 'Milimetro', label: 'Milímetro' },
   { value: 'Outro', label: 'Outro' },
   { value: 'Indefinido', label: 'Indefinido' },
 ];
+
+export const getUnidadeSigla = (value: string): string => {
+  const siglas: Record<string, string> = {
+    Litro: 'L',
+    Mililitro: 'mL',
+    Metro_cubico: 'm³',
+    Grama: 'g',
+    Quilograma: 'kg',
+    Tonelada: 't',
+    Centimetro_cubico: 'cm³',
+    Miligrama: 'mg',
+    Unidade: 'un',
+    Metro: 'm',
+    Centimetro: 'cm',
+    Milimetro: 'mm', // Corrigindo o erro de digitação para 'Milímetro'
+    Outro: 'Outro',
+    Indefinido: 'Indef',
+  };
+
+  return siglas[value] || value;
+};
 
 export const categoriasQuimicas = [
   { value: 'Acido', label: 'Ácido' },

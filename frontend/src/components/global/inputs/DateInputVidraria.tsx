@@ -11,7 +11,7 @@ import { Calendar } from '../../../components/ui/calendar';
 import { UseFormSetValue, Path } from 'react-hook-form';
 import { CreateVidrariaFormData } from '../forms/create/FormVidraria';
 
-interface IDateInput {
+interface IDateInputVd {
   nome: string;
   name: Path<CreateVidrariaFormData>; // Agora aceita apenas nomes válidos
   setValue: UseFormSetValue<CreateVidrariaFormData>; // UseFormSetValue tipado corretamente
@@ -19,13 +19,13 @@ interface IDateInput {
   disabled?: boolean; // Adicionando a prop disabled
 }
 
-function DateInputVidraria({
+function DateInputVd({
   nome,
   name,
   setValue,
   error,
   disabled = true,
-}: IDateInput) {
+}: IDateInputVd) {
   const [date, setDate] = useState<Date | undefined>(undefined);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
@@ -70,4 +70,4 @@ function DateInputVidraria({
   );
 }
 
-export default DateInputVidraria;
+export default DateInputVd;

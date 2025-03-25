@@ -27,7 +27,6 @@ export default {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
-        // modifiquei esse primary aqui de baixo pois tava dando conflito
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -78,11 +77,33 @@ export default {
       },
       animation: {
         slowPulse: 'slow-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
       keyframes: {
         'slow-pulse': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.4' },
+          '0%, 100%': {
+            opacity: '1',
+          },
+          '50%': {
+            opacity: '0.4',
+          },
+        },
+        'accordion-down': {
+          from: {
+            height: '0',
+          },
+          to: {
+            height: 'var(--radix-accordion-content-height)',
+          },
+        },
+        'accordion-up': {
+          from: {
+            height: 'var(--radix-accordion-content-height)',
+          },
+          to: {
+            height: '0',
+          },
         },
       },
     },

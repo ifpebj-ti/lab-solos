@@ -5,9 +5,9 @@ type ITableItem = {
   rowIndex: number;
   columnWidths: string[]; // Array com as larguras de cada coluna
   onClick1: () => void;
-  onClick2: () => void;
+  onClick2?: () => void;
   icon1: ReactNode;
-  icon2: ReactNode;
+  icon2?: ReactNode | undefined;
 };
 
 function ItemTableButton({
@@ -17,7 +17,7 @@ function ItemTableButton({
   onClick1,
   onClick2,
   icon1,
-  icon2,
+  icon2 = undefined,
 }: ITableItem) {
   const isOdd = rowIndex % 2 === 0;
   const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
@@ -42,12 +42,14 @@ function ItemTableButton({
         >
           {icon1}
         </button>
-        <button
-          onClick={onClick2}
-          className='w-7 h-7 rounded-sm flex items-center justify-center'
-        >
-          {icon2}
-        </button>
+        {icon2 !== undefined && (
+          <button
+            onClick={onClick2}
+            className='w-7 h-7 rounded-sm flex items-center justify-center'
+          >
+            {icon2}
+          </button>
+        )}
       </div>
     </div>
   );
