@@ -44,12 +44,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Scan backend image with Docker Scout
+      - name: Install Docker Scout
         run: |
-          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh 
-          docker scout quickview jrrs1/backend-labon:latest
-          docker scout policy jrrs1/backend-labon:latest \
-            --fail-on=critical,high \
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh
+          echo "$HOME/.docker/scout-cli/bin" >> $GITHUB_PATH
+  
+      - name: Scan frontend image with Docker Scout
+        run: |
+          docker scout quickview jrrs1/frontend-labon:latest
+          docker scout policy jrrs1/frontend-labon:latest --fail-on=critical,high
+  
 
       - name: Push Docker image to Docker Hub
         run: |
@@ -88,12 +92,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Install Docker Scout
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh
+          echo "$HOME/.docker/scout-cli/bin" >> $GITHUB_PATH
+  
       - name: Scan backend image with Docker Scout
         run: |
-          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
           docker scout quickview jrrs1/backend-labon:latest
-          docker scout policy jrrs1/backend-labon:latest \
-            --fail-on=critical,high \
+          docker scout policy jrrs1/backend-labon:latest --fail-on=critical,high
 
       - name: Push Docker image to Docker Hub
         run: |
