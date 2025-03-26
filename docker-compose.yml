@@ -1,4 +1,9 @@
-version: "3.8"
+
+networks:
+  private_network:
+    driver: bridge
+  public_network:
+    driver: bridge
 
 services:
   frontend:
@@ -9,28 +14,38 @@ services:
       - "80:80"
     depends_on:
       - backend
+    networks:
+      - public_network
 
   backend:
+    platform: linux/amd64
     image: jrrs1/backend-labon:latest
     container_name: backend
+    depends_on:
+      - db-postgres
     restart: always
     ports:
-      - "5000:5000"
-#    environment:
-#      - DATABASE_URL=postgres://postgres:postgres@db:5432/labsolos
+      - "5001:5000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/labsolos
+    networks:
+      - private_network
+      - public_network
 
-#  db:
-#    image: postgres:15
-#    container_name: database
-#    restart: always
-#    ports:
-#      - "5432:5432"
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#      POSTGRES_DB: labsolos
-#    volumes:
-#      - pg_data:/var/lib/postgresql/data
 
-#volumes:
-#  pg_data:
+
+  db-postgres:
+    image: postgres:15
+    container_name: db-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db-labsolos
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - private_network  
+
+volumes:
+  pg_data:
