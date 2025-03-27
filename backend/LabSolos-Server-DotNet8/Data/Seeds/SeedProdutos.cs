@@ -42,9 +42,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3);
 
             // Criando lotes para diferentes tipos de produtos
-            var loteQuimico = new Lote { Id = 1, CodigoLote = "LQ002", DataEntrada = DateTime.Now.AddDays(-45) };
-            var loteVidraria = new Lote { Id = 2, CodigoLote = "LV002", DataEntrada = DateTime.Now.AddDays(-90) };
-            var loteEquipamento = new Lote { Id = 3, CodigoLote = "LE001", DataEntrada = DateTime.Now.AddDays(-30) };
+            var loteQuimico = new Lote { Id = 1, CodigoLote = "LQ002", DataEntrada = DateTime.UtcNow.AddDays(-45) };
+            var loteVidraria = new Lote { Id = 2, CodigoLote = "LV002", DataEntrada = DateTime.UtcNow.AddDays(-90) };
+            var loteEquipamento = new Lote { Id = 3, CodigoLote = "LE001", DataEntrada = DateTime.UtcNow.AddDays(-30) };
 
             context.Lotes.AddRange(loteQuimico, loteVidraria, loteEquipamento);
 
@@ -57,7 +57,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Fornecedor = "Fornecedor Químico ABC",
                 Quantidade = 150,
                 QuantidadeMinima = 20,
-                DataValidade = DateTime.Now.AddYears(1),
+                DataValidade = DateTime.UtcNow.AddYears(1),
                 LocalizacaoProduto = "Prateleira C",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Mililitro,
@@ -81,7 +81,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Fornecedor = "Fornecedor Químico XYZ",
                 Quantidade = 500,
                 QuantidadeMinima = 50,
-                DataValidade = DateTime.Now.AddYears(2),
+                DataValidade = DateTime.UtcNow.AddYears(2),
                 LocalizacaoProduto = "Prateleira D",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Grama,

@@ -44,9 +44,10 @@ builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
-// Configurar o Serilog para escrever os logs em um arquivo
+// Configurar o Serilog para escrever logs no console e em arquivos
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em "Logs/log.txt"
+    .WriteTo.Console() // Adiciona logs no console
+    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em arquivos
     .WriteTo.Logger(lc => lc
                 .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiLoggingFilter"))
                 .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
@@ -101,7 +102,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configurar o pipeline de requisição
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -114,10 +115,13 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated(); // Garante que o banco de dados está criado
 
-    // Chama o método de seeding que utiliza o contexto
-    DbSeeder.Seed(context);
+    context.Database.EnsureCreated();
+
+    if (app.Environment.IsDevelopment())
+    {
+        DbSeeder.Seed(context);
+    }
 }
 else
 {
@@ -127,11 +131,14 @@ else
 app.UseCors("AllowAll");
 
 // Middlewares
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
-//app.UseHsts();
-
 app.MapControllers();
 
 app.Run();

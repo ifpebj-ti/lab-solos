@@ -225,7 +225,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                         NivelUsuario = NivelUsuario.Mentor,
                         TipoUsuario = TipoUsuario.Academico,
                         Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now,
+                        DataIngresso = DateTime.UtcNow,
                         Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentores."),
                         Cidade = usuarioDto.Cidade,
                         Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentores.")
@@ -240,7 +240,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                         NivelUsuario = NivelUsuario.Mentorado,
                         TipoUsuario = TipoUsuario.Academico,
                         Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now,
+                        DataIngresso = DateTime.UtcNow,
                         Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentorados."),
                         Cidade = usuarioDto.Cidade,
                         Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentorados.")
@@ -255,7 +255,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                         NivelUsuario = NivelUsuario.Comum,
                         TipoUsuario = TipoUsuario.Comum,
                         Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.Now
+                        DataIngresso = DateTime.UtcNow
                     },
                     _ => throw new InvalidOperationException("O nível fornecido não é suportado.")
                 };

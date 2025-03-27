@@ -113,7 +113,7 @@ namespace LabSolos_Server_DotNet8.Services
             // Criar o objeto Emprestimo
             var novoEmprestimo = new Emprestimo
             {
-                DataRealizacao = DateTime.Now,
+                DataRealizacao = DateTime.UtcNow,
                 DataDevolucao = DateTime.Today.AddDays(addEmprestimoDTO.DiasParaDevolucao),
                 Status = StatusEmprestimo.Pendente,
                 SolicitanteId = addEmprestimoDTO.SolicitanteId,

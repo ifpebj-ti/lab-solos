@@ -226,7 +226,7 @@ namespace LabSolos_Server_DotNet8.Services
                     DataValidade = _utilitiesService.ConverterParaDateTime(produtoDTO.DataValidade),
                     LocalizacaoProduto = produtoDTO.LocalizacaoProduto,
                     Status = StatusProduto.Disponivel,
-                    UltimaModificacao = DateTime.Now,
+                    UltimaModificacao = DateTime.UtcNow,
                 },
                 _ => throw new InvalidOperationException("O tipo fornecido não é suportado.")
             };

@@ -71,7 +71,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest(new { Message = resultadoValidacao.Mensagem });
             }
             var produto = _produtoService.ObterEstruturaProdutoPeloTipo(produtoDTO);
-            produto.UltimaModificacao = DateTime.Now;
+            produto.UltimaModificacao = DateTime.UtcNow;
 
             await _produtoService.AddAsync(produto);
             return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
