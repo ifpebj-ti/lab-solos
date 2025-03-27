@@ -126,8 +126,8 @@ function RegisteredUsers() {
 
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },
-    { value: 'Nome', width: '45%' },
-    { value: 'Tipo de Usuário', width: '15%' },
+    { value: 'Nome', width: '40%' },
+    { value: 'Tipo de Usuário', width: '20%' },
     { value: 'Status', width: '15%' },
   ];
 

@@ -10,9 +10,10 @@ import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { getLoansById } from '@/integration/Loans';
+import { approveLoan, getLoansById, rejectLoan } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
+import { toast } from '@/components/hooks/use-toast';
 
 export interface IProduto {
   id: number;
@@ -86,6 +87,41 @@ function LoanHistoryMentee() {
     fetchGetLoan();
   }, [id]);
 
+  const handleApprove = async (loanId: number) => {
+    try {
+      await approveLoan(loanId);
+      toast({
+        title: 'Solicitação aceita',
+        description: 'Empréstimo autorizado para uso...',
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao aprovar empréstimo:', error);
+      }
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+  const handleReject = async (loanId: number) => {
+    try {
+      await rejectLoan(loanId);
+      toast({
+        title: 'Solicitação rejeitada',
+        description: 'Empréstimo não autorizado para uso...',
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao reprovar empréstimo:', error);
+      }
+      toast({
+        title: 'Erro durante requisição',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
@@ -96,6 +132,8 @@ function LoanHistoryMentee() {
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
+
+  console.log(loan?.id);
   return (
     <>
       {isLoading ? (
@@ -109,7 +147,7 @@ function LoanHistoryMentee() {
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico de Empréstimo
+              Histórico de Empréstimo - {loan?.status}
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
@@ -186,6 +224,20 @@ function LoanHistoryMentee() {
                 )}
               </div>
             </div>
+          </div>
+          <div className='w-11/12 gap-x-5 h-10 mt-6 flex items-center justify-end'>
+            <button
+              onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
+              className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:bg-cl-table-item hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
+            >
+              Rejeitar
+            </button>
+            <button
+              onClick={() => loan?.id !== undefined && handleReject(loan.id)}
+              className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:bg-cl-table-item hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
+            >
+              Aceitar
+            </button>
           </div>
         </div>
       )}

@@ -2,22 +2,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import DateRangeInput from '@/components/global/inputs/DateRangeInput';
 import { lotes, chartData } from '@/mocks/Unidades';
-import { useLocation } from 'react-router-dom';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import InfoContainer from '@/components/screens/InfoContainer';
-import LoadingIcon from '../../../public/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
 import { getProductById } from '@/integration/Product';
-import { formatDateTime } from '@/function/date';
+import { formatDate } from '@/function/date';
 import { useEffect, useState } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import LoadingIcon from '../../../public/icons/LoadingIcon';
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -25,69 +31,50 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-// Interface base com propriedades comuns
-interface ProdutoBase {
-  id: number;
-  nomeProduto: string;
-  fornecedor: string;
-  tipo: 'Quimico' | 'Vidraria' | 'Outro';
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  localizacaoProduto: string;
-  status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
-  emprestimoProdutos: unknown[];
-}
-
-// Interface para produtos químicos
-interface ProdutoQuimico extends ProdutoBase {
-  tipo: 'Quimico';
-  catmat: string;
-  unidadeMedida: string;
-  estadoFisico: string;
-  cor: string;
-  odor: string;
-  densidade: number | null;
-  pesoMolecular: number;
-  grauPureza: string;
-  formulaQuimica: string;
-  grupo: string;
-}
-
-// Interface para vidrarias
-interface ProdutoVidraria extends ProdutoBase {
-  tipo: 'Vidraria';
-  material: string;
-  formato: string;
+interface IProduto {
+  catmat: string; // Código do material
+  unidadeMedida: string; // Unidade de medida representada por um número
+  estadoFisico: number; // Estado físico representado por um número
+  cor: number; // Código representando a cor
+  odor: number; // Código representando o odor
+  densidade: number; // Densidade do produto
+  pesoMolecular: number; // Peso molecular do produto
+  grauPureza: string; // Grau de pureza, em formato string (ex.: '98%')
+  formulaQuimica: string; // Fórmula química do produto
+  grupo: number; // Grupo químico representado por um número
+  id: number; // ID único do produto
+  nomeProduto: string; // Nome do produto
+  fornecedor: string; // Nome do fornecedor
+  tipo: string; // Tipo do produto representado por um número
+  quantidade: number; // Quantidade disponível do produto
+  quantidadeMinima: number; // Quantidade mínima recomendada
+  dataFabricacao: string | null; // Data de fabricação em formato ISO 8601 ou null
+  dataValidade: string; // Data de validade em formato ISO 8601
+  localizacaoProduto: string; // Localização física do produto
+  status: number; // Status do produto representado por um número
+  ultimaModificacao: string; // Data da última modificação em formato ISO 8601
+  loteId: number; // ID do lote associado ao produto
+  lote: string | null; // Informações do lote ou null
+  emprestimo: string | null; // Informações sobre empréstimo ou null
+  capacidade: string | number;
   altura: string;
-  capacidade: number;
-  graduada: boolean;
+  formato: string;
+  graduada: string;
+  material: string;
 }
-
-// Interface para outros produtos
-interface ProdutoOutro extends ProdutoBase {
-  tipo: 'Outro';
-}
-
-// Tipo unificado para suportar todos os casos
-type Produto = ProdutoQuimico | ProdutoVidraria | ProdutoOutro;
 
 function VerificationMentor() {
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState('');
-  const [productsById, setProductsById] = useState<Produto>();
+  const [productsById, setProductsById] = useState<IProduto>();
   const location = useLocation();
-  const id = location.state?.id;
+  const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
     const fetchProductsById = async () => {
       try {
-        const processedGetUserById = await getProductById({ id });
-        setProductsById(processedGetUserById);
+        const processedRegisteredUsers = await getProductById({ id });
+        setProductsById(processedRegisteredUsers);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar usuários', error);
@@ -103,16 +90,8 @@ function VerificationMentor() {
   const infoItems = productsById
     ? [
         { title: 'Item', value: productsById.nomeProduto, width: '40%' },
-        ...(productsById.tipo === 'Quimico'
-          ? [
-              {
-                title: 'Fórmula',
-                value: productsById.formulaQuimica,
-                width: '20%',
-              },
-              { title: 'Grupo', value: productsById.grupo, width: '20%' },
-            ]
-          : []),
+        { title: 'Fórmula', value: productsById.formulaQuimica, width: '20%' },
+        { title: 'Grupo', value: productsById.grupo, width: '20%' },
         { title: 'Situação', value: productsById.status, width: '20%' },
       ]
     : [];
@@ -120,27 +99,26 @@ function VerificationMentor() {
   const infoItemsVidraria = productsById
     ? [
         { title: 'Item', value: productsById.nomeProduto, width: '40%' },
-        ...(productsById.tipo === 'Vidraria'
-          ? [
-              {
-                title: 'Capacidade',
-                value: productsById.capacidade,
-                width: '20%',
-              },
-              { title: 'Tipo', value: productsById.tipo, width: '20%' },
-            ]
-          : []),
+        {
+          title: 'Capacidade (ml)',
+          value: productsById.capacidade,
+          width: '20%',
+        },
+        { title: 'Tipo', value: productsById.tipo, width: '20%' },
         { title: 'Situação', value: productsById.status, width: '20%' },
       ]
     : [];
 
-  const infoItemsOutro = productsById
+  const infoItemsOutros = productsById
     ? [
-        { title: 'Item', value: productsById.nomeProduto, width: '50%' },
-        ...(productsById.tipo === 'Outro'
-          ? [{ title: 'Tipo', value: productsById.tipo, width: '25%' }]
-          : []),
-        { title: 'Situação', value: productsById.status, width: '25%' },
+        { title: 'Item', value: productsById.nomeProduto, width: '40%' },
+        { title: 'Tipo', value: productsById.tipo, width: '20%' },
+        { title: 'Situação', value: productsById.status, width: '20%' },
+        {
+          title: 'Data de Validade',
+          value: formatDate(productsById.dataValidade),
+          width: '20%',
+        },
       ]
     : [];
   const infoItems2 = productsById
@@ -152,21 +130,114 @@ function VerificationMentor() {
         },
       ]
     : [];
-  const infoItems3 = productsById
+  const infoItems2Vd = productsById
     ? [
         {
-          title: 'Última Inserção',
-          value: formatDateTime(productsById?.ultimaModificacao),
+          title: 'Estoque Atual (Un)',
+          value: productsById?.quantidade,
           width: '100%',
         },
       ]
     : [];
-  const infoItems4 = productsById
+  const infoItems3 = productsById
     ? [
         {
-          title: 'Última Retirada',
-          value: formatDateTime(productsById?.ultimaModificacao),
+          title: 'Última Modificação do Estoque',
+          value: formatDate(productsById?.ultimaModificacao),
           width: '100%',
+        },
+      ]
+    : [];
+
+  const infoItems6 = productsById
+    ? [
+        {
+          title: 'Localização',
+          value: productsById?.localizacaoProduto,
+          width: '100%',
+        },
+      ]
+    : [];
+
+  const infoItems5 = productsById
+    ? [
+        {
+          title: 'Data de Validade',
+          value: formatDate(productsById?.dataValidade),
+          width: '100%',
+        },
+      ]
+    : [];
+
+  const moreInformationsQuimico = productsById
+    ? [
+        {
+          title: 'Localização',
+          value: productsById.localizacaoProduto,
+          width: '40%',
+        },
+        {
+          title: 'Catmat',
+          value: productsById.catmat,
+          width: '20%',
+        },
+        {
+          title: 'Unidade de Medida',
+          value: productsById.unidadeMedida,
+          width: '20%',
+        },
+      ]
+    : [];
+  const moreInformationsVidraria = productsById
+    ? [
+        {
+          title: 'Localização',
+          value: productsById.localizacaoProduto,
+          width: '40%',
+        },
+        {
+          title: 'Catmat',
+          value: productsById.catmat ?? 'Não corresponde',
+          width: '20%',
+        },
+        {
+          title: 'Altura',
+          value: productsById.altura,
+          width: '20%',
+        },
+
+        {
+          title: 'Capacidade (ml)',
+          value: productsById.capacidade,
+          width: '20%',
+        },
+      ]
+    : [];
+
+  const moreInformationsVidraria2 = productsById
+    ? [
+        {
+          title: 'Material',
+          value: productsById.material,
+          width: '40%',
+        },
+      ]
+    : [];
+  const moreInformationsVidraria3 = productsById
+    ? [
+        {
+          title: 'Altura',
+          value: productsById.altura,
+          width: '40%',
+        },
+      ]
+    : [];
+  const moreInformationsVidraria4 = productsById
+    ? [
+        {
+          title: 'Formato',
+          value: productsById.formato,
+          width: '40%',
         },
       ]
     : [];
@@ -195,8 +266,22 @@ function VerificationMentor() {
               <InfoContainer items={infoItems} />
               <div className='w-full flex gap-x-8 mt-5'>
                 <InfoContainer items={infoItems2} />
+                <InfoContainer items={infoItems5} />
                 <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
+              </div>
+              <div className='w-full mt-7 min-h-9'>
+                <Accordion
+                  type='single'
+                  collapsible
+                  className='w-full bg-backgroundMy px-4 border border-borderMy rounded-md font-inter-medium text-clt-2'
+                >
+                  <AccordionItem value='item-1'>
+                    <AccordionTrigger>Mais Informações</AccordionTrigger>
+                    <AccordionContent>
+                      <InfoContainer items={moreInformationsQuimico} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
             </div>
           )}
@@ -204,23 +289,42 @@ function VerificationMentor() {
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsVidraria} />
               <div className='w-full flex gap-x-8 mt-5'>
-                <InfoContainer items={infoItems2} />
+                <InfoContainer items={infoItems2Vd} />
+                <InfoContainer items={infoItems5} />
                 <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
+              </div>
+              <div className='w-full mt-7 min-h-9'>
+                <Accordion
+                  type='single'
+                  collapsible
+                  className='w-full bg-backgroundMy px-4 border border-borderMy rounded-md font-inter-medium text-clt-2'
+                >
+                  <AccordionItem value='item-1'>
+                    <AccordionTrigger>Mais Informações</AccordionTrigger>
+                    <AccordionContent>
+                      <InfoContainer items={moreInformationsVidraria} />
+                      <div className='w-full flex gap-x-8 mt-5'>
+                        <InfoContainer items={moreInformationsVidraria2} />
+                        <InfoContainer items={moreInformationsVidraria3} />
+                        <InfoContainer items={moreInformationsVidraria4} />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
             </div>
           )}
           {productsById?.tipo === 'Outro' && (
             <div className='w-11/12 mt-7'>
-              <InfoContainer items={infoItemsOutro} />
+              <InfoContainer items={infoItemsOutros} />
               <div className='w-full flex gap-x-8 mt-5'>
                 <InfoContainer items={infoItems2} />
                 <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
+                <InfoContainer items={infoItems6} />
               </div>
             </div>
           )}
-          <div className='w-11/12 mt-7 mb-6'>
+          <div className='w-11/12 mt-7'>
             <Card className='rounded-md bg-backgroundMy border border-borderMy shadow-none'>
               <CardHeader>
                 <div className='flex items-center justify-between w-full gap-x-7'>
