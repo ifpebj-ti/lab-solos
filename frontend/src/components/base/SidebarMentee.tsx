@@ -44,7 +44,7 @@ function SidebarMentee() {
     },
   ];
   return (
-    <div className='bg-primaryMy w-[70px] min-h-screen flex items-center flex-col'>
+    <div className='bg-primaryMy w-[60px] min-h-screen flex items-center flex-col'>
       <img src={logo} className='mt-7 2xl:mt-10 w-12'></img>
       <div className='flex flex-col justify-between w-full mt-14 2xl:mt-20 items-center h-full'>
         <div className='flex items-center flex-col'>
@@ -54,7 +54,7 @@ function SidebarMentee() {
                 <TooltipTrigger>
                   <Link
                     to={to}
-                    className={`w-11 h-11 ${currentPage === to ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
+                    className={`w-10 h-10 ${currentPage === to ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-3`}
                   >
                     {icon}
                   </Link>
@@ -72,7 +72,7 @@ function SidebarMentee() {
               <TooltipTrigger>
                 <Link
                   to={'/mentee/profile'}
-                  className={`w-11 h-11 ${currentPage === '/mentee/profile' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-6`}
+                  className={`w-10 h-10 ${currentPage === '/mentee/profile' ? 'bg-backgroundMy hover:bg-opacity-90' : 'bg-primaryMy hover:bg-green-700'} flex items-center justify-center rounded-md transition-all ease-in-out mb-6`}
                 >
                   <ProfileIcon
                     fill={currentPage == '/mentee/profile' ? '#16A34A' : '#fff'}

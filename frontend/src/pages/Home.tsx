@@ -4,54 +4,11 @@ import analysis from '../../public/images/analysis.png';
 import notebook from '../../public/images/notebook.png';
 import vidraria from '../../public/images/vidraria.png';
 import OpenSearch from '@/components/global/OpenSearch';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import LoadingIcon from '../../public/icons/LoadingIcon';
-import { getSystemQuantities } from '@/integration/System';
-interface DashboardData {
-  produtos: {
-    Quimico: number;
-    Vidraria: number;
-    Outro: number;
-    Total: number;
-  };
-  alertas: {
-    ProdutosVencidos: number;
-    ProdutosEmBaixa: number;
-  };
-  usuarios: {
-    Administrador: number;
-    Mentor: number;
-    Mentorado: number;
-    Total: number;
-  };
-  emprestimos: {
-    Aprovado: number;
-    Pendente: number;
-    Rejeitado: number;
-    Total: number;
-  };
-  totalProdutosEmprestados: number;
-}
+
 function Home() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [system, setSystem] = useState<DashboardData>();
-  useEffect(() => {
-    const fetchGetSystem = async () => {
-      setIsLoading(true);
-      try {
-        const systemQuant = await getSystemQuantities();
-        setSystem(systemQuant);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-          console.debug('Erro ao buscar dados de empréstimos:', system);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetSystem();
-  }, [system]);
+  const [isLoading] = useState(false);
 
   const informacoes = [
     'Solicitações de Empréstimo',

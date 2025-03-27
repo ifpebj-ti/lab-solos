@@ -26,7 +26,7 @@ interface IUsuario {
   emprestimosSolicitados: IEmprestimo[] | null;
   emprestimosAprovados: IEmprestimo[] | null;
   responsavelId: number | null;
-  responsavel: IUsuario | null;
+  nomeResponsavel: string | null;
   dependentes: IUsuario[] | null;
 }
 
@@ -103,9 +103,10 @@ function AllLoans() {
 
   const headerTable = [
     { value: 'Data de Solicitação', width: '20%' },
-    { value: 'Solicitante', width: '30%' },
-    { value: 'Responsável', width: '30%' },
-    { value: 'Status', width: '20%' },
+    { value: 'Solicitante', width: '25%' },
+    { value: 'Responsável', width: '25%' },
+    { value: 'Itens Utilizados', width: '15%' },
+    { value: 'Status', width: '15%' },
   ];
 
   const options = [
@@ -137,6 +138,7 @@ function AllLoans() {
     return `${count}`;
   };
 
+  console.log(loan);
   return (
     <>
       {isLoading ? (
@@ -222,8 +224,12 @@ function AllLoans() {
                         formatDate(rowData?.dataRealizacao),
                         rowData?.solicitante?.nomeCompleto ||
                           'Nome não disponível',
-                        rowData?.solicitante?.responsavel?.nomeCompleto ||
-                          'Responsável não disponível',
+                        rowData?.solicitante?.nomeResponsavel ||
+                          'Status não disponível',
+                        String(
+                          rowData?.emprestimoProdutos.length ||
+                            'Responsável não disponível'
+                        ),
                         rowData?.status || 'Status não disponível',
                       ]}
                       rowIndex={index}
