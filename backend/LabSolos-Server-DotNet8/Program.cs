@@ -118,10 +118,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 
     context.Database.EnsureCreated();
 
-    if (app.Environment.IsDevelopment())
-    {
-        DbSeeder.Seed(context);
-    }
+    DbSeeder.Seed(context, app.Environment.EnvironmentName);
 }
 else
 {
