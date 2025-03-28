@@ -17,15 +17,13 @@ services:
       - public_network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: jrrs1/backend-labon:latest
     container_name: backend
     restart: always
     ports:
-      - "5289:5000"
+      - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__PostgresConnection=Host=db;Port=5432;Database=labsolos;Username=postgres;Password=postgres
     depends_on:
       db:

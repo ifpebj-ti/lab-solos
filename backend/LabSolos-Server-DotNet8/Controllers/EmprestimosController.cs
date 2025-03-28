@@ -14,14 +14,14 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EmprestimosController(ILogger<UsuariosController> logger, IUsuarioService usuarioService, IEmprestimoService emprestimoService, IProdutoService produtoService) : ControllerBase
+    public class EmprestimosController(ILogger<EmprestimosController> logger, IUsuarioService usuarioService, IEmprestimoService emprestimoService, IProdutoService produtoService) : ControllerBase
     {
         private readonly IEmprestimoService _emprestimoService = emprestimoService;
         private readonly IUsuarioService _usuarioService = usuarioService;
         private readonly IProdutoService _produtoService = produtoService;
 
 
-        private readonly ILogger<UsuariosController> _logger = logger;
+        private readonly ILogger<EmprestimosController> _logger = logger;
 
         [HttpGet("usuario/{userId}")]
         public async Task<IActionResult> GetEmprestimosUsuario(int userId)
