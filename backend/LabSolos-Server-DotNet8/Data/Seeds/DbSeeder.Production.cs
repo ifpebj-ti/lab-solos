@@ -1,5 +1,7 @@
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace LabSolos_Server_DotNet8.Data.Seeds
 {
@@ -7,6 +9,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
     {
         public static void SeedProduction(AppDbContext context)
         {
+            var passwordHasher = new PasswordHasher<Usuario>();
+
             // Verificar se o banco está completamente vazio
             if (IsDatabaseEmpty(context))
             {
@@ -26,15 +30,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
                 context.SaveChanges();
             }
-        }
-
-        private static bool IsDatabaseEmpty(AppDbContext context)
-        {
-            // Verificar se todas as tabelas relevantes estão vazias
-            return !context.Usuarios.Any() &&
-                   !context.Produtos.Any() &&
-                   !context.Lotes.Any() &&
-                   !context.Emprestimos.Any();
-        }
+        }       
     }
 }
