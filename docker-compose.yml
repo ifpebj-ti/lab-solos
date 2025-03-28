@@ -25,7 +25,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__PostgresConnection=Host=db;Port=5432;Database=labsolos;Username=postgres;Password=postgres
     depends_on:
       db:
