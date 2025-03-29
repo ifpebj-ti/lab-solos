@@ -17,7 +17,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 // Adicionar o usuário administrador
                 context.Usuarios.Add(new Usuario
                 {
-                    Id = 1,
                     NomeCompleto = "Rosemberg de Vasconcelos Bezerra",
                     Email = "lab.solos@belojardim.ifpe.edu.br",
                     SenhaHash = passwordHasher.HashPassword(null!, "SenhaLab123"),
