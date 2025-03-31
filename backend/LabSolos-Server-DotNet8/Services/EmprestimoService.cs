@@ -114,7 +114,7 @@ namespace LabSolos_Server_DotNet8.Services
             var novoEmprestimo = new Emprestimo
             {
                 DataRealizacao = DateTime.UtcNow,
-                DataDevolucao = DateTime.Today.AddDays(addEmprestimoDTO.DiasParaDevolucao),
+                DataDevolucao = DateTime.UtcNow.Date.AddDays(addEmprestimoDTO.DiasParaDevolucao),
                 Status = StatusEmprestimo.Pendente,
                 SolicitanteId = addEmprestimoDTO.SolicitanteId,
                 EmprestimoProdutos = itensEmprestimo

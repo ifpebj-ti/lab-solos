@@ -38,7 +38,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             _logger.LogInformation("Iniciando operação para obter todos os produtos em alerta.");
             var produtos = await _context.Produtos
-                .Where(p => (p.Quantidade < p.QuantidadeMinima) || (p.DataValidade < DateTime.Today.AddDays(-10)))
+                .Where(p => (p.Quantidade < p.QuantidadeMinima) || (p.DataValidade < DateTime.UtcNow.AddDays(-10)))
                 .ToListAsync();
             _logger.LogInformation("Operação concluída. {Count} produtos obtidos.", produtos.Count);
             return produtos;

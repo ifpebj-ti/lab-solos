@@ -159,7 +159,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 produto.Quantidade -= item.Quantidade;
 
-                if (!(produto.DataValidade < DateTime.Today))
+                if (!(produto.DataValidade < DateTime.UtcNow.Date))
                 {
                     if (produto.Quantidade > 0)
                     {
