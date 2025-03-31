@@ -17,14 +17,16 @@ services:
       - public_network
 
   backend:
-    image: jrrs1/backend-labon:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
     restart: always
     ports:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__PostgresConnection=Host=db;Port=5432;Database=labsolos;Username=postgres;Password=postgres
+      - ConnectionStrings__PostgresConnection=Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -36,17 +38,17 @@ services:
     container_name: database
     restart: always
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: labsolos
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
       - private_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d labsolos"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
