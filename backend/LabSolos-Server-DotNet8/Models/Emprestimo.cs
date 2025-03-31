@@ -78,9 +78,9 @@ namespace LabSolos_Server_DotNet8.Models
             return new Emprestimo
             {
                 Id = dto.Id,
-                DataRealizacao = dto.DataRealizacao,
-                DataDevolucao = dto.DataDevolucao,
-                DataAprovacao = dto.DataAprovacao,
+                DataRealizacao = DateTime.SpecifyKind(dto.DataRealizacao, DateTimeKind.Utc),
+                DataDevolucao = dto.DataDevolucao.HasValue ? DateTime.SpecifyKind(dto.DataDevolucao.Value, DateTimeKind.Utc) : null,
+                DataAprovacao = dto.DataAprovacao.HasValue ? DateTime.SpecifyKind(dto.DataAprovacao.Value, DateTimeKind.Utc) : null,
                 Status = Enum.Parse<StatusEmprestimo>(dto.Status),
 
                 SolicitanteId = dto.Solicitante!.Id,
@@ -115,8 +115,8 @@ namespace LabSolos_Server_DotNet8.Models
                         Tipo = Enum.Parse<TipoProduto>(ep.Produto.TipoProduto),
                         Quantidade = ep.Produto.Quantidade,
                         QuantidadeMinima = ep.Produto.QuantidadeMinima,
-                        DataFabricacao = DateTime.TryParse(ep.Produto.DataFabricacao, out var dataFabricacao) ? dataFabricacao : null,
-                        DataValidade = DateTime.TryParse(ep.Produto.DataValidade, out var dataValidade) ? dataValidade : null,
+                        DataFabricacao = DateTime.TryParse(ep.Produto.DataFabricacao, out var dataFabricacao) ? DateTime.SpecifyKind(dataFabricacao, DateTimeKind.Utc) : null,
+                        DataValidade = DateTime.TryParse(ep.Produto.DataValidade, out var dataValidade) ? DateTime.SpecifyKind(dataValidade, DateTimeKind.Utc) : null,
                         LocalizacaoProduto = ep.Produto?.LocalizacaoProduto ?? string.Empty,
                         Status = Enum.TryParse<StatusProduto>(ep.Produto!.Status, out var statusProduto) ? statusProduto : StatusProduto.Indefinido // Defina um padrão adequado
 

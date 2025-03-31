@@ -41,6 +41,7 @@ namespace LabSolos_Server_DotNet8.Services
 
             if (DateTime.TryParse(dataString, out DateTime dataConvertida))
             {
+                dataConvertida = DateTime.SpecifyKind(dataConvertida, DateTimeKind.Utc);
                 return dataConvertida; // Retorna a data convertida se for válida
             }
 

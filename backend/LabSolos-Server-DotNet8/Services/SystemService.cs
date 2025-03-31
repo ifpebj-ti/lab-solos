@@ -69,7 +69,7 @@ namespace LabSolos_Server_DotNet8.Services
             // Agrupa por tipo e conta os produtos em cada grupo
             var alertas = new Dictionary<string, int>
             {
-                { "ProdutosVencidos", produtosEmAlerta.Count(p => p.DataValidade < DateTime.Today.AddDays(-10)) },
+                { "ProdutosVencidos", produtosEmAlerta.Count(p => p.DataValidade < DateTime.UtcNow.Date.AddDays(-10)) },
                 { "ProdutosEmBaixa", produtosEmAlerta.Count(p => p.Quantidade < p.QuantidadeMinima) }
             };
 
