@@ -54,7 +54,7 @@ O projeto utiliza um conjunto de tecnologias modernas para garantir um desempenh
 ![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?style=for-the-badge&logo=oracle&logoColor=white)
 
 ## Docker Compose
-Executando o Sistema Localmente com composer: [Docker Composer passo a passo](https://github.com/ifpebj-ti/lab-solos.wiki.git).
+Executando o Sistema Localmente com composer: [Docker Composer passo a passo](https://github.com/ifpebj-ti/lab-solos/wiki/Docker-Compose).
 
 ## Contribuição
 Para a contribuição do projeto foi adotado o fluxo de trabalho Trunk Based. 
