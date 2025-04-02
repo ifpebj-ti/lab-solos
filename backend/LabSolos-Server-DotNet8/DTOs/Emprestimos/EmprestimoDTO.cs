@@ -16,8 +16,6 @@ namespace LabSolos_Server_DotNet8.DTOs.Emprestimos
 
         public UsuarioDTO? Solicitante { get; set; }
 
-        public UsuarioDTO? Aprovador { get; set; }
-
-        
-        }
+        public UsuarioDTO? Aprovador { get; set; }               
+    }
 }
