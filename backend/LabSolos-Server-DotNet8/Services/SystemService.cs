@@ -3,6 +3,7 @@ using LabSolos_Server_DotNet8.Enums;
 using Microsoft.EntityFrameworkCore;
 using LabSolos_Server_DotNet8.DTOs.System;
 using LabSolos_Server_DotNet8.Repositories;
+using AutoMapper;
 
 namespace LabSolos_Server_DotNet8.Services
 {
@@ -11,17 +12,21 @@ namespace LabSolos_Server_DotNet8.Services
         Task<QuantitiesDTO> GetSystemQuantitiesAsync();
     }
 
-    public class SystemService(IProdutoRepository produtoRepository, IUsuarioRepository usuarioRepository, IEmprestimoRepository emprestimoRepository) : ISystemService
+    public class SystemService : ISystemService
     {
+        private readonly IUnitOfWork _uow;
+        private readonly IMapper _mapper;
 
-        private readonly IProdutoRepository _produtoRepository = produtoRepository;
-        private readonly IUsuarioRepository _usuarioRepository = usuarioRepository;
-        private readonly IEmprestimoRepository _emprestimoRepository = emprestimoRepository;
+        public SystemService(IUnitOfWork uow,IMapper mapper)
+        {
+            _uow = uow;
+            _mapper = mapper;
+        }
 
         public async Task<QuantitiesDTO> GetSystemQuantitiesAsync()
         {
             // Obtém todos os produtos
-            var produtos = await _produtoRepository.GetAllAsync();
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(e => true);
 
             // Agrupa por tipo e conta os produtos em cada grupo
             var productCountsByType = produtos
@@ -36,7 +41,7 @@ namespace LabSolos_Server_DotNet8.Services
 
             productCountsByType["Total"] = totalProducts;
 
-            var usuarios = await _usuarioRepository.GetAllAsync();
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(e => true);
 
             var userCountByType = usuarios
                 .GroupBy(u => u.NivelUsuario)
@@ -47,7 +52,7 @@ namespace LabSolos_Server_DotNet8.Services
 
             userCountByType["Total"] = usuarios.Count();
 
-            var emprestimos = await _emprestimoRepository.GetTodosEmprestimosAsync();
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true);
 
             var emprestimosAgrupadosPeloStatus = emprestimos
                 .GroupBy(e => e.Status)
@@ -64,7 +69,7 @@ namespace LabSolos_Server_DotNet8.Services
                 .SelectMany(e => e.EmprestimoProdutos)
                 .Count();
 
-            var produtosEmAlerta = await _produtoRepository.GetProdutosEmAlerta();
+            var produtosEmAlerta = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.Now.AddDays(10));
 
             // Agrupa por tipo e conta os produtos em cada grupo
             var alertas = new Dictionary<string, int>
