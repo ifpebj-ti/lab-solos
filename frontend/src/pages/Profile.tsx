@@ -6,6 +6,8 @@ import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
 import ButtonLogout from '@/components/global/ButtonLogout';
+import { FileSpreadsheet, MessageSquare } from 'lucide-react';
+import CardFunction from '@/components/screens/CardFunction';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -169,6 +171,27 @@ function Profile() {
                 <InfoContainer items={infoItems4} />
                 <InfoContainer items={infoItems5} />
               </div>
+            </div>
+          </div>
+          <div className='w-11/12 min-h-3 mt-9 border-t border-borderMy py-4 pt-6'>
+            <p className='font-rajdhani-medium text-clt-2 text-3xl'>
+              Funcionalidades
+            </p>
+            <div className='w-full min-h-6 flex flex-wrap items-start justify-start gap-10 mt-7'>
+              <CardFunction
+                link='/admin/view-info'
+                text='Comunicação InterLab'
+                icon={<MessageSquare stroke='#16a34a' width={35} height={35} />}
+                notify={true}
+              />
+              <CardFunction
+                link='/admin/view-info'
+                text='Importar Planilha de Cadastro de Bens'
+                icon={
+                  <FileSpreadsheet stroke='#16a34a' width={35} height={35} />
+                }
+                notify={false}
+              />
             </div>
           </div>
         </div>

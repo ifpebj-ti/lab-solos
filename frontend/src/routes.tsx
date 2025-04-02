@@ -41,6 +41,8 @@ import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
 import PreLab from './pages/prelab/PreLab';
 import Disabled from './pages/mentor/Disabled';
+import CreateInfo from './pages/admin/CreateInfo';
+import ViewInfo from './pages/admin/ViewInfo';
 
 function AppRoutes() {
   return (
@@ -188,6 +190,24 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<LoansRequest />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='view-info'
+            element={
+              <PrivateRoute
+                element={<ViewInfo />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='create-info'
+            element={
+              <PrivateRoute
+                element={<CreateInfo />}
                 requiredRank={['Administrador']}
               />
             }
