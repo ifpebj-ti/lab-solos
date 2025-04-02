@@ -1,6 +1,6 @@
 namespace LabSolos_Server_DotNet8.DTOs.System
 {
-    public class QuantitiesDTO
+    public class QuantidadesDTO
     {
         public Dictionary<string, int> Produtos { get; set; } = [];
         public Dictionary<string, int> Alertas { get; set; } = [];
