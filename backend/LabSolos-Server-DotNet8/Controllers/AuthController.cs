@@ -1,5 +1,6 @@
 using LabSolos_Server_DotNet8.DTOs.Auth;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,23 +8,35 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController(JwtService jwtService, IUsuarioService usuarioService) : ControllerBase
+    public class AuthController : ControllerBase
     {
-        private readonly JwtService _jwtService = jwtService;
-        private readonly IUsuarioService _usuarioService = usuarioService;
+        private readonly JwtService _jwtService;
+        private readonly IUnitOfWork _uow;
+
+        public AuthController(JwtService jwtService, IUnitOfWork uow)
+        {
+            _jwtService = jwtService;
+            _uow = uow;
+        }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO request)
+        public async Task<IActionResult> Login([FromBody] LoginDTO requestDto)
         {
-            var usuario = await _usuarioService.ValidarUsuarioAsync(request.Email, request.Password);
+            if (requestDto == null)
+            {
+                return BadRequest("Requisição inválida.");
+            }
 
-            if (usuario == null){
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Email == requestDto.Email);
+
+            if (usuario == null || !usuario.VerificarSenha(requestDto.Password))
+            {
                 return Unauthorized("Credenciais inválidas.");
             }
 
             if (usuario.Status != StatusUsuario.Habilitado)
             {
-                return Unauthorized("Usuário não habilitado. Contate seu responsável");
+                return Unauthorized("Usuário não habilitado. Contate seu responsável.");
             }
 
             var token = _jwtService.GenerateToken(usuario.Id.ToString(), usuario.Email, usuario.NivelUsuario.ToString());

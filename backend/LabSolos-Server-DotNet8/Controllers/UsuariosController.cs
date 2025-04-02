@@ -1,7 +1,9 @@
+using AutoMapper;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,19 +13,26 @@ namespace LabSolos_Server_DotNet8.Controllers
     [ApiController]
     //[Authorize]
     [Route("api/[controller]")]
-    public class UsuariosController(IUsuarioService usuarioService, IEmprestimoService emprestimoService, ILogger<UsuariosController> logger) : ControllerBase
-    {
-        private readonly IUsuarioService _usuarioService = usuarioService;
-        private readonly IEmprestimoService _emprestimoService = emprestimoService;
+    public class UsuariosController : ControllerBase
+    {        private readonly ILogger<UsuariosController> _logger;
+        private readonly IUnitOfWork _uow;
+        private readonly IMapper _mapper;
+        private readonly IUsuarioService _usuarioService;
 
-        private readonly ILogger<UsuariosController> _logger = logger;
 
+        public UsuariosController(ILogger<UsuariosController> logger, IUnitOfWork uow, IMapper mapper, IUsuarioService usuarioService)
+        {
+            _logger = logger;
+            _uow = uow;
+            _mapper = mapper;
+            _usuarioService = usuarioService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var usuarios = await _usuarioService.GetAllAsync();
-            return Ok(usuarios);
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true);
+            return Ok(_mapper.Map<IEnumerable<UsuarioDTO>>(usuarios));
         }
 
         [HttpGet("tipo/{tipoUsuario}")]
@@ -41,31 +50,29 @@ namespace LabSolos_Server_DotNet8.Controllers
             var tipoEnum = (TipoUsuario)tipoUsuario;
 
 
-            var usuarios = await _usuarioService.GetUsuariosByTipoAsync(tipoEnum);
-            return Ok(usuarios);
+            var usuarios = await _uow.UsuarioRepository.ObterAsync(u => u.TipoUsuario == tipoEnum);
+            return Ok(_mapper.Map<IEnumerable<UsuarioDTO>>(usuarios));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var usuario = await _usuarioService.GetByIdAsync(id);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);
             if (usuario == null) return NotFound();
-            return Ok(usuario);
+            return Ok(_mapper.Map<UsuarioDTO>(usuario));
         }
 
         [HttpGet("{usuarioId}/dependentes/emprestimos")]
         public async Task<IActionResult> GetEmprestimosDosDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
             }
 
-            // Buscar os dependentes desse usuário
-            var dependentes = usuario.Dependentes;
-            if (dependentes == null || dependentes.Count == 0)
+            if (usuario.Dependentes == null || usuario.Dependentes.Count == 0)
             {
                 return NotFound("Este usuário não possui dependentes.");
             }
@@ -73,10 +80,10 @@ namespace LabSolos_Server_DotNet8.Controllers
             // Obter todos os empréstimos dos dependentes
             var emprestimosDependentes = new List<Emprestimo>();
 
-            foreach (var dependente in dependentes)
+            foreach (var dependente in usuario.Dependentes)
             {
-                var emprestimosDTO = await _emprestimoService.GetEmprestimosSolicitadosUsuario(dependente.Id);
-                var emprestimos = emprestimosDTO.Select(e => Emprestimo.MapFromDTO(e)).ToList();
+                var emprestimosDTO = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id);
+                var emprestimos = _mapper.Map<IEnumerable<Emprestimo>>(emprestimosDTO);
                 emprestimosDependentes.AddRange(emprestimos);
             }
 
@@ -92,7 +99,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> GetDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
@@ -125,7 +132,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> GetDependentesParaAprovacao(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele existe
-            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
@@ -163,7 +170,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> GetUsuariosParaAprovacao()
         {
             // Buscar o usuário principal para garantir que ele existe
-            var usuarios = await _usuarioService.GetAllAsync();
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true);
             if (!usuarios.Any())
             {
                 return NotFound("Nenhum usuário recebido");
@@ -198,7 +205,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 if (usuarioDto.NivelUsuario == "Mentorado" && usuarioDto.ResponsavelEmail is not null)
                 {
-                    var responsavel = await _usuarioService.GetByEmailAsync(usuarioDto.ResponsavelEmail);
+                    var responsavel = await _uow.UsuarioRepository.ObterAsync(u => u.Email == usuarioDto.ResponsavelEmail);
 
                     if (responsavel == null)
                         return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
@@ -260,7 +267,8 @@ namespace LabSolos_Server_DotNet8.Controllers
                     _ => throw new InvalidOperationException("O nível fornecido não é suportado.")
                 };
 
-                await _usuarioService.AddAsync(usuario);
+                _uow.UsuarioRepository.Criar(usuario);
+                await _uow.CommitAsync();
 
                 return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
             }
@@ -274,7 +282,9 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] Usuario usuario)
         {
             if (id != usuario.Id) return BadRequest("ID do usuário não corresponde.");
-            await _usuarioService.UpdateAsync(usuario);
+            _uow.UsuarioRepository.Atualizar(usuario);
+            await _uow.CommitAsync();
+
             return NoContent();
         }
 
@@ -282,7 +292,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> AprovarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
-            var dependente = await _usuarioService.GetByIdAsync(dependenteId);
+            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == dependenteId);
             if (dependente == null)
             {
                 return NotFound("Usuário dependente não encontrado.");
@@ -304,7 +314,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             dependente.Status = StatusUsuario.Habilitado;
 
             // Salvar a mudança no banco de dados
-            await _usuarioService.UpdateAsync(dependente);
+            _uow.UsuarioRepository.Atualizar(dependente);
+            await _uow.CommitAsync();
 
             return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
         }
@@ -313,7 +324,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> AdminAprovarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
-            var dependente = await _usuarioService.GetByIdAsync(usuarioId);
+            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
             if (dependente == null)
             {
                 return NotFound("Usuário dependente não encontrado.");
@@ -329,7 +340,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             dependente.Status = StatusUsuario.Habilitado;
 
             // Salvar a mudança no banco de dados
-            await _usuarioService.UpdateAsync(dependente);
+            _uow.UsuarioRepository.Atualizar(dependente);
+            await _uow.CommitAsync();
 
             return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
         }
@@ -338,7 +350,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         public async Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
-            var dependente = await _usuarioService.GetByIdAsync(dependenteId);
+            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == dependenteId);
             if (dependente == null)
             {
                 return NotFound("Usuário dependente não encontrado.");
@@ -360,16 +372,18 @@ namespace LabSolos_Server_DotNet8.Controllers
             dependente.Status = StatusUsuario.Desabilitado;
 
             // Salvar a mudança no banco de dados
-            await _usuarioService.UpdateAsync(dependente);
+            _uow.UsuarioRepository.Atualizar(dependente);
+            await _uow.CommitAsync();
 
             return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
         }
 
+        [Authorize(Policy = "ApenasAdministradores")]
         [HttpPatch("{usuarioId}/rejeitar")]
         public async Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
-            var dependente = await _usuarioService.GetByIdAsync(usuarioId);
+            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
             if (dependente == null)
             {
                 return NotFound("Usuário dependente não encontrado.");
@@ -385,7 +399,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             dependente.Status = StatusUsuario.Desabilitado;
 
             // Salvar a mudança no banco de dados
-            await _usuarioService.UpdateAsync(dependente);
+            _uow.UsuarioRepository.Atualizar(dependente);
+            await _uow.CommitAsync();
 
             return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
         }
@@ -393,7 +408,12 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _usuarioService.DeleteAsync(id);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);
+
+            if (usuario == null) return NotFound();
+
+            _uow.UsuarioRepository.Remover(usuario);
+            await _uow.CommitAsync();
             return NoContent();
         }
     }

@@ -4,9 +4,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper;
 using LabSolos_Server_DotNet8.Dtos.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,53 +17,89 @@ namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EmprestimosController(ILogger<EmprestimosController> logger, IUsuarioService usuarioService, IEmprestimoService emprestimoService, IProdutoService produtoService) : ControllerBase
+    public class EmprestimosController : ControllerBase
     {
-        private readonly IEmprestimoService _emprestimoService = emprestimoService;
-        private readonly IUsuarioService _usuarioService = usuarioService;
-        private readonly IProdutoService _produtoService = produtoService;
+        private readonly IUnitOfWork _uow;
+        private readonly IMapper _mapper;
 
-
-        private readonly ILogger<EmprestimosController> _logger = logger;
+        public EmprestimosController(IUnitOfWork uow, IMapper mapper)
+        {
+            _uow = uow;
+            _mapper = mapper;
+        }
 
         [HttpGet("usuario/{userId}")]
         public async Task<IActionResult> GetEmprestimosUsuario(int userId)
         {
-            var emprestimos = await _emprestimoService.GetEmprestimosUsuario(userId);
-            return Ok(emprestimos);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id || e.AprovadorId == usuario.Id);
+            if (!emprestimos.Any())
+            {
+                return NotFound("Nenhum empréstimo encontrado para este usuário.");
+            }
+
+            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
         [HttpGet("solicitados/{userId}")]
         public async Task<IActionResult> GetEmprestimosSolicitadosUsuario(int userId)
         {
-            var usuarios = await _emprestimoService.GetEmprestimosSolicitadosUsuario(userId);
-            return Ok(usuarios);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id);
+            if (!emprestimos.Any())
+            {
+                return NotFound("Nenhum empréstimo solicitado encontrado para este usuário.");
+            }
+
+            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
         [HttpGet("aprovados/{userId}")]
         public async Task<IActionResult> GetEmprestimosAprovadosUsuario(int userId)
         {
-            var usuarios = await _emprestimoService.GetEmprestimosAprovadosUsuario(userId);
-            return Ok(usuarios);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
+            if (usuario == null)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.AprovadorId == usuario.Id);
+            if (!emprestimos.Any())
+            {
+                return NotFound("Nenhum empréstimo aprovado encontrado para este usuário.");
+            }
+
+            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
         [HttpGet("{emprestimoId}")]
         public async Task<IActionResult> GetEmprestimobyId(int emprestimoId)
         {
-            var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
 
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
             }
 
-            return Ok(emprestimo);
+            return Ok(_mapper.Map<EmprestimoDTO>(emprestimo));
+
         }
 
         [HttpGet]
         public async Task<IActionResult> GetTodosEmprestimosAsync()
         {
-            var emprestimos = await _emprestimoService.GetTodosEmprestimosAsync();
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true);
 
             if (!emprestimos.Any())
             {
@@ -73,26 +112,18 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmprestimo([FromBody] AddEmprestimoDTO emprestimoDto)
         {
-            try
+            if (emprestimoDto == null || emprestimoDto.Produtos == null || emprestimoDto.Produtos.Count == 0)
             {
-                if (emprestimoDto == null || emprestimoDto.Produtos == null || emprestimoDto.Produtos.Count == 0)
-                {
-                    return BadRequest("Dados inválidos. Certifique-se de fornecer os produtos e informações do empréstimo.");
-                }
-
-                var novoEmprestimo = await _emprestimoService.AddEmprestimo(emprestimoDto);
-                return CreatedAtAction(nameof(GetEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+                return BadRequest("Dados inválidos. Certifique-se de fornecer os produtos e informações do empréstimo.");
             }
-            catch (ArgumentException e)
-            {
 
-                return BadRequest(e.Message);
-            }
-            catch (InvalidOperationException e)
-            {
+            var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
 
-                return BadRequest(e.Message);
-            }
+            var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
+            await _uow.CommitAsync();
+
+            return CreatedAtAction(nameof(GetEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+
         }
 
         [HttpPatch("aprovar/{emprestimoId}")]
@@ -105,7 +136,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 return Unauthorized("Usuário não autenticado.");
             }
-            
+
             // Obter o ID do usuário autenticado
             var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -113,21 +144,25 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            // Verificar se o usuário tem o papel de admin
-            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == "nivel");
-            if (nivelClaim == null || nivelClaim.Value != "Administrador")
-            {
-                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
-            }
-
             var userId = int.Parse(userIdClaim.Value);
 
-
             // Buscar o empréstimo pelo ID
-            var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
+            }
+
+            // Buscar o solicitante do empréstimo
+            var solicitante = await _uow.UsuarioRepository.ObterAsync(u => u.Id == emprestimo.SolicitanteId);
+            if (solicitante == null)
+            {
+                return NotFound("Solicitante do empréstimo não encontrado.");
+            }
+
+            if (solicitante.ResponsavelId != userId)
+            {
+                return Unauthorized("Você não tem permissão para reprovar este empréstimo.");
             }
 
             // Verificar se o empréstimo já foi aprovado ou rejeitado
@@ -136,17 +171,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest("Este empréstimo já foi processado (aprovado ou rejeitado).");
             }
 
-            // Buscar o solicitante do empréstimo
-            var solicitante = await _usuarioService.GetByIdAsync(emprestimo.SolicitanteId);
-            if (solicitante == null)
-            {
-                return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
             // Reduzir a quantidade dos produtos
             foreach (var item in emprestimo.EmprestimoProdutos)
             {
-                var produto = await _produtoService.GetByIdAsync(item.ProdutoId);
+                var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == item.ProdutoId);
                 if (produto == null)
                 {
                     return NotFound($"Produto com ID {item.ProdutoId} não encontrado.");
@@ -175,8 +203,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 {
                     produto.Status = StatusProduto.Vencido;
                 }
-                
-                await _produtoService.UpdateAsync(produto);
+
+                _uow.ProdutoRepository.Atualizar(produto);
+                await _uow.CommitAsync();
             }
 
             // Atualizar o status do empréstimo para aprovado
@@ -185,10 +214,13 @@ namespace LabSolos_Server_DotNet8.Controllers
             emprestimo.AprovadorId = userId;
 
             // Salvar as mudanças no banco de dados
-            await _emprestimoService.UpdateAsync(emprestimo);
+            _uow.EmprestimoRepository.Atualizar(emprestimo);
+            await _uow.CommitAsync();
+
+            var emprestimoDTO = _mapper.Map<EmprestimoDTO>(emprestimo);
 
             // Retornar resposta de sucesso
-            return Ok(new { Message = "Empréstimo aprovado com sucesso.", Emprestimo = emprestimo });
+            return Ok(new { Message = "Empréstimo aprovado com sucesso.", Emprestimo = emprestimoDTO });
         }
 
         [HttpPatch("reprovar/{emprestimoId}")]
@@ -219,7 +251,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Buscar o empréstimo pelo ID
-            var emprestimo = await _emprestimoService.GetByIdAsync(emprestimoId);
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
@@ -232,20 +264,28 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Buscar o solicitante do empréstimo
-            var solicitante = await _usuarioService.GetByIdAsync(emprestimo.SolicitanteId);
+            var solicitante = await _uow.UsuarioRepository.ObterAsync(u => u.Id == emprestimo.SolicitanteId);
             if (solicitante == null)
             {
                 return NotFound("Solicitante do empréstimo não encontrado.");
+            }
+
+            if (solicitante.ResponsavelId != userId)
+            {
+                return Unauthorized("Você não tem permissão para reprovar este empréstimo.");
             }
 
             // Atualizar o status do empréstimo para aprovado
             emprestimo.Status = StatusEmprestimo.Rejeitado;
 
             // Salvar as mudanças no banco de dados
-            await _emprestimoService.UpdateAsync(emprestimo);
+            _uow.EmprestimoRepository.Atualizar(emprestimo);
+            await _uow.CommitAsync();
+
+            var emprestimoDTO = _mapper.Map<EmprestimoDTO>(emprestimo);
 
             // Retornar resposta de sucesso
-            return Ok(new { Message = "Empréstimo reprovado com sucesso.", Emprestimo = emprestimo });
+            return Ok(new { Message = "Empréstimo reprovado com sucesso.", Emprestimo = emprestimoDTO });
         }
     }
 }
