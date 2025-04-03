@@ -19,7 +19,7 @@ namespace LabSolos_Server_DotNet8.Services
         public ResultadoValidacaoDTO ValidarEstruturaProduto(AddProdutoDTO produtoDTO)
         {
             // Verificar se o tipo corresponde aos atributos fornecidos
-            if (produtoDTO.Tipo == "Quimico" && (
+            if ((TipoProduto)produtoDTO.Tipo == TipoProduto.Quimico && (
                 string.IsNullOrEmpty(produtoDTO.DataValidade) ||
                 string.IsNullOrEmpty(produtoDTO.UnidadeMedida) ||
                 string.IsNullOrEmpty(produtoDTO.FormulaQuimica)))
@@ -32,7 +32,7 @@ namespace LabSolos_Server_DotNet8.Services
             }
 
             // Verificar se o tipo corresponde aos atributos fornecidos
-            if (produtoDTO.Tipo == "Vidraria" && (
+            if ((TipoProduto)produtoDTO.Tipo == TipoProduto.Vidraria && (
                 !produtoDTO.Capacidade.HasValue))
             {
                 return new ResultadoValidacaoDTO

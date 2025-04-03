@@ -6,7 +6,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
     {
         public required string NomeProduto { get; set; }
         public string? Fornecedor { get; set; }
-        public string Tipo { get; set; } // Enum
+        public int Tipo { get; set; } // Enum
         public required float Quantidade { get; set; }
         public required float QuantidadeMinima { get; set; }
         public required string LocalizacaoProduto { get; set; }

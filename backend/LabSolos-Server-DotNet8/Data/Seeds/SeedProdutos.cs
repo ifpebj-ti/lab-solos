@@ -42,11 +42,27 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3);
 
             // Criando lotes para diferentes tipos de produtos
-            var loteQuimico = new Lote { Id = 1, CodigoLote = "LQ002", DataEntrada = DateTime.UtcNow.AddDays(-45) };
-            var loteVidraria = new Lote { Id = 2, CodigoLote = "LV002", DataEntrada = DateTime.UtcNow.AddDays(-90) };
-            var loteEquipamento = new Lote { Id = 3, CodigoLote = "LE001", DataEntrada = DateTime.UtcNow.AddDays(-30) };
+            var loteQuimico = new Lote
+            {
+                Id = 1,
+                CodigoLote = "LQ002",
+                DataEntrada = DateTime.UtcNow.AddDays(-45),
+                Fornecedor = "Fornecedor Químico XYZ",
+                DataFabricacao = DateTime.UtcNow.AddDays(-30),
+                DataValidade = DateTime.UtcNow.AddYears(1)
+            };
 
-            context.Lotes.AddRange(loteQuimico, loteVidraria, loteEquipamento);
+            var loteVidraria = new Lote
+            {
+                Id = 2,
+                CodigoLote = "LV002",
+                DataEntrada = DateTime.UtcNow.AddDays(-90),
+                Fornecedor = "Fornecedor Vidraria ABC",
+                DataFabricacao = DateTime.UtcNow.AddDays(-60),
+                DataValidade = DateTime.UtcNow.AddYears(2)
+            };
+
+            context.Lotes.AddRange(loteQuimico, loteVidraria);
 
             // Criando novos produtos químicos
             var quimico1 = new Quimico
@@ -54,10 +70,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 1,
                 NomeProduto = "Ácido Clorídrico",
                 Tipo = TipoProduto.Quimico,
-                Fornecedor = "Fornecedor Químico ABC",
+                Fornecedor = loteQuimico.Fornecedor,
                 Quantidade = 150,
                 QuantidadeMinima = 20,
-                DataValidade = DateTime.UtcNow.AddYears(1),
+                DataFabricacao = loteQuimico.DataFabricacao,
+                DataValidade = loteQuimico.DataValidade,
                 LocalizacaoProduto = "Prateleira C",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Mililitro,
@@ -78,10 +95,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 2,
                 NomeProduto = "Sulfato de Cobre",
                 Tipo = TipoProduto.Quimico,
-                Fornecedor = "Fornecedor Químico XYZ",
+                Fornecedor = loteQuimico.Fornecedor,
                 Quantidade = 500,
                 QuantidadeMinima = 50,
-                DataValidade = DateTime.UtcNow.AddYears(2),
+                DataFabricacao = loteQuimico.DataFabricacao,
+                DataValidade = loteQuimico.DataValidade,
                 LocalizacaoProduto = "Prateleira D",
                 Status = StatusProduto.Disponivel,
                 UnidadeMedida = UnidadeMedida.Grama,
@@ -105,9 +123,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 3,
                 NomeProduto = "Pipeta Graduada 10ml",
                 Tipo = TipoProduto.Vidraria,
-                Fornecedor = "Fornecedor Vidraria LMN",
+                Fornecedor = loteVidraria.Fornecedor,
                 Quantidade = 100,
                 QuantidadeMinima = 20,
+                DataFabricacao = loteVidraria.DataFabricacao,
+                DataValidade = loteVidraria.DataValidade,
                 LocalizacaoProduto = "Armário Pipetas",
                 Status = StatusProduto.Disponivel,
                 Material = MaterialVidraria.VidroBorossilicato,
@@ -115,6 +135,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Intermediaria,
                 Capacidade = 10,
                 Graduada = true,
+                Catmat = "V1234",
                 LoteId = loteVidraria.Id
             };
 
@@ -123,9 +144,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Id = 4,
                 NomeProduto = "Erlenmeyer 250ml",
                 Tipo = TipoProduto.Vidraria,
-                Fornecedor = "Fornecedor Vidraria ABC",
+                Fornecedor = loteVidraria.Fornecedor,
                 Quantidade = 60,
-                QuantidadeMinima = 10,
+                QuantidadeMinima = 100,
+                DataFabricacao = loteVidraria.DataFabricacao,
+                DataValidade = loteVidraria.DataValidade,
                 LocalizacaoProduto = "Armário Vidraria",
                 Status = StatusProduto.Disponivel,
                 Material = MaterialVidraria.VidroBorossilicato,
@@ -133,6 +156,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Altura = AlturaVidraria.Alta,
                 Capacidade = 250,
                 Graduada = true,
+                Catmat = "V5678",
                 LoteId = loteVidraria.Id
             };
 
@@ -142,12 +166,16 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             {
                 Id = 5,
                 NomeProduto = "Luvas de Proteção",
+                UnidadeMedida = UnidadeMedida.Unidade,
                 Tipo = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
                 Fornecedor = "Fornecedor de Equipamentos ABC",
                 Quantidade = 100,
-                QuantidadeMinima = 10,
+                QuantidadeMinima = 200,
                 LocalizacaoProduto = "Armário de EPIs",
-                Status = StatusProduto.Disponivel
+                Status = StatusProduto.Disponivel,
+                Catmat = "E1234",
+                DataFabricacao = DateTime.UtcNow.AddDays(-30),
+                DataValidade = DateTime.UtcNow.AddYears(2)
             };
 
             context.Produtos.Add(outro1);

@@ -5,6 +5,7 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -34,11 +35,11 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("tipo/{tipoProduto}")]
-        public async Task<IActionResult> GetProdutoByTipo(int tipoProduto)
+        public async Task<IActionResult> ObterProdutosPeloTipo(int tipoProduto)
         {
             _logger.LogInformation(
-                "Iniciando operação para obter produtos do tipo {Tipo}.",
-                (TipoProduto)tipoProduto
+            "Iniciando operação para obter produtos do tipo {Tipo}.",
+            (TipoProduto)tipoProduto
             );
 
             // Validação do tipo com o enum
@@ -48,37 +49,51 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest("Tipo de produto inválido. Use um valor de TipoProduto válido.");
             }
 
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Tipo == (TipoProduto)tipoProduto);
-            return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Tipo == (TipoProduto)tipoProduto, query => query.Include(c => c.Lote));
+
+            // Mapeamento baseado no tipo do produto
+            return (TipoProduto)tipoProduto switch
+            {
+                TipoProduto.Quimico => Ok(_mapper.Map<IEnumerable<QuimicoDTO>>(produtos)),
+                TipoProduto.Vidraria => Ok(_mapper.Map<IEnumerable<VidrariaDTO>>(produtos)),
+                _ => Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos)),
+            };
         }
 
         [HttpGet()]
-        public async Task<ActionResult<Produto>> GetAll()
+        public async Task<ActionResult<Produto>> ObterTodos()
         {
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true);
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true, query => query.Include(c => c.Lote));
             return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
         }
 
         [HttpGet("emAlerta")]
-        public async Task<ActionResult<Produto>> GetProdutosEmAlerta()
+        public async Task<ActionResult<Produto>> ObterProdutosEmAlerta()
         {
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.Now.AddDays(10));
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.UtcNow.AddDays(10), query => query.Include(c => c.Lote));
             return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Produto>> GetById(int id)
+        public async Task<ActionResult<Produto>> ObterPeloId(int id)
         {
-            var produto = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Id == id);
+            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
             if (produto == null)
             {
                 return NotFound();
             }
-            return Ok(_mapper.Map<ProdutoDTO>(produto));
+
+            // Mapeamento baseado no tipo do produto
+            return produto.Tipo switch
+            {
+                TipoProduto.Quimico => Ok(_mapper.Map<QuimicoDTO>(produto)),
+                TipoProduto.Vidraria => Ok(_mapper.Map<VidrariaDTO>(produto)),
+                _ => Ok(_mapper.Map<ProdutoDTO>(produto)),
+            };
         }
 
         [HttpPost]
-        public async Task<ActionResult> Add(AddProdutoDTO addProdutoDTO)
+        public async Task<ActionResult> Adicionar(AddProdutoDTO addProdutoDTO)
         {
             // Validar os dados do usuário através do serviço
             var resultadoValidacao = _produtoService.ValidarEstruturaProduto(addProdutoDTO);
@@ -86,12 +101,18 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 return BadRequest(new { Message = resultadoValidacao.Mensagem });
             }
-            var produto = _mapper.Map<Produto>(addProdutoDTO);
+
+            Produto produto = (TipoProduto)addProdutoDTO.Tipo switch
+            {
+                TipoProduto.Quimico => _mapper.Map<Quimico>(addProdutoDTO),
+                TipoProduto.Vidraria => _mapper.Map<Vidraria>(addProdutoDTO),
+                _ => _mapper.Map<Produto>(addProdutoDTO)
+            };
 
             _uow.ProdutoRepository.Criar(produto);
             await _uow.CommitAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
+            return CreatedAtAction(nameof(ObterPeloId), new { id = produto.Id }, produto);
         }
 
         [HttpPut("{id}")]
@@ -113,7 +134,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id);
+            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
 
             if (produto == null)
             {
@@ -122,7 +143,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             _uow.ProdutoRepository.Remover(produto);
             await _uow.CommitAsync();
-            
+
             return NoContent();
         }
     }
