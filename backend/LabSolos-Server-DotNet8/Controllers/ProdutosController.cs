@@ -102,7 +102,18 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest(new { Message = resultadoValidacao.Mensagem });
             }
 
-            Produto produto = (TipoProduto)addProdutoDTO.Tipo switch
+            TipoProduto tipoProduto;
+
+            try
+            {
+                tipoProduto = _utilsService.ValidarEnum<TipoProduto>(addProdutoDTO.Tipo, "Tipo", TipoProduto.Outro);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+
+            Produto produto = tipoProduto switch
             {
                 TipoProduto.Quimico => _mapper.Map<Quimico>(addProdutoDTO),
                 TipoProduto.Vidraria => _mapper.Map<Vidraria>(addProdutoDTO),
@@ -116,14 +127,24 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int id, ProdutoDTO produtoDto)
+        public async Task<ActionResult> Atualizar(int id, UpdateProdutoDTO produtoDto)
         {
             if (id != produtoDto.Id)
             {
                 return BadRequest("O ID do produto não corresponde.");
             }
 
+            // Buscar o produto existente do banco
+            var produtoExistente = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
+            if (produtoExistente == null)
+            {
+                return NotFound("Produto não encontrado.");
+            }
+
             var produto = _mapper.Map<Produto>(produtoDto);
+
+            // Manter o mesmo ID da entidade existente (por segurança, caso o mapper não mantenha)
+            produto.Id = id;
 
             _uow.ProdutoRepository.Atualizar(produto);
             await _uow.CommitAsync();
@@ -132,7 +153,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Remover(int id)
         {
             var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
 
