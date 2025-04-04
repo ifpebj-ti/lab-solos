@@ -10,8 +10,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
         {
             // Criando novos empréstimos com diferentes solicitantes e status
             var emprestimo1 = new Emprestimo
-            {
-                Id = 1,
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-10),
                 DataDevolucao = DateTime.UtcNow.AddDays(10),
                 DataAprovacao = DateTime.UtcNow.AddDays(-9),
@@ -21,8 +20,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo2 = new Emprestimo
-            {
-                Id = 2,
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-5),
                 DataDevolucao = DateTime.UtcNow.AddDays(5),
                 Status = StatusEmprestimo.Pendente,
@@ -30,8 +28,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo3 = new Emprestimo
-            {
-                Id = 3,
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-2),
                 DataDevolucao = DateTime.UtcNow.AddDays(6),
                 Status = StatusEmprestimo.Aprovado,
@@ -40,11 +37,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3);
+            context.SaveChanges();
 
             // Criando lotes para diferentes tipos de produtos
             var loteQuimico = new Lote
-            {
-                Id = 1,
+            {            
                 CodigoLote = "LQ002",
                 DataEntrada = DateTime.UtcNow.AddDays(-45),
                 Fornecedor = "Fornecedor Químico XYZ",
@@ -53,8 +50,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var loteVidraria = new Lote
-            {
-                Id = 2,
+            {            
                 CodigoLote = "LV002",
                 DataEntrada = DateTime.UtcNow.AddDays(-90),
                 Fornecedor = "Fornecedor Vidraria ABC",
@@ -63,11 +59,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             context.Lotes.AddRange(loteQuimico, loteVidraria);
+            context.SaveChanges();
 
             // Criando novos produtos químicos
             var quimico1 = new Quimico
-            {
-                Id = 1,
+            {            
                 NomeProduto = "Ácido Clorídrico",
                 Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
@@ -91,8 +87,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var quimico2 = new Quimico
-            {
-                Id = 2,
+            {            
                 NomeProduto = "Sulfato de Cobre",
                 Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
@@ -119,8 +114,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando novos produtos de vidraria
             var vidraria1 = new Vidraria
-            {
-                Id = 3,
+            {            
                 NomeProduto = "Pipeta Graduada 10ml",
                 Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
@@ -140,8 +134,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var vidraria2 = new Vidraria
-            {
-                Id = 4,
+            {            
                 NomeProduto = "Erlenmeyer 250ml",
                 Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
@@ -163,8 +156,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.Vidrarias.AddRange(vidraria1, vidraria2);
 
             var outro1 = new Produto
-            {
-                Id = 5,
+            {            
                 NomeProduto = "Luvas de Proteção",
                 UnidadeMedida = UnidadeMedida.Unidade,
                 Tipo = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
@@ -185,10 +177,10 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             // Criando relações Many-to-Many via EmprestimoProduto
             var emprestimoProdutos = new List<EmprestimoProduto>
             {
-                new() { Id = 1, ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 100 },
-                new() { Id = 2, ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 50 },
-                new() { Id = 3, ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 10 },
-                new() { Id = 4, ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 }
+                new() { ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 100 },
+                new() { ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 50 },
+                new() { ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 10 },
+                new() { ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 }
             };
 
             context.EmprestimoProdutos.AddRange(emprestimoProdutos);

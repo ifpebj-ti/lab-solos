@@ -13,7 +13,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             var admin1 = new Administrador
             {
-                Id = 1,
                 NomeCompleto = "Ricardo Almeida",
                 Email = "ricardo.almeida@labs.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAdmin123"),
@@ -26,7 +25,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             var admin2 = new Administrador
             {
-                Id = 2,
                 NomeCompleto = "Fernanda Costa",
                 Email = "fernanda.costa@labs.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAdmin456"),
@@ -37,9 +35,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Status = StatusUsuario.Habilitado
             };
 
+            context.Administradores.AddRange(admin1, admin2);
+            context.SaveChanges();
+
             var mentor1 = new Academico
             {
-                Id = 3,
                 NomeCompleto = "Dr. João Mendes",
                 Email = "joao.mendes@universidade.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaMentor123"),
@@ -56,7 +56,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             var mentor2 = new Academico
             {
-                Id = 4,
                 NomeCompleto = "Dra. Camila Ribeiro",
                 Email = "camila.ribeiro@universidade.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaMentor456"),
@@ -71,9 +70,11 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 ResponsavelId = admin2.Id
             };
 
+            context.Academicos.AddRange(mentor1, mentor2);
+            context.SaveChanges();
+
             var aluno1 = new Academico
             {
-                Id = 5,
                 NomeCompleto = "Carlos Eduardo",
                 Email = "carlos.eduardo@estudante.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAluno123"),
@@ -90,7 +91,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             var aluno2 = new Academico
             {
-                Id = 6,
                 NomeCompleto = "Mariana Oliveira",
                 Email = "mariana.oliveira@estudante.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAluno456"),
@@ -107,7 +107,6 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             var aluno3 = new Academico
             {
-                Id = 7,
                 NomeCompleto = "Lucas Ferreira",
                 Email = "lucas.ferreira@estudante.com",
                 SenhaHash = passwordHasher.HashPassword(null!, "SenhaAluno789"),
@@ -122,8 +121,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 ResponsavelId = mentor1.Id
             };
 
-            context.Administradores.AddRange(admin1, admin2);
-            context.Academicos.AddRange(mentor1, mentor2, aluno1, aluno2, aluno3);
+            context.Academicos.AddRange(aluno1, aluno2, aluno3);
+            context.SaveChanges();
         }
     }
 }
