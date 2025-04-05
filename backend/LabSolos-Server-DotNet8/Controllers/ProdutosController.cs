@@ -63,7 +63,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         [HttpGet()]
         public async Task<ActionResult<Produto>> ObterTodos()
         {
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true, query => query.Include(c => c.Lote));
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true, query => query.Include(p => p.Lote));
             return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
         }
 

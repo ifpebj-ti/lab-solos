@@ -2,9 +2,8 @@ using LabSolos_Server_DotNet8.Models;
 
 namespace LabSolos_Server_DotNet8.Models
 {
-    public class EmprestimoProduto
+    public class ProdutoEmprestado
     {
-        public int Id { get; set; }
         public int EmprestimoId { get; set; }
         public Emprestimo Emprestimo { get; set; }
 

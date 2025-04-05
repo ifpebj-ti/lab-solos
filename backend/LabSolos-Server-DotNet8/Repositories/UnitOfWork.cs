@@ -9,7 +9,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         IRepository<Administrador> AdministradorRepository { get; }
         IRepository<Dependente> DependenteRepository { get; }
         IRepository<Emprestimo> EmprestimoRepository { get; }
-        IRepository<EmprestimoProduto> EmprestimoProdutoRepository { get; }
+        IRepository<ProdutoEmprestado> ProdutoEmprestadoRepository { get; }
         IRepository<Lote> LoteRepository { get; }
         IRepository<Produto> ProdutoRepository { get; }
         IRepository<Quimico> QuimicoRepository { get; }
@@ -27,7 +27,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         private IRepository<Administrador>? _administradorRepository;
         private IRepository<Dependente>? _dependenteRepository;
         private IRepository<Emprestimo>? _emprestimoRepository;
-        private IRepository<EmprestimoProduto>? _emprestimoProdutoRepository;
+        private IRepository<ProdutoEmprestado>? _produtoEmprestadoRepository;
         private IRepository<Lote>? _loteRepository;
         private IRepository<Produto>? _produtoRepository;
         private IRepository<Quimico>? _quimicoRepository;
@@ -71,11 +71,11 @@ namespace LabSolos_Server_DotNet8.Repositories
             }
         }
 
-        public IRepository<EmprestimoProduto> EmprestimoProdutoRepository
+        public IRepository<ProdutoEmprestado> ProdutoEmprestadoRepository
         {
             get
             {
-                return _emprestimoProdutoRepository ??= new Repository<EmprestimoProduto>(_context);
+                return _produtoEmprestadoRepository ??= new Repository<ProdutoEmprestado>(_context);
             }
         }
 

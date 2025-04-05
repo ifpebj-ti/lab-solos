@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using LabSolos_Server_DotNet8.Data.Context;
@@ -22,6 +23,9 @@ builder.Services.AddControllers(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+}).AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
 // Configuração de algumas dependẽncias
@@ -80,7 +84,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero // Evitar atrasos na expiração
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
@@ -91,7 +96,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("Administrador"));
 
     options.AddPolicy("ApenasResponsaveis", policy =>
-        policy.RequireRole("Mentor"));
+        policy.RequireRole("Administrador", "Mentor"));
 
     options.AddPolicy("ApenasDependentes", policy =>
         policy.RequireRole("Mentorado"));

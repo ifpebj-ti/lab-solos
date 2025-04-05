@@ -1,4 +1,5 @@
 using AutoMapper;
+using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -73,14 +74,6 @@ namespace Core.DTOs.Mappings
                     src.DataFabricacao != null ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc) : (DateTime?)null))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
                     src.DataValidade != null ? DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc) : (DateTime?)null));
-
-            // Mapeamento de UpdateProdutoDTO para Quimico
-            CreateMap<UpdateProdutoDTO, Quimico>()
-                .IncludeBase<UpdateProdutoDTO, Produto>();
-
-            // Mapeamento de UpdateProdutoDTO para Vidraria
-            CreateMap<UpdateProdutoDTO, Vidraria>()
-                .IncludeBase<UpdateProdutoDTO, Produto>();
         }
     }
 }

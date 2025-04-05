@@ -1,4 +1,4 @@
-namespace LabSolos_Server_DotNet8.Dtos.Emprestimos
+namespace LabSolos_Server_DotNet8.DTOs.Emprestimos
 {
     public class AddEmprestimoDTO
     {

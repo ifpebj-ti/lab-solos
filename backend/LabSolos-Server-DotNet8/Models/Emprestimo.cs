@@ -17,7 +17,7 @@ namespace LabSolos_Server_DotNet8.Models
         public DateTime? DataAprovacao { get; set; }
         public required StatusEmprestimo Status { get; set; }
 
-        public List<EmprestimoProduto> EmprestimoProdutos { get; set; } = new();
+        public List<ProdutoEmprestado> Produtos { get; set; } = new();
 
         // Referência ao Solicitante do empréstimo (sempre obrigatório)
         public required int SolicitanteId { get; set; }

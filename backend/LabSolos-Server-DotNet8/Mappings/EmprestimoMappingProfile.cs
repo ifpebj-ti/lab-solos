@@ -1,5 +1,4 @@
 using AutoMapper;
-using LabSolos_Server_DotNet8.Dtos.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.Models;
 
@@ -12,6 +11,9 @@ namespace Core.DTOs.Mappings
             CreateMap<Emprestimo, EmprestimoDTO>().ReverseMap();
 
             CreateMap<AddEmprestimoDTO, Emprestimo>();
+
+            CreateMap<ProdutoEmprestadoDTO, ProdutoEmprestado>()
+                .ReverseMap();
 
         }
     }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
-using LabSolos_Server_DotNet8.Dtos.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -172,7 +171,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Reduzir a quantidade dos produtos
-            foreach (var item in emprestimo.EmprestimoProdutos)
+            foreach (var item in emprestimo.Produtos)
             {
                 var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == item.ProdutoId);
                 if (produto == null)

@@ -6,7 +6,9 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -18,55 +20,74 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IUsuarioService _usuarioService;
+        private readonly IUtilitiesService _utilsService;
 
-
-        public UsuariosController(ILogger<UsuariosController> logger, IUnitOfWork uow, IMapper mapper, IUsuarioService usuarioService)
+        public UsuariosController(
+            ILogger<UsuariosController> logger,
+            IUtilitiesService utilsService,
+            IUnitOfWork uow,
+            IMapper mapper,
+            IUsuarioService usuarioService)
         {
-            _logger = logger;
-            _uow = uow;
-            _mapper = mapper;
-            _usuarioService = usuarioService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _utilsService = utilsService ?? throw new ArgumentNullException(nameof(utilsService));
+            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _usuarioService = usuarioService ?? throw new ArgumentNullException(nameof(usuarioService));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> ObterTodos()
         {
-            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true);
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true, query => query.Include(u => u.Responsavel));
             return Ok(_mapper.Map<IEnumerable<UsuarioDTO>>(usuarios));
         }
 
         [HttpGet("tipo/{tipoUsuario}")]
-        public async Task<IActionResult> GetByTipo(int tipoUsuario)
+        public async Task<IActionResult> ObterUsuariosPeloTipo(int tipoUsuario)
         {
-            _logger.LogInformation("Iniciando operação para obter usuarios do tipo {Tipo}.", (TipoUsuario)tipoUsuario);
+            _logger.LogInformation("Iniciando operação para obter usuários do tipo {Tipo}.", (TipoUsuario)tipoUsuario);
 
             // Validação do tipo com o enum
             if (!Enum.IsDefined(typeof(TipoUsuario), tipoUsuario))
             {
-                _logger.LogWarning("Tipo de usuario inválido: {Tipo}", tipoUsuario);
-                return BadRequest("Tipo de usuario inválido. Use um valor de TipoUsuario válido.");
+                _logger.LogWarning("Tipo de usuário inválido: {Tipo}", tipoUsuario);
+                return BadRequest("Tipo de usuário inválido. Use um valor de TipoUsuario válido.");
             }
 
             var tipoEnum = (TipoUsuario)tipoUsuario;
 
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => u.TipoUsuario == tipoEnum, query => query.Include(u => u.Responsavel));
 
-            var usuarios = await _uow.UsuarioRepository.ObterAsync(u => u.TipoUsuario == tipoEnum);
-            return Ok(_mapper.Map<IEnumerable<UsuarioDTO>>(usuarios));
+            // Mapeamento baseado no tipo do usuário
+            return tipoEnum switch
+            {
+                TipoUsuario.Administrador => Ok(_mapper.Map<IEnumerable<AdministradorDTO>>(usuarios)),
+                TipoUsuario.Academico => Ok(_mapper.Map<IEnumerable<AcademicoDTO>>(usuarios)),
+                _ => Ok(_mapper.Map<IEnumerable<UsuarioDTO>>(usuarios))
+            };
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> ObterPeloId(int id)
         {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id, query => query.Include(u => u.Responsavel));
             if (usuario == null) return NotFound();
-            return Ok(_mapper.Map<UsuarioDTO>(usuario));
+
+            // Mapeamento baseado no tipo do usuário
+            return usuario.TipoUsuario switch
+            {
+                TipoUsuario.Administrador => Ok(_mapper.Map<AdministradorDTO>(usuario)),
+                TipoUsuario.Academico => Ok(_mapper.Map<AcademicoDTO>(usuario)),
+                _ => Ok(_mapper.Map<UsuarioDTO>(usuario))
+            };
         }
 
         [HttpGet("{usuarioId}/dependentes/emprestimos")]
-        public async Task<IActionResult> GetEmprestimosDosDependentes(int usuarioId)
+        public async Task<IActionResult> ObterEmprestimosDosDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
@@ -78,28 +99,33 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Obter todos os empréstimos dos dependentes
-            var emprestimosDependentes = new List<Emprestimo>();
+            var emprestimosDependentesDTO = new List<EmprestimoDTO>();
 
             foreach (var dependente in usuario.Dependentes)
             {
-                var emprestimosDTO = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id);
-                var emprestimos = _mapper.Map<IEnumerable<Emprestimo>>(emprestimosDTO);
-                emprestimosDependentes.AddRange(emprestimos);
+                var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(
+                    e => e.SolicitanteId == dependente.Id,
+                    query => query.Include(e => e.Produtos)
+                                  .ThenInclude(ep => ep.Produto)
+                                  .ThenInclude(p => p.Lote));
+
+                var emprestimosDTO = _mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos);
+                emprestimosDependentesDTO.AddRange(emprestimosDTO);
             }
 
-            if (emprestimosDependentes.Count == 0)
+            if (emprestimosDependentesDTO.Count == 0)
             {
                 return NotFound("Nenhum empréstimo encontrado para os dependentes.");
             }
 
-            return Ok(emprestimosDependentes);
+            return Ok(emprestimosDependentesDTO);
         }
 
         [HttpGet("{usuarioId}/dependentes")]
-        public async Task<IActionResult> GetDependentes(int usuarioId)
+        public async Task<IActionResult> ObterDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
@@ -111,28 +137,17 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 return NotFound("Este usuário não possui dependentes.");
             }
-            var dependentesDto = dependentes.Select(dependente => new DependenteDTO
-            {
-                Id = dependente.Id,
-                Email = dependente.Email,
-                NomeCompleto = dependente.NomeCompleto,
-                NivelUsuario = dependente.NivelUsuario.ToString(),
-                Cidade = (dependente as Academico)?.Cidade ?? null,
-                Curso = (dependente as Academico)?.Curso ?? null,
-                Instituicao = (dependente as Academico)?.Instituicao ?? null,
-                Telefone = dependente.Telefone,
-                Status = dependente.Status.ToString(),
-                DataIngresso = dependente.DataIngresso,
-            });
+
+            var dependentesDto = _mapper.Map<IEnumerable<DependenteDTO>>(dependentes);
 
             return Ok(dependentesDto);
         }
 
         [HttpGet("{usuarioId}/dependentes/aprovacao")]
-        public async Task<IActionResult> GetDependentesParaAprovacao(int usuarioId)
+        public async Task<IActionResult> ObterDependentesParaAprovacao(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele existe
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
@@ -149,63 +164,36 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Mapear para DTO
-            var dependentesDto = dependentesPendentes.Select(dependente => new DependenteDTO
-            {
-                Id = dependente.Id,
-                Email = dependente.Email,
-                NomeCompleto = dependente.NomeCompleto,
-                NivelUsuario = dependente.NivelUsuario.ToString(),
-                Cidade = (dependente as Academico)?.Cidade ?? null,
-                Curso = (dependente as Academico)?.Curso ?? null,
-                Instituicao = (dependente as Academico)?.Instituicao ?? null,
-                Telefone = dependente.Telefone,
-                Status = dependente.Status.ToString(),
-                DataIngresso = dependente.DataIngresso,
-            });
+            var dependentesDto = _mapper.Map<IEnumerable<DependenteDTO>>(dependentesPendentes);
 
             return Ok(dependentesDto);
         }
 
         [HttpGet("aprovacao")]
-        public async Task<IActionResult> GetUsuariosParaAprovacao()
+        public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
             // Buscar o usuário principal para garantir que ele existe
-            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true);
+            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => u.Status == StatusUsuario.Pendente);
             if (!usuarios.Any())
             {
-                return NotFound("Nenhum usuário recebido");
+                return NotFound("Nenhum usuário encontrado");
             }
-            
-            // Mapear para DTO
-            var dependentesDto = usuarios
-            .Where(u => u.Status == StatusUsuario.Pendente)
-            .Select(dependente => new DependenteDTO
-            {
-                Id = dependente.Id,
-                Email = dependente.Email,
-                NomeCompleto = dependente.NomeCompleto,
-                NivelUsuario = dependente.NivelUsuario.ToString(),
-                Cidade = (dependente as Academico)?.Cidade ?? null,
-                Curso = (dependente as Academico)?.Curso ?? null,
-                Instituicao = (dependente as Academico)?.Instituicao ?? null,
-                Telefone = dependente.Telefone,
-                Status = dependente.Status.ToString(),
-                DataIngresso = dependente.DataIngresso,
-            });
 
-            return Ok(dependentesDto);
+            var usuariosDto = _mapper.Map<IEnumerable<UsuarioDTO>>(usuarios);
+
+            return Ok(usuariosDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(AddUsuarioDTO usuarioDto)
+        public async Task<IActionResult> Adicionar(AddUsuarioDTO addUsuarioDTO)
         {
             try
             {
                 int? responsavelId = null;
 
-                if (usuarioDto.NivelUsuario == "Mentorado" && usuarioDto.ResponsavelEmail is not null)
+                if (addUsuarioDTO.NivelUsuario == NivelUsuario.Mentor.ToString() && addUsuarioDTO.ResponsavelEmail is not null)
                 {
-                    var responsavel = await _uow.UsuarioRepository.ObterAsync(u => u.Email == usuarioDto.ResponsavelEmail);
+                    var responsavel = await _uow.UsuarioRepository.ObterAsync(u => u.Email == addUsuarioDTO.ResponsavelEmail);
 
                     if (responsavel == null)
                         return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
@@ -214,63 +202,38 @@ namespace LabSolos_Server_DotNet8.Controllers
                 }
 
                 // Validar os dados do usuário através do serviço
-                var resultadoValidacao = _usuarioService.ValidarEstrutura(usuarioDto);
+                var resultadoValidacao = _usuarioService.ValidarEstrutura(addUsuarioDTO);
                 if (!resultadoValidacao.Validado)
                 {
                     return BadRequest(new { Message = resultadoValidacao.Mensagem });
                 }
 
-                // Criar o objeto de acordo com o tipo
-                Usuario usuario = usuarioDto.NivelUsuario switch
+                TipoUsuario tipoUsuario;
+
+                try
                 {
-                    "Mentor" => new Academico
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Mentor,
-                        TipoUsuario = TipoUsuario.Academico,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.UtcNow,
-                        Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentores."),
-                        Cidade = usuarioDto.Cidade,
-                        Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentores.")
-                    },
-                    "Mentorado" => new Academico
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        ResponsavelId = responsavelId ?? throw new ArgumentException("Mentorados precisam ter um responsável."),
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Mentorado,
-                        TipoUsuario = TipoUsuario.Academico,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.UtcNow,
-                        Instituicao = usuarioDto.Instituicao ?? throw new ArgumentException("Instituição é obrigatória para Mentorados."),
-                        Cidade = usuarioDto.Cidade,
-                        Curso = usuarioDto.Curso ?? throw new ArgumentException("Curso é obrigatório para Mentorados.")
-                    },
-                    "Comum" => new Usuario
-                    {
-                        NomeCompleto = usuarioDto.NomeCompleto,
-                        Email = usuarioDto.Email,
-                        SenhaHash = usuarioDto.Senha,
-                        ResponsavelId = responsavelId, // Aqui pode ser null sem problema
-                        Telefone = usuarioDto.Telefone,
-                        NivelUsuario = NivelUsuario.Comum,
-                        TipoUsuario = TipoUsuario.Comum,
-                        Status = StatusUsuario.Pendente,
-                        DataIngresso = DateTime.UtcNow
-                    },
-                    _ => throw new InvalidOperationException("O nível fornecido não é suportado.")
+                    tipoUsuario = _utilsService.ValidarEnum<TipoUsuario>(addUsuarioDTO.TipoUsuario, "TipoUsuario", TipoUsuario.Comum);
+                }
+                catch (ArgumentException ex)
+                {
+                    return BadRequest(new { Message = ex.Message });
+                }
+
+                Usuario usuario = tipoUsuario switch
+                {
+                    TipoUsuario.Administrador => _mapper.Map<Administrador>(addUsuarioDTO),
+                    TipoUsuario.Academico => _mapper.Map<Academico>(addUsuarioDTO),
+                    _ => _mapper.Map<Usuario>(addUsuarioDTO)
                 };
+
+                usuario.DefinirSenha(addUsuarioDTO.Senha);
+                usuario.DataIngresso = DateTime.UtcNow;
+                usuario.ResponsavelId = responsavelId;
 
                 _uow.UsuarioRepository.Criar(usuario);
                 await _uow.CommitAsync();
 
-                return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
+                return CreatedAtAction(nameof(ObterPeloId), new { id = usuario.Id }, _mapper.Map<UsuarioDTO>(usuario));
             }
             catch (ArgumentException e)
             {                
@@ -278,17 +241,39 @@ namespace LabSolos_Server_DotNet8.Controllers
             }           
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Usuario usuario)
+        [HttpPatch("{usuarioId}")]
+        public async Task<ActionResult<UsuarioDTOPatchResponse>> AtualizarParcialmente(int usuarioId, JsonPatchDocument<UsuarioDTOPatchRequest> patchUsuarioDto)
         {
-            if (id != usuario.Id) return BadRequest("ID do usuário não corresponde.");
+            if (patchUsuarioDto is null)
+                return BadRequest();
+
+            //obtem o usuario pelo Id
+            var usuario = await _uow.UsuarioRepository.ObterAsync(f => f.Id == usuarioId);
+
+            //se não econtrou retorna
+            if (usuario is null)
+                return NotFound("Usuario não existe");
+
+            //mapeia usuario para usuarioDTOPatchRequest
+            var usuarioPatchRequest = _mapper.Map<UsuarioDTOPatchRequest>(usuario);
+
+            //aplica as alterações definidas no documento JSON Patch ao objeto usuarioDTOPatchRequest
+            patchUsuarioDto.ApplyTo(usuarioPatchRequest, ModelState);
+
+            if (!ModelState.IsValid || !TryValidateModel(usuarioPatchRequest))
+                return BadRequest(ModelState);
+
+            _mapper.Map(usuarioPatchRequest, usuario);
+
             _uow.UsuarioRepository.Atualizar(usuario);
             await _uow.CommitAsync();
 
-            return NoContent();
+            //retorna usuarioDTOPatchResponse
+            return Ok(_mapper.Map<UsuarioDTOPatchResponse>(usuario));
         }
 
         [HttpPatch("dependentes/{dependenteId}/aprovar")]
+        [Authorize(Policy = "ApenasResponsaveis")]
         public async Task<IActionResult> AprovarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
@@ -317,11 +302,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.UsuarioRepository.Atualizar(dependente);
             await _uow.CommitAsync();
 
-            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
+            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
         }
 
         [HttpPatch("{usuarioId}/aprovar")]
-        public async Task<IActionResult> AdminAprovarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
+        [Authorize(Policy = "ApenasAdministradores")]
+        public async Task<IActionResult> AdminAprovarUsuario(int usuarioId)
         {
             // Buscar o usuário dependente pelo ID
             var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
@@ -343,10 +329,11 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.UsuarioRepository.Atualizar(dependente);
             await _uow.CommitAsync();
 
-            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = dependente });
+            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
         }
 
         [HttpPatch("dependentes/{dependenteId}/rejeitar")]
+        [Authorize(Policy = "ApenasResponsaveis")]
         public async Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
@@ -375,11 +362,11 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.UsuarioRepository.Atualizar(dependente);
             await _uow.CommitAsync();
 
-            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
+            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
         }
 
-        [Authorize(Policy = "ApenasAdministradores")]
         [HttpPatch("{usuarioId}/rejeitar")]
+        [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
@@ -406,6 +393,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> Delete(int id)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);

@@ -15,12 +15,10 @@ namespace LabSolos_Server_DotNet8.Services
     public class SystemService : ISystemService
     {
         private readonly IUnitOfWork _uow;
-        private readonly IMapper _mapper;
 
-        public SystemService(IUnitOfWork uow,IMapper mapper)
+        public SystemService(IUnitOfWork uow)
         {
             _uow = uow;
-            _mapper = mapper;
         }
 
         public async Task<QuantidadesDTO> GetSystemQuantitiesAsync()
@@ -66,10 +64,10 @@ namespace LabSolos_Server_DotNet8.Services
 
             // Contagem total de produtos emprestados
             int totalProdutosEmprestados = emprestimos
-                .SelectMany(e => e.EmprestimoProdutos)
+                .SelectMany(e => e.Produtos)
                 .Count();
 
-            var produtosEmAlerta = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.Now.AddDays(10));
+            var produtosEmAlerta = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.UtcNow.AddDays(10));
 
             // Agrupa por tipo e conta os produtos em cada grupo
             var alertas = new Dictionary<string, int>

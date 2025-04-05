@@ -175,7 +175,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.SaveChanges();
 
             // Criando relações Many-to-Many via EmprestimoProduto
-            var emprestimoProdutos = new List<EmprestimoProduto>
+            var emprestimoProdutos = new List<ProdutoEmprestado>
             {
                 new() { ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 100 },
                 new() { ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 50 },
@@ -183,7 +183,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 new() { ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 }
             };
 
-            context.EmprestimoProdutos.AddRange(emprestimoProdutos);
+            context.ProdutosEmprestados.AddRange(emprestimoProdutos);
             context.SaveChanges();
         }
     }
