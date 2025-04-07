@@ -8,7 +8,7 @@ services:
   frontend:
     image: jrrs1/frontend-labon:latest
     container_name: frontend
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
@@ -17,11 +17,9 @@ services:
       - public_network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: jrrs1/backend-labon:latest
     container_name: backend
-    restart: always
+    restart: unless-stopped
     ports:
       - "5000:5000"
     environment:
@@ -36,7 +34,7 @@ services:
   db:
     image: postgres:15
     container_name: database
-    restart: always
+    restart: unless-stopped
     ports:
       - "${DB_PORT}:5432"
     environment:
