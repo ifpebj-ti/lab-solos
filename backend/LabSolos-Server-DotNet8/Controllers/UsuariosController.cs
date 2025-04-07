@@ -38,7 +38,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet]
-        [Authorize("ApenasAdministradores")]
+        [Authorize("ApenasAdministradoreses")]
         public async Task<IActionResult> ObterTodos()
         {
             var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true, query => query.Include(u => u.Responsavel));
@@ -177,7 +177,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("aprovacao")]
-        [Authorize("ApenasAdministradores")]
+        [Authorize("ApenasAdministradoreses")]
         public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
             // Buscar o usuário principal para garantir que ele existe
@@ -322,7 +322,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("{usuarioId}/aprovar")]
-        [Authorize(Policy = "ApenasAdministradores")]
+        [Authorize(Policy = "ApenasAdministradoreses")]
         public async Task<IActionResult> AdminAprovarUsuario(int usuarioId)
         {
             // Buscar o usuário dependente pelo ID
@@ -382,7 +382,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("{usuarioId}/rejeitar")]
-        [Authorize(Policy = "ApenasAdministradores")]
+        [Authorize(Policy = "ApenasAdministradoreses")]
         public async Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
         {
             // Buscar o usuário dependente pelo ID
@@ -409,7 +409,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "ApenasAdministradores")]
+        [Authorize(Policy = "ApenasAdministradoreses")]
         public async Task<IActionResult> Delete(int id)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);

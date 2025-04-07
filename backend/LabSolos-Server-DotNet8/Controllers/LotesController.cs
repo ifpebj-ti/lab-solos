@@ -26,7 +26,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost("AddLote")]
-        [Authorize("ApenasAdministrador")]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> AdicionarLote([FromBody] AddLoteDTO loteDto)
         {
             // Validar os dados do usuário através do serviço
