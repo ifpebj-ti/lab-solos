@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,7 +23,7 @@ namespace LabSolos_Server_DotNet8.Services
                 [
                     new Claim(JwtRegisteredClaimNames.Sub, userId),
                     new Claim(JwtRegisteredClaimNames.Email, userEmail),
-                    new Claim("nivel", nivel),
+                    new Claim(ClaimTypes.Role, nivel),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(_expiresInMinutes),
@@ -34,5 +35,13 @@ namespace LabSolos_Server_DotNet8.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        public static string HashPassword(string senha)
+        {
+            var bytes = Encoding.UTF8.GetBytes(senha);
+            var hash = SHA256.HashData(bytes);
+            return Convert.ToBase64String(hash);
+        }
+
     }
 }

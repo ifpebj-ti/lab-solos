@@ -18,10 +18,10 @@ namespace LabSolos_Server_DotNet8.Models
         public required StatusProduto Status { get; set; }
         public DateTime UltimaModificacao { get; set; } // Decidir
 
-        public int? LoteId { get; set; }  
+        public int? LoteId { get; set; }
         public Lote? Lote { get; set; }
 
         // Nova relação many-to-many
-        public List<EmprestimoProduto> EmprestimoProdutos { get; set; } = new();
+        public List<ProdutoEmprestado> ProdutoEmprestado { get; set; } = new();
     }
 }

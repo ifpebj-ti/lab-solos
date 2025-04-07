@@ -12,12 +12,10 @@ namespace LabSolos_Server_DotNet8.DTOs.Emprestimos
         public DateTime? DataAprovacao { get; set; }
         public string Status { get; set; } = string.Empty;
 
-        public List<EmprestimoProdutoDTO> EmprestimoProdutos { get; set; } = new();
+        public List<ProdutoEmprestadoDTO> Produtos { get; set; } = new();
 
         public UsuarioDTO? Solicitante { get; set; }
 
-        public UsuarioDTO? Aprovador { get; set; }
-
-        
-        }
+        public UsuarioDTO? Aprovador { get; set; }               
+    }
 }

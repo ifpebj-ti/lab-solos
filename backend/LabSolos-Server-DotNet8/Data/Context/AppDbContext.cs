@@ -14,7 +14,7 @@ namespace LabSolos_Server_DotNet8.Data.Context
         public DbSet<Vidraria> Vidrarias { get; set; }
         public DbSet<Emprestimo> Emprestimos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
-        public DbSet<EmprestimoProduto> EmprestimoProdutos { get; set; }  // Adicionando a tabela intermediária
+        public DbSet<ProdutoEmprestado> ProdutosEmprestados { get; set; }  // Adicionando a tabela intermediária
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,18 +49,18 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .OnDelete(DeleteBehavior.SetNull);
 
             // **Configuração da relação Many-to-Many entre Emprestimo e Produto**
-            modelBuilder.Entity<EmprestimoProduto>()
+            modelBuilder.Entity<ProdutoEmprestado>()
                 .HasKey(ep => new { ep.EmprestimoId, ep.ProdutoId });
 
-            modelBuilder.Entity<EmprestimoProduto>()
+            modelBuilder.Entity<ProdutoEmprestado>()
                 .HasOne(ep => ep.Emprestimo)
-                .WithMany(e => e.EmprestimoProdutos)
+                .WithMany(e => e.Produtos)
                 .HasForeignKey(ep => ep.EmprestimoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<EmprestimoProduto>()
+            modelBuilder.Entity<ProdutoEmprestado>()
                 .HasOne(ep => ep.Produto)
-                .WithMany(p => p.EmprestimoProdutos)
+                .WithMany(p => p.ProdutoEmprestado)
                 .HasForeignKey(ep => ep.ProdutoId)
                 .OnDelete(DeleteBehavior.Cascade);
 

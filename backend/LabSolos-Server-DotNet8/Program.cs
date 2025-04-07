@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using LabSolos_Server_DotNet8.Data.Context;
@@ -22,8 +23,10 @@ builder.Services.AddControllers(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+}).AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
-
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
@@ -33,13 +36,11 @@ builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
-builder.Services.AddScoped<IEmprestimoService, EmprestimoService>();
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
-builder.Services.AddScoped<ILoteRepository, LoteRepository>();
-builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
@@ -63,7 +64,6 @@ builder.Host.UseSerilog();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
@@ -84,11 +84,23 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero // Evitar atrasos na expiração
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Políticas baseadas em roles
+    options.AddPolicy("ApenasAdministradores", policy =>
+        policy.RequireRole("Administrador"));
+
+    options.AddPolicy("ApenasResponsaveis", policy =>
+        policy.RequireRole("Administrador", "Mentor"));
+
+    options.AddPolicy("ApenasDependentes", policy =>
+        policy.RequireRole("Mentorado"));
+});
 
 // Configurar CORS
 builder.Services.AddCors(options =>
@@ -107,7 +119,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "LabSolos API v1");
         c.RoutePrefix = string.Empty; // Faz o Swagger abrir na raiz
     });
 
