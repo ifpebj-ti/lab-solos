@@ -4,13 +4,13 @@ using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
-    //[Authorize]
     [Route("api/[controller]")]
     public class ProdutosController : ControllerBase
     {
@@ -35,6 +35,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("tipo/{tipoProduto}")]
+        [Authorize]
         public async Task<IActionResult> ObterProdutosPeloTipo(int tipoProduto)
         {
             _logger.LogInformation(
@@ -61,6 +62,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet()]
+        [Authorize]
         public async Task<ActionResult<Produto>> ObterTodos()
         {
             var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true, query => query.Include(p => p.Lote));
@@ -68,6 +70,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("emAlerta")]
+        [Authorize("SomenteAdministrador")]
         public async Task<ActionResult<Produto>> ObterProdutosEmAlerta()
         {
             var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.UtcNow.AddDays(10), query => query.Include(c => c.Lote));
@@ -75,6 +78,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Produto>> ObterPeloId(int id)
         {
             var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
@@ -93,6 +97,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost]
+        [Authorize("SomenteAdministrador")]
         public async Task<ActionResult> Adicionar(AddProdutoDTO addProdutoDTO)
         {
             // Validar os dados do usuário através do serviço
@@ -127,6 +132,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize("SomenteAdministrador")]
         public async Task<ActionResult> Atualizar(int id, UpdateProdutoDTO produtoDto)
         {
             if (id != produtoDto.Id)
@@ -153,6 +159,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize("SomenteAdministrador")]
         public async Task<ActionResult> Remover(int id)
         {
             var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));

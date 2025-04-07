@@ -114,7 +114,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configurar o pipeline de requisição
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>

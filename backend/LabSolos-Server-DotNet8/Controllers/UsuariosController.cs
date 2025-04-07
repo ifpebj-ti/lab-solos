@@ -16,7 +16,8 @@ namespace LabSolos_Server_DotNet8.Controllers
     //[Authorize]
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
-    {        private readonly ILogger<UsuariosController> _logger;
+    {
+        private readonly ILogger<UsuariosController> _logger;
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IUsuarioService _usuarioService;
@@ -37,6 +38,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterTodos()
         {
             var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => true, query => query.Include(u => u.Responsavel));
@@ -44,6 +46,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("tipo/{tipoUsuario}")]
+        [Authorize]
         public async Task<IActionResult> ObterUsuariosPeloTipo(int tipoUsuario)
         {
             _logger.LogInformation("Iniciando operação para obter usuários do tipo {Tipo}.", (TipoUsuario)tipoUsuario);
@@ -69,6 +72,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> ObterPeloId(int id)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id, query => query.Include(u => u.Responsavel));
@@ -84,6 +88,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{usuarioId}/dependentes/emprestimos")]
+        [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterEmprestimosDosDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
@@ -122,6 +127,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{usuarioId}/dependentes")]
+        [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentes(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele exista
@@ -144,6 +150,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{usuarioId}/dependentes/aprovacao")]
+        [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentesParaAprovacao(int usuarioId)
         {
             // Buscar o usuário principal para garantir que ele existe
@@ -170,6 +177,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("aprovacao")]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
             // Buscar o usuário principal para garantir que ele existe
@@ -185,10 +193,17 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Adicionar(AddUsuarioDTO addUsuarioDTO)
         {
             try
             {
+                // Bloquear tentativa de adicionar Administrador
+                if (addUsuarioDTO.TipoUsuario == TipoUsuario.Administrador.ToString())
+                {
+                    return Forbid("Você não tem permissão para adicionar um usuário do tipo Administrador. Apenas administradores podem realizar essa ação.");
+                }
+
                 int? responsavelId = null;
 
                 if (addUsuarioDTO.NivelUsuario == NivelUsuario.Mentor.ToString() && addUsuarioDTO.ResponsavelEmail is not null)
@@ -221,7 +236,6 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 Usuario usuario = tipoUsuario switch
                 {
-                    TipoUsuario.Administrador => _mapper.Map<Administrador>(addUsuarioDTO),
                     TipoUsuario.Academico => _mapper.Map<Academico>(addUsuarioDTO),
                     _ => _mapper.Map<Usuario>(addUsuarioDTO)
                 };
@@ -229,6 +243,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 usuario.DefinirSenha(addUsuarioDTO.Senha);
                 usuario.DataIngresso = DateTime.UtcNow;
                 usuario.ResponsavelId = responsavelId;
+                usuario.Status = StatusUsuario.Pendente;
 
                 _uow.UsuarioRepository.Criar(usuario);
                 await _uow.CommitAsync();
@@ -236,12 +251,13 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return CreatedAtAction(nameof(ObterPeloId), new { id = usuario.Id }, _mapper.Map<UsuarioDTO>(usuario));
             }
             catch (ArgumentException e)
-            {                
+            {
                 return BadRequest(e.Message);
-            }           
+            }
         }
 
         [HttpPatch("{usuarioId}")]
+        [Authorize]
         public async Task<ActionResult<UsuarioDTOPatchResponse>> AtualizarParcialmente(int usuarioId, JsonPatchDocument<UsuarioDTOPatchRequest> patchUsuarioDto)
         {
             if (patchUsuarioDto is null)

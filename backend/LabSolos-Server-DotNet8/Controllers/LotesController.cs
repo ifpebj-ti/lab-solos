@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("api/[controller]")]
     public class LoteController : ControllerBase
     {
@@ -27,7 +26,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost("AddLote")]
-        public async Task<IActionResult> AddLote([FromBody] AddLoteDTO loteDto)
+        [Authorize("ApenasAdministrador")]
+        public async Task<IActionResult> AdicionarLote([FromBody] AddLoteDTO loteDto)
         {
             // Validar os dados do usuário através do serviço
             var resultadoValidacao = _loteService.ValidarEstruturaLote(loteDto);
@@ -41,11 +41,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.LoteRepository.Criar(lote);
             await _uow.CommitAsync();
 
-            return CreatedAtAction(nameof(GetByCodigo), new { lote.CodigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
+            return CreatedAtAction(nameof(ObterLotePeloCodigo), new { lote.CodigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
         }
 
         [HttpGet("GetById/{id}")]
-        public async Task<IActionResult> GetLoteById(int id)
+        [Authorize]
+        public async Task<IActionResult> ObterLotePeloId(int id)
         {
             // Busca o lote pelo ID no repositório
             var lote = await _uow.LoteRepository.ObterAsync(l => l.Id == id);
@@ -59,7 +60,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("GetByCodigo/{codigoLote}")]
-        public async Task<IActionResult> GetByCodigo(string codigoLote)
+        [Authorize]
+        public async Task<IActionResult> ObterLotePeloCodigo(string codigoLote)
         {
             var lote = await _uow.LoteRepository.ObterAsync(l => l.CodigoLote == codigoLote);
 

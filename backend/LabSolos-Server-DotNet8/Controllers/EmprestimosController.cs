@@ -10,6 +10,7 @@ using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabSolos_Server_DotNet8.Controllers
@@ -28,7 +29,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("usuario/{userId}")]
-        public async Task<IActionResult> GetEmprestimosUsuario(int userId)
+        [Authorize]
+        public async Task<IActionResult> ObterEmprestimosUsuario(int userId)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
             if (usuario == null)
@@ -46,7 +48,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("solicitados/{userId}")]
-        public async Task<IActionResult> GetEmprestimosSolicitadosUsuario(int userId)
+        [Authorize]
+        public async Task<IActionResult> ObterEmprestimosSolicitadosUsuario(int userId)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
             if (usuario == null)
@@ -64,7 +67,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("aprovados/{userId}")]
-        public async Task<IActionResult> GetEmprestimosAprovadosUsuario(int userId)
+        [Authorize]
+        public async Task<IActionResult> ObterEmprestimosAprovadosUsuario(int userId)
         {
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
             if (usuario == null)
@@ -82,7 +86,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("{emprestimoId}")]
-        public async Task<IActionResult> GetEmprestimobyId(int emprestimoId)
+        [Authorize]
+        public async Task<IActionResult> ObterEmprestimobyId(int emprestimoId)
         {
             var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
 
@@ -96,7 +101,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTodosEmprestimosAsync()
+        [Authorize]
+        public async Task<IActionResult> ObterTodosEmprestimosAsync()
         {
             var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true);
 
@@ -109,7 +115,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddEmprestimo([FromBody] AddEmprestimoDTO emprestimoDto)
+        [Authorize]
+        public async Task<IActionResult> Adicionar([FromBody] AddEmprestimoDTO emprestimoDto)
         {
             if (emprestimoDto == null || emprestimoDto.Produtos == null || emprestimoDto.Produtos.Count == 0)
             {
@@ -121,11 +128,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
             await _uow.CommitAsync();
 
-            return CreatedAtAction(nameof(GetEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+            return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
 
         }
 
         [HttpPatch("aprovar/{emprestimoId}")]
+        [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> AprovarEmprestimo(int emprestimoId)
         {
             // Obter usuário autenticado
@@ -223,6 +231,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("reprovar/{emprestimoId}")]
+        [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId)
         {
             // Obter usuário autenticado

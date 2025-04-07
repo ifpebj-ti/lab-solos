@@ -9,7 +9,7 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public interface ISystemService
     {
-        Task<QuantidadesDTO> GetSystemQuantitiesAsync();
+        Task<QuantidadesDTO> ObterQuantidadesDoSistema();
     }
 
     public class SystemService : ISystemService
@@ -21,7 +21,7 @@ namespace LabSolos_Server_DotNet8.Services
             _uow = uow;
         }
 
-        public async Task<QuantidadesDTO> GetSystemQuantitiesAsync()
+        public async Task<QuantidadesDTO> ObterQuantidadesDoSistema()
         {
             // Obtém todos os produtos
             var produtos = await _uow.ProdutoRepository.ObterTodosAsync(e => true);
