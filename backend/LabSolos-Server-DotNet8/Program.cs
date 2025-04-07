@@ -120,17 +120,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "LabSolos API v1");
-        c.RoutePrefix = string.Empty; // Faz o Swagger abrir na raiz
+        c.RoutePrefix = string.Empty;
     });
 
-    // Executar o seeding de dados apenas em ambiente de desenvolvimento
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
 
     context.Database.EnsureCreated();
+    DbSeeder.Seed(context, app.Environment.EnvironmentName); 
+}
+else if (app.Environment.IsProduction())
+{
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
 
-    DbSeeder.Seed(context, app.Environment.EnvironmentName);
+    context.Database.EnsureCreated(); 
 }
 else
 {
