@@ -101,7 +101,7 @@ function Index() {
                       width={21}
                       strokeWidth={1.5}
                     />
-                    Importar Planilhas
+                    Planilhas
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className='min-w-32 shadow-lg border border-borderMy bg-backgroundMy p-2'>
