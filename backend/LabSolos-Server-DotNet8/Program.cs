@@ -31,6 +31,8 @@ builder.Services.AddControllers(options =>
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
