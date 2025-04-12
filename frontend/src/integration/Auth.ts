@@ -3,7 +3,6 @@ import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { NavigateFunction } from 'react-router-dom';
-
 // login
 
 interface IAuthParams {
@@ -33,7 +32,6 @@ interface ICreateUserData {
 interface JwtPayload {
   sub: string; // ID ou nível do usuário
   role?: string; // Caso tenha uma role específica
-  nivel: string;
 }
 
 export const authenticate = async (
@@ -55,19 +53,19 @@ export const authenticate = async (
       });
 
       const decoded = jwtDecode<JwtPayload>(doorKey);
-      if (decoded.sub && decoded.nivel) {
+      if (decoded.sub && decoded.role) {
         Cookie.set('rankID', decoded.sub, {
           secure: true,
           sameSite: 'Strict',
         });
 
-        Cookie.set('level', decoded.nivel, {
+        Cookie.set('level', decoded.role, {
           secure: true,
           sameSite: 'Strict',
         });
 
         // Redirecionamento com base no nível do usuário
-        switch (decoded.nivel) {
+        switch (decoded.role) {
           case 'Administrador':
             navigate('/admin/');
             break;
