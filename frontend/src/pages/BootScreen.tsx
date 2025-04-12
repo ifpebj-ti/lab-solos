@@ -29,7 +29,7 @@ function BootScreen() {
             </p>
           </div>
           <Link
-            to={'/'}
+            to={'/pre'}
             className='shadow-lg bg-backgroundMy h-10 px-7 rounded-md flex items-center justify-center uppercase font-rajdhani-semibold text-primaryMy  hover:scale-[102%]'
           >
             Comece agora

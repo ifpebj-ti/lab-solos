@@ -169,17 +169,29 @@ function SearchMaterial() {
           >
             <FollowUpCard
               title='Tipos de Vidrarias'
-              number={String(system?.produtos.Vidraria)}
+              number={String(
+                system?.produtos.Vidraria != undefined
+                  ? String(system?.produtos.Vidraria)
+                  : 0
+              )}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Químicos'
-              number={String(system?.produtos.Quimico)}
+              number={String(
+                system?.produtos.Quimico != undefined
+                  ? String(system?.produtos.Quimico)
+                  : 0
+              )}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Outros'
-              number={String(system?.produtos.Outro)}
+              number={String(
+                system?.produtos.Outro != undefined
+                  ? String(system?.produtos.Outro)
+                  : 0
+              )}
               icon={<LayersIcon />}
             />
           </div>
