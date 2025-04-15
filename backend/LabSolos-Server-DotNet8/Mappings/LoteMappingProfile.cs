@@ -10,7 +10,18 @@ namespace Core.DTOs.Mappings
     {
         public LoteMappingProfile()
         {
-            CreateMap<Lote, LoteDTO>().ReverseMap();
+            CreateMap<Lote, LoteDTO>()
+            .ReverseMap()
+            .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                src.DataFabricacao != null
+                    ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc)
+                    : (DateTime?)null))
+            .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                src.DataValidade != null
+                    ? DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc)
+                    : (DateTime?)null));
+
+            CreateMap<AddLoteDTO, Lote>();
         }
     }
 }

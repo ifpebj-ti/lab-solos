@@ -111,7 +111,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Nenhum empréstimo encontrado");
             }
 
-            return Ok(emprestimos);
+            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
         [HttpPost]
@@ -126,9 +126,11 @@ namespace LabSolos_Server_DotNet8.Controllers
             var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
 
             var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
+            var emprestimoResponseDto = _mapper.Map<EmprestimoDTO>(novoEmprestimo);
+
             await _uow.CommitAsync();
 
-            return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, novoEmprestimo);
+            return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, emprestimoResponseDto);
 
         }
 
