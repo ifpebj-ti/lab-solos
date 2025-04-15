@@ -22,6 +22,9 @@ namespace LabSolos_Server_DotNet8.Models
         public Usuario? Responsavel { get; set; }
         public List<Usuario>? Dependentes { get; set; }
 
+        public string? TokenRedefinicao { get; set; }
+        public DateTime? TokenExpiracao { get; set; }
+
         // Método para definir o hash da senha
         public void DefinirSenha(string senha)
         {

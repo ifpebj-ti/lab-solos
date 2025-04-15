@@ -2,6 +2,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using LabSolos_Server_DotNet8.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LabSolos_Server_DotNet8.Services
@@ -36,12 +38,12 @@ namespace LabSolos_Server_DotNet8.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public static string HashPassword(string senha)
+        public static string HashPassword(Usuario usuario, string senha)
         {
-            var bytes = Encoding.UTF8.GetBytes(senha);
-            var hash = SHA256.HashData(bytes);
-            return Convert.ToBase64String(hash);
+            var hasher = new PasswordHasher<Usuario>();
+            return hasher.HashPassword(usuario, senha);
         }
+
 
     }
 }

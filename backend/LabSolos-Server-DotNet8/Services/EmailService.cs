@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using System.Runtime.CompilerServices;
 
 namespace LabSolos_Server_DotNet8.Services
 {
@@ -41,7 +42,8 @@ namespace LabSolos_Server_DotNet8.Services
             using (var message = new MailMessage(fromAddress, toAddress)
             {
                 Subject = assunto,
-                Body = corpo
+                Body = corpo,
+                IsBodyHtml = true // <- ESSENCIAL!
             })
             {
                 smtp.Send(message);

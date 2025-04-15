@@ -193,7 +193,6 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> Adicionar(AddUsuarioDTO addUsuarioDTO)
         {
             try
