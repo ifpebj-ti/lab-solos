@@ -12,6 +12,7 @@ using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -38,7 +39,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id || e.AprovadorId == usuario.Id);
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id || e.AprovadorId == usuario.Id,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
             if (!emprestimos.Any())
             {
                 return NotFound("Nenhum empréstimo encontrado para este usuário.");
@@ -57,7 +65,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id);
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
             if (!emprestimos.Any())
             {
                 return NotFound("Nenhum empréstimo solicitado encontrado para este usuário.");
@@ -76,7 +91,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.AprovadorId == usuario.Id);
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.AprovadorId == usuario.Id,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
             if (!emprestimos.Any())
             {
                 return NotFound("Nenhum empréstimo aprovado encontrado para este usuário.");
@@ -87,9 +109,16 @@ namespace LabSolos_Server_DotNet8.Controllers
 
         [HttpGet("{emprestimoId}")]
         [Authorize]
-        public async Task<IActionResult> ObterEmprestimobyId(int emprestimoId)
+        public async Task<IActionResult> ObterEmprestimoPeloId(int emprestimoId)
         {
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
 
             if (emprestimo == null)
             {
@@ -104,7 +133,14 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize]
         public async Task<IActionResult> ObterTodosEmprestimosAsync()
         {
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true);
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
 
             if (!emprestimos.Any())
             {
@@ -118,20 +154,50 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize]
         public async Task<IActionResult> Adicionar([FromBody] AddEmprestimoDTO emprestimoDto)
         {
-            if (emprestimoDto == null || emprestimoDto.Produtos == null || emprestimoDto.Produtos.Count == 0)
+            // Obter usuário autenticado
+            var user = HttpContext.User;
+
+            if (user == null)
             {
-                return BadRequest("Dados inválidos. Certifique-se de fornecer os produtos e informações do empréstimo.");
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            // Obter o ID do usuário autenticado
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            // Verificar se o usuário tem o papel de administrador
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (nivelClaim != null && nivelClaim.Value == NivelUsuario.Administrador.ToString())
+            {
+                return Unauthorized("Administradores não podem criar empréstimos.");
             }
 
             var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
 
-            var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
-            var emprestimoResponseDto = _mapper.Map<EmprestimoDTO>(novoEmprestimo);
+            emprestimo.SolicitanteId = userId;
+            emprestimo.DataDevolucao = DateTime.UtcNow.AddDays(emprestimoDto.DiasParaDevolucao);
 
+            var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
             await _uow.CommitAsync();
 
-            return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, emprestimoResponseDto);
+            var emprestimoCriado = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == novoEmprestimo.Id,
+                query => query
+                .Include(e => e.Produtos)
+                .ThenInclude(p => p.Produto)
+                .ThenInclude(p => p.Lote)
+                .Include(e => e.Solicitante)
+                .Include(e => e.Aprovador)
+            );
 
+            var emprestimoResponseDto = _mapper.Map<EmprestimoDTO>(emprestimoCriado);
+
+            return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, emprestimoResponseDto);
         }
 
         [HttpPatch("aprovar/{emprestimoId}")]
@@ -151,6 +217,13 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (userIdClaim == null)
             {
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
+
+            // Verificar se o usuário tem o papel de admin
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (nivelClaim == null || nivelClaim.Value != NivelUsuario.Administrador.ToString())
+            {
+                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
             }
 
             var userId = int.Parse(userIdClaim.Value);
@@ -226,10 +299,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.EmprestimoRepository.Atualizar(emprestimo);
             await _uow.CommitAsync();
 
-            var emprestimoDTO = _mapper.Map<EmprestimoDTO>(emprestimo);
-
-            // Retornar resposta de sucesso
-            return Ok(new { Message = "Empréstimo aprovado com sucesso.", Emprestimo = emprestimoDTO });
+            return NoContent();
         }
 
         [HttpPatch("reprovar/{emprestimoId}")]
@@ -254,8 +324,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             var userId = int.Parse(userIdClaim.Value);
 
             // Verificar se o usuário tem o papel de admin
-            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == "nivel");
-            if (nivelClaim == null || nivelClaim.Value != "Administrador")
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (nivelClaim == null || nivelClaim.Value != NivelUsuario.Administrador.ToString())
             {
                 return Unauthorized("Apenas administradores podem aprovar empréstimos.");
             }
@@ -292,10 +362,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.EmprestimoRepository.Atualizar(emprestimo);
             await _uow.CommitAsync();
 
-            var emprestimoDTO = _mapper.Map<EmprestimoDTO>(emprestimo);
-
-            // Retornar resposta de sucesso
-            return Ok(new { Message = "Empréstimo reprovado com sucesso.", Emprestimo = emprestimoDTO });
+            return NoContent();
         }
     }
 }

@@ -108,11 +108,14 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             foreach (var dependente in usuario.Dependentes)
             {
-                var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(
-                    e => e.SolicitanteId == dependente.Id,
-                    query => query.Include(e => e.Produtos)
-                                  .ThenInclude(ep => ep.Produto)
-                                  .ThenInclude(p => p.Lote));
+                var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id,
+                    query => query
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                        .ThenInclude(p => p.Lote)
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Aprovador)
+                );
 
                 var emprestimosDTO = _mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos);
                 emprestimosDependentesDTO.AddRange(emprestimosDTO);

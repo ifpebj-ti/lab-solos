@@ -3,7 +3,6 @@ namespace LabSolos_Server_DotNet8.DTOs.Emprestimos
     public class AddEmprestimoDTO
     {
         public int DiasParaDevolucao { get; set; }
-        public int SolicitanteId { get; set; }
         public List<ProdutoQuantidadeDTO> Produtos { get; set; } = new List<ProdutoQuantidadeDTO>();
     }
 
