@@ -45,7 +45,6 @@ interface DashboardData {
   emprestimos: {
     Aprovado: number;
     Pendente: number;
-    Rejeitado: number;
     Total: number;
   };
   totalProdutosEmprestados: number;
@@ -67,7 +66,7 @@ function SearchMaterialMentor() {
         const allProducts = await getAllProducts();
         const systemQuant = await getSystemQuantities();
         setProducts(allProducts);
-        setSystem(systemQuant);
+        setSystem(systemQuant.data);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados necessários', error);
@@ -166,17 +165,17 @@ function SearchMaterialMentor() {
           >
             <FollowUpCard
               title='Tipos de Vidrarias'
-              number={String(system?.produtos.Vidraria)}
+              number={String(system?.produtos.Vidraria) || 0}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Químicos'
-              number={String(system?.produtos.Quimico)}
+              number={String(system?.produtos.Quimico) || 0}
               icon={<LayersIcon />}
             />
             <FollowUpCard
               title='Tipos de Outros'
-              number={String(system?.produtos.Outro)}
+              number={String(system?.produtos.Outro) || 0}
               icon={<LayersIcon />}
             />
           </div>

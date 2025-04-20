@@ -15,7 +15,7 @@ export const getSystemQuantities = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return response;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.debug('Error fetching products:', error);

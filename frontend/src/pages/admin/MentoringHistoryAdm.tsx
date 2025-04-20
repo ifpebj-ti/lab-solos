@@ -32,8 +32,18 @@ interface IUsuario {
   responsavel: IUsuario | null;
   dependentes: (IUsuario | null)[]; // Array de usuários ou null
 }
+export interface ILote {
+  codigoLote: string;
+  fornecedor: string;
+  dataFabricacao: string;
+  dataValidade: string;
+  dataEntrada: string;
+  produtos: IProduto[];
+}
+
 export interface IProduto {
   id: number;
+  catmat: string;
   nomeProduto: string;
   tipoProduto: string;
   fornecedor: string;
@@ -44,12 +54,11 @@ export interface IProduto {
   dataFabricacao: string | null;
   dataValidade: string | null;
   status: string;
+  lote: ILote | null;
 }
 
 export interface IEmprestimoProduto {
-  id: number;
   emprestimoId: number;
-  produtoId: number;
   produto: IProduto;
   quantidade: number;
 }
@@ -62,8 +71,10 @@ export interface IUsuarioII {
   dataIngresso: string;
   status: string | null;
   nivelUsuario: string | null;
-  nomeResponsavel: string | null;
-  responsavelId: number | null;
+  instituicao?: string;
+  cidade?: string;
+  curso?: string;
+  responsavel: IUsuarioII | null;
 }
 
 export interface IEmprestimo {
@@ -72,10 +83,11 @@ export interface IEmprestimo {
   dataDevolucao: string;
   dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
+  produtos: IEmprestimoProduto[];
   solicitante: IUsuarioII;
-  aprovador: IUsuarioII | null; // Pode ser `null`
+  aprovador: IUsuarioII | null;
 }
+
 function MentoringHistoryAdm() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,7 +136,6 @@ function MentoringHistoryAdm() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   const infoItems = user
     ? [
         {
@@ -225,7 +236,7 @@ function MentoringHistoryAdm() {
                     data={[
                       String(rowData.id),
                       formatDateTime(rowData.dataRealizacao),
-                      String(rowData.emprestimoProdutos.length),
+                      String(rowData.produtos.length),
                       String(rowData.status),
                     ]}
                     rowIndex={index}

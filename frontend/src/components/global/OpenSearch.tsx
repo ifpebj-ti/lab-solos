@@ -33,7 +33,6 @@ import { jwtDecode } from 'jwt-decode';
 interface JwtPayload {
   sub: string; // ID ou nível do usuário
   role?: string; // Caso tenha uma role específica
-  nivel: string;
 }
 
 const routesAdmin = [
@@ -184,7 +183,7 @@ function OpenSearch() {
                     <CommandList>
                       <CommandEmpty>Link não encontrado.</CommandEmpty>
                       <CommandGroup>
-                        {decoded.nivel === 'Administrador' &&
+                        {decoded.role === 'Administrador' &&
                           routesAdmin.map((framework) => (
                             <CommandItem
                               key={framework.value}
@@ -206,7 +205,7 @@ function OpenSearch() {
                               {framework.label}
                             </CommandItem>
                           ))}
-                        {decoded.nivel === 'Mentor' &&
+                        {decoded.role === 'Mentor' &&
                           routesMentor.map((framework) => (
                             <CommandItem
                               key={framework.value}
@@ -228,7 +227,7 @@ function OpenSearch() {
                               {framework.label}
                             </CommandItem>
                           ))}
-                        {decoded.nivel === 'Mentorado' &&
+                        {decoded.role === 'Mentorado' &&
                           routesMentee.map((framework) => (
                             <CommandItem
                               key={framework.value}

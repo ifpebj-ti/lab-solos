@@ -48,7 +48,6 @@ function Login() {
         });
       }
     } catch (error: unknown) {
-      console.log(error);
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           toast({

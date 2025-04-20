@@ -49,7 +49,7 @@ interface IProduto {
   id: number; // ID único do produto
   nomeProduto: string; // Nome do produto
   fornecedor: string; // Nome do fornecedor
-  tipo: string; // Tipo do produto representado por um número
+  tipoProduto: string; // Tipo do produto representado por um número
   quantidade: number; // Quantidade disponível do produto
   quantidadeMinima: number; // Quantidade mínima recomendada
   dataFabricacao: string | null; // Data de fabricação em formato ISO 8601 ou null
@@ -109,7 +109,7 @@ function Verification() {
           value: productsById.capacidade,
           width: '20%',
         },
-        { title: 'Tipo', value: productsById.tipo, width: '20%' },
+        { title: 'Tipo', value: productsById.tipoProduto, width: '20%' },
         { title: 'Situação', value: productsById.status, width: '20%' },
       ]
     : [];
@@ -117,7 +117,7 @@ function Verification() {
   const infoItemsOutros = productsById
     ? [
         { title: 'Item', value: productsById.nomeProduto, width: '40%' },
-        { title: 'Tipo', value: productsById.tipo, width: '20%' },
+        { title: 'Tipo', value: productsById.tipoProduto, width: '20%' },
         { title: 'Situação', value: productsById.status, width: '20%' },
         {
           title: 'Data de Validade',
@@ -273,7 +273,7 @@ function Verification() {
               <OpenSearch />
             </div>
           </div>
-          {productsById?.tipo === 'Quimico' && (
+          {productsById?.tipoProduto === 'Quimico' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItems} />
               <div className='w-full flex gap-x-8 mt-5'>
@@ -297,7 +297,7 @@ function Verification() {
               </div>
             </div>
           )}
-          {productsById?.tipo === 'Vidraria' && (
+          {productsById?.tipoProduto === 'Vidraria' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsVidraria} />
               <div className='w-full flex gap-x-8 mt-5'>
@@ -326,7 +326,7 @@ function Verification() {
               </div>
             </div>
           )}
-          {productsById?.tipo === 'Outro' && (
+          {productsById?.tipoProduto === 'Outro' && (
             <div className='w-11/12 mt-7'>
               <InfoContainer items={infoItemsOutros} />
               <div className='w-full flex gap-x-8 mt-5'>
