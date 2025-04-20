@@ -47,7 +47,6 @@ interface DashboardData {
   emprestimos: {
     Aprovado: number;
     Pendente: number;
-    Rejeitado: number;
     Total: number;
   };
   totalProdutosEmprestados: number;
@@ -69,7 +68,7 @@ function SearchMaterial() {
         const allProducts = await getAllProducts();
         const systemQuant = await getSystemQuantities();
         setProducts(allProducts);
-        setSystem(systemQuant);
+        setSystem(systemQuant.data);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados necessários', error);

@@ -13,65 +13,66 @@ import { getLoansByUserId } from '@/integration/Loans';
 import { Link, useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
-interface IUsuario {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: number;
-  tipoUsuario: number;
-  status: number;
-  emprestimosSolicitados: null;
-  emprestimosAprovados: null;
-}
-export interface IProduto {
-  id: number;
-  nomeProduto: string;
-  tipoProduto: string;
+// Lote de produto
+interface ILote {
+  codigoLote: string;
   fornecedor: string;
+  dataFabricacao: string;
+  dataValidade: string;
+  dataEntrada: string;
+  produtos: IProduto[];
+}
+
+// Produto
+interface IProduto {
+  id: number;
+  catmat: string;
+  nomeProduto: string;
+  fornecedor: string;
+  tipoProduto: string;
   unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
-  localizacaoProduto: string;
   dataFabricacao: string | null;
   dataValidade: string | null;
+  localizacaoProduto: string;
   status: string;
+  lote: ILote | null;
 }
 
-export interface IEmprestimoProduto {
-  id: number;
+// Produto vinculado ao empréstimo
+interface IEmprestimoProduto {
   emprestimoId: number;
-  produtoId: number;
   produto: IProduto;
   quantidade: number;
 }
 
-export interface IUsuarioII {
+// Usuário (Solicitante ou Aprovador)
+interface IUsuario {
   id: number;
   nomeCompleto: string;
   email: string;
-  telefone: string | null;
+  telefone: string;
   dataIngresso: string;
-  status: string | null;
-  nivelUsuario: string | null;
-  nomeResponsavel: string | null;
-  responsavelId: number | null;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  instituicao?: string;
+  cidade?: string;
+  curso?: string;
+  responsavel: IUsuario | null;
 }
 
-export interface IEmprestimo {
+// Empréstimo
+interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;
   dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
-  solicitante: IUsuarioII;
-  aprovador: IUsuarioII | null; // Pode ser `null`
+  produtos: IEmprestimoProduto[];
+  solicitante: IUsuario | null;
+  aprovador: IUsuario | null;
 }
 
 function MentoringHistory() {
@@ -127,19 +128,29 @@ function MentoringHistory() {
     ? [
         {
           title: 'Nome',
-          value: user.nomeCompleto,
+          value: user.nomeCompleto || 'Não Corresponde',
           width: '50%',
         },
         {
           title: 'Email',
-          value: user.email,
+          value: user.email || 'Não Corresponde',
           width: '30%',
         },
-        { title: 'Instituição', value: user.instituicao, width: '20%' },
+        {
+          title: 'Instituição',
+          value: user.instituicao || 'Não Corresponde',
+          width: '20%',
+        },
       ]
     : [];
   const infoItems2 = user
-    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
+    ? [
+        {
+          title: 'Cidade',
+          value: user.cidade || 'Não Corresponde',
+          width: '100%',
+        },
+      ]
     : [];
   const infoItems3 = user
     ? [
@@ -160,7 +171,13 @@ function MentoringHistory() {
       ]
     : [];
   const infoItems5 = user
-    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
+    ? [
+        {
+          title: 'Curso',
+          value: user.curso || 'Não Corresponde',
+          width: '100%',
+        },
+      ]
     : [];
   return (
     <>
@@ -227,7 +244,7 @@ function MentoringHistory() {
                     data={[
                       String(rowData.id),
                       formatDateTime(rowData.dataRealizacao),
-                      String(rowData.emprestimoProdutos.length),
+                      String(rowData.produtos.length),
                       rowData.status,
                     ]}
                     rowIndex={index}

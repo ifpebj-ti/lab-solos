@@ -13,47 +13,50 @@ import { ArrowLeft, Check, ShieldAlert, Timer } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: IEmprestimo[] | null;
-  emprestimosAprovados: IEmprestimo[] | null;
-  responsavelId: number | null;
-  nomeResponsavel: string | null;
-  dependentes: IUsuario[] | null;
+interface ILote {
+  codigoLote: string;
+  fornecedor: string;
+  dataFabricacao: string;
+  dataValidade: string;
+  dataEntrada: string;
+  produtos: IProduto[];
 }
 
 interface IProduto {
   id: number;
+  catmat: string;
   nomeProduto: string;
   fornecedor: string;
-  tipo: string;
+  tipoProduto: string;
+  unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
+  dataFabricacao: string;
+  dataValidade: string;
   localizacaoProduto: string;
   status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
-  emprestimoProdutos: IEmprestimoProduto[] | null;
+  lote: ILote | null;
 }
 
 interface IEmprestimoProduto {
-  id: number;
   emprestimoId: number;
-  produtoId: number;
-  produto: IProduto | null;
+  produto: IProduto;
   quantidade: number;
-  emprestimo: IEmprestimo | null;
+}
+
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string;
+  dataIngresso: string;
+  status: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  instituicao?: string;
+  cidade?: string;
+  curso?: string;
+  responsavel?: IUsuario | null;
 }
 
 interface IEmprestimo {
@@ -62,11 +65,9 @@ interface IEmprestimo {
   dataDevolucao: string;
   dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: (IEmprestimoProduto | null)[]; // Permite null no array
-  solicitanteId: number;
-  solicitante: IUsuario | null;
-  aprovadorId: number | null;
-  aprovador: IUsuario | null;
+  produtos: IEmprestimoProduto[];
+  solicitante: IUsuario;
+  aprovador: IUsuario;
 }
 
 function AllLoans() {
@@ -137,8 +138,6 @@ function AllLoans() {
     const count = loan.filter((user) => user.status == statusLoan).length;
     return `${count}`;
   };
-
-  console.log(loan);
   return (
     <>
       {isLoading ? (
@@ -224,11 +223,11 @@ function AllLoans() {
                         formatDate(rowData?.dataRealizacao),
                         rowData?.solicitante?.nomeCompleto ||
                           'Nome não disponível',
-                        rowData?.solicitante?.nomeResponsavel ||
-                          'Status não disponível',
+                        rowData?.aprovador?.nomeCompleto ||
+                          'Nome não disponível',
                         String(
-                          rowData?.emprestimoProdutos.length ||
-                            'Responsável não disponível'
+                          rowData?.produtos.length ||
+                            'Quantidade não disponível'
                         ),
                         rowData?.status || 'Status não disponível',
                       ]}

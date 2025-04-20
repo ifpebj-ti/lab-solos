@@ -13,57 +13,65 @@ import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown[] | null;
-  emprestimosAprovados: unknown[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
+// Lote de produto
+interface ILote {
+  codigoLote: string;
+  fornecedor: string;
+  dataFabricacao: string;
+  dataValidade: string;
+  dataEntrada: string;
+  produtos: IProduto[];
 }
 
+// Produto
 interface IProduto {
   id: number;
+  catmat: string;
   nomeProduto: string;
   fornecedor: string;
-  tipo: string;
+  tipoProduto: string;
+  unidadeMedida: string;
   quantidade: number;
   quantidadeMinima: number;
   dataFabricacao: string | null;
   dataValidade: string | null;
   localizacaoProduto: string;
   status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
+  lote: ILote | null;
 }
 
+// Produto vinculado ao empréstimo
 interface IEmprestimoProduto {
-  id: number;
   emprestimoId: number;
-  produtoId: number;
   produto: IProduto;
   quantidade: number;
 }
 
+// Usuário (Solicitante ou Aprovador)
+interface IUsuario {
+  id: number;
+  nomeCompleto: string;
+  email: string;
+  telefone: string;
+  dataIngresso: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
+  status: string;
+  instituicao?: string;
+  cidade?: string;
+  curso?: string;
+  responsavel: IUsuario | null;
+}
+
+// Empréstimo
 interface IEmprestimo {
   id: number;
   dataRealizacao: string;
   dataDevolucao: string;
-  dataAprovacao: string;
+  dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: IEmprestimoProduto[];
-  solicitanteId: number;
+  produtos: IEmprestimoProduto[];
   solicitante: IUsuario | null;
-  aprovadorId: number;
   aprovador: IUsuario | null;
 }
 
@@ -221,7 +229,7 @@ function HistoryClass() {
                         String(loan?.id),
                         String(loan.solicitante?.nomeCompleto),
                         formatDateTime(loan?.dataRealizacao),
-                        String(loan.emprestimoProdutos.length),
+                        String(loan.produtos.length),
                         loan?.status,
                       ]}
                       rowIndex={index}

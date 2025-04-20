@@ -15,10 +15,20 @@ import { useLocation } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 import { toast } from '@/components/hooks/use-toast';
 
+export interface ILote {
+  codigoLote: string;
+  fornecedor: string;
+  dataFabricacao: string;
+  dataValidade: string;
+  dataEntrada: string;
+  produtos: IProduto[];
+}
+
 export interface IProduto {
   id: number;
+  catmat: string;
   nomeProduto: string;
-  tipo: string;
+  tipoProduto: string;
   fornecedor: string;
   unidadeMedida: string;
   quantidade: number;
@@ -27,13 +37,11 @@ export interface IProduto {
   dataFabricacao: string | null;
   dataValidade: string | null;
   status: string;
-  loteId: string;
+  lote: ILote | null;
 }
 
 export interface IEmprestimoProduto {
-  id: number;
   emprestimoId: number;
-  produtoId: number;
   produto: IProduto;
   quantidade: number;
 }
@@ -46,8 +54,11 @@ export interface IUsuarioII {
   dataIngresso: string;
   status: string | null;
   nivelUsuario: string | null;
-  nomeResponsavel: string | null;
-  responsavelId: number | null;
+  tipoUsuario?: string;
+  instituicao?: string;
+  cidade?: string;
+  curso?: string;
+  responsavel: IUsuarioII | null;
 }
 
 export interface IEmprestimo {
@@ -56,9 +67,9 @@ export interface IEmprestimo {
   dataDevolucao: string;
   dataAprovacao: string | null;
   status: string;
-  emprestimoProdutos: IEmprestimoProduto[]; // Corrigido para refletir a estrutura real do JSON
+  produtos: IEmprestimoProduto[];
   solicitante: IUsuarioII;
-  aprovador: IUsuarioII | null; // Pode ser `null`
+  aprovador: IUsuarioII | null;
 }
 
 function LoanHistoryMentee() {
@@ -126,14 +137,13 @@ function LoanHistoryMentee() {
     setIsAscending(ascending);
   };
   const filteredUsers =
-    loan?.emprestimoProdutos?.filter((item) =>
+    loan?.produtos?.filter((item) =>
       item.produto.nomeProduto.toLowerCase().includes(searchTerm.toLowerCase())
     ) ?? [];
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
 
-  console.log(loan?.id);
   return (
     <>
       {isLoading ? (
@@ -208,12 +218,12 @@ function LoanHistoryMentee() {
                       data={[
                         String(rowData.produto.id || 'Não Corresponde'),
                         rowData.produto.nomeProduto || 'Não Corresponde',
-                        rowData.produto.tipo || 'Não Corresponde',
+                        rowData.produto.tipoProduto || 'Não Corresponde',
                         String(rowData.quantidade || 'Não Corresponde') +
                           getUnidadeSigla(
                             String(rowData.produto.unidadeMedida)
                           ),
-                        String(rowData.produto.loteId || 'Não Corresponde'),
+                        String(rowData.produto.lote || 'Não Corresponde'),
                       ]}
                       rowIndex={index}
                       columnWidths={columnsItensSelected.map(
@@ -225,20 +235,22 @@ function LoanHistoryMentee() {
               </div>
             </div>
           </div>
-          <div className='w-11/12 gap-x-5 h-10 mt-6 flex items-center justify-end'>
-            <button
-              onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
-              className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
-            >
-              Rejeitar
-            </button>
-            <button
-              onClick={() => loan?.id !== undefined && handleReject(loan.id)}
-              className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
-            >
-              Aceitar
-            </button>
-          </div>
+          {loan?.status != 'Aprovado' ? (
+            <div className='w-11/12 gap-x-5 h-10 mt-6 flex items-center justify-end'>
+              <button
+                onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
+                className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
+              >
+                Rejeitar
+              </button>
+              <button
+                onClick={() => loan?.id !== undefined && handleReject(loan.id)}
+                className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
+              >
+                Aceitar
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </>
