@@ -43,6 +43,7 @@ import PreLab from './pages/prelab/PreLab';
 import Disabled from './pages/mentor/Disabled';
 import CreateInfo from './pages/admin/CreateInfo';
 import ViewInfo from './pages/admin/ViewInfo';
+import ReturnLoan from './pages/admin/ReturnLoan';
 
 function AppRoutes() {
   return (
@@ -208,6 +209,15 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<CreateInfo />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='return'
+            element={
+              <PrivateRoute
+                element={<ReturnLoan />}
                 requiredRank={['Administrador']}
               />
             }

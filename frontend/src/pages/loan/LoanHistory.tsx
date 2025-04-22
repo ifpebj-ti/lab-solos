@@ -11,9 +11,10 @@ import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import { approveLoan, getLoansById, rejectLoan } from '@/integration/Loans';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 import { toast } from '@/components/hooks/use-toast';
+import { RefreshCw } from 'lucide-react';
 
 export interface ILote {
   codigoLote: string;
@@ -80,6 +81,8 @@ function LoanHistoryMentee() {
   const location = useLocation();
   const id = location.state?.id;
 
+  console.log(loan);
+
   useEffect(() => {
     const fetchGetLoan = async () => {
       setIsLoading(true);
@@ -143,6 +146,14 @@ function LoanHistoryMentee() {
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
+  const navigate = useNavigate();
+  interface IHandle {
+    id: number | string;
+  }
+
+  const handleClick = ({ id }: IHandle) => {
+    navigate('/admin/return', { state: { id } });
+  };
 
   return (
     <>
@@ -186,10 +197,19 @@ function LoanHistoryMentee() {
             </div>
           </div>
           <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-            <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+            <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-3'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos Selecionados
               </p>
+              <button
+                onClick={() =>
+                  loan?.id !== undefined && handleClick({ id: loan.id })
+                }
+                className='font-rajdhani-semibold text-primaryMy text-xl h-10 border border-primaryMy px-4 rounded-md hover:bg-cl-table-item flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
+              >
+                Devolução
+                <RefreshCw stroke='#16a34a' width={20} />
+              </button>
             </div>
             <div className='flex flex-col items-center justify-center w-full px-4'>
               <div className='flex items-center justify-start gap-x-7 mt-5 w-full'>
