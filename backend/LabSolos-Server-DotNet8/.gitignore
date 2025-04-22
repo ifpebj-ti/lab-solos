@@ -1,0 +1,55 @@
+# Compilação do .NET
+bin/
+obj/
+out/
+
+# Dependências e pacotes
+*.nuget
+packages/
+project.lock.json
+project.assets.json
+*.nupkg
+*.snupkg
+*.psmdcp
+
+# Logs, cache e dados temporários
+*.log
+*.tlog
+*.cache
+*.pdb
+*.ilk
+*.userosscache
+.vs/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.sln.cache
+*.userprefs
+*.csproj.user
+
+# Configurações locais e segredos
+appsettings.Development.json
+appsettings.json
+secrets.json
+*.pubxml
+*.publishsettings
+*.launchSettings.json
+
+# Arquivos gerados pelo Entity Framework
+Migrations/
+
+# Docker e containers
+docker-compose.override.yml
+.env
+
+# Arquivos gerados pelo Rider / JetBrains
+.idea/
+*.dotSettings*
+**/JetBrains.ReSharper*  
+**/JetBrains.*/  
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+ehthumbs.db
