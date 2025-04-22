@@ -68,7 +68,14 @@ builder.Services.AddSwaggerGen();
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+var keyString = jwtSettings["Key"];
+
+if (string.IsNullOrEmpty(keyString))
+{
+    throw new InvalidOperationException("Chave JWT ausente. Verifique suas variáveis de ambiente ou o arquivo appsettings.json.");
+}
+
+var key = Encoding.UTF8.GetBytes(keyString);
 
 builder.Services.AddAuthentication(options =>
 {
