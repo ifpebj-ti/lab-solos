@@ -81,8 +81,6 @@ function LoanHistoryMentee() {
   const location = useLocation();
   const id = location.state?.id;
 
-  console.log(loan);
-
   useEffect(() => {
     const fetchGetLoan = async () => {
       setIsLoading(true);

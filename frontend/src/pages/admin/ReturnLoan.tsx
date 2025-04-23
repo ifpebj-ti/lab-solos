@@ -71,8 +71,6 @@ function ReturnLoan() {
   const [loans, setLoans] = useState<IEmprestimo>();
   const location = useLocation();
   const id = location.state?.id; // Recupera o ID passado via state
-  console.log(loans);
-  console.log(id);
 
   useEffect(() => {
     const fetchGetUserById = async () => {
