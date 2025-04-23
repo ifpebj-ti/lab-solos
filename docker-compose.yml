@@ -23,14 +23,25 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__PostgresConnection=Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - Email__SmtpHost=${EMAIL_SMTP_HOST}
+      - Email__SmtpPort=${EMAIL_SMTP_PORT}
+      - Email__Usuario=${EMAIL_USUARIO}
+      - Email__Senha=${EMAIL_SENHA}
+      - Email__De=${EMAIL_DE}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpiresInMinutes=${JWT_EXPIRES_IN_MINUTES}
+      - AllowedHosts=${ALLOWED_HOSTS}
     depends_on:
       db:
         condition: service_healthy
     networks:
       - private_network
       - public_network
+
   db:
     image: postgres:15
     container_name: database
