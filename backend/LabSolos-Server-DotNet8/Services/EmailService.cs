@@ -20,11 +20,11 @@ namespace LabSolos_Server_DotNet8.Services
 
         public void EnviarEmail(string para, string assunto, string corpo)
         {
-            var smtpHost = _config["Email:SmtpHost"];
-            var smtpPort = int.Parse(_config["Email:SmtpPort"]);
-            var smtpUser = _config["Email:Usuario"];
-            var smtpPass = _config["Email:Senha"];
-            var de = _config["Email:De"];
+            var smtpHost = _config["Email:SmtpHost"] ?? throw new InvalidOperationException("SMTP Host não configurado.");
+            var smtpPort = int.TryParse(_config["Email:SmtpPort"], out var port) ? port : throw new InvalidOperationException("Porta SMTP inválida ou não configurada.");
+            var smtpUser = _config["Email:Usuario"] ?? throw new InvalidOperationException("Usuário SMTP não configurado.");
+            var smtpPass = _config["Email:Senha"] ?? throw new InvalidOperationException("Senha SMTP não configurada.");
+            var de = _config["Email:De"] ?? throw new InvalidOperationException("Endereço de envio não configurado.");
 
             var fromAddress = new MailAddress(de, "Sistema Teste");
             var toAddress = new MailAddress(para);

@@ -30,6 +30,7 @@ project.assets.json
 
 # Configurações locais e segredos
 appsettings.Development.json
+appsettings.json
 secrets.json
 *.pubxml
 *.publishsettings
