@@ -14,7 +14,6 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly ILogger<SystemController> _logger = logger;
 
         [HttpGet("quantities")]
-        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterQuantidadesDoSistema()
         {
             var result = await _systemService.ObterQuantidadesDoSistema();
