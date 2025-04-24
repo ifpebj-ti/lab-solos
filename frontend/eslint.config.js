@@ -34,4 +34,17 @@ export default [
       'prettier/prettier': 'warn',
     },
   },
+
+  // Configuração para arquivos JavaScript
+  {
+    files: ['**/*.js'],
+    ignores: ['dist'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser, // Adiciona suporte ao objeto `window`
+    },
+    rules: {
+      'no-undef': 'off', // Desativa o erro para variáveis globais como `window`
+    },
+  },
 ];
