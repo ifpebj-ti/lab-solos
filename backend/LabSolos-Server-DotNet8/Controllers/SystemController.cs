@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace LabSolos_Server_DotNet8.Controllers
 {
     [ApiController]
-    //[Authorize]
     [Route("api/[controller]")]
     public class SystemController(ISystemService systemService, ILogger<SystemController> logger) : ControllerBase
     {
