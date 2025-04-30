@@ -14,7 +14,16 @@ import { approveLoan, getLoansById, rejectLoan } from '@/integration/Loans';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 import { toast } from '@/components/hooks/use-toast';
-import { RefreshCw } from 'lucide-react';
+import { FileText, RefreshCw } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import FileSaver from 'file-saver';
+import ExcelJS from 'exceljs';
+import { LoanDoc } from '@/components/pdf/LoanDoc';
 
 export interface ILote {
   codigoLote: string;
@@ -22,7 +31,7 @@ export interface ILote {
   dataFabricacao: string;
   dataValidade: string;
   dataEntrada: string;
-  produtos: IProduto[];
+  produtos: IProduto[]; // normalmente vazio aqui
 }
 
 export interface IProduto {
@@ -35,10 +44,10 @@ export interface IProduto {
   quantidade: number;
   quantidadeMinima: number;
   localizacaoProduto: string;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
+  dataFabricacao: string;
+  dataValidade: string;
   status: string;
-  lote: ILote | null;
+  lote: ILote;
 }
 
 export interface IEmprestimoProduto {
@@ -51,11 +60,11 @@ export interface IUsuarioII {
   id: number;
   nomeCompleto: string;
   email: string;
-  telefone: string | null;
+  telefone: string;
   dataIngresso: string;
-  status: string | null;
-  nivelUsuario: string | null;
-  tipoUsuario?: string;
+  status: string;
+  nivelUsuario: string;
+  tipoUsuario: string;
   instituicao?: string;
   cidade?: string;
   curso?: string;
@@ -80,6 +89,14 @@ function LoanHistoryMentee() {
   const [loan, setLoan] = useState<IEmprestimo>();
   const location = useLocation();
   const id = location.state?.id;
+  const columnsExport = [
+    { value: 'ID', width: '10%' },
+    { value: 'Item', width: '45%' },
+    { value: 'Quantidade', width: '15%' },
+    { value: 'Lote', width: '15%' },
+    { value: 'Tipo', width: '15%' },
+  ];
+  const columnWidthsExport = ['10%', '45%', '15%', '15%', '15%'];
 
   useEffect(() => {
     const fetchGetLoan = async () => {
@@ -153,6 +170,40 @@ function LoanHistoryMentee() {
     navigate('/admin/return', { state: { id } });
   };
 
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Dados de Empréstimo');
+
+    // Definir os cabeçalhos da planilha
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Item', key: 'item', width: 45 },
+      { header: 'Quantidade', key: 'quant', width: 15 },
+      { header: 'Lote', key: 'lote', width: 15 },
+      { header: 'Tipo', key: 'tipo', width: 15 },
+    ];
+
+    // Adicionar os dados da tabela
+    sortedUsers.forEach((loan) => {
+      worksheet.addRow({
+        id: loan.produto.id,
+        item: loan.produto.nomeProduto,
+        quant: loan.produto.quantidade,
+        lote: loan.produto.lote.codigoLote,
+        tipo: loan.produto.tipoProduto,
+      });
+    });
+
+    // Criar o arquivo Excel
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    // Baixar o arquivo
+    FileSaver.saveAs(blob, 'emprestimo.xlsx');
+  };
+
   return (
     <>
       {isLoading ? (
@@ -199,15 +250,17 @@ function LoanHistoryMentee() {
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos Selecionados
               </p>
-              <button
-                onClick={() =>
-                  loan?.id !== undefined && handleClick({ id: loan.id })
-                }
-                className='font-rajdhani-semibold text-primaryMy text-xl h-10 border border-primaryMy px-4 rounded-md hover:bg-cl-table-item flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
-              >
-                Devolução
-                <RefreshCw stroke='#16a34a' width={20} />
-              </button>
+              {loan?.status === 'Aprovado' && (
+                <button
+                  onClick={() =>
+                    loan?.id !== undefined && handleClick({ id: loan.id })
+                  }
+                  className='font-rajdhani-semibold text-primaryMy text-xl h-10 border border-primaryMy px-4 rounded-md hover:bg-cl-table-item flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
+                >
+                  Devolução
+                  <RefreshCw stroke='#16a34a' width={20} />
+                </button>
+              )}
             </div>
             <div className='flex flex-col items-center justify-center w-full px-4'>
               <div className='flex items-center justify-start gap-x-7 mt-5 w-full'>
@@ -222,6 +275,76 @@ function LoanHistoryMentee() {
                   onClick={() => toggleSortOrder(!isAscending)}
                   top={isAscending}
                 />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className='border border-borderMy rounded-sm h-9 w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
+                      <FileText stroke='#232323' width={21} strokeWidth={1.5} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className='w-32 shadow-lg border border-borderMy bg-backgroundMy p-2'>
+                    <ul className='w-full flex flex-col items-start gap-y-1'>
+                      <li className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center'>
+                        <PDFDownloadLink
+                          document={
+                            <LoanDoc
+                              name={
+                                loan?.solicitante?.nomeCompleto
+                                  ? loan?.solicitante?.nomeCompleto
+                                  : 'Não encontrado'
+                              }
+                              nivel={
+                                loan?.solicitante?.nivelUsuario
+                                  ? loan?.solicitante?.nivelUsuario
+                                  : 'Não encontrado'
+                              }
+                              data={
+                                loan?.produtos?.map(
+                                  ({ quantidade, produto }) => [
+                                    String(produto.id),
+                                    produto.nomeProduto,
+                                    String(quantidade),
+                                    produto.lote?.codigoLote || 'Sem lote',
+                                    produto.tipoProduto,
+                                  ]
+                                ) ?? []
+                              }
+                              title={'Dados de Empréstimo N° ' + loan?.id}
+                              columnWidths={columnWidthsExport}
+                              columns={columnsExport}
+                              signer={
+                                loan?.solicitante.nomeCompleto
+                                  ? loan?.solicitante.nomeCompleto
+                                  : 'Não encontrado'
+                              }
+                            />
+                          }
+                          fileName='emprestimo_view.pdf'
+                          className='flex items-center justify-center'
+                        >
+                          <FileText
+                            stroke='#232323'
+                            width={18}
+                            strokeWidth={1.5}
+                            className='mr-1 mt-[2px]'
+                          />
+                          PDF
+                        </PDFDownloadLink>
+                      </li>
+                      <li
+                        className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center cursor-pointer'
+                        onClick={exportToExcel}
+                      >
+                        <FileText
+                          stroke='#232323'
+                          width={18}
+                          strokeWidth={1.5}
+                          className='mr-1 mt-[2px]'
+                        />
+                        Excel
+                      </li>
+                    </ul>
+                  </PopoverContent>
+                </Popover>
               </div>
               <HeaderTable columns={columnsItensSelected} />
               <div className='w-full items-center flex flex-col min-h-40'>

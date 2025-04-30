@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Etapa de produção
-FROM nginx:1.25-alpine
+FROM nginx:1.28.0-alpine
 
 # Copia build
 COPY --from=build /app/dist /usr/share/nginx/html

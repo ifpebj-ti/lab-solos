@@ -1,13 +1,14 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
-import { columnsEstudantesSelected } from '@/mocks/Unidades';
+import { returnLoanCol, returnLoanColTx } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { formatDate } from '@/function/date';
 import { getLoansById } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
-import ItemOnly from '@/components/global/table/ItemOnly';
+import ItemReturn from '@/components/global/table/ItemReturn';
+import ItemTable from '@/components/global/table/Item';
 
 export interface ILote {
   codigoLote: string;
@@ -168,14 +169,22 @@ function ReturnLoan() {
                 </p>
               </div>
               <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={columnsEstudantesSelected} />
+                <HeaderTable columns={returnLoanColTx} />
                 <div className='w-full items-center flex flex-col min-h-14'>
-                  <ItemOnly
-                    data={['opa', 'asdasdasd', 'asdasdasdas']}
-                    columnWidths={columnsEstudantesSelected.map(
-                      (column) => column.width
-                    )}
-                  />
+                  {produtosQuimicos.map((row, rowIndex) => (
+                    <ItemTable
+                      data={[
+                        row.produto.nomeProduto,
+                        row.produto.quantidade.toString(),
+                        row.produto.unidadeMedida,
+                        row.produto.lote.codigoLote,
+                      ]}
+                      rowIndex={rowIndex}
+                      columnWidths={returnLoanColTx.map(
+                        (column) => column.width
+                      )}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -188,14 +197,18 @@ function ReturnLoan() {
                 </p>
               </div>
               <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={columnsEstudantesSelected} />
+                <HeaderTable columns={returnLoanCol} />
                 <div className='w-full items-center flex flex-col min-h-14'>
-                  <ItemOnly
-                    data={['opa', 'asdasdasd', 'asdasdasdas']}
-                    columnWidths={columnsEstudantesSelected.map(
-                      (column) => column.width
-                    )}
-                  />
+                  {produtosVidraria.map((row, rowIndex) => (
+                    <ItemReturn
+                      data={[
+                        row.produto.nomeProduto,
+                        row.produto.quantidade.toString(),
+                      ]}
+                      rowIndex={rowIndex}
+                      columnWidths={returnLoanCol.map((column) => column.width)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -208,14 +221,22 @@ function ReturnLoan() {
                 </p>
               </div>
               <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={columnsEstudantesSelected} />
+                <HeaderTable columns={returnLoanColTx} />
                 <div className='w-full items-center flex flex-col min-h-14'>
-                  <ItemOnly
-                    data={['opa', 'asdasdasd', 'asdasdasdas']}
-                    columnWidths={columnsEstudantesSelected.map(
-                      (column) => column.width
-                    )}
-                  />
+                  {produtosOutros.map((row, rowIndex) => (
+                    <ItemReturn
+                      data={[
+                        row.produto.nomeProduto,
+                        row.produto.quantidade.toString(),
+                        row.produto.unidadeMedida,
+                        row.produto.lote.codigoLote,
+                      ]}
+                      rowIndex={rowIndex}
+                      columnWidths={returnLoanColTx.map(
+                        (column) => column.width
+                      )}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
