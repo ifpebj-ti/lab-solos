@@ -46,21 +46,22 @@ export const authenticate = async (
     });
 
     const doorKey = response.data.token;
+    const isSecure = location.protocol === 'https:';
     if (doorKey) {
       Cookie.set('doorKey', doorKey, {
-        secure: true,
+        secure: isSecure,
         sameSite: 'Strict',
       });
 
       const decoded = jwtDecode<JwtPayload>(doorKey);
       if (decoded.sub && decoded.role) {
         Cookie.set('rankID', decoded.sub, {
-          secure: true,
+          secure: isSecure,
           sameSite: 'Strict',
         });
 
         Cookie.set('level', decoded.role, {
-          secure: true,
+          secure: isSecure,
           sameSite: 'Strict',
         });
 

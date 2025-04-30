@@ -308,6 +308,20 @@ export const columnsEstudantesSelected = [
   { value: 'Email', width: '25%' },
   { value: 'Telefone', width: '30%' },
 ];
+
+export const returnLoanCol = [
+  { value: 'Item', width: '25%' },
+  { value: 'Quantidade', width: '15%' },
+  { value: 'Devolução', width: '15%' },
+  { value: 'Justificativa', width: '45%' },
+];
+
+export const returnLoanColTx = [
+  { value: 'Item', width: '40%' },
+  { value: 'Quantidade', width: '20%' },
+  { value: 'Unidade de Medida', width: '20%' },
+  { value: 'Lote ID', width: '20%' },
+];
 export const estudantesSelected = [
   ['Ana Beatriz', 'UFPE', 'Engenharia de Software'],
   ['Carlos Eduardo', 'USP', 'Medicina'],
