@@ -2,23 +2,19 @@ name: CI/CD Workflow
 
 on:
   push:
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-  pull_request:
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+    
 
 jobs:
   frontend:
-    # Rodar somente se houver mudanças no diretório `frontend/`
     runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.message, 'frontend') || true
     permissions:
       contents: read
       packages: write
       security-events: write
-
 
     steps:
       - name: Checkout repository
@@ -39,30 +35,41 @@ jobs:
           cd frontend
           npm run lint
 
-      - name: Build Docker image for frontend
-        run: |
-          docker build -t jrrs1/frontend-labon:latest -f frontend/Dockerfile frontend
+      - name: Extract version from tag
+        id: extract_tag
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Login Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t jrrs1/frontend-labon:${{ steps.extract_tag.outputs.TAG }} -f frontend/Dockerfile frontend
+          docker tag jrrs1/frontend-labon:${{ steps.extract_tag.outputs.TAG }} jrrs1/frontend-labon:latest
+
+      - name: Docker Login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: scan Docker Scout
+      - name: Scan Docker image (Docker Scout)
         run: |
           curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
           sh install-scout.sh
-          docker scout quickview 
-          docker scout cves
-  
-      - name: Push Docker image to Docker Hub
+          docker scout quickview jrrs1/frontend-labon:${{ steps.extract_tag.outputs.TAG }}
+          docker scout cves jrrs1/frontend-labon:${{ steps.extract_tag.outputs.TAG }}
+
+      - name: Push Docker image
         run: |
+          docker push jrrs1/frontend-labon:${{ steps.extract_tag.outputs.TAG }}
           docker push jrrs1/frontend-labon:latest
 
   backend:
-    # Rodar somente se houver mudanças no diretório `backend/`
     runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.message, 'backend') || true
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -83,23 +90,29 @@ jobs:
           cd backend/LabSolos-Server-DotNet8
           dotnet test
 
-      - name: Build Docker image for backend
-        run: |
-          docker build -t jrrs1/backend-labon:latest -f backend/Dockerfile backend
+      - name: Extract version from tag
+        id: extract_tag
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Login Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t jrrs1/backend-labon:${{ steps.extract_tag.outputs.TAG }} -f backend/Dockerfile backend
+          docker tag jrrs1/backend-labon:${{ steps.extract_tag.outputs.TAG }} jrrs1/backend-labon:latest
+
+      - name: Docker Login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: scan Docker Scout
+      - name: Scan Docker image (Docker Scout)
         run: |
           curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
           sh install-scout.sh
-          docker scout quickview 
-          docker scout cves
+          docker scout quickview jrrs1/backend-labon:${{ steps.extract_tag.outputs.TAG }}
+          docker scout cves jrrs1/backend-labon:${{ steps.extract_tag.outputs.TAG }}
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker image
         run: |
+          docker push jrrs1/backend-labon:${{ steps.extract_tag.outputs.TAG }}
           docker push jrrs1/backend-labon:latest
