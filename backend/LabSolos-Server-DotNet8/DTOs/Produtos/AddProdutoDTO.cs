@@ -8,9 +8,9 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
         public required string Tipo { get; set; } // Enum
         public required float Quantidade { get; set; }
         public required float QuantidadeMinima { get; set; }
-        public required string LocalizacaoProduto { get; set; }
-        public required string DataFabricacao { get; set; }
-        public required string DataValidade { get; set; }
+        public string? LocalizacaoProduto { get; set; }
+        public string? DataFabricacao { get; set; }
+        public string? DataValidade { get; set; }
         public string? Fornecedor { get; set; }
         public string? Catmat { get; set; } = string.Empty;
         public string? UnidadeMedida { get; set; } = string.Empty;

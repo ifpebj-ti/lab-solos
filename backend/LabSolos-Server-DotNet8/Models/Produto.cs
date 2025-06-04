@@ -14,7 +14,7 @@ namespace LabSolos_Server_DotNet8.Models
         public UnidadeMedida UnidadeMedida { get; set; } = UnidadeMedida.Indefinido; // Enum
         public DateTime? DataFabricacao { get; set; }
         public DateTime? DataValidade { get; set; }
-        public required string LocalizacaoProduto { get; set; }
+        public string? LocalizacaoProduto { get; set; }
         public required StatusProduto Status { get; set; }
         public DateTime UltimaModificacao { get; set; } // Decidir
 

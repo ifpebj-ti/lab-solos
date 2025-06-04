@@ -11,35 +11,34 @@ import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
 
 const submitCreateQuimicoSchema = z.object({
-  nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
+  nome: z
+    .string()
+    .min(3, 'O nome deve ter pelo menos 3 caracteres')
+    .max(100, 'O nome deve ter no máximo 100 caracteres'),
   formula: z
     .string()
     .min(1, 'A fórmula não pode ser vazia')
-    .refine(
-      (val) => /[a-zA-Z]/.test(val),
-      'A fórmula deve conter pelo menos uma letra'
-    ),
-  catmat: z.string().min(6, 'O código CATMAT deve ter mais de 5 caracteres'),
-  quantidade: z
-    .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Quantidade deve ser um número inteiro positivo.',
-    }),
-  minimo: z
-    .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Quantidade mínima deve ser um número inteiro positivo.',
-    }),
-  localizacao: z
-    .string()
-    .min(21, 'A localização deve ter mais de 20 caracteres'),
+    .max(50, 'A fórmula deve ter no máximo 50 caracteres')
+    .regex(/^[A-Za-z0-9()\-+,. ]+$/, 'A fórmula contém caracteres inválidos'),
+  catmat: z.string().optional().or(z.literal('')),
+  quantidade: z.preprocess(
+    (val) => Number(val),
+    z.number().int().positive('Quantidade deve ser um número inteiro positivo.')
+  ),
+  minimo: z.preprocess(
+    (val) => Number(val),
+    z.number().int().min(0, 'Quantidade mínima não pode ser negativa')
+  ),
+  localizacao: z.string().optional().or(z.literal('')),
   medida: z.string().nonempty('Selecione uma unidade de medida'),
   grupo: z.string().nonempty('Selecione um grupo'),
-  dataFabricacao: z.string().date('Data de fabricação inválida'),
-  dataValidade: z.string().date('Data de validade inválida'),
-  marca: z.string().min(8, 'Marca deve ter pelo menos 8 caracteres'),
+  dataFabricacao: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Data de fabricação inválida'),
+  dataValidade: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Data de validade inválida'),
+  marca: z.string().optional().or(z.literal('')),
 });
 
 export type CreateQuimicoFormData = z.infer<typeof submitCreateQuimicoSchema>;
@@ -58,17 +57,43 @@ function FormQuimicos() {
 
   async function onSubmit(data: CreateQuimicoFormData) {
     try {
-      const dataPost = {
+      type DataPost = {
+        nomeProduto: string;
+        fornecedor?: string;
+        tipo: string;
+        quantidade: number;
+        quantidadeMinima: number;
+        localizacaoProduto?: string;
+        dataFabricacao: string;
+        dataValidade: string;
+        catmat?: string;
+        unidadeMedida?: string;
+        estadoFisico?: string;
+        cor?: string;
+        odor?: string;
+        formulaQuimica: string;
+        pesoMolecular?: number;
+        densidade?: number;
+        grauPureza?: string;
+        grupo?: string;
+        material?: string;
+        formato?: string;
+        altura?: string;
+        capacidade?: number;
+        graduada?: boolean;
+      };
+
+      const dataPost: DataPost = {
         nomeProduto: data.nome,
-        fornecedor: data.marca,
+        fornecedor: data.marca ?? '', // Always a string
         tipo: 'Quimico',
         quantidade: data.quantidade,
         quantidadeMinima: data.minimo,
-        localizacaoProduto: data.localizacao,
-        dataFabricacao: data.dataFabricacao, // Já vem no formato ISO (yyyy-MM-dd)
-        dataValidade: data.dataValidade, // Já vem no formato ISO (yyyy-MM-dd)
-        catmat: data.catmat,
-        unidadeMedida: data.medida,
+        localizacaoProduto: data.localizacao || undefined,
+        dataFabricacao: data.dataFabricacao,
+        dataValidade: data.dataValidade,
+        catmat: data.catmat || undefined,
+        unidadeMedida: data.medida || undefined,
         estadoFisico: '',
         cor: '',
         odor: '',
@@ -76,13 +101,24 @@ function FormQuimicos() {
         pesoMolecular: 0,
         densidade: 0,
         grauPureza: '',
-        grupo: data.grupo,
+        grupo: data.grupo || undefined,
         material: '',
         formato: '',
         altura: '',
         capacidade: 0,
         graduada: false,
       };
+
+      // Garantir que fornecedor é sempre string
+      (dataPost as { fornecedor: string }).fornecedor =
+        dataPost.fornecedor ?? '';
+
+      // Remove campos não obrigatórios se estiverem vazios ou undefined
+      Object.keys(dataPost).forEach(
+        (key) =>
+          (dataPost as Record<string, unknown>)[key] === '' &&
+          delete (dataPost as Record<string, unknown>)[key]
+      );
 
       await createProduct(dataPost);
       toast({
@@ -107,27 +143,29 @@ function FormQuimicos() {
       className='w-full gap-y-3 flex flex-col'
     >
       <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
-        {/* Insira os campos específicos para químicos aqui */}
         <InputText
           label='Nome'
           register={register}
           error={errors.nome?.message}
           name='nome'
-          type={'text'}
+          type='text'
+          required={true}
         />
         <InputText
           label='Fórmula Química'
           register={register}
           error={errors.formula?.message}
           name='formula'
-          type={'text'}
+          type='text'
+          required={true}
         />
         <InputText
           label='Catmat'
           register={register}
           error={errors.catmat?.message}
           name='catmat'
-          type={'text'}
+          type='text'
+          required={false}
         />
         <InputText
           label='Fornecedor'
@@ -142,6 +180,7 @@ function FormQuimicos() {
           register={register}
           error={errors.quantidade?.message}
           name='quantidade'
+          required={true}
         />
         <InputText
           label='Quantidade Mínima'
@@ -149,13 +188,14 @@ function FormQuimicos() {
           register={register}
           error={errors.minimo?.message}
           name='minimo'
+          required={true}
         />
         <InputText
           label='Localização do Produto'
           register={register}
           error={errors.localizacao?.message}
           name='localizacao'
-          type={'text'}
+          type='text'
         />
         <SelectInput
           label='Grupo'
@@ -163,6 +203,7 @@ function FormQuimicos() {
           onValueChange={(value) => setValue('grupo', value)}
           error={errors.grupo?.message}
           value={''}
+          required={true}
         />
         <PopoverInput
           unidades={unidadesMedida}
@@ -179,6 +220,7 @@ function FormQuimicos() {
           setValue={setValue}
           error={errors.dataFabricacao?.message}
           disabled={false}
+          required={true}
         />
         <DateInput
           nome='Data de Validade'
@@ -186,6 +228,7 @@ function FormQuimicos() {
           setValue={setValue}
           error={errors.dataValidade?.message}
           disabled={true}
+          required={true}
         />
       </div>
       <div className='flex gap-x-5'>
@@ -199,7 +242,7 @@ function FormQuimicos() {
           type='submit'
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
-          Criar Químicos
+          Adicionar
         </button>
       </div>
     </form>

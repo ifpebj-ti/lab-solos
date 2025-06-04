@@ -71,28 +71,28 @@ export const getAlertProducts = async () => {
 };
 interface IProduto {
   nomeProduto: string;
-  fornecedor: string;
+  fornecedor?: string;
   tipo: string;
   quantidade: number;
   quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string; // Formato ISO (YYYY-MM-DD) recomendado para APIs
-  dataValidade: string;
-  catmat: string;
-  unidadeMedida: string;
-  estadoFisico: string;
-  cor: string;
-  odor: string;
-  formulaQuimica: string;
-  pesoMolecular: number;
-  densidade: number;
-  grauPureza: string;
-  grupo: string;
-  material: string;
-  formato: string;
-  altura: string;
-  capacidade: number;
-  graduada: boolean;
+  localizacaoProduto?: string;
+  dataFabricacao?: string | null;
+  dataValidade?: string | null;
+  catmat?: string;
+  unidadeMedida?: string;
+  estadoFisico?: string;
+  cor?: string;
+  odor?: string;
+  formulaQuimica?: string;
+  pesoMolecular?: number;
+  densidade?: number;
+  grauPureza?: string;
+  grupo?: string;
+  material?: string;
+  formato?: string;
+  altura?: string;
+  capacidade?: number;
+  graduada?: boolean;
 }
 
 export const createProduct = async (dados: IProduto) => {

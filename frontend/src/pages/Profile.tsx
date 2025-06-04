@@ -5,7 +5,6 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
-import ButtonLogout from '@/components/global/ButtonLogout';
 import { FileSpreadsheet, MessageSquare } from 'lucide-react';
 import CardFunction from '@/components/screens/CardFunction';
 
@@ -158,7 +157,6 @@ function Profile() {
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <ButtonLogout />
               <OpenSearch />
             </div>
           </div>

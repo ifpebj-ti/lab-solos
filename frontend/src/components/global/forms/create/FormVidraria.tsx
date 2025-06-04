@@ -7,38 +7,56 @@ import PopoverInput from '../../inputs/PopoverInput';
 import { useState } from 'react';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
-import DateInputVd from '../../inputs/DateInputVidraria';
 
 const submitCreateVidrariaSchema = z.object({
-  nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
-  marca: z.string().min(8, 'Fornecedor/Marca deve ter pelo menos 8 caracteres'),
-  dataFabricacao: z.string().date('Data de fabricação inválida'),
-  dataValidade: z.string().date('Data de validade inválida'),
+  nome: z
+    .string()
+    .min(3, 'O nome deve ter pelo menos 3 caracteres')
+    .max(50, 'O nome deve ter no máximo 50 caracteres'),
+  marca: z.string().optional().or(z.literal('')),
+  dataFabricacao: z.string().optional().or(z.literal('')),
+  dataValidade: z.string().optional().or(z.literal('')),
   quantidade: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Quantidade deve ser um número inteiro positivo.',
-    }),
+    .transform((val) => (val === '' ? undefined : Number(val)))
+    .refine(
+      (val) =>
+        val === undefined ||
+        (Number.isInteger(val) && val >= 0 && val <= 10000),
+      {
+        message: 'Quantidade deve ser um número inteiro entre 0 e 10.000.',
+      }
+    )
+    .optional(),
   minimo: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Quantidade mínima deve ser um número inteiro positivo.',
-    }),
+    .transform((val) => (val === '' ? undefined : Number(val)))
+    .refine(
+      (val) =>
+        val === undefined ||
+        (Number.isInteger(val) && val >= 0 && val <= 10000),
+      {
+        message:
+          'Quantidade mínima deve ser um número inteiro entre 0 e 10.000.',
+      }
+    )
+    .optional(),
   capacidade: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: 'Capacidade deve ser um número inteiro positivo.',
-    }),
-  localizacao: z
-    .string()
-    .min(10, 'A localização deve ter mais de 10 caracteres'),
-  formato: z.string().nonempty('Selecione um formato de vidraria'),
-  material: z.string().nonempty('Selecione um material de vidraria'),
-  altura: z.string().nonempty('Selecione um altura de vidraria'),
-  graduada: z.boolean(),
+    .transform((val) => (val === '' ? undefined : Number(val)))
+    .refine(
+      (val) =>
+        val === undefined || (Number.isFinite(val) && val > 0 && val <= 100000),
+      {
+        message: 'Capacidade deve ser um número positivo até 100.000 ml.',
+      }
+    )
+    .optional(),
+  localizacao: z.string().optional().or(z.literal('')),
+  formato: z.string().optional().or(z.literal('')),
+  material: z.string().optional().or(z.literal('')),
+  altura: z.string().optional().or(z.literal('')),
+  graduada: z.boolean().optional(),
 });
 
 export type CreateVidrariaFormData = z.infer<typeof submitCreateVidrariaSchema>;
@@ -63,13 +81,13 @@ function FormVidrarias() {
     try {
       const dataPost = {
         nomeProduto: data.nome,
-        fornecedor: data.marca,
+        fornecedor: data.marca || undefined,
         tipo: 'Vidraria',
-        quantidade: data.quantidade,
-        quantidadeMinima: data.minimo,
-        localizacaoProduto: data.localizacao,
-        dataFabricacao: data.dataFabricacao, // Já vem no formato ISO (yyyy-MM-dd)
-        dataValidade: data.dataValidade, // Já vem no formato ISO (yyyy-MM-dd)
+        quantidade: data.quantidade ?? 0,
+        quantidadeMinima: data.minimo ?? 0,
+        localizacaoProduto: data.localizacao || undefined,
+        dataFabricacao: data.dataFabricacao,
+        dataValidade: data.dataValidade,
         catmat: '',
         unidadeMedida: '',
         estadoFisico: '',
@@ -80,12 +98,17 @@ function FormVidrarias() {
         densidade: 0,
         grauPureza: '',
         grupo: '',
-        material: data.material,
-        formato: data.formato,
-        altura: data.altura,
+        material: data.material || undefined,
+        formato: data.formato || undefined,
+        altura: data.altura || undefined,
         capacidade: data.capacidade,
         graduada: data.graduada,
       };
+
+      const dataPostTyped: Record<string, unknown> = { ...dataPost };
+      Object.keys(dataPostTyped).forEach(
+        (key) => dataPostTyped[key] === '' && delete dataPostTyped[key]
+      );
 
       await createProduct(dataPost);
       toast({
@@ -116,6 +139,7 @@ function FormVidrarias() {
           error={errors.nome?.message}
           name='nome'
           type='text'
+          required={true}
         />
         <InputText
           label='Fornecedor/Marca'
@@ -125,11 +149,12 @@ function FormVidrarias() {
           type='string'
         />
         <InputText
-          label='Quantidade Inserida (Un)'
+          label='Quantidade (Un)'
           register={register}
           error={errors.quantidade?.message}
           name='quantidade'
           type='number'
+          required={true}
         />
         <InputText
           label='Quantidade Mínima (Un)'
@@ -137,20 +162,7 @@ function FormVidrarias() {
           error={errors.minimo?.message}
           name='minimo'
           type='number'
-        />
-        <DateInputVd
-          nome='Data de Fabricação'
-          name='dataFabricacao'
-          setValue={setValue}
-          error={errors.dataFabricacao?.message}
-          disabled={false}
-        />
-        <DateInputVd
-          nome='Data de Validade'
-          name='dataValidade'
-          setValue={setValue}
-          error={errors.dataValidade?.message}
-          disabled={true}
+          required={true}
         />
         <InputText
           label='Capacidade (ml)'
@@ -158,6 +170,7 @@ function FormVidrarias() {
           error={errors.capacidade?.message}
           name='capacidade'
           type='number'
+          required={true}
         />
         <InputText
           label='Localização'
@@ -219,7 +232,7 @@ function FormVidrarias() {
           type='submit'
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
-          Adicionar Vidraria
+          Adicionar
         </button>
       </div>
     </form>

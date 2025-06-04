@@ -17,19 +17,20 @@ function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
       to={link}
       className='relative w-1/4 gap-x-4 h-full border-borderMy border rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm max-h-32'
     >
-      <div className='min-w-7'>{icon}</div>
+      <div className='relative min-w-7 flex items-center justify-center'>
+        {icon}
+        {/* Bolinha vermelha para notificação em cima do ícone */}
+        {notifyProp && (
+          <span className='absolute -top-1 -left-1 flex items-center justify-center bg-red-500 rounded-full min-w-[20px] min-h-[20px] border-white border'>
+            <span className='font-rajdhani-bold text-white text-xs mt-[2px]'>
+              {quant}
+            </span>
+          </span>
+        )}
+      </div>
       <p className='font-inter-medium uppercase text-clt-2 text-sm line-clamp-2'>
         {text}
       </p>
-
-      {/* Bolinha vermelha para notificação */}
-      {notifyProp && (
-        <span className='absolute top-0 left-full transform -translate-x-2 -translate-y-1/2 flex items-center justify-center bg-red-500 rounded-full min-w-[20px] min-h-[20px]'>
-          <span className='font-rajdhani-bold text-white text-xs mt-[2px]'>
-            {quant}
-          </span>
-        </span>
-      )}
     </Link>
   );
 }

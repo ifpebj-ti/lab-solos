@@ -17,6 +17,7 @@ interface IDateInput {
   setValue: UseFormSetValue<CreateQuimicoFormData>; // UseFormSetValue tipado corretamente
   error?: string;
   disabled?: boolean; // Adicionando a prop disabled
+  required?: boolean; // novo
 }
 
 function DateInput({
@@ -25,6 +26,7 @@ function DateInput({
   setValue,
   error,
   disabled = true,
+  required = false, // novo
 }: IDateInput) {
   const [date, setDate] = useState<Date | undefined>(undefined);
 
@@ -37,7 +39,10 @@ function DateInput({
 
   return (
     <div className='flex flex-col gap-y-1 w-full'>
-      <p className='font-inter-regular text-sm text-clt-2 mt-3'>{nome}</p>
+      <p className='font-inter-regular text-sm text-clt-2 mt-3'>
+        {nome}
+        {required && <span className='text-red-500 ml-1'>*</span>}
+      </p>
       <Popover>
         <PopoverTrigger asChild>
           <button

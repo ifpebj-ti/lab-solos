@@ -16,9 +16,9 @@ function App() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
   return (
     <>
-      {/* O Toaster precisa estar no topo */}
       <Toaster />
       {isLargeScreen ? <AppRoutes /> : <NoResponsiveness />}
     </>

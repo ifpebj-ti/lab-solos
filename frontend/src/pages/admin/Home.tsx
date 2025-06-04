@@ -1,5 +1,4 @@
 import Laboratory from '../../../public/images/laboratory.png';
-import OpenSearch from '@/components/global/OpenSearch';
 import InfoCard from '@/components/screens/InfoCard';
 import AlertIcon from '../../../public/icons/AlertIcon';
 import JoinIcon from '../../../public/icons/JoinIcon';
@@ -11,6 +10,7 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
 import { getAlertProducts } from '@/integration/Product';
+import { PackageSearch, Users, ArrowLeftRight } from 'lucide-react';
 export interface IUsuario {
   id: number;
   nomeCompleto: string;
@@ -71,6 +71,77 @@ function Home() {
     fetchGetLoansDependentes();
   }, [id]);
 
+  // Cards principais e de navegação rápida, todos no mesmo padrão
+  // Para mudar o tamanho dos ícones, adicione a propriedade "width" e/ou "height" nos componentes SVG.
+  // Exemplo: <AlertIcon fill='#16A34A' width={32} height={32} />
+  // Ajuste os valores conforme desejado.
+
+  const iconSize = 35;
+  const stroke = 1.3;
+
+  const infoCards = [
+    {
+      icon: <AlertIcon />,
+      text: 'Produtos com Alerta',
+      notify: alert.length !== 0,
+      link: '/admin/follow-up',
+      quant: alert.length,
+    },
+    {
+      icon: <JoinIcon />,
+      text: 'Solicitações de Cadastro',
+      notify: approval.length !== 0,
+      link: '/admin/register-request',
+      quant: approval.length,
+    },
+    {
+      icon: <LoanIcon />,
+      text: 'Solicitações de Empréstimo',
+      notify: loan.length !== 0,
+      link: '/admin/loans-request',
+      quant: loan.length,
+    },
+    {
+      icon: (
+        <PackageSearch
+          className='text-green-600'
+          size={iconSize}
+          strokeWidth={stroke}
+        />
+      ),
+      text: 'Produtos',
+      notify: false,
+      link: '/admin/search-material',
+      quant: undefined,
+    },
+    {
+      icon: (
+        <Users
+          className='text-green-600'
+          size={iconSize}
+          strokeWidth={stroke}
+        />
+      ),
+      text: 'Usuários',
+      notify: false,
+      link: '/admin/users',
+      quant: undefined,
+    },
+    {
+      icon: (
+        <ArrowLeftRight
+          className='text-green-600'
+          size={iconSize}
+          strokeWidth={stroke}
+        />
+      ),
+      text: 'Empréstimos',
+      notify: false,
+      link: '/admin/all-loans',
+      quant: undefined,
+    },
+  ];
+
   return (
     <>
       {isLoading ? (
@@ -81,14 +152,11 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-screen max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy overflow-hidden '>
+        <div className='h-full max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy '>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home
             </h1>
-            <div className='flex items-center justify-between'>
-              <OpenSearch />
-            </div>
           </div>
           <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>
             <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl  text-clt-2 gap-y-3'>
@@ -96,9 +164,9 @@ function Home() {
               <p>
                 Laboratório de <span className='text-primaryMy'>Solos</span>
               </p>
-              <p>e Sustentabilidade</p>
+              <p className='text-primaryMy'>e Sustentabilidade</p>
               <p>
-                Ambiental - <span className='text-primaryMy'>IFPEBJ</span>
+                <span className='text-primaryMy'> Ambiental </span>- IFPEBJ
               </p>
             </div>
             <div className='h-full'>
@@ -109,28 +177,17 @@ function Home() {
               ></img>
             </div>
           </div>
-          <div className='w-11/12 min-h-24 flex justify-between mt-14'>
-            <InfoCard
-              icon={<AlertIcon />}
-              text='Produtos com Alerta'
-              notify={alert.length != 0 ? true : false}
-              link={'/admin/follow-up'}
-              quant={alert.length}
-            />
-            <InfoCard
-              icon={<JoinIcon />}
-              text='Solicitações de Cadastro'
-              notify={approval.length != 0 ? true : false}
-              link={'/admin/register-request'}
-              quant={approval.length}
-            />
-            <InfoCard
-              icon={<LoanIcon />}
-              text='Solicitações de Empréstimo'
-              notify={loan.length != 0 ? true : false}
-              link={'/admin/loans-request'}
-              quant={loan.length}
-            />
+          <div className='w-11/12 flex flex-wrap gap-6 justify-between mt-14'>
+            {infoCards.map((card) => (
+              <InfoCard
+                key={card.text}
+                icon={card.icon}
+                text={card.text}
+                notify={card.notify}
+                link={card.link}
+                quant={card.quant}
+              />
+            ))}
           </div>
         </div>
       )}

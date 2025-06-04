@@ -12,6 +12,7 @@ interface IInputText<T extends FieldValues> {
   error?: string | FieldError;
   name: Path<T>;
   placeholder?: string;
+  required?: boolean; // novo
 }
 
 function InputText<T extends FieldValues>({
@@ -21,10 +22,14 @@ function InputText<T extends FieldValues>({
   error,
   name,
   placeholder,
+  required = false, // novo
 }: IInputText<T>) {
   return (
     <div className='w-full flex flex-col gap-1 relative mt-3'>
-      <label className='font-inter-regular text-sm text-clt-2'>{label}</label>
+      <label className='font-inter-regular text-sm text-clt-2'>
+        {label}
+        {required && <span className='text-red-500 ml-1'>*</span>}
+      </label>
       <input
         placeholder={placeholder}
         type={type}

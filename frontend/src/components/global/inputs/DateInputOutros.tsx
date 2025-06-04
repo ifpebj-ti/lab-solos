@@ -13,10 +13,11 @@ import { CreateOutrosFormData } from '../forms/create/FormOutros';
 
 interface IDateInput {
   nome: string;
-  name: Path<CreateOutrosFormData>; // Agora aceita apenas nomes válidos
-  setValue: UseFormSetValue<CreateOutrosFormData>; // UseFormSetValue tipado corretamente
+  name: Path<CreateOutrosFormData>;
+  setValue: UseFormSetValue<CreateOutrosFormData>;
   error?: string;
-  disabled?: boolean; // Adicionando a prop disabled
+  disabled?: boolean;
+  required?: boolean; // novo
 }
 
 function DateInputOutros({
@@ -25,6 +26,7 @@ function DateInputOutros({
   setValue,
   error,
   disabled = true,
+  required = false, // novo
 }: IDateInput) {
   const [date, setDate] = useState<Date | undefined>(undefined);
 
@@ -37,7 +39,10 @@ function DateInputOutros({
 
   return (
     <div className='flex flex-col gap-y-1 w-full'>
-      <p className='font-inter-regular text-sm text-clt-2 mt-3'>{nome}</p>
+      <p className='font-inter-regular text-sm text-clt-2 mt-3'>
+        {nome}
+        {required && <span className='text-red-500 ml-1'>*</span>}
+      </p>
       <Popover>
         <PopoverTrigger asChild>
           <button

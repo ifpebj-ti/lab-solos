@@ -1,24 +1,24 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
-import { Link } from 'react-router-dom';
-import OpenSearch from '@/components/global/OpenSearch';
+// import { Link } from 'react-router-dom';
+// import OpenSearch from '@/components/global/OpenSearch';
 import FormQuimicos from '@/components/global/forms/create/FormQuimicos';
 import FormVidrarias from '@/components/global/forms/create/FormVidraria';
 import FormOutros from '@/components/global/forms/create/FormOutros';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { FileSpreadsheet, FileText } from 'lucide-react';
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from '@/components/ui/popover';
+// import {
+//   AlertDialog,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+//   AlertDialogTrigger,
+// } from '@/components/ui/alert-dialog';
+// import { FileSpreadsheet, FileText } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 function Index() {
@@ -48,34 +48,34 @@ function Index() {
     };
   }, [isOpen]);
 
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [dragOver, setDragOver] = useState(false);
+  // const [fileName, setFileName] = useState<string | null>(null);
+  // const [dragOver, setDragOver] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-    }
-  };
+  // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     setFileName(file.name);
+  //   }
+  // };
 
-  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault();
-    setDragOver(true);
-  };
+  // const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
+  //   event.preventDefault();
+  //   setDragOver(true);
+  // };
 
-  const handleDragLeave = () => {
-    setDragOver(false);
-  };
+  // const handleDragLeave = () => {
+  //   setDragOver(false);
+  // };
 
-  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
-    event.preventDefault();
-    setDragOver(false);
+  // const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+  //   event.preventDefault();
+  //   setDragOver(false);
 
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      setFileName(file.name);
-    }
-  };
+  //   const file = event.dataTransfer.files[0];
+  //   if (file) {
+  //     setFileName(file.name);
+  //   }
+  // };
 
   return (
     <>
@@ -90,10 +90,10 @@ function Index() {
         <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Cadastro de Bens
+              Adicionar Bens
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
-              <Popover>
+              {/* <Popover>
                 <PopoverTrigger asChild>
                   <button className='border border-borderMy font-inter-medium text-clt-2 text-sm rounded-md h-11 gap-x-3 px-4 uppercase flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
                     <FileSpreadsheet
@@ -184,14 +184,13 @@ function Index() {
                     </AlertDialog>
                   </div>
                 </PopoverContent>
-              </Popover>
-              <Link
+              </Popover> */}
+              {/* <Link
                 to={'/admin/insert/launch'}
                 className='border border-borderMy rounded-md h-11 px-4 uppercase font-inter-medium text-clt-2 text-sm hover:bg-cl-table-item transition-all ease-in-out duration-200 flex items-center'
               >
-                Realizar Lançamento
-              </Link>
-              <OpenSearch />
+                Inserção em Lotes
+              </Link> */}
             </div>
           </div>
           <div className='w-11/12 min-h-96 mt-6'>

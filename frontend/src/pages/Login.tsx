@@ -80,7 +80,7 @@ function Login() {
           <div className='text-white gap-y-1'>
             <h1 className='font-rajdhani-semibold text-3xl'>Lab-On</h1>
             <p className='font-rajdhani-medium text-base'>
-              Gerenciamento de Laboratórios <br /> Químicos Online
+              Gerencie seus espaços e recursos de forma online e eficiente
             </p>
           </div>
         </div>

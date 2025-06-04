@@ -44,13 +44,22 @@ import Disabled from './pages/mentor/Disabled';
 import CreateInfo from './pages/admin/CreateInfo';
 import ViewInfo from './pages/admin/ViewInfo';
 import ReturnLoan from './pages/admin/ReturnLoan';
+import Settings from './pages/admin/Settings';
+import { Layout } from './components/ui/layout';
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Rotas de Admin  */}
-        <Route path='/admin' element={<BaseAdmin />}>
+        <Route
+          path='/admin'
+          element={
+            <Layout>
+              <BaseAdmin />
+            </Layout>
+          }
+        >
           <Route
             index
             element={
@@ -222,10 +231,26 @@ function AppRoutes() {
               />
             }
           />
+          <Route
+            path='settings'
+            element={
+              <PrivateRoute
+                element={<Settings />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
         </Route>
 
         {/* Rotas de Mentor */}
-        <Route path='/mentor' element={<BaseMentor />}>
+        <Route
+          path='/mentor'
+          element={
+            <Layout>
+              <BaseMentor />
+            </Layout>
+          }
+        >
           <Route
             index
             element={
@@ -337,7 +362,14 @@ function AppRoutes() {
         </Route>
 
         {/* Rotas de Mentee */}
-        <Route path='/mentee' element={<BaseMentee />}>
+        <Route
+          path='/mentee'
+          element={
+            <Layout>
+              <BaseMentee />
+            </Layout>
+          }
+        >
           <Route
             index
             element={

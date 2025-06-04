@@ -7,25 +7,37 @@ import { toast } from '@/components/hooks/use-toast';
 import DateInputOutros from '../../inputs/DateInputOutros';
 
 const submitCreateOutrosSchema = z.object({
-  nome: z.string().min(8, 'O nome deve ter pelo menos 8 caracteres'),
-  marca: z.string().min(8, 'Marca deve ter pelo menos 8 caracteres'),
+  nome: z
+    .string()
+    .min(3, 'O nome deve ter pelo menos 3 caracteres')
+    .max(100, 'O nome deve ter no máximo 100 caracteres'),
+  marca: z.string().optional().or(z.literal('')),
   quantidade: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
+    .refine((val) => /^\d+$/.test(val), {
       message: 'Quantidade deve ser um número inteiro positivo.',
+    })
+    .transform((val) => Number(val))
+    .refine((val) => Number.isInteger(val) && val > 0 && val <= 100000, {
+      message: 'Quantidade deve ser um número inteiro positivo até 100.000.',
     }),
   minimo: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => Number.isInteger(val) && val > 0, {
+    .refine((val) => /^\d+$/.test(val), {
       message: 'Quantidade mínima deve ser um número inteiro positivo.',
+    })
+    .transform((val) => Number(val))
+    .refine((val) => Number.isInteger(val) && val >= 0 && val <= 100000, {
+      message:
+        'Quantidade mínima deve ser um número inteiro entre 0 e 100.000.',
     }),
-  localizacao: z
-    .string()
-    .min(10, 'A localização deve ter mais de 10 caracteres'),
-  dataFabricacao: z.string().date('Data de fabricação inválida'),
-  dataValidade: z.string().date('Data de validade inválida'),
+  localizacao: z.string().optional().or(z.literal('')),
+  dataFabricacao: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: 'Data de fabricação inválida',
+  }),
+  dataValidade: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: 'Data de validade inválida',
+  }),
 });
 
 export type CreateOutrosFormData = z.infer<typeof submitCreateOutrosSchema>;
@@ -45,13 +57,13 @@ function FormOutros() {
     try {
       const dataPost = {
         nomeProduto: data.nome,
-        fornecedor: data.marca,
+        fornecedor: data.marca || undefined,
         tipo: 'Outro',
         quantidade: data.quantidade,
         quantidadeMinima: data.minimo,
-        localizacaoProduto: data.localizacao,
-        dataFabricacao: data.dataFabricacao, // Já vem no formato ISO (yyyy-MM-dd)
-        dataValidade: data.dataValidade, // Já vem no formato ISO (yyyy-MM-dd)
+        localizacaoProduto: data.localizacao || undefined,
+        dataFabricacao: data.dataFabricacao,
+        dataValidade: data.dataValidade,
         catmat: '',
         unidadeMedida: '',
         estadoFisico: '',
@@ -68,6 +80,12 @@ function FormOutros() {
         capacidade: 0,
         graduada: false,
       };
+
+      Object.keys(dataPost as Record<string, unknown>).forEach(
+        (key) =>
+          (dataPost as Record<string, unknown>)[key] === '' &&
+          delete (dataPost as Record<string, unknown>)[key]
+      );
 
       await createProduct(dataPost);
       toast({
@@ -98,6 +116,7 @@ function FormOutros() {
           error={errors.nome?.message}
           name='nome'
           type='text'
+          required={true}
         />
         <InputText
           label='Fornecedor'
@@ -107,11 +126,12 @@ function FormOutros() {
           type='text'
         />
         <InputText
-          label='Quantidade Inserida'
+          label='Quantidade'
           register={register}
           error={errors.quantidade?.message}
           name='quantidade'
           type='number'
+          required={true}
         />
         <InputText
           label='Quantidade Mínima'
@@ -119,6 +139,7 @@ function FormOutros() {
           error={errors.minimo?.message}
           name='minimo'
           type='number'
+          required={true}
         />
         <InputText
           label='Localização'
@@ -135,6 +156,7 @@ function FormOutros() {
           setValue={setValue}
           error={errors.dataFabricacao?.message}
           disabled={false}
+          required={true}
         />
         <DateInputOutros
           nome='Data de Validade'
@@ -142,6 +164,7 @@ function FormOutros() {
           setValue={setValue}
           error={errors.dataValidade?.message}
           disabled={true}
+          required={true}
         />
       </div>
 
@@ -156,7 +179,7 @@ function FormOutros() {
           type='submit'
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
-          Adicionar Bens
+          Adicionar
         </button>
       </div>
     </form>
