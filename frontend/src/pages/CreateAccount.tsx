@@ -258,7 +258,7 @@ function CreateAccount() {
                       <SheetTitle>TERMOS E CONDIÇÕES DE USO</SheetTitle>
                       <SheetDescription>
                         Bem-vindo(a) ao LabON - Gerenciamento de Laboratórios
-                        Online! Antes de utilizar nossos serviços, leia
+                        Químicos Online! Antes de utilizar nossos serviços, leia
                         atentamente os Termos e Condições abaixo. Ao acessar ou
                         utilizar a nossa aplicação, você concorda com todas as
                         regras e diretrizes estabelecidas neste documento.
@@ -285,8 +285,7 @@ function CreateAccount() {
                         Para utilizar o LabON, é necessário solicitar acesso
                         através do pré-cadastro, fornecendo informações
                         verdadeiras e atualizadas, como nome, email
-                        institucional, instituição de ensino e descrição do
-                        laboratório.
+                        institucional e instituição de ensino.
                       </li>
                       <li>
                         O acesso será validado manualmente pela equipe do LabON
@@ -306,7 +305,7 @@ function CreateAccount() {
                       <li>
                         Em caso de uso não autorizado ou suspeita de violação de
                         segurança, notifique imediatamente a equipe do LabON
-                        pelo e-mail [EMAIL DE SUPORTE].
+                        pelo e-mail jrem1@discente.ifpe.edu.br.
                       </li>
                     </ul>
 
@@ -357,8 +356,8 @@ function CreateAccount() {
                     </p>
                     <p className='text-sm text-clt-1 font-inter-regular'>
                       Você tem o direito de acessar, corrigir ou excluir suas
-                      informações pessoais, conforme a legislação aplicável (ex:
-                      Lei Geral de Proteção de Dados - LGPD).
+                      informações pessoais, conforme a legislação aplicável da
+                      LGPD.
                     </p>
 
                     <div className='grid gap-4 py-4'>
@@ -378,7 +377,7 @@ function CreateAccount() {
                     </p>
                     <p className='text-sm text-clt-1 font-inter-regular'>
                       O LabON é um projeto open-source, e o código-fonte está
-                      disponível sob a licença [NOME DA LICENÇA]. Consulte o
+                      disponível sob a licença Apache-2.0 license. Consulte o
                       repositório oficial para mais detalhes.
                     </p>
 
@@ -422,13 +421,13 @@ function CreateAccount() {
 
                     <div className='grid gap-4 py-4'>9. Disposições Gerais</div>
                     <p className='text-sm text-clt-1 font-inter-regular'>
-                      Estes Termos são regidos pelas leis de [PAÍS/ESTADO], e
+                      Estes Termos são regidos pelas leis brasileiras, e
                       quaisquer disputas serão resolvidas nos tribunais
                       competentes.
                     </p>
                     <p className='text-sm text-clt-1 font-inter-regular'>
                       Caso tenha dúvidas ou precise de suporte, entre em contato
-                      pelo e-mail [EMAIL DE SUPORTE].
+                      pelo e-mail jrem1@discente.ifpe.edu.br.
                     </p>
 
                     <div className='grid gap-4 py-4'>
@@ -436,7 +435,7 @@ function CreateAccount() {
                     </div>
                     <p className='text-sm text-clt-1 font-inter-regular'>
                       O código-fonte do LabON está disponível publicamente sob a
-                      licença [NOME DA LICENÇA]. Consulte o repositório oficial
+                      licença Apache-2.0 license. Consulte o repositório oficial
                       para mais informações sobre uso, modificação e
                       distribuição.
                     </p>

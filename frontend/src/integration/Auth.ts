@@ -28,6 +28,10 @@ interface ICreateUserData {
   responsavelEmail: string;
 }
 
+interface IForgotPasswordParams {
+  email: string;
+}
+
 // Interface para decodificação do token
 interface JwtPayload {
   sub: string; // ID ou nível do usuário
@@ -107,3 +111,23 @@ export const createMentor = async (data: ICreateUserData) => {
     throw error;
   }
 };
+
+export const requestPasswordReset = async (data: IForgotPasswordParams) => {
+  try {
+    const response = await api.post('/Email/solicitar-redefinicao', data);
+    return response;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro ao solicitar redefinição de senha', error);
+    }
+    throw error;
+  }
+};
+
+interface IResetPasswordParams {
+  token: string;
+  novaSenha: string;
+}
+
+export const resetPassword = (data: IResetPasswordParams) =>
+  api.post('/Email/redefinir-senha', data);

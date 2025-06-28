@@ -152,7 +152,7 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-full max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy '>
+        <div className='h-full max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy mb-20'>
           <div className='w-11/12 flex items-center justify-between mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home

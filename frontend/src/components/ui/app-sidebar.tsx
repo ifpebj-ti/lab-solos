@@ -3,7 +3,6 @@ import logo from './../../../public/images/logo.png';
 import * as React from 'react';
 import {
   PackageSearch,
-  LifeBuoy,
   ArrowLeftRight,
   Users,
   Send,
@@ -15,7 +14,6 @@ import Cookie from 'js-cookie';
 
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
-import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
@@ -90,29 +88,6 @@ const menus = {
           },
         ],
       },
-      // {
-      //   title: 'Configurações',
-      //   url: '/admin/settings',
-      //   icon: Settings,
-      //   items: [
-      //     {
-      //       title: 'Geral',
-      //       url: '/admin/settings',
-      //     },
-      //   ],
-      // },
-    ],
-    navSecondary: [
-      {
-        title: 'Support',
-        url: '#',
-        icon: LifeBuoy,
-      },
-      {
-        title: 'Feedback',
-        url: '#',
-        icon: Send,
-      },
     ],
     projects: [
       {
@@ -151,7 +126,6 @@ const menus = {
         icon: PackageSearch,
       },
     ],
-    navSecondary: [],
     projects: [],
   },
   Mentorado: {
@@ -173,7 +147,6 @@ const menus = {
         icon: ArrowLeftRight,
       },
     ],
-    navSecondary: [],
     projects: [],
   },
   Comum: {
@@ -190,7 +163,6 @@ const menus = {
         icon: PackageSearch,
       },
     ],
-    navSecondary: [],
     projects: [],
   },
 };
@@ -264,9 +236,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         {data.projects.length > 0 && <NavProjects projects={data.projects} />}
-        {data.navSecondary.length > 0 && (
-          <NavSecondary items={data.navSecondary} className='mt-auto' />
-        )}
       </SidebarContent>
       <SidebarFooter>
         {!loading && user && (
