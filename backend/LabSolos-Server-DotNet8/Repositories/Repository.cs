@@ -5,16 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
+
     public interface IRepository<T>
     {
-        Task<IEnumerable<T>> ObterTodosAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
-        Task<T?> ObterAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null);
+        Task<IEnumerable<T>> ObterTodosAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? include = null
+        );
+        Task<T?> ObterAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? include = null
+        );
         bool Existe(Expression<Func<T, bool>> predicate);
         T Criar(T entity);
         T Atualizar(T entity);
         T Remover(T entity);
     }
-
+        
     public class Repository<T>(AppDbContext context) : IRepository<T> where T : class
     {
         protected readonly AppDbContext _context = context;

@@ -37,6 +37,7 @@ import VerificationMentor from './pages/mentor/VerificationMentor';
 import ClassLoan from './pages/admin/ClassLoan';
 import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
+import ProductHistory from './pages/products/ProductHistory';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
 import BootScreen from './pages/BootScreen';
 import PreLab from './pages/prelab/PreLab';
@@ -110,6 +111,15 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<SearchMaterial />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='products/:id/history'
+            element={
+              <PrivateRoute
+                element={<ProductHistory />}
                 requiredRank={['Administrador']}
               />
             }

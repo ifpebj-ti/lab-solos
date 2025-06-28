@@ -26,7 +26,7 @@ namespace LabSolos_Server_DotNet8.Services
             var smtpPass = _config["Email:Senha"] ?? throw new InvalidOperationException("Senha SMTP não configurada.");
             var de = _config["Email:De"] ?? throw new InvalidOperationException("Endereço de envio não configurado.");
 
-            var fromAddress = new MailAddress(de, "Sistema Teste");
+            var fromAddress = new MailAddress(de, "Redefinição de Senha LabOn");
             var toAddress = new MailAddress(para);
 
             var smtp = new SmtpClient

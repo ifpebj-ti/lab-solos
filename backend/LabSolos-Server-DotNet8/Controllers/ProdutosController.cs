@@ -50,7 +50,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest("Tipo de produto inválido. Use um valor de TipoProduto válido.");
             }
 
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Tipo == (TipoProduto)tipoProduto, query => query.Include(c => c.Lote));
+            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.TipoProduto == (TipoProduto)tipoProduto, query => query.Include(c => c.Lote));
 
             // Mapeamento baseado no tipo do produto
             return (TipoProduto)tipoProduto switch
@@ -88,7 +88,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Mapeamento baseado no tipo do produto
-            return produto.Tipo switch
+            return produto.TipoProduto switch
             {
                 TipoProduto.Quimico => Ok(_mapper.Map<QuimicoDTO>(produto)),
                 TipoProduto.Vidraria => Ok(_mapper.Map<VidrariaDTO>(produto)),
@@ -111,7 +111,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             try
             {
-                tipoProduto = _utilsService.ValidarEnum<TipoProduto>(addProdutoDTO.Tipo, "Tipo", TipoProduto.Outro);
+                tipoProduto = _utilsService.ValidarEnum<TipoProduto>(addProdutoDTO.TipoProduto, "TipoProduto", TipoProduto.Outro);
             }
             catch (ArgumentException ex)
             {
@@ -173,6 +173,35 @@ namespace LabSolos_Server_DotNet8.Controllers
             await _uow.CommitAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("{id}/historico-saida")]
+        [Authorize]
+        public async Task<IActionResult> ObterHistoricoSaidaProduto(int id)
+        {
+            _logger.LogInformation("Iniciando operação para obter histórico de saída do produto {ProdutoId}.", id);
+
+            try
+            {
+                var historico = await _produtoService.ObterHistoricoSaidaProdutoAsync(id);
+
+                if (historico == null)
+                {
+                    _logger.LogWarning("Produto com ID {ProdutoId} não encontrado", id);
+                    return NotFound($"Produto com ID {id} não encontrado.");
+                }
+
+                _logger.LogInformation(
+                    "Histórico de saída do produto {ProdutoId} obtido com sucesso. Total de empréstimos: {TotalEmprestimos}",
+                    id, historico.TotalEmprestimos);
+
+                return Ok(historico);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro inesperado ao obter histórico de saída do produto {ProdutoId}", id);
+                return StatusCode(500, "Erro interno do servidor. Tente novamente mais tarde.");
+            }
         }
     }
 }

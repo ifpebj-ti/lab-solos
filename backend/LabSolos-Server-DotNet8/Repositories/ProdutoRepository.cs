@@ -20,7 +20,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         Task UpdateProdutos(IEnumerable<Produto> produtos);
         Task DeleteAsync(int id);
     }
-    
+
     public class ProdutoRepository(AppDbContext context, ILogger<ProdutoRepository> logger) : IProdutoRepository
     {
         private readonly AppDbContext _context = context;
@@ -72,14 +72,14 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             _logger.LogInformation("Iniciando operação para adicionar um novo produto: {Nome}.", produto.NomeProduto);
 
-            switch (produto.Tipo)
+            switch (produto.TipoProduto)
             {
                 case TipoProduto.Quimico:
                     var quimico = new Quimico
                     {
                         NomeProduto = produto.NomeProduto,
                         Fornecedor = produto.Fornecedor,
-                        Tipo = TipoProduto.Quimico,
+                        TipoProduto = TipoProduto.Quimico,
                         Quantidade = produto.Quantidade,
                         QuantidadeMinima = produto.QuantidadeMinima,
                         DataFabricacao = produto.DataFabricacao,
@@ -106,7 +106,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                     {
                         NomeProduto = produto.NomeProduto,
                         Fornecedor = produto.Fornecedor,
-                        Tipo = TipoProduto.Vidraria,
+                        TipoProduto = TipoProduto.Vidraria,
                         Quantidade = produto.Quantidade,
                         QuantidadeMinima = produto.QuantidadeMinima,
                         DataFabricacao = produto.DataValidade,
@@ -128,7 +128,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                     await _context.Produtos.AddAsync(produto);
                     break;
                 default:
-                    _logger.LogError("Tipo de produto desconhecido: {Tipo}.", produto.Tipo);
+                    _logger.LogError("Tipo de produto desconhecido: {TipoProduto}.", produto.TipoProduto);
                     throw new ArgumentException("Tipo de produto inválido.");
 
             }

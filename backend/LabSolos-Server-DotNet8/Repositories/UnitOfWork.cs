@@ -3,6 +3,7 @@ using LabSolos_Server_DotNet8.Models;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
+
     public interface IUnitOfWork
     {
         IRepository<Academico> AcademicoRepository { get; }
@@ -18,7 +19,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         Task CommitAsync();
     }
-
+    
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context;

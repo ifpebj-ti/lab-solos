@@ -53,15 +53,16 @@ interface ICreateLoan {
 }
 
 const selectProductSchema = z.object({
-  group: z.string().nonempty('Selecione uma unidade de medida'),
-  item: z.string().nonempty('Selecione uma unidade de medida'),
+  group: z.string().nonempty('Selecione um grupo'),
+  item: z.string().nonempty('Selecione um item'),
   quantity: z
     .string()
     .transform((val) => Number(val))
     .refine((val) => Number.isInteger(val) && val > 0, {
       message: 'Quantidade deve ser um número inteiro positivo.',
     }),
-  user: z.string().nonempty('Selecione uma unidade de medida'),
+  user: z.string().nonempty('Selecione um usuário'),
+  unidadeMedida: z.string().nonempty('Selecione uma unidade de medida'),
 });
 
 type SelectItemFormData = z.infer<typeof selectProductSchema>;
@@ -74,10 +75,25 @@ function LoanCreation() {
   const [products, setProducts] = useState<Produto[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Produto[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<
-    { produtoId: number; quantidade: number }[]
+    { produtoId: number; quantidade: number; um: string }[]
   >([]);
   const [dependentes, setDependentes] = useState<IUsuario[]>([]);
-  const [itemStatus, setItemStatus] = useState<string>('Selecione o item');
+  const [unidadeMedida, setUnidadeMedida] = useState<string>('');
+
+  const unidadesMedidaOptions = [
+    { value: 'Litro', label: 'Litro' },
+    { value: 'Mililitro', label: 'Mililitro' },
+    { value: 'MetroCubico', label: 'Metro Cúbico' },
+    { value: 'Grama', label: 'Grama' },
+    { value: 'Quilograma', label: 'Quilograma' },
+    { value: 'Tonelada', label: 'Tonelada' },
+    { value: 'CentimetroCubico', label: 'Centímetro Cúbico' },
+    { value: 'Miligrama', label: 'Miligrama' },
+    { value: 'Unidade', label: 'Unidade' },
+    { value: 'Metro', label: 'Metro' },
+    { value: 'Centimetro', label: 'Centímetro' },
+    { value: 'Milimetro', label: 'Milímetro' },
+  ];
 
   const {
     register,
@@ -131,7 +147,11 @@ function LoanCreation() {
     if (selectedProduct) {
       setSelectedProducts((prev) => [
         ...prev,
-        { produtoId: selectedProduct.id, quantidade: data.quantity },
+        {
+          produtoId: selectedProduct.id,
+          quantidade: data.quantity,
+          um: unidadeMedida,
+        },
       ]);
     }
 
@@ -141,7 +161,8 @@ function LoanCreation() {
     setValue('group', ''); // Reseta o campo "Grupo"
     setValue('item', ''); // Reseta o campo "Item"
     setValue('quantity', 0); // Reseta o campo "Quantidade"
-    setItemStatus('Selecione o item');
+    setValue('unidadeMedida', ''); // Reseta o campo "Unidade de Medida"
+    setUnidadeMedida('');
   };
 
   const handleSubmitLoan = async () => {
@@ -150,9 +171,12 @@ function LoanCreation() {
     }
 
     const loanData: ICreateLoan = {
-      diasParaDevolucao: 8,
+      diasParaDevolucao: 5,
       solicitanteId: Number(userSelected),
-      produtos: selectedProducts,
+      produtos: selectedProducts.map((produto) => ({
+        produtoId: produto.produtoId,
+        quantidade: produto.quantidade,
+      })),
     };
 
     try {
@@ -269,14 +293,6 @@ function LoanCreation() {
                   onChange={(value) => {
                     setItem(value);
                     setValue('item', value);
-                    const selectedProduct = products.find(
-                      (produto) => produto.id === Number(value)
-                    );
-                    setItemStatus(
-                      selectedProduct
-                        ? selectedProduct.status
-                        : 'Selecione o item'
-                    );
                   }}
                   error={errors.item?.message}
                 />
@@ -292,13 +308,17 @@ function LoanCreation() {
                   />
                 </div>
                 <div className='w-1/2 flex gap-x-5'>
-                  <div className='w-1/2 flex flex-col'>
-                    <p className='font-inter-regular text-clt-2 text-sm mt-3'>
-                      Unidade de Medida
-                    </p>
-                    <div className='w-full flex items-center pl-3 text-clt-2 font-inter-regular text-sm h-9 border border-borderMy mt-1'>
-                      {itemStatus}
-                    </div>
+                  <div className='w-1/2'>
+                    <PopoverInput
+                      title='Unidade de Medida'
+                      unidades={unidadesMedidaOptions}
+                      value={unidadeMedida}
+                      onChange={(value) => {
+                        setUnidadeMedida(value);
+                        setValue('unidadeMedida', value);
+                      }}
+                      error={errors.unidadeMedida?.message}
+                    />
                   </div>
                   <button
                     type='submit'
@@ -324,7 +344,7 @@ function LoanCreation() {
                         data={[
                           String(rowData.produtoId),
                           getProductNameById(rowData.produtoId),
-                          String(rowData.quantidade),
+                          String(rowData.quantidade + ' ' + rowData.um),
                         ]}
                         rowIndex={index}
                         columnWidths={loanCreationHeader.map(

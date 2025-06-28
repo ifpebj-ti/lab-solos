@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import DateRangeInput from '@/components/global/inputs/DateRangeInput';
-import { lotes, chartData, columnsVer, dataVer } from '@/mocks/Unidades';
+import { lotes, columnsVer } from '@/mocks/Unidades';
+import { getUnidadeSigla } from '@/mocks/Unidades';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import InfoContainer from '@/components/screens/InfoContainer';
@@ -9,8 +10,13 @@ import Pagination from '@/components/global/table/Pagination';
 import HeaderTable from '@/components/global/table/Header';
 import OpenSearch from '@/components/global/OpenSearch';
 import ItemTable from '@/components/global/table/Item';
-import { getProductById } from '@/integration/Product';
+import {
+  getProductById,
+  getProductHistoricoSaida,
+} from '@/integration/Product';
 import { formatDate } from '@/function/date';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import {
   Accordion,
@@ -27,7 +33,7 @@ import {
 } from '@/components/ui/chart';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import LoadingIcon from '../../../public/icons/LoadingIcon';
+import LoadingIcon from '@/components/icons/LoadingIcon';
 const chartConfig = {
   desktop: {
     label: 'Desktop',
@@ -67,30 +73,116 @@ interface IProduto {
   material: string;
 }
 
+interface UsuarioEmprestimo {
+  id: number;
+  nome: string;
+  email: string;
+  instituicao: string | null;
+}
+
+interface HistoricoSaidaItem {
+  emprestimoId: number;
+  dataEmprestimo: string;
+  dataDevolucao: string | null;
+  quantidadeEmprestada: number;
+  statusEmprestimo: string;
+  solicitante: UsuarioEmprestimo;
+  aprovador: UsuarioEmprestimo | null;
+  identificador: string;
+  lote: string | null;
+}
+
+interface HistoricoSaidaProdutoResponse {
+  produtoId: number;
+  nomeProduto: string;
+  tipoProduto: string;
+  estoqueAtual: number;
+  unidadeMedida: string;
+  historico: HistoricoSaidaItem[];
+  totalEmprestimos: number;
+  totalQuantidadeEmprestada: number;
+}
+
 function VerificationMentee() {
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [productsById, setProductsById] = useState<IProduto>();
+  const [historicoData, setHistoricoData] =
+    useState<HistoricoSaidaProdutoResponse | null>(null);
+  const [filteredHistorico, setFilteredHistorico] = useState<
+    HistoricoSaidaItem[]
+  >([]);
   const location = useLocation();
   const id = location.state?.id; // Recupera o ID passado via state
 
   useEffect(() => {
-    const fetchProductsById = async () => {
+    const fetchData = async () => {
       try {
-        const processedRegisteredUsers = await getProductById({ id });
-        setProductsById(processedRegisteredUsers);
+        const [product, historico] = await Promise.all([
+          getProductById({ id }),
+          getProductHistoricoSaida({ id: parseInt(id) }),
+        ]);
+        setProductsById(product);
+        setHistoricoData(historico);
+        setFilteredHistorico(historico.historico);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
+          console.debug('Erro ao buscar dados', error);
         }
         setProductsById(undefined);
+        setHistoricoData(null);
       } finally {
-        setIsLoading(false); // Stop loading after fetch (success or failure)
+        setIsLoading(false);
       }
     };
-    fetchProductsById();
+    if (id) {
+      fetchData();
+    }
   }, [id]);
+
+  // Filtro dos dados do histórico baseado no searchTerm
+  useEffect(() => {
+    if (!historicoData) return;
+
+    let filtered = historicoData.historico;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (item) =>
+          item.solicitante.nome
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          item.identificador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.lote?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredHistorico(filtered);
+  }, [searchTerm, historicoData]);
+
+  const formatApiDate = (dateString: string) => {
+    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+  };
+
+  // Dados para o gráfico baseados no histórico real
+  const chartData = historicoData
+    ? historicoData.historico.reduce(
+        (acc: { month: string; desktop: number }[], item) => {
+          const month = format(new Date(item.dataEmprestimo), 'MMMM', {
+            locale: ptBR,
+          });
+          const existing = acc.find((x) => x.month === month);
+          if (existing) {
+            existing.desktop += item.quantidadeEmprestada;
+          } else {
+            acc.push({ month, desktop: item.quantidadeEmprestada });
+          }
+          return acc;
+        },
+        []
+      )
+    : [];
 
   const infoItems = productsById
     ? [
@@ -249,7 +341,7 @@ function VerificationMentee() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const currentData = dataVer.slice(
+  const currentData = filteredHistorico.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -422,11 +514,14 @@ function VerificationMentee() {
                   <ItemTable
                     key={index}
                     data={[
-                      rowData.date,
-                      rowData.name,
-                      rowData.institution,
-                      rowData.code,
-                      rowData.quantity + 'un',
+                      formatApiDate(rowData.dataEmprestimo),
+                      rowData.solicitante.nome,
+                      rowData.identificador,
+                      rowData.lote || 'N/A',
+                      rowData.quantidadeEmprestada +
+                        (historicoData
+                          ? getUnidadeSigla(historicoData.unidadeMedida)
+                          : 'un'),
                     ]}
                     rowIndex={index}
                     columnWidths={columnsVer.map((column) => column.width)}
@@ -435,7 +530,7 @@ function VerificationMentee() {
               </div>
               {/* Componente de Paginação */}
               <Pagination
-                totalItems={dataVer.length}
+                totalItems={filteredHistorico.length}
                 itemsPerPage={itemsPerPage}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
