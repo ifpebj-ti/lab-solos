@@ -78,7 +78,7 @@ function Login() {
         <div className='w-full bg-primaryMy h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]'>
           <img alt='Logo' src={logo} className='w-24' />
           <div className='text-white gap-y-1'>
-            <h1 className='font-rajdhani-semibold text-3xl'>Lab-On</h1>
+            <h1 className='font-rajdhani-semibold text-3xl'>LabOn</h1>
             <p className='font-rajdhani-medium text-base'>
               Gerencie seus espaços e recursos de forma online e eficiente
             </p>

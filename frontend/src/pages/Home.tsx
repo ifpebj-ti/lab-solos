@@ -43,7 +43,7 @@ function Home() {
               <p>
                 Laboratório de <span className='text-primaryMy'>Solos</span>
               </p>
-              <p>e Sustentabilidade</p>
+              <p className='text-primaryMy'>e Sustentabilidade</p>
               <p>
                 Ambiental - <span className='text-primaryMy'>IFPEBJ</span>
               </p>

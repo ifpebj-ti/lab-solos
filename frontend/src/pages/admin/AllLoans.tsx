@@ -196,7 +196,7 @@ function AllLoans() {
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 -mt-4'>
+                <div className='w-1/2 -mt-4 '>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
