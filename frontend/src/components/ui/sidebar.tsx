@@ -705,6 +705,7 @@ const SidebarMenuSub = React.forwardRef<
   React.ComponentProps<'ul'>
 >(({ className, ...props }, ref) => (
   <ul
+    /* eslint-disable react-refresh/only-export-components */
     ref={ref}
     data-sidebar='menu-sub'
     className={cn(

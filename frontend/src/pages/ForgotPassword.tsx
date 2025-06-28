@@ -84,7 +84,8 @@ function ForgotPassword() {
         </div>
         <div className='w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between'>
           <p className='font-inter-regular text-clt-2'>
-            Forneça seu e-mail cadastrado para receber um link de redefinição de senha.
+            Forneça seu e-mail cadastrado para receber um link de redefinição de
+            senha.
           </p>
           <form
             onSubmit={handleSubmit(postForgotPassword)}

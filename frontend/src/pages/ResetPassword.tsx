@@ -100,7 +100,8 @@ function ResetPassword() {
         </div>
         <div className='w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between'>
           <p className='font-inter-regular text-clt-2'>
-            Digite sua nova senha, repita-a e insira o token que você recebeu por e-mail.
+            Digite sua nova senha, repita-a e insira o token que você recebeu
+            por e-mail.
           </p>
           <form
             onSubmit={handleSubmit(postResetPassword)}

@@ -17,7 +17,6 @@ export function NavProjects({
     icon: LucideIcon;
   }[];
 }) {
-
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
       <SidebarGroupLabel>Extras</SidebarGroupLabel>
