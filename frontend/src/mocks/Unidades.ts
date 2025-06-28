@@ -145,8 +145,7 @@ export const columnsButtons = [
 export const columnsApproval = [
   { value: 'Data de Solicitação', width: '20%' },
   { value: 'Nome', width: '30%' },
-  { value: 'Email', width: '20%' },
-  { value: 'Responsável', width: '20%' },
+  { value: 'Email', width: '40%' },
   { value: 'Ação', width: '10%' },
 ];
 

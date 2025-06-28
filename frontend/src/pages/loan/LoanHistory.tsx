@@ -361,10 +361,11 @@ function LoanHistoryMentee() {
                         rowData.produto.nomeProduto || 'Não Corresponde',
                         rowData.produto.tipoProduto || 'Não Corresponde',
                         String(rowData.quantidade || 'Não Corresponde') +
+                          ' ' +
                           getUnidadeSigla(
                             String(rowData.produto.unidadeMedida)
                           ),
-                        String(rowData.produto.lote || 'Não Corresponde'),
+                        String(rowData.produto.lote?.codigoLote || 'Sem lote'),
                       ]}
                       rowIndex={index}
                       columnWidths={columnsItensSelected.map(

@@ -201,7 +201,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("aprovar/{emprestimoId}")]
-        [Authorize("ApenasResponsaveis")]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> AprovarEmprestimo(int emprestimoId)
         {
             // Obter usuário autenticado
@@ -229,7 +229,10 @@ namespace LabSolos_Server_DotNet8.Controllers
             var userId = int.Parse(userIdClaim.Value);
 
             // Buscar o empréstimo pelo ID
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId, 
+                query => query
+                    .Include(e => e.Produtos)
+            );
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
@@ -240,11 +243,6 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (solicitante == null)
             {
                 return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            if (solicitante.ResponsavelId != userId)
-            {
-                return Unauthorized("Você não tem permissão para reprovar este empréstimo.");
             }
 
             // Verificar se o empréstimo já foi aprovado ou rejeitado
@@ -287,7 +285,6 @@ namespace LabSolos_Server_DotNet8.Controllers
                 }
 
                 _uow.ProdutoRepository.Atualizar(produto);
-                await _uow.CommitAsync();
             }
 
             // Atualizar o status do empréstimo para aprovado
@@ -303,7 +300,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpPatch("reprovar/{emprestimoId}")]
-        [Authorize("ApenasResponsaveis")]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId)
         {
             // Obter usuário autenticado
@@ -348,11 +345,6 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (solicitante == null)
             {
                 return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            if (solicitante.ResponsavelId != userId)
-            {
-                return Unauthorized("Você não tem permissão para reprovar este empréstimo.");
             }
 
             // Atualizar o status do empréstimo para aprovado

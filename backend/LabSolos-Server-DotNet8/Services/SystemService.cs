@@ -28,7 +28,7 @@ namespace LabSolos_Server_DotNet8.Services
 
             // Agrupa por tipo e conta os produtos em cada grupo
             var productCountsByType = produtos
-                .GroupBy(p => p.Tipo)
+                .GroupBy(p => p.TipoProduto)
                 .ToDictionary(
                     g => g.Key.ToString(), // Converte o enum para string
                     g => g.Count()         // Conta os produtos no grupo

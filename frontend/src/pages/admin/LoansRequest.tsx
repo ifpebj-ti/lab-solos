@@ -225,8 +225,6 @@ function LoansRequest() {
                         String(rowData.solicitante?.nomeCompleto) ||
                           'Não corresponde',
                         String(rowData.solicitante?.email) || 'Não corresponde',
-                        String(rowData.solicitante?.nomeResponsavel) ||
-                          'Não corresponde',
                       ]}
                       rowIndex={index}
                       columnWidths={columnsApproval.map(

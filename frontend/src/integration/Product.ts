@@ -117,3 +117,64 @@ export const createProduct = async (dados: IProduto) => {
     throw error;
   }
 };
+
+interface IHistoricoSaidaProduto {
+  id: number;
+}
+
+interface UsuarioEmprestimo {
+  id: number;
+  nome: string;
+  email: string;
+  instituicao: string | null;
+}
+
+interface HistoricoSaidaItem {
+  emprestimoId: number;
+  dataEmprestimo: string;
+  dataDevolucao: string | null;
+  quantidadeEmprestada: number;
+  statusEmprestimo: string;
+  solicitante: UsuarioEmprestimo;
+  aprovador: UsuarioEmprestimo | null;
+  identificador: string;
+  lote: string | null;
+}
+
+interface HistoricoSaidaProdutoResponse {
+  produtoId: number;
+  nomeProduto: string;
+  tipoProduto: string;
+  estoqueAtual: number;
+  unidadeMedida: string;
+  historico: HistoricoSaidaItem[];
+  totalEmprestimos: number;
+  totalQuantidadeEmprestada: number;
+}
+
+export const getProductHistoricoSaida = async ({
+  id,
+}: IHistoricoSaidaProduto): Promise<HistoricoSaidaProdutoResponse> => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'GET',
+      url: `Produtos/${id}/historico-saida`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Erro ao buscar histórico de saída do produto:', error);
+    }
+    throw error;
+  }
+};
