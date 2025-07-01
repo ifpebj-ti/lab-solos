@@ -15,6 +15,8 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
         public string? LocalizacaoProduto { get; set; } = string.Empty;
         public string? DataFabricacao { get; set; }
         public string? DataValidade { get; set; }
+        public string UltimaModificacao { get; set; }
+
         public string? Status { get; set; }
 
         public LoteDTO? Lote { get; set; }

@@ -26,7 +26,6 @@ builder.Services.AddControllers(options =>
 }).AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
 });
 
 // Configuração de algumas dependẽncias

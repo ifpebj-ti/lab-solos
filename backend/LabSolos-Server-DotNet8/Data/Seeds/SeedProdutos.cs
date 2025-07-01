@@ -10,7 +10,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
         {
             // Criando novos empréstimos com diferentes solicitantes e status
             var emprestimo1 = new Emprestimo
-            {
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-10),
                 DataDevolucao = DateTime.UtcNow.AddDays(10),
                 DataAprovacao = DateTime.UtcNow.AddDays(-9),
@@ -20,7 +20,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo2 = new Emprestimo
-            {
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-5),
                 DataDevolucao = DateTime.UtcNow.AddDays(5),
                 Status = StatusEmprestimo.Pendente,
@@ -28,7 +28,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo3 = new Emprestimo
-            {
+            {            
                 DataRealizacao = DateTime.UtcNow.AddDays(-2),
                 DataDevolucao = DateTime.UtcNow.AddDays(6),
                 Status = StatusEmprestimo.Aprovado,
@@ -41,7 +41,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando lotes para diferentes tipos de produtos
             var loteQuimico = new Lote
-            {
+            {            
                 CodigoLote = "LQ002",
                 DataEntrada = DateTime.UtcNow.AddDays(-45),
                 Fornecedor = "Fornecedor Químico XYZ",
@@ -50,7 +50,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var loteVidraria = new Lote
-            {
+            {            
                 CodigoLote = "LV002",
                 DataEntrada = DateTime.UtcNow.AddDays(-90),
                 Fornecedor = "Fornecedor Vidraria ABC",
@@ -63,9 +63,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando novos produtos químicos
             var quimico1 = new Quimico
-            {
+            {            
                 NomeProduto = "Ácido Clorídrico",
-                TipoProduto = TipoProduto.Quimico,
+                Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
                 Quantidade = 150,
                 QuantidadeMinima = 20,
@@ -87,9 +87,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var quimico2 = new Quimico
-            {
+            {            
                 NomeProduto = "Sulfato de Cobre",
-                TipoProduto = TipoProduto.Quimico,
+                Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
                 Quantidade = 500,
                 QuantidadeMinima = 50,
@@ -114,9 +114,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando novos produtos de vidraria
             var vidraria1 = new Vidraria
-            {
+            {            
                 NomeProduto = "Pipeta Graduada 10ml",
-                TipoProduto = TipoProduto.Vidraria,
+                Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
                 Quantidade = 100,
                 QuantidadeMinima = 20,
@@ -134,9 +134,9 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var vidraria2 = new Vidraria
-            {
+            {            
                 NomeProduto = "Erlenmeyer 250ml",
-                TipoProduto = TipoProduto.Vidraria,
+                Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
                 Quantidade = 60,
                 QuantidadeMinima = 100,
@@ -156,10 +156,10 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.Vidrarias.AddRange(vidraria1, vidraria2);
 
             var outro1 = new Produto
-            {
+            {            
                 NomeProduto = "Luvas de Proteção",
                 UnidadeMedida = UnidadeMedida.Unidade,
-                TipoProduto = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
+                Tipo = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
                 Fornecedor = "Fornecedor de Equipamentos ABC",
                 Quantidade = 100,
                 QuantidadeMinima = 200,
