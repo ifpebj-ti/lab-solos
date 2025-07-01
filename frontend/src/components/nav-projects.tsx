@@ -1,4 +1,5 @@
 import { type LucideIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 import {
   SidebarGroup,
@@ -17,17 +18,27 @@ export function NavProjects({
     icon: LucideIcon;
   }[];
 }) {
+  const location = useLocation();
+
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
       <SidebarGroupLabel>Extras</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
+            <SidebarMenuButton
+              asChild
+              isActive={location.pathname === item.url}
+              className={
+                location.pathname === item.url
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+                  : ''
+              }
+            >
+              <Link to={item.url}>
                 <item.icon />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

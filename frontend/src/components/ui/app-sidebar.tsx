@@ -10,6 +10,7 @@ import {
   House,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import Cookie from 'js-cookie';
 
 import { NavMain } from '@/components/nav-main';
@@ -170,7 +171,36 @@ const menus = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = useState<IUser>();
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
   const id = Cookie.get('rankID')!;
+
+  // Função para verificar se um item está ativo
+  const isItemActive = (url: string, items?: { url: string }[]): boolean => {
+    // Verifica se a URL atual corresponde exatamente ao item
+    if (location.pathname === url) return true;
+
+    // Verifica se a URL atual começa com a URL do item (para rotas filhas)
+    if (location.pathname.startsWith(url) && url !== '/') return true;
+
+    // Se tem subitens, verifica se algum deles está ativo
+    if (items) {
+      return items.some(
+        (subItem) =>
+          location.pathname === subItem.url ||
+          (location.pathname.startsWith(subItem.url) && subItem.url !== '/')
+      );
+    }
+
+    return false;
+  };
+
+  // Função para verificar se um subitem está ativo
+  const isSubItemActive = (url: string): boolean => {
+    return (
+      location.pathname === url ||
+      (location.pathname.startsWith(url) && url !== '/')
+    );
+  };
 
   useEffect(() => {
     const fetchGetUserById = async () => {
@@ -198,7 +228,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     else userType = 'Administrador';
   }
 
-  const data = menus[userType];
+  // Mapear os menus e marcar itens ativos baseado na URL atual
+  const data = {
+    navMain: menus[userType].navMain.map((item) => ({
+      ...item,
+      isActive: isItemActive(
+        item.url,
+        'items' in item ? item.items : undefined
+      ),
+      items:
+        'items' in item
+          ? item.items?.map((subItem: { title: string; url: string }) => ({
+              ...subItem,
+              isActive: isSubItemActive(subItem.url),
+            }))
+          : undefined,
+    })),
+    projects: menus[userType].projects,
+  };
 
   return (
     <Sidebar
@@ -209,9 +256,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
-              <a
-                href='/'
-                className='flex items-center gap-3 w-full pointer-events-none select-none'
+              <Link
+                to={`/${userType.toLowerCase()}/`}
+                className='flex items-center gap-3 w-full'
               >
                 <div className='flex-shrink-0 w-12 h-12 flex items-center justify-center'>
                   <img
@@ -228,7 +275,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     Solos e Sustentabilidade Ambiental
                   </span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
