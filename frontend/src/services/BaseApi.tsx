@@ -10,20 +10,26 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Remove cookies ou tokens armazenados
-      Cookie.remove('doorKey');
-      Cookie.remove('rankID');
-      Cookie.remove('level');
+      // Só redireciona se não estiver na página de login
+      const currentPath = window.location.pathname;
+      const isLoginPage = currentPath === '/' || currentPath === '/login';
 
-      // Exibe aviso
-      toast({
-        title: 'Sessão expirada',
-        description: 'Por favor, faça login novamente.',
-        variant: 'destructive', // ou 'default' se quiser menos impacto visual
-      });
+      if (!isLoginPage) {
+        // Remove cookies ou tokens armazenados
+        Cookie.remove('doorKey');
+        Cookie.remove('rankID');
+        Cookie.remove('level');
 
-      // Redireciona para login
-      window.location.href = '/'; // ajuste a rota conforme seu app
+        // Exibe aviso
+        toast({
+          title: 'Sessão expirada',
+          description: 'Por favor, faça login novamente.',
+          variant: 'destructive',
+        });
+
+        // Redireciona para login apenas se não estiver na página de login
+        window.location.href = '/';
+      }
     }
 
     return Promise.reject(error);

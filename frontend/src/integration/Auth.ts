@@ -92,10 +92,11 @@ export const authenticate = async (
     }
     return response;
   } catch (error: unknown) {
+    // Re-lança o erro original sem modificar, para que o Login.tsx possa tratar adequadamente
     if (error instanceof AxiosError) {
-      throw error.response || error;
+      throw error; // Mantém todas as informações do AxiosError
     } else {
-      throw new Error('Erro inesperado');
+      throw error; // Mantém o erro original, seja ele qual for
     }
   }
 };

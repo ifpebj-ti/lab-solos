@@ -36,39 +36,60 @@ function Login() {
   async function postLogin(data: LoginFormData) {
     setLoading(true);
     try {
-      const response = await authenticate(
-        { method: 'POST', params: data },
-        navigate
-      );
-
-      if (response.status === 200) {
-        toast({
-          title: 'Login bem-sucedido!',
-          description: 'Redirecionando...',
-        });
-      }
+      await authenticate({ method: 'POST', params: data }, navigate);
+      // Se chegou até aqui, o login foi bem-sucedido e o navigate já foi chamado
+      toast({
+        title: '✅ Acesso autorizado',
+        description: 'Bem-vindo de volta!',
+      });
     } catch (error: unknown) {
+      // Garante que não vai navegar quando há erro e mostra a mensagem
       if (error instanceof AxiosError) {
-        if (error.response?.status === 401) {
+        // Servidor desligado/indisponível (sem resposta)
+        if (!error.response) {
           toast({
-            title: 'Erro no login',
-            description: 'Credenciais inválidas.',
+            title: '⚠️ Problema de conexão',
+            description:
+              'Nosso sistema está temporariamente indisponível. Tente novamente em alguns instantes.',
           });
-        } else {
+        }
+        // Erro de autenticação (401)
+        else if (error.response.status === 401) {
           toast({
-            title: 'Erro no servidor',
-            description: 'Tente novamente mais tarde.',
+            title: '🔐 Falha na autenticação',
+            description:
+              'E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.',
+          });
+        }
+        // Erro interno do servidor (500+)
+        else if (error.response.status >= 500) {
+          toast({
+            title: '⚠️ Problema no servidor',
+            description:
+              'Nosso sistema está temporariamente indisponível. Tente novamente em alguns instantes.',
+          });
+        }
+        // Outros erros HTTP (403, 400, etc.)
+        else {
+          toast({
+            title: '🔐 Acesso negado',
+            description:
+              'Credenciais incorretas ou sua conta ainda está aguardando aprovação do administrador.',
           });
         }
       } else {
+        // Erro não relacionado ao Axios (inesperado)
         toast({
-          title: 'Erro no login',
+          title: '⚠️ Erro inesperado',
           description:
-            'Credenciais inválidas ou cadastro aguardando aprovação.',
+            'Ocorreu um problema inesperado. Tente novamente em alguns instantes.',
         });
       }
     } finally {
-      setLoading(false);
+      // Pequeno delay para garantir que o toast seja visível
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   }
 
