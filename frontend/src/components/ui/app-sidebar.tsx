@@ -174,26 +174,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
   const id = Cookie.get('rankID')!;
 
-  // Função para verificar se um item está ativo
-  const isItemActive = (url: string, items?: { url: string }[]): boolean => {
-    // Verifica se a URL atual corresponde exatamente ao item
-    if (location.pathname === url) return true;
-
-    // Verifica se a URL atual começa com a URL do item (para rotas filhas)
-    if (location.pathname.startsWith(url) && url !== '/') return true;
-
-    // Se tem subitens, verifica se algum deles está ativo
-    if (items) {
-      return items.some(
-        (subItem) =>
-          location.pathname === subItem.url ||
-          (location.pathname.startsWith(subItem.url) && subItem.url !== '/')
-      );
-    }
-
-    return false;
-  };
-
   // Função para verificar se um subitem está ativo
   const isSubItemActive = (url: string): boolean => {
     return (
@@ -228,14 +208,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     else userType = 'Administrador';
   }
 
-  // Mapear os menus e marcar itens ativos baseado na URL atual
+  // Mapear os menus e marcar apenas subitens como ativos
   const data = {
     navMain: menus[userType].navMain.map((item) => ({
       ...item,
-      isActive: isItemActive(
-        item.url,
-        'items' in item ? item.items : undefined
-      ),
+      // Itens principais não são mais navegáveis, então isActive sempre false
+      isActive: false,
       items:
         'items' in item
           ? item.items?.map((subItem: { title: string; url: string }) => ({

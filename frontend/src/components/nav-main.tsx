@@ -13,7 +13,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -60,9 +59,8 @@ export function NavMain({
         const hasActiveSubItem = item.items.some(
           (subItem) => location.pathname === subItem.url
         );
-        const isParentActive = location.pathname === item.url;
 
-        if (hasActiveSubItem || isParentActive) {
+        if (hasActiveSubItem) {
           initialState[item.title] = true;
         }
       }
@@ -89,16 +87,15 @@ export function NavMain({
     });
   };
 
-  // Auto-expandir item se tiver subitem ativo ou se item pai está ativo
+  // Auto-expandir item se tiver subitem ativo
   useEffect(() => {
     items.forEach((item) => {
       if (item.items) {
         const hasActiveSubItem = item.items.some(
           (subItem) => location.pathname === subItem.url
         );
-        const isParentActive = location.pathname === item.url;
 
-        if (hasActiveSubItem || isParentActive) {
+        if (hasActiveSubItem) {
           toggleItem(item.title, true);
         }
       }
@@ -117,29 +114,20 @@ export function NavMain({
             onOpenChange={(open) => toggleItem(item.title, open)}
           >
             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip={item.title}
-                isActive={location.pathname === item.url}
-                className={
-                  location.pathname === item.url
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
-                    : ''
-                }
-              >
-                <Link to={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
               {item.items?.length ? (
+                // Item com subitens - apenas trigger de expansão
                 <>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuAction className='data-[state=open]:rotate-90'>
-                      <ChevronRightIcon />
-                      <span className='sr-only'>Toggle</span>
-                    </SidebarMenuAction>
-                  </CollapsibleTrigger>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  >
+                    <CollapsibleTrigger className='w-full'>
+                      <item.icon />
+                      <span>{item.title}</span>
+                      <ChevronRightIcon className='ml-auto data-[state=open]:rotate-90 transition-transform' />
+                    </CollapsibleTrigger>
+                  </SidebarMenuButton>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
@@ -149,8 +137,8 @@ export function NavMain({
                             isActive={location.pathname === subItem.url}
                             className={
                               location.pathname === subItem.url
-                                ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
-                                : ''
+                                ? 'bg-primaryMy text-white font-medium'
+                                : 'hover:bg-sidebar-accent/50'
                             }
                           >
                             <Link to={subItem.url}>
@@ -162,7 +150,24 @@ export function NavMain({
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </>
-              ) : null}
+              ) : (
+                // Item sem subitens - navegação direta
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={location.pathname === item.url}
+                  className={
+                    location.pathname === item.url
+                      ? 'bg-primaryMy text-white font-medium'
+                      : ''
+                  }
+                >
+                  <Link to={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              )}
             </SidebarMenuItem>
           </Collapsible>
         ))}

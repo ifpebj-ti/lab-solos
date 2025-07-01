@@ -31,7 +31,7 @@ export function NavProjects({
               isActive={location.pathname === item.url}
               className={
                 location.pathname === item.url
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+                  ? 'bg-primaryMy text-white font-medium'
                   : ''
               }
             >
