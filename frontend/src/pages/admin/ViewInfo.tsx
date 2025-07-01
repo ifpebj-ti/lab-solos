@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import ItemViewInfo from '@/components/global/table/ItemViewInfo';
 import OpenSearch from '@/components/global/OpenSearch';
 import { registros } from '@/mocks/Unidades';
+import UnderDevelopment from '@/components/global/UnderDevelopment';
 
 function ViewInfo() {
   const [value, setValue] = useState('todos');
@@ -32,6 +33,12 @@ function ViewInfo() {
   ];
   return (
     <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
+      {/* Overlay de Em Desenvolvimento */}
+      <UnderDevelopment
+        title='Comunicação InterLab'
+        description='Esta funcionalidade de comunicação entre laboratórios está sendo desenvolvida para facilitar a troca de informações e recursos.'
+      />
+
       <div className='w-11/12 flex items-center justify-between mt-7'>
         <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
           Pedidos e ofertas
