@@ -93,7 +93,7 @@ const menus = {
     projects: [
       {
         name: 'Comunicação InterLab',
-        url: 'view-info',
+        url: '/admin/view-info',
         icon: Share2,
       },
     ],

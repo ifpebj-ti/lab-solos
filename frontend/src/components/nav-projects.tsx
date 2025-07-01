@@ -31,8 +31,8 @@ export function NavProjects({
               isActive={location.pathname === item.url}
               className={
                 location.pathname === item.url
-                  ? 'bg-primaryMy text-white font-medium'
-                  : ''
+                  ? 'text-black font-medium'
+                  : 'hover:text-black/70'
               }
             >
               <Link to={item.url}>

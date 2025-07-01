@@ -120,7 +120,7 @@ export function NavMain({
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    className='hover:text-black/70'
                   >
                     <CollapsibleTrigger className='w-full'>
                       <item.icon />
@@ -137,8 +137,8 @@ export function NavMain({
                             isActive={location.pathname === subItem.url}
                             className={
                               location.pathname === subItem.url
-                                ? 'bg-primaryMy text-white font-medium'
-                                : 'hover:bg-sidebar-accent/50'
+                                ? 'text-black font-medium'
+                                : 'hover:text-black/70'
                             }
                           >
                             <Link to={subItem.url}>
@@ -158,8 +158,8 @@ export function NavMain({
                   isActive={location.pathname === item.url}
                   className={
                     location.pathname === item.url
-                      ? 'bg-primaryMy text-white font-medium'
-                      : ''
+                      ? 'text-black font-medium'
+                      : 'hover:text-black/70'
                   }
                 >
                   <Link to={item.url}>
