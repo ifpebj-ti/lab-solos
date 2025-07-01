@@ -265,6 +265,16 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (patchUsuarioDto is null)
                 return BadRequest();
 
+            // Verificar se está tentando alterar o status
+            var isStatusPatch = patchUsuarioDto.Operations.Any(op =>
+                op.path.Equals("/status", StringComparison.OrdinalIgnoreCase));
+
+            // Se estiver alterando status, verificar se é administrador
+            if (isStatusPatch && !User.IsInRole("Administrador"))
+            {
+                return Forbid("Apenas administradores podem alterar o status de usuários.");
+            }
+
             //obtem o usuario pelo Id
             var usuario = await _uow.UsuarioRepository.ObterAsync(f => f.Id == usuarioId);
 
@@ -280,6 +290,15 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             if (!ModelState.IsValid || !TryValidateModel(usuarioPatchRequest))
                 return BadRequest(ModelState);
+
+            // Validar se o status é válido (se estiver sendo alterado)
+            if (isStatusPatch && !string.IsNullOrEmpty(usuarioPatchRequest.Status))
+            {
+                if (!Enum.TryParse<StatusUsuario>(usuarioPatchRequest.Status, out _))
+                {
+                    return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusUsuario>())}");
+                }
+            }
 
             _mapper.Map(usuarioPatchRequest, usuario);
 

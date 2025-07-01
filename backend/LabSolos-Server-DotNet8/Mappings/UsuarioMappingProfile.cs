@@ -1,5 +1,6 @@
 using AutoMapper;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 
 namespace Core.DTOs.Mappings
@@ -22,15 +23,18 @@ namespace Core.DTOs.Mappings
             // Mapeamento de AddUsuarioDTO para Usuarios
             CreateMap<AddUsuarioDTO, Usuario>();
             CreateMap<AddUsuarioDTO, Administrador>()
-                .IncludeBase<AddUsuarioDTO, Usuario>(); 
+                .IncludeBase<AddUsuarioDTO, Usuario>();
             CreateMap<AddUsuarioDTO, Academico>()
-                .IncludeBase<AddUsuarioDTO, Usuario>() 
+                .IncludeBase<AddUsuarioDTO, Usuario>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
                 .ForMember(dest => dest.Cidade, opt => opt.MapFrom(src => src.Cidade))
                 .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
 
             CreateMap<UsuarioDTOPatchRequest, Usuario>()
-                .ReverseMap();
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
+                    src.Status != null ? Enum.Parse<StatusUsuario>(src.Status) : (StatusUsuario?)null))
+                .ReverseMap()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<UsuarioDTOPatchRequest, Administrador>()
                 .IncludeBase<UsuarioDTOPatchRequest, Usuario>();
             CreateMap<UsuarioDTOPatchRequest, Academico>()
@@ -45,7 +49,7 @@ namespace Core.DTOs.Mappings
             // Mapeamento de Usuarios para ResponsavelDTO
             CreateMap<Usuario, ResponsavelDTO>();
             CreateMap<Academico, ResponsavelDTO>()
-                .IncludeBase<Usuario, ResponsavelDTO>() 
+                .IncludeBase<Usuario, ResponsavelDTO>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
                 .ForMember(dest => dest.Cidade, opt => opt.MapFrom(src => src.Cidade))
                 .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
