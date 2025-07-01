@@ -35,19 +35,19 @@ export const options = [
 ];
 
 export const medidas = [
-  { value: 'ml', label: 'Mililitro' },
-  { value: 'l', label: 'Litro' },
+  { value: 'mL', label: 'Mililitro' },
+  { value: 'L', label: 'Litro' },
   { value: 'g', label: 'Grama' },
-  { value: 'kg', label: 'Quilo' },
+  { value: 'kg', label: 'Quilograma' },
 ];
 
 export const outros = [
-  { value: 'uni', label: 'Unidade' },
+  { value: 'un', label: 'Unidade' },
   { value: 'l', label: 'Litro' },
   { value: 'g', label: 'Grama' },
-  { value: 'kg', label: 'Quilo' },
+  { value: 'kg', label: 'Quilograma' },
   { value: 'cx', label: 'Caixa' },
-  { value: 'cm', label: 'Caminhão' },
+  { value: 'cam', label: 'Caminhão' },
 ];
 
 export const materiais = [
@@ -380,12 +380,12 @@ export const getUnidadeSigla = (value: string): string => {
     Tonelada: 't',
     Centimetro_cubico: 'cm³',
     Miligrama: 'mg',
-    Unidade: 'un',
+    Unidade: 'un.',
     Metro: 'm',
     Centimetro: 'cm',
-    Milimetro: 'mm', // Corrigindo o erro de digitação para 'Milímetro'
+    Milimetro: 'mm',
     Outro: 'Outro',
-    Indefinido: 'Indef',
+    Indefinido: 'N/D',
   };
 
   return siglas[value] || value;
