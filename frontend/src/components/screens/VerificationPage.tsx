@@ -8,6 +8,8 @@ import HeaderTable from '@/components/global/table/Header';
 import LoadingIcon from '@/components/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
 import ItemTable from '@/components/global/table/Item';
+import ProductEditModal from '@/components/modals/ProductEditModal';
+import { Button } from '@/components/ui/button';
 import {
   getProductById,
   getProductHistoricoSaida,
@@ -22,7 +24,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit } from 'lucide-react';
 
 // Interfaces
 interface UsuarioEmprestimo {
@@ -112,6 +114,7 @@ function VerificationPage({ userType }: VerificationProps) {
   const [filteredHistorico, setFilteredHistorico] = useState<
     HistoricoSaidaItem[]
   >([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const location = useLocation();
   const id = location.state?.id;
 
@@ -316,6 +319,20 @@ function VerificationPage({ userType }: VerificationProps) {
     setFilteredHistorico(filtered);
   }, [searchTerm, value, historicoData]);
 
+  // Função para recarregar dados do produto após edição
+  const handleProductUpdate = async () => {
+    if (id) {
+      try {
+        const productResponse = await getProductById({ id });
+        setProductsById(productResponse);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Erro ao recarregar dados do produto', error);
+        }
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
@@ -398,6 +415,22 @@ function VerificationPage({ userType }: VerificationProps) {
 
       {/* Informações do Produto */}
       <div className='w-11/12 mt-7'>
+        <div className='flex items-center justify-between mb-4'>
+          <h2 className='text-xl font-rajdhani-medium text-clt-2'>
+            Informações do Produto
+          </h2>
+          {showHistoricoDetalhado && productsById && (
+            <Button
+              onClick={() => setIsEditModalOpen(true)}
+              variant='outline'
+              size='sm'
+              className='flex items-center gap-2'
+            >
+              <Edit className='w-4 h-4' />
+              Editar Produto
+            </Button>
+          )}
+        </div>
         <InfoContainer items={getProductInfo()} />
       </div>
 
@@ -566,6 +599,16 @@ function VerificationPage({ userType }: VerificationProps) {
             )}
           </div>
         </>
+      )}
+
+      {/* Modal de Edição do Produto */}
+      {productsById && (
+        <ProductEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          product={productsById}
+          onSuccess={handleProductUpdate}
+        />
       )}
     </div>
   );

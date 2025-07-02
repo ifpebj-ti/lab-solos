@@ -74,6 +74,32 @@ namespace Core.DTOs.Mappings
                     src.DataFabricacao != null ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc) : (DateTime?)null))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
                     src.DataValidade != null ? DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc) : (DateTime?)null));
+
+            // Mapeamentos para JSON Patch
+            CreateMap<Produto, ProdutoDTOPatchRequest>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    src.DataFabricacao.HasValue ? src.DataFabricacao.ToString() : null))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    src.DataValidade.ToString()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
+            CreateMap<ProdutoDTOPatchRequest, Produto>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    !string.IsNullOrEmpty(src.DataFabricacao) ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc) : (DateTime?)null))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    !string.IsNullOrEmpty(src.DataValidade) ? DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc) : DateTime.MinValue))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
+                    !string.IsNullOrEmpty(src.Status) ? Enum.Parse<StatusProduto>(src.Status) : StatusProduto.Disponivel))
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<Produto, ProdutoDTOPatchResponse>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    src.DataFabricacao.HasValue ? src.DataFabricacao.Value.Date.ToString("yyyy-MM-dd") : string.Empty))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    src.DataValidade.ToString()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.UltimaModificacao, opt => opt.MapFrom(src =>
+                    src.UltimaModificacao.ToString("yyyy-MM-dd HH:mm:ss")));
         }
     }
 }

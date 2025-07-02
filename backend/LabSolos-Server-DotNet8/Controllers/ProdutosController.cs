@@ -5,6 +5,7 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -202,6 +203,90 @@ namespace LabSolos_Server_DotNet8.Controllers
                 _logger.LogError(ex, "Erro inesperado ao obter histórico de saída do produto {ProdutoId}", id);
                 return StatusCode(500, "Erro interno do servidor. Tente novamente mais tarde.");
             }
+        }
+
+        [HttpPatch("{id}")]
+        [Authorize("ApenasAdministradores")]
+        public async Task<ActionResult<ProdutoDTOPatchResponse>> AtualizarParcialmente(int id, JsonPatchDocument<ProdutoDTOPatchRequest> patchProdutoDto)
+        {
+            _logger.LogInformation("Iniciando operação para atualizar parcialmente produto {ProdutoId}.", id);
+
+            if (patchProdutoDto is null)
+            {
+                _logger.LogWarning("Documento de patch nulo fornecido para produto {ProdutoId}", id);
+                return BadRequest("Documento de patch não pode ser nulo.");
+            }
+
+            // Obter o produto pelo ID
+            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id);
+
+            if (produto == null)
+            {
+                _logger.LogWarning("Produto com ID {ProdutoId} não encontrado para atualização", id);
+                return NotFound("Produto não encontrado.");
+            }
+
+            // Mapear produto para ProdutoDTOPatchRequest
+            var produtoPatchRequest = _mapper.Map<ProdutoDTOPatchRequest>(produto);
+
+            // Aplicar as alterações definidas no documento JSON Patch
+            patchProdutoDto.ApplyTo(produtoPatchRequest, ModelState);
+
+            if (!ModelState.IsValid || !TryValidateModel(produtoPatchRequest))
+            {
+                _logger.LogWarning("Modelo inválido para atualização do produto {ProdutoId}: {Errors}",
+                    id, string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
+                return BadRequest(ModelState);
+            }
+
+            // Validar status se estiver sendo alterado
+            var isStatusPatch = patchProdutoDto.Operations.Any(op =>
+                op.path.Equals("/status", StringComparison.OrdinalIgnoreCase));
+
+            if (isStatusPatch && !string.IsNullOrEmpty(produtoPatchRequest.Status))
+            {
+                if (!Enum.TryParse<StatusProduto>(produtoPatchRequest.Status, out _))
+                {
+                    _logger.LogWarning("Status inválido fornecido para produto {ProdutoId}: {Status}", id, produtoPatchRequest.Status);
+                    return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusProduto>())}");
+                }
+            }
+
+            // Validar datas se estiverem sendo alteradas
+            var isDataFabricacaoPatch = patchProdutoDto.Operations.Any(op =>
+                op.path.Equals("/dataFabricacao", StringComparison.OrdinalIgnoreCase));
+            var isDataValidadePatch = patchProdutoDto.Operations.Any(op =>
+                op.path.Equals("/dataValidade", StringComparison.OrdinalIgnoreCase));
+
+            if (isDataFabricacaoPatch && !string.IsNullOrEmpty(produtoPatchRequest.DataFabricacao))
+            {
+                if (!DateTime.TryParse(produtoPatchRequest.DataFabricacao, out _))
+                {
+                    return BadRequest("Data de fabricação inválida. Use o formato YYYY-MM-DD.");
+                }
+            }
+
+            if (isDataValidadePatch && !string.IsNullOrEmpty(produtoPatchRequest.DataValidade))
+            {
+                if (!DateTime.TryParse(produtoPatchRequest.DataValidade, out _))
+                {
+                    return BadRequest("Data de validade inválida. Use o formato YYYY-MM-DD.");
+                }
+            }
+
+            // Mapear as alterações de volta para o produto
+            _mapper.Map(produtoPatchRequest, produto);
+
+            // Atualizar timestamp de modificação
+            produto.UltimaModificacao = DateTime.UtcNow;
+
+            _uow.ProdutoRepository.Atualizar(produto);
+            await _uow.CommitAsync();
+
+            _logger.LogInformation("Produto {ProdutoId} atualizado parcialmente com sucesso.", id);
+
+            // Retornar o produto atualizado
+            return Ok(_mapper.Map<ProdutoDTOPatchResponse>(produto));
         }
     }
 }
