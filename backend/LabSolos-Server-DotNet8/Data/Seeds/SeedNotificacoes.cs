@@ -67,8 +67,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 Tipo = TipoNotificacao.EmprestimoAprovado,
                 UsuarioId = 3, // Carlos Eduardo - solicitante do empréstimo 1
                 Lida = false,
-                DataCriacao = DateTime.UtcNow.AddDays(-9),
-                LinkAcao = "/mentor/history",
+                DataCriacao = DateTime.UtcNow.AddDays(-3),
+                LinkAcao = "/mentor/history/class",
                 ReferenciaId = 1,
                 TipoReferencia = "Emprestimo"
             });
