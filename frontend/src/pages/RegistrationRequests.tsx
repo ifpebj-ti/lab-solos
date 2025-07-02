@@ -157,11 +157,22 @@ function RegistrationRequest() {
               </div>
             </div>
             <HeaderTable columns={columnsApproval22} />
-            <div className='w-full items-center flex flex-col justify-between min-h-72'>
+            <div className='w-full items-center flex flex-col justify-center min-h-72'>
               <div className='w-full'>
                 {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
+                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                    <div className='text-6xl text-gray-300'>📝</div>
+                    <p className='text-lg text-center'>
+                      {approval.length === 0
+                        ? 'Nenhuma solicitação de cadastro pendente.'
+                        : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
+                    </p>
+                    {approval.length === 0 && (
+                      <p className='text-sm text-gray-500 text-center'>
+                        As solicitações de cadastro aparecerão aqui quando
+                        usuários solicitarem acesso.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
@@ -190,13 +201,17 @@ function RegistrationRequest() {
                   ))
                 )}
               </div>
-              {/* Componente de Paginação */}
-              <Pagination
-                totalItems={currentData.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
+              {/* Componente de Paginação - só aparece quando há dados */}
+              {currentData.length > 0 && approval.length > 0 && (
+                <div className='mt-auto'>
+                  <Pagination
+                    totalItems={sortedUsers.length}
+                    itemsPerPage={itemsPerPage}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

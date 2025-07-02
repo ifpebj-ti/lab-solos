@@ -197,32 +197,55 @@ function ViewClass() {
               </div>
             </div>
             <HeaderTable columns={columnsButtons} />
-            <div className='w-full items-center flex flex-col justify-between min-h-72'>
+            <div className='w-full items-center flex flex-col justify-center min-h-72'>
               <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ClickableItemTable
-                    key={index}
-                    data={[
-                      rowData.nomeCompleto,
-                      rowData.email,
-                      rowData.instituicao,
-                      rowData.curso,
-                      rowData.status,
-                    ]}
-                    rowIndex={index}
-                    columnWidths={columnsButtons.map((column) => column.width)}
-                    id={rowData.id}
-                    destinationRoute='/admin/view-class-mentor'
-                  />
-                ))}
+                {currentData.length === 0 ? (
+                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                    <div className='text-6xl text-gray-300'>👥</div>
+                    <p className='text-lg text-center'>
+                      {sortedUsers.length === 0
+                        ? 'Nenhum usuário encontrado nesta turma.'
+                        : 'Nenhum usuário encontrado para os filtros aplicados.'}
+                    </p>
+                    {sortedUsers.length === 0 && (
+                      <p className='text-sm text-gray-500 text-center'>
+                        Os membros da turma aparecerão aqui quando forem
+                        cadastrados.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  currentData.map((rowData, index) => (
+                    <ClickableItemTable
+                      key={index}
+                      data={[
+                        rowData.nomeCompleto,
+                        rowData.email,
+                        rowData.instituicao,
+                        rowData.curso,
+                        rowData.status,
+                      ]}
+                      rowIndex={index}
+                      columnWidths={columnsButtons.map(
+                        (column) => column.width
+                      )}
+                      id={rowData.id}
+                      destinationRoute='/admin/view-class-mentor'
+                    />
+                  ))
+                )}
               </div>
-              {/* Componente de Paginação */}
-              <Pagination
-                totalItems={currentData.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
+              {/* Componente de Paginação - só aparece quando há dados */}
+              {currentData.length > 0 && sortedUsers.length > 0 && (
+                <div className='mt-auto'>
+                  <Pagination
+                    totalItems={sortedUsers.length}
+                    itemsPerPage={itemsPerPage}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

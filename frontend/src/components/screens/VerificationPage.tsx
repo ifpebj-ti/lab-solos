@@ -441,17 +441,22 @@ function VerificationPage({ userType }: VerificationProps) {
             </Card>
           </div>
 
-          {/* Gráfico de Histórico de Uso - apenas para admin */}
+          {/* Gráfico de Uso - apenas para admin */}
           <div className='w-11/12 mt-7'>
             <Card>
               <CardHeader>
-                <CardTitle>Histórico de Uso</CardTitle>
+                <CardTitle>Gráfico de Uso</CardTitle>
               </CardHeader>
               <CardContent>
                 {chartData.length === 0 ? (
-                  <div className='flex justify-center items-center h-40'>
-                    <p className='text-clt-2 font-inter-regular'>
+                  <div className='flex flex-col items-center justify-center h-40 gap-3'>
+                    <div className='text-6xl text-gray-300'>📈</div>
+                    <p className='text-lg text-clt-2 font-inter-regular text-center'>
                       Nenhum dado de histórico encontrado para gerar o gráfico.
+                    </p>
+                    <p className='text-sm text-gray-500 text-center'>
+                      O gráfico será exibido quando houver dados de empréstimos
+                      ao longo do tempo.
                     </p>
                   </div>
                 ) : (
@@ -516,15 +521,20 @@ function VerificationPage({ userType }: VerificationProps) {
           </div>
 
           {/* Tabela de Histórico */}
-          <div className='w-11/12 mt-7 border border-borderMy rounded-md min-h-96 p-4'>
+          <div className='w-11/12 mt-7 border border-borderMy rounded-md min-h-96 p-4 flex flex-col'>
             <h3 className='text-xl font-rajdhani-medium text-clt-2 mb-4'>
               Histórico de Movimentações
             </h3>
 
             {filteredHistorico.length === 0 ? (
-              <div className='flex justify-center items-center h-40'>
-                <p className='text-clt-2 font-inter-regular'>
+              <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                <div className='text-6xl text-gray-300'>📊</div>
+                <p className='text-lg text-center'>
                   Nenhuma movimentação encontrada.
+                </p>
+                <p className='text-sm text-gray-500 text-center'>
+                  O histórico de empréstimos aparecerá aqui quando houver
+                  movimentações.
                 </p>
               </div>
             ) : (
