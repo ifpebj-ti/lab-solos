@@ -10,7 +10,7 @@ import CalendarIcon from '../../public/icons/CalendarIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useEffect, useState } from 'react';
-import { columns, getUnidadeSigla } from '@/mocks/Unidades';
+import { columns, getUnidadePlural } from '@/mocks/Unidades';
 import { getAlertProducts } from '@/integration/Product';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 
@@ -178,11 +178,17 @@ function FollowUp() {
                       data={[
                         rowData.nomeProduto || 'Não corresponde',
                         String(rowData.quantidade) +
-                          getUnidadeSigla(String(rowData.unidadeMedida)) ||
-                          'Não corresponde',
+                          ' ' +
+                          getUnidadePlural(
+                            String(rowData.unidadeMedida),
+                            rowData.quantidade
+                          ) || 'Não corresponde',
                         String(rowData.quantidadeMinima) +
-                          getUnidadeSigla(String(rowData.unidadeMedida)) ||
-                          'Não corresponde',
+                          ' ' +
+                          getUnidadePlural(
+                            String(rowData.unidadeMedida),
+                            rowData.quantidadeMinima
+                          ) || 'Não corresponde',
                         String(rowData.dataValidade) || 'Não corresponde',
                         rowData.status || 'Não corresponde',
                       ]}

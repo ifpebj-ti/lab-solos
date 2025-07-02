@@ -129,10 +129,11 @@ export const chartData = [
 
 export const columnsVer = [
   { value: 'Data', width: '15%' },
-  { value: 'Utilizador', width: '30%' },
-  { value: 'Identificador', width: '25%' },
+  { value: 'Utilizador', width: '25%' },
+  { value: 'Identificador', width: '20%' },
   { value: 'Lote', width: '15%' },
-  { value: 'Quantidade', width: '15%' },
+  { value: 'Quantidade', width: '12%' },
+  { value: 'Unidade', width: '13%' },
 ];
 
 export const columnsButtons = [
@@ -390,6 +391,73 @@ export const getUnidadeSigla = (value: string): string => {
   };
 
   return siglas[value] || value;
+};
+
+// Função para pluralizar unidades de medida
+export const getUnidadePlural = (value: string, quantidade: number): string => {
+  const plurais: Record<string, { singular: string; plural: string }> = {
+    Litro: {
+      singular: 'litro',
+      plural: 'litros',
+    },
+    Mililitro: {
+      singular: 'mililitro',
+      plural: 'mililitros',
+    },
+    Metro_cubico: {
+      singular: 'metro cúbico',
+      plural: 'metros cúbicos',
+    },
+    Grama: {
+      singular: 'grama',
+      plural: 'gramas',
+    },
+    Quilograma: {
+      singular: 'quilograma',
+      plural: 'quilogramas',
+    },
+    Tonelada: {
+      singular: 'tonelada',
+      plural: 'toneladas',
+    },
+    Centimetro_cubico: {
+      singular: 'centímetro cúbico',
+      plural: 'centímetros cúbicos',
+    },
+    Miligrama: {
+      singular: 'miligrama',
+      plural: 'miligramas',
+    },
+    Unidade: {
+      singular: 'unidade',
+      plural: 'unidades',
+    },
+    Metro: {
+      singular: 'metro',
+      plural: 'metros',
+    },
+    Centimetro: {
+      singular: 'centímetro',
+      plural: 'centímetros',
+    },
+    Milimetro: {
+      singular: 'milímetro',
+      plural: 'milímetros',
+    },
+    Outro: {
+      singular: 'outro',
+      plural: 'outros',
+    },
+    Indefinido: {
+      singular: 'indefinido',
+      plural: 'indefinidos',
+    },
+  };
+
+  const unidade = plurais[value];
+  if (!unidade) return value;
+
+  return quantidade === 1 ? unidade.singular : unidade.plural;
 };
 
 export const categoriasQuimicas = [

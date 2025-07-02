@@ -8,9 +8,48 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/components/hooks/use-toast';
 import { updateProduct } from '@/integration/Product';
 import { Loader2 } from 'lucide-react';
+
+// Opções de status do produto
+const statusOptions = [
+  {
+    value: 'Disponivel',
+    label: 'Disponível',
+  },
+  {
+    value: 'EmUso',
+    label: 'Em Uso',
+  },
+  {
+    value: 'Danificado',
+    label: 'Danificado',
+  },
+  {
+    value: 'Emprestado',
+    label: 'Emprestado',
+  },
+  {
+    value: 'Esgotado',
+    label: 'Esgotado',
+  },
+  {
+    value: 'Vencido',
+    label: 'Vencido',
+  },
+  {
+    value: 'Perdido',
+    label: 'Perdido',
+  },
+];
 
 interface Product {
   id: number;
@@ -81,6 +120,13 @@ export default function ProductEditModal({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      status: value,
     }));
   };
 
@@ -330,13 +376,24 @@ export default function ProductEditModal({
 
           <div className='space-y-2'>
             <Label htmlFor='status'>Status</Label>
-            <Input
-              id='status'
-              name='status'
-              value={formData.status}
-              onChange={handleChange}
-              placeholder='Status do produto'
-            />
+            <Select value={formData.status} onValueChange={handleStatusChange}>
+              <SelectTrigger>
+                <SelectValue placeholder='Selecione o status' />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={isLoading}
+                  >
+                    <div className='flex flex-col'>
+                      <span>{option.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className='flex justify-end gap-3 pt-4'>

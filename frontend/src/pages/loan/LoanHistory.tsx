@@ -4,7 +4,7 @@ import HeaderTable from '@/components/global/table/Header';
 import {
   columnsEstudantesSelected,
   columnsItensSelected,
-  getUnidadeSigla,
+  getUnidadePlural,
 } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
@@ -362,8 +362,9 @@ function LoanHistoryMentee() {
                         rowData.produto.tipoProduto || 'Não Corresponde',
                         String(rowData.quantidade || 'Não Corresponde') +
                           ' ' +
-                          getUnidadeSigla(
-                            String(rowData.produto.unidadeMedida)
+                          getUnidadePlural(
+                            String(rowData.produto.unidadeMedida),
+                            rowData.quantidade
                           ),
                         String(rowData.produto.lote?.codigoLote || 'Sem lote'),
                       ]}

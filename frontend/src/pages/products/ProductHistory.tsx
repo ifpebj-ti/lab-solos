@@ -5,7 +5,7 @@ import { getProductHistoricoSaida } from '@/integration/Product';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import LoadingIcon from '@/components/icons/LoadingIcon';
-import { getUnidadeSigla } from '@/mocks/Unidades';
+import { getUnidadePlural } from '@/mocks/Unidades';
 
 interface UsuarioEmprestimo {
   id: number;
@@ -165,7 +165,8 @@ export default function ProductHistoryPage() {
               Estoque Atual
             </label>
             <p className='text-lg font-semibold text-gray-800'>
-              {data.estoqueAtual} {getUnidadeSigla(data.unidadeMedida)}
+              {data.estoqueAtual}{' '}
+              {getUnidadePlural(data.unidadeMedida, data.estoqueAtual)}
             </p>
           </div>
           <div>
@@ -282,7 +283,10 @@ export default function ProductHistoryPage() {
                   <td className='py-3 px-4'>{item.lote || 'Sem lote'}</td>
                   <td className='py-3 px-4'>
                     {item.quantidadeEmprestada}{' '}
-                    {getUnidadeSigla(data.unidadeMedida)}
+                    {getUnidadePlural(
+                      data.unidadeMedida,
+                      item.quantidadeEmprestada
+                    )}
                   </td>
                 </tr>
               ))}
@@ -301,7 +305,10 @@ export default function ProductHistoryPage() {
           <p>Total de empréstimos: {data.totalEmprestimos}</p>
           <p>
             Total emprestado: {data.totalQuantidadeEmprestada}{' '}
-            {getUnidadeSigla(data.unidadeMedida)}
+            {getUnidadePlural(
+              data.unidadeMedida,
+              data.totalQuantidadeEmprestada
+            )}
           </p>
         </div>
       </div>
