@@ -90,14 +90,28 @@ function ProfileMentor() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        const responseLoans = await getLoansByUserId({ id });
-        setLoans(responseLoans);
         setUser(response);
+
+        // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
+        try {
+          const responseLoans = await getLoansByUserId({ id });
+          setLoans(responseLoans);
+        } catch (loansError: unknown) {
+          // Se for 404, significa que o usuário não tem empréstimos (caso normal)
+          const error = loansError as { response?: { status?: number } };
+          if (error?.response?.status === 404) {
+            setLoans([]); // Define array vazio para usuário sem empréstimos
+          } else {
+            // Para outros erros, re-lança a exceção
+            throw loansError;
+          }
+        }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar usuários', error);
         }
         setUser(undefined);
+        setLoans([]);
       } finally {
         setLoading(false);
       }

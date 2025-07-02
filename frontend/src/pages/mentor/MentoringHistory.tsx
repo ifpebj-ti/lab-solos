@@ -93,14 +93,28 @@ function MentoringHistory() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        const loansResponse = await getLoansByUserId({ id });
         setUser(response);
-        setLoans(loansResponse);
+
+        // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
+        try {
+          const loansResponse = await getLoansByUserId({ id });
+          setLoans(loansResponse);
+        } catch (loansError: unknown) {
+          // Se for 404, significa que o usuário não tem empréstimos (caso normal)
+          const error = loansError as { response?: { status?: number } };
+          if (error?.response?.status === 404) {
+            setLoans([]); // Define array vazio para usuário sem empréstimos
+          } else {
+            // Para outros erros, re-lança a exceção
+            throw loansError;
+          }
+        }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados usuários', error);
         }
         setUser(undefined);
+        setLoans([]);
       } finally {
         setLoading(false);
       }
@@ -231,36 +245,57 @@ function MentoringHistory() {
                 </div>
                 <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
-                  <p>{loans.length}</p>
+                  <p>{searchTerm ? sortedUsers.length : loans.length}</p>
                 </div>
               </div>
             </div>
             <HeaderTable columns={columnsLoan} />
-            <div className='w-full items-center flex flex-col justify-between min-h-72'>
+            <div className='w-full items-center flex flex-col justify-center min-h-72'>
               <div className='w-full'>
-                {currentData.map((rowData, index) => (
-                  <ClickableItemTable
-                    key={index}
-                    data={[
-                      String(rowData.id),
-                      formatDateTime(rowData.dataRealizacao),
-                      String(rowData.produtos.length),
-                      rowData.status,
-                    ]}
-                    rowIndex={index}
-                    columnWidths={columnsLoan.map((column) => column.width)}
-                    id={rowData.id}
-                    destinationRoute='/mentor/history/loan'
-                  />
-                ))}
+                {currentData.length === 0 ? (
+                  <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
+                    <div className='text-6xl text-gray-300'>📋</div>
+                    <p className='text-lg text-center'>
+                      {loans.length === 0
+                        ? 'Este mentorado ainda não possui empréstimos registrados.'
+                        : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
+                    </p>
+                    {loans.length === 0 && (
+                      <p className='text-sm text-gray-500 text-center'>
+                        Os empréstimos aparecerão aqui quando o mentorado
+                        realizar solicitações.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  currentData.map((rowData, index) => (
+                    <ClickableItemTable
+                      key={index}
+                      data={[
+                        String(rowData.id),
+                        formatDateTime(rowData.dataRealizacao),
+                        String(rowData.produtos.length),
+                        rowData.status,
+                      ]}
+                      rowIndex={index}
+                      columnWidths={columnsLoan.map((column) => column.width)}
+                      id={rowData.id}
+                      destinationRoute='/mentor/history/loan'
+                    />
+                  ))
+                )}
               </div>
-              {/* Componente de Paginação */}
-              <Pagination
-                totalItems={currentData.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
+              {/* Componente de Paginação - só aparece quando há dados */}
+              {currentData.length > 0 && loans.length > 0 && (
+                <div className='mt-auto'>
+                  <Pagination
+                    totalItems={sortedUsers.length}
+                    itemsPerPage={itemsPerPage}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -218,8 +218,15 @@ function HistoryClass() {
               <HeaderTable columns={columnsHistories} />
               <div className='w-full items-center flex flex-col min-h-72'>
                 {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
+                  <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
+                    <div className='text-6xl text-gray-300'>📋</div>
+                    <p className='text-lg text-center'>
+                      Nenhum empréstimo encontrado.
+                    </p>
+                    <p className='text-sm text-gray-500 text-center'>
+                      Os empréstimos da sua turma aparecerão aqui quando houver
+                      solicitações.
+                    </p>
                   </div>
                 ) : (
                   currentData.map((loan, index) => (
