@@ -22,11 +22,13 @@ namespace LabSolos_Server_DotNet8.Controllers
     {
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private readonly INotificacaoService _notificacaoService;
 
-        public EmprestimosController(IUnitOfWork uow, IMapper mapper)
+        public EmprestimosController(IUnitOfWork uow, IMapper mapper, INotificacaoService notificacaoService)
         {
             _uow = uow;
             _mapper = mapper;
+            _notificacaoService = notificacaoService;
         }
 
         [HttpGet("usuario/{userId}")]
@@ -186,6 +188,18 @@ namespace LabSolos_Server_DotNet8.Controllers
             var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
             await _uow.CommitAsync();
 
+            // Criar notificação para administradores sobre novo empréstimo
+            try
+            {
+                await _notificacaoService.CriarNotificacaoNovoEmprestimo(novoEmprestimo.Id);
+            }
+            catch (Exception ex)
+            {
+                // Log do erro mas não falha o processo principal
+                // TODO: Adicionar logging apropriado
+                Console.WriteLine($"Erro ao criar notificação de empréstimo: {ex.Message}");
+            }
+
             var emprestimoCriado = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == novoEmprestimo.Id,
                 query => query
                 .Include(e => e.Produtos)
@@ -229,7 +243,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             var userId = int.Parse(userIdClaim.Value);
 
             // Buscar o empréstimo pelo ID
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId, 
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
                 query => query
                     .Include(e => e.Produtos)
             );

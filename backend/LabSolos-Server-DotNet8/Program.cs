@@ -38,6 +38,7 @@ builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
+builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

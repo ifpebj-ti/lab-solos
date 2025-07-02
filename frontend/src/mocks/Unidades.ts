@@ -445,12 +445,12 @@ export const getUnidadePlural = (value: string, quantidade: number): string => {
       plural: 'milímetros',
     },
     Outro: {
-      singular: 'outro',
-      plural: 'outros',
+      singular: '',
+      plural: '',
     },
     Indefinido: {
-      singular: 'indefinido',
-      plural: 'indefinidos',
+      singular: '',
+      plural: '',
     },
   };
 

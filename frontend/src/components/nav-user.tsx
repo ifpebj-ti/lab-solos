@@ -1,6 +1,6 @@
 'use client';
 
-import { BadgeCheck, Bell, LogOut, Sparkles } from 'lucide-react';
+import { BadgeCheck, LogOut, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -112,13 +112,6 @@ export function NavUser({
               <DropdownMenuItem onSelect={() => navigate(profileRoute)}>
                 <BadgeCheck />
                 Conta
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                <Bell />
-                Notificações{' '}
-                <span className='ml-2 text-xs text-muted-foreground'>
-                  (em breve)
-                </span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

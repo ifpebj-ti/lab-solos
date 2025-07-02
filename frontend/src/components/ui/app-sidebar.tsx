@@ -14,6 +14,7 @@ import { useLocation, Link } from 'react-router-dom';
 import Cookie from 'js-cookie';
 
 import { NavMain } from '@/components/nav-main';
+import { NavSecondary } from '@/components/nav-secondary';
 import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -261,6 +262,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         {data.projects.length > 0 && <NavProjects projects={data.projects} />}
+        <NavSecondary items={[]} className='mt-auto' />
       </SidebarContent>
       <SidebarFooter>
         {!loading && user && (

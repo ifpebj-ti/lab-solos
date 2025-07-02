@@ -16,10 +16,11 @@ namespace LabSolos_Server_DotNet8.Repositories
         IRepository<Quimico> QuimicoRepository { get; }
         IRepository<Usuario> UsuarioRepository { get; }
         IRepository<Vidraria> VidrariaRepository { get; }
+        INotificacaoRepository NotificacaoRepository { get; }
 
         Task CommitAsync();
     }
-    
+
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context;
@@ -34,6 +35,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         private IRepository<Quimico>? _quimicoRepository;
         private IRepository<Usuario>? _usuarioRepository;
         private IRepository<Vidraria>? _vidrariaRepository;
+        private INotificacaoRepository? _notificacaoRepository;
 
         public UnitOfWork(AppDbContext context)
         {
@@ -117,6 +119,14 @@ namespace LabSolos_Server_DotNet8.Repositories
             get
             {
                 return _vidrariaRepository ??= new Repository<Vidraria>(_context);
+            }
+        }
+
+        public INotificacaoRepository NotificacaoRepository
+        {
+            get
+            {
+                return _notificacaoRepository ??= new NotificacaoRepository(_context);
             }
         }
 

@@ -13,6 +13,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 // Executar as seeds de desenvolvimento
                 SeedUsuarios.Seed(context);
                 SeedProdutos.Seed(context);
+                SeedNotificacoes.Seed(context);
 
                 context.SaveChanges();
             }

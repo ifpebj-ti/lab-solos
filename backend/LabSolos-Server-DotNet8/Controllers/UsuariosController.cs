@@ -22,19 +22,22 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IMapper _mapper;
         private readonly IUsuarioService _usuarioService;
         private readonly IUtilitiesService _utilsService;
+        private readonly INotificacaoService _notificacaoService;
 
         public UsuariosController(
             ILogger<UsuariosController> logger,
             IUtilitiesService utilsService,
             IUnitOfWork uow,
             IMapper mapper,
-            IUsuarioService usuarioService)
+            IUsuarioService usuarioService,
+            INotificacaoService notificacaoService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _utilsService = utilsService ?? throw new ArgumentNullException(nameof(utilsService));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _usuarioService = usuarioService ?? throw new ArgumentNullException(nameof(usuarioService));
+            _notificacaoService = notificacaoService ?? throw new ArgumentNullException(nameof(notificacaoService));
         }
 
         [HttpGet]
@@ -249,6 +252,18 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 _uow.UsuarioRepository.Criar(usuario);
                 await _uow.CommitAsync();
+
+                // Criar notificação para administradores sobre nova solicitação de usuário
+                try
+                {
+                    await _notificacaoService.CriarNotificacaoNovaSolicitacaoUsuario(usuario.Id);
+                }
+                catch (Exception ex)
+                {
+                    // Log do erro mas não falha o processo principal
+                    // TODO: Adicionar logging apropriado
+                    Console.WriteLine($"Erro ao criar notificação de usuário: {ex.Message}");
+                }
 
                 return CreatedAtAction(nameof(ObterPeloId), new { id = usuario.Id }, _mapper.Map<UsuarioDTO>(usuario));
             }

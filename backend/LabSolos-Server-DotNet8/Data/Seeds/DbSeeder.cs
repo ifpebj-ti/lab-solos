@@ -26,7 +26,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             return !context.Usuarios.Any() &&
                    !context.Produtos.Any() &&
                    !context.Lotes.Any() &&
-                   !context.Emprestimos.Any();
+                   !context.Emprestimos.Any() &&
+                   !context.Notificacoes.Any();
         }
     }
 }

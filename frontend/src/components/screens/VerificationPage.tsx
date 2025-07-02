@@ -1,10 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
-import {
-  columnsVer,
-  getUnidadeSigla,
-  getUnidadePlural,
-} from '@/mocks/Unidades';
+import { columnsVer, getUnidadePlural } from '@/mocks/Unidades';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import InfoContainer from '@/components/screens/InfoContainer';
@@ -593,7 +589,7 @@ function VerificationPage({ userType }: VerificationProps) {
                         item.lote || 'N/A',
                         item.quantidadeEmprestada.toString(),
                         historicoData?.unidadeMedida
-                          ? getUnidadeSigla(historicoData.unidadeMedida)
+                          ? historicoData.unidadeMedida
                           : 'N/A',
                       ]}
                       rowIndex={index}

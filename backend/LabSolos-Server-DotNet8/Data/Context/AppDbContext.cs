@@ -15,6 +15,7 @@ namespace LabSolos_Server_DotNet8.Data.Context
         public DbSet<Emprestimo> Emprestimos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
         public DbSet<ProdutoEmprestado> ProdutosEmprestados { get; set; }  // Adicionando a tabela intermediária
+        public DbSet<Notificacao> Notificacoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -77,6 +78,23 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .WithMany(u => u.EmprestimosAprovados)
                 .HasForeignKey(e => e.AprovadorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração do relacionamento entre Notificacao e Usuario
+            modelBuilder.Entity<Notificacao>()
+                .HasOne(n => n.Usuario)
+                .WithMany()
+                .HasForeignKey(n => n.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configuração de índices para performance
+            modelBuilder.Entity<Notificacao>()
+                .HasIndex(n => n.UsuarioId);
+
+            modelBuilder.Entity<Notificacao>()
+                .HasIndex(n => n.Lida);
+
+            modelBuilder.Entity<Notificacao>()
+                .HasIndex(n => n.DataCriacao);
         }
     }
 }
