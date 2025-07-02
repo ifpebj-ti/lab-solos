@@ -27,6 +27,7 @@ namespace LabSolos_Server_DotNet8.Services
         Task CriarNotificacaoNovoEmprestimo(int emprestimoId);
         Task CriarNotificacaoNovaSolicitacaoUsuario(int usuarioId);
         Task GerarNotificacoesAutomaticasAsync();
+        Task VerificarEmprestimosVencidosAsync();
     }
 
     public class NotificacaoService : INotificacaoService
@@ -383,6 +384,90 @@ namespace LabSolos_Server_DotNet8.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao gerar notificações automáticas");
+                throw;
+            }
+        }
+
+        public async Task VerificarEmprestimosVencidosAsync()
+        {
+            try
+            {
+                var dataLimite = DateTime.Now.AddDays(-7); // Empréstimos aprovados há mais de 7 dias
+
+                var emprestimosVencidos = await _uow.EmprestimoRepository.ObterTodosAsync(e =>
+                    e.Status == StatusEmprestimo.Aprovado &&
+                    e.DataAprovacao != null &&
+                    e.DataAprovacao < dataLimite &&
+                    e.DataDevolucao == null, // Ainda não foi devolvido
+                    query => query
+                        .Include(e => e.Solicitante)
+                        .Include(e => e.Produtos)
+                        .ThenInclude(p => p.Produto)
+                );
+
+                foreach (var emprestimo in emprestimosVencidos)
+                {
+                    await CriarNotificacaoEmprestimoVencidoAsync(emprestimo);
+                }
+
+                _logger.LogInformation($"Verificação de empréstimos vencidos concluída. {emprestimosVencidos.Count()} empréstimos vencidos encontrados.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao verificar empréstimos vencidos");
+                throw;
+            }
+        }
+
+        private async Task CriarNotificacaoEmprestimoVencidoAsync(Emprestimo emprestimo)
+        {
+            try
+            {
+                // Verifica se já existe uma notificação para este empréstimo vencido nas últimas 24 horas
+                var ontemDateTime = DateTime.Now.AddDays(-1);
+                var notificacaoRecente = await _uow.NotificacaoRepository.ObterTodosAsync(n =>
+                    n.TipoReferencia == "EmprestimoVencido" &&
+                    n.ReferenciaId == emprestimo.Id &&
+                    n.DataCriacao >= ontemDateTime);
+
+                if (notificacaoRecente.Any())
+                {
+                    return; // Já foi notificado recentemente
+                }
+
+                // Busca administradores para notificar
+                var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u =>
+                    u.TipoUsuario == TipoUsuario.Administrador &&
+                    u.Status == StatusUsuario.Habilitado);
+
+                var diasVencido = (DateTime.Now - emprestimo.DataAprovacao!.Value).Days;
+                var produtosList = string.Join(", ", emprestimo.Produtos.Select(p => p.Produto.NomeProduto));
+
+                var titulo = $"Empréstimo vencido há {diasVencido} dias";
+                var mensagem = $"O empréstimo #{emprestimo.Id} do usuário {emprestimo.Solicitante.NomeCompleto} " +
+                              $"está vencido há {diasVencido} dias. Produtos: {produtosList}";
+
+                foreach (var admin in usuarios)
+                {
+                    var createDto = new CreateNotificacaoDTO
+                    {
+                        Titulo = titulo,
+                        Mensagem = mensagem,
+                        Tipo = TipoNotificacao.Sistema,
+                        UsuarioId = admin.Id,
+                        LinkAcao = $"/admin/history/loan/{emprestimo.Id}",
+                        ReferenciaId = emprestimo.Id,
+                        TipoReferencia = "EmprestimoVencido"
+                    };
+
+                    await CriarNotificacaoAsync(createDto);
+                }
+
+                _logger.LogInformation($"Notificação criada para empréstimo vencido #{emprestimo.Id}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erro ao criar notificação para empréstimo vencido #{emprestimo.Id}");
                 throw;
             }
         }

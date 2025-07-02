@@ -5,8 +5,10 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { formatDateTime } from '@/function/date';
-import { FileSpreadsheet, MessageSquare } from 'lucide-react';
+import { FileSpreadsheet, MessageSquare, AlertTriangle } from 'lucide-react';
 import CardFunction from '@/components/screens/CardFunction';
+import { verificarEmprestimosVencidos } from '@/integration/Notifications';
+import { toast } from '@/components/hooks/use-toast';
 
 // Interface para o responsável
 export interface IResponsible {
@@ -80,7 +82,29 @@ export interface IEmprestimo {
 function Profile() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<IUser>();
+  const [verificandoEmprestimos, setVerificandoEmprestimos] = useState(false);
   const id = Cookie.get('rankID')!;
+
+  const handleVerificarEmprestimosVencidos = async () => {
+    try {
+      setVerificandoEmprestimos(true);
+      const response = await verificarEmprestimosVencidos();
+      toast({
+        title: 'Sucesso',
+        description: response.message,
+        variant: 'default',
+      });
+    } catch {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao verificar empréstimos vencidos. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setVerificandoEmprestimos(false);
+    }
+  };
+
   useEffect(() => {
     const fetchGetUserById = async () => {
       try {
@@ -190,6 +214,23 @@ function Profile() {
                 }
                 notify={false}
               />
+              <div
+                onClick={handleVerificarEmprestimosVencidos}
+                className='cursor-pointer'
+              >
+                <CardFunction
+                  link='#'
+                  text={
+                    verificandoEmprestimos
+                      ? 'Verificando...'
+                      : 'Verificar Empréstimos Vencidos'
+                  }
+                  icon={
+                    <AlertTriangle stroke='#dc2626' width={35} height={35} />
+                  }
+                  notify={false}
+                />
+              </div>
             </div>
           </div>
         </div>

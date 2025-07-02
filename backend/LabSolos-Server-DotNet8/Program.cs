@@ -6,6 +6,7 @@ using LabSolos_Server_DotNet8.Data.Seeds;
 using LabSolos_Server_DotNet8.Filters;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -45,6 +46,9 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Adicionar o background service para verificação de empréstimos vencidos
+builder.Services.AddHostedService<EmprestimosVencidosBackgroundService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));

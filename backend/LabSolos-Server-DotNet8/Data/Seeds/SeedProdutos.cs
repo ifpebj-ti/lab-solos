@@ -10,7 +10,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
         {
             // Criando novos empréstimos com diferentes solicitantes e status
             var emprestimo1 = new Emprestimo
-            {            
+            {
                 DataRealizacao = DateTime.UtcNow.AddDays(-10),
                 DataDevolucao = DateTime.UtcNow.AddDays(10),
                 DataAprovacao = DateTime.UtcNow.AddDays(-9),
@@ -20,7 +20,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo2 = new Emprestimo
-            {            
+            {
                 DataRealizacao = DateTime.UtcNow.AddDays(-5),
                 DataDevolucao = DateTime.UtcNow.AddDays(5),
                 Status = StatusEmprestimo.Pendente,
@@ -28,7 +28,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var emprestimo3 = new Emprestimo
-            {            
+            {
                 DataRealizacao = DateTime.UtcNow.AddDays(-2),
                 DataDevolucao = DateTime.UtcNow.AddDays(6),
                 Status = StatusEmprestimo.Aprovado,
@@ -36,12 +36,43 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 AprovadorId = 1
             };
 
-            context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3);
+            // Empréstimos vencidos (aprovados há mais de 7 dias sem devolução)
+            var emprestimoVencido1 = new Emprestimo
+            {
+                DataRealizacao = DateTime.UtcNow.AddDays(-15),
+                DataAprovacao = DateTime.UtcNow.AddDays(-15),
+                DataDevolucao = null, // Não foi devolvido
+                Status = StatusEmprestimo.Aprovado,
+                SolicitanteId = 3,
+                AprovadorId = 2
+            };
+
+            var emprestimoVencido2 = new Emprestimo
+            {
+                DataRealizacao = DateTime.UtcNow.AddDays(-20),
+                DataAprovacao = DateTime.UtcNow.AddDays(-20),
+                DataDevolucao = null, // Não foi devolvido
+                Status = StatusEmprestimo.Aprovado,
+                SolicitanteId = 4,
+                AprovadorId = 1
+            };
+
+            var emprestimoVencido3 = new Emprestimo
+            {
+                DataRealizacao = DateTime.UtcNow.AddDays(-12),
+                DataAprovacao = DateTime.UtcNow.AddDays(-12),
+                DataDevolucao = null, // Não foi devolvido
+                Status = StatusEmprestimo.Aprovado,
+                SolicitanteId = 5,
+                AprovadorId = 2
+            };
+
+            context.Emprestimos.AddRange(emprestimo1, emprestimo2, emprestimo3, emprestimoVencido1, emprestimoVencido2, emprestimoVencido3);
             context.SaveChanges();
 
             // Criando lotes para diferentes tipos de produtos
             var loteQuimico = new Lote
-            {            
+            {
                 CodigoLote = "LQ002",
                 DataEntrada = DateTime.UtcNow.AddDays(-45),
                 Fornecedor = "Fornecedor Químico XYZ",
@@ -50,7 +81,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var loteVidraria = new Lote
-            {            
+            {
                 CodigoLote = "LV002",
                 DataEntrada = DateTime.UtcNow.AddDays(-90),
                 Fornecedor = "Fornecedor Vidraria ABC",
@@ -63,7 +94,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando novos produtos químicos
             var quimico1 = new Quimico
-            {            
+            {
                 NomeProduto = "Ácido Clorídrico",
                 Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
@@ -87,7 +118,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var quimico2 = new Quimico
-            {            
+            {
                 NomeProduto = "Sulfato de Cobre",
                 Tipo = TipoProduto.Quimico,
                 Fornecedor = loteQuimico.Fornecedor,
@@ -114,7 +145,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
 
             // Criando novos produtos de vidraria
             var vidraria1 = new Vidraria
-            {            
+            {
                 NomeProduto = "Pipeta Graduada 10ml",
                 Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
@@ -135,7 +166,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             };
 
             var vidraria2 = new Vidraria
-            {            
+            {
                 NomeProduto = "Erlenmeyer 250ml",
                 Tipo = TipoProduto.Vidraria,
                 Fornecedor = loteVidraria.Fornecedor,
@@ -158,7 +189,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             context.Vidrarias.AddRange(vidraria1, vidraria2);
 
             var outro1 = new Produto
-            {            
+            {
                 NomeProduto = "Luvas de Proteção",
                 UnidadeMedida = UnidadeMedida.Unidade,
                 Tipo = TipoProduto.Outro, // Certificando que não é Químico nem Vidraria
@@ -182,7 +213,15 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 new() { ProdutoId = quimico1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 100 },
                 new() { ProdutoId = quimico2.Id, EmprestimoId = emprestimo2.Id, Quantidade = 50 },
                 new() { ProdutoId = vidraria1.Id, EmprestimoId = emprestimo1.Id, Quantidade = 10 },
-                new() { ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 }
+                new() { ProdutoId = vidraria2.Id, EmprestimoId = emprestimo3.Id, Quantidade = 5 },
+                
+                // Produtos para empréstimos vencidos
+                new() { ProdutoId = quimico1.Id, EmprestimoId = emprestimoVencido1.Id, Quantidade = 250 },
+                new() { ProdutoId = vidraria1.Id, EmprestimoId = emprestimoVencido1.Id, Quantidade = 15 },
+                new() { ProdutoId = quimico2.Id, EmprestimoId = emprestimoVencido2.Id, Quantidade = 75 },
+                new() { ProdutoId = outro1.Id, EmprestimoId = emprestimoVencido2.Id, Quantidade = 20 },
+                new() { ProdutoId = vidraria2.Id, EmprestimoId = emprestimoVencido3.Id, Quantidade = 8 },
+                new() { ProdutoId = quimico1.Id, EmprestimoId = emprestimoVencido3.Id, Quantidade = 150 }
             };
 
             context.ProdutosEmprestados.AddRange(emprestimoProdutos);

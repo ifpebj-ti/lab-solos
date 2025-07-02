@@ -178,3 +178,30 @@ export const gerarNotificacoesAutomaticas = async (): Promise<void> => {
     throw error;
   }
 };
+
+export const verificarEmprestimosVencidos = async (): Promise<{
+  message: string;
+}> => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'POST',
+      url: 'Notificacoes/verificar-emprestimos-vencidos',
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Erro ao verificar empréstimos vencidos:', error);
+    }
+    throw error;
+  }
+};

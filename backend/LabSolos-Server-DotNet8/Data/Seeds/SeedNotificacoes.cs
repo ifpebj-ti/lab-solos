@@ -130,6 +130,107 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
                 TipoReferencia = "Sistema"
             });
 
+            // Notificações de empréstimos vencidos para administradores
+            // Empréstimo vencido 1: Carlos Eduardo - 15 dias vencido
+            // if (admin1 != null)
+            // {
+            //     notificacoes.Add(new Notificacao
+            //     {
+            //         Titulo = "Empréstimo vencido há 15 dias",
+            //         Mensagem = "O empréstimo #4 do usuário Carlos Eduardo está vencido há 15 dias. Produtos: Ácido Clorídrico, Béquer 250ml",
+            //         Tipo = TipoNotificacao.Sistema,
+            //         UsuarioId = admin1.Id,
+            //         Lida = false,
+            //         DataCriacao = DateTime.UtcNow.AddDays(-2),
+            //         LinkAcao = "/admin/history/loan/4",
+            //         ReferenciaId = 4,
+            //         TipoReferencia = "EmprestimoVencido"
+            //     });
+            // }
+
+            // if (admin2 != null)
+            // {
+            //     notificacoes.Add(new Notificacao
+            //     {
+            //         Titulo = "Empréstimo vencido há 15 dias",
+            //         Mensagem = "O empréstimo #4 do usuário Carlos Eduardo está vencido há 15 dias. Produtos: Ácido Clorídrico, Béquer 250ml",
+            //         Tipo = TipoNotificacao.Sistema,
+            //         UsuarioId = admin2.Id,
+            //         Lida = false,
+            //         DataCriacao = DateTime.UtcNow.AddDays(-2),
+            //         LinkAcao = "/admin/history/loan/4",
+            //         ReferenciaId = 4,
+            //         TipoReferencia = "EmprestimoVencido"
+            //     });
+            // }
+
+            // // Empréstimo vencido 2: Mariana Oliveira - 20 dias vencido
+            // if (admin1 != null)
+            // {
+            //     notificacoes.Add(new Notificacao
+            //     {
+            //         Titulo = "Empréstimo vencido há 20 dias",
+            //         Mensagem = "O empréstimo #5 do usuário Mariana Oliveira está vencido há 20 dias. Produtos: Sulfato de Cobre, Luvas de Proteção",
+            //         Tipo = TipoNotificacao.Sistema,
+            //         UsuarioId = admin1.Id,
+            //         Lida = false,
+            //         DataCriacao = DateTime.UtcNow.AddDays(-1),
+            //         LinkAcao = "/admin/history/loan/5",
+            //         ReferenciaId = 5,
+            //         TipoReferencia = "EmprestimoVencido"
+            //     });
+            // }
+
+            if (admin2 != null)
+            {
+                notificacoes.Add(new Notificacao
+                {
+                    Titulo = "Empréstimo vencido há 20 dias",
+                    Mensagem = "O empréstimo #5 do usuário Mariana Oliveira está vencido há 20 dias. Produtos: Sulfato de Cobre, Luvas de Proteção",
+                    Tipo = TipoNotificacao.Sistema,
+                    UsuarioId = admin2.Id,
+                    Lida = true, // Admin2 já leu esta notificação
+                    DataCriacao = DateTime.UtcNow.AddDays(-1),
+                    DataLeitura = DateTime.UtcNow.AddHours(-12),
+                    LinkAcao = "/admin/history/loan/5",
+                    ReferenciaId = 5,
+                    TipoReferencia = "EmprestimoVencido"
+                });
+            }
+
+            // Empréstimo vencido 3: Lucas Ferreira - 12 dias vencido
+            if (admin1 != null)
+            {
+                notificacoes.Add(new Notificacao
+                {
+                    Titulo = "Empréstimo vencido há 12 dias",
+                    Mensagem = "O empréstimo #6 do usuário Lucas Ferreira está vencido há 12 dias. Produtos: Erlenmeyer 250ml, Ácido Clorídrico",
+                    Tipo = TipoNotificacao.Sistema,
+                    UsuarioId = admin1.Id,
+                    Lida = false,
+                    DataCriacao = DateTime.UtcNow.AddHours(-6),
+                    LinkAcao = "/admin/history/loan/6",
+                    ReferenciaId = 6,
+                    TipoReferencia = "EmprestimoVencido"
+                });
+            }
+
+            if (admin2 != null)
+            {
+                notificacoes.Add(new Notificacao
+                {
+                    Titulo = "Empréstimo vencido há 12 dias",
+                    Mensagem = "O empréstimo #6 do usuário Lucas Ferreira está vencido há 12 dias. Produtos: Erlenmeyer 250ml, Ácido Clorídrico",
+                    Tipo = TipoNotificacao.Sistema,
+                    UsuarioId = admin2.Id,
+                    Lida = false,
+                    DataCriacao = DateTime.UtcNow.AddHours(-6),
+                    LinkAcao = "/admin/history/loan/6",
+                    ReferenciaId = 6,
+                    TipoReferencia = "EmprestimoVencido"
+                });
+            }
+
             context.Notificacoes.AddRange(notificacoes);
             context.SaveChanges();
         }

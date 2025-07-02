@@ -141,6 +141,22 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
         }
 
+        [HttpPost("verificar-emprestimos-vencidos")]
+        [Authorize(Roles = "Administrador")] // Apenas administradores podem executar esta ação
+        public async Task<IActionResult> VerificarEmprestimosVencidos()
+        {
+            try
+            {
+                await _notificacaoService.VerificarEmprestimosVencidosAsync();
+                return Ok(new { message = "Verificação de empréstimos vencidos executada com sucesso" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao verificar empréstimos vencidos");
+                return StatusCode(500, "Erro interno do servidor");
+            }
+        }
+
         private int? GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
