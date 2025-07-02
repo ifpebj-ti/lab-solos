@@ -13,7 +13,8 @@ import { useEffect, useState } from 'react';
 import { getRegisteredUsers, getUserById } from '@/integration/Users';
 import { formatDate } from '../function/date';
 import { ArrowLeft, FileText } from 'lucide-react';
-import ClickableItemTable from '@/components/global/table/ItemClickable';
+import TableItemWithActions from '@/components/global/table/TableItemWithActions';
+import UserStatusManager from '@/components/global/UserStatusManager';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import { IUsuario } from './admin/Home';
 import { getDependentesForApproval } from '@/integration/Class';
@@ -105,11 +106,9 @@ function RegisteredUsers() {
         const response = await getDependentesForApproval(id);
         const processedRegisteredUsers = await getRegisteredUsers();
         const responseID = await getUserById({ id });
-        const habilitados = processedRegisteredUsers.filter(
-          (user: { status: string }) => user.status === 'Habilitado'
-        );
+        // Remover o filtro de apenas "Habilitados" para mostrar todos os usuários
         setUser(responseID);
-        setRegisteredUsers(habilitados);
+        setRegisteredUsers(processedRegisteredUsers);
         setApproval(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -126,9 +125,9 @@ function RegisteredUsers() {
 
   const headerTable = [
     { value: 'Data de Ingresso', width: '25%' },
-    { value: 'Nome', width: '40%' },
+    { value: 'Nome', width: '35%' },
     { value: 'Tipo de Usuário', width: '20%' },
-    { value: 'Status', width: '15%' },
+    { value: 'Status', width: '20%' },
   ];
 
   const options = [
@@ -137,13 +136,27 @@ function RegisteredUsers() {
     { value: 'Mentor', label: 'Mentores' },
     { value: 'Mentorado', label: 'Mentorandos' },
     { value: 'Outro', label: 'Outro Tipo' },
+    { value: 'Habilitado', label: 'Status: Habilitado' },
+    { value: 'Desabilitado', label: 'Status: Desabilitado' },
   ];
 
-  const filteredUsers = registeredUsers.filter(
-    (user) =>
-      (value === 'todos' || user.nivelUsuario.toString() === value) &&
-      user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = registeredUsers.filter((user) => {
+    const matchesSearch = user.nomeCompleto
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    if (value === 'todos') {
+      return matchesSearch;
+    }
+
+    // Filtrar por status
+    if (['Habilitado', 'Desabilitado'].includes(value)) {
+      return matchesSearch && user.status === value;
+    }
+
+    // Filtrar por nível de usuário
+    return matchesSearch && user.nivelUsuario.toString() === value;
+  });
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
@@ -158,7 +171,7 @@ function RegisteredUsers() {
   };
   const getUserCountText = (userType: string) => {
     const count = registeredUsers.filter(
-      (user) => user.nivelUsuario == userType
+      (user) => user.nivelUsuario === userType
     ).length;
     return `${count}`;
   };
@@ -319,13 +332,28 @@ function RegisteredUsers() {
                   </div>
                 ) : (
                   currentData.map((rowData, index) => (
-                    <ClickableItemTable
+                    <TableItemWithActions
                       key={index}
                       data={[
                         formatDate(rowData?.dataIngresso),
                         rowData?.nomeCompleto || 'Nome não disponível',
                         rowData?.nivelUsuario,
-                        rowData?.status || 'Status não disponível',
+                        <UserStatusManager
+                          key={`status-${rowData.id}`}
+                          userId={Number(rowData.id)}
+                          currentStatus={rowData.status}
+                          userName={rowData.nomeCompleto}
+                          onStatusUpdate={(newStatus) => {
+                            // Atualizar o estado local para refletir a mudança
+                            setRegisteredUsers((prev) =>
+                              prev.map((user) =>
+                                user.id === rowData.id
+                                  ? { ...user, status: newStatus }
+                                  : user
+                              )
+                            );
+                          }}
+                        />,
                       ]}
                       rowIndex={index}
                       columnWidths={headerTable.map((column) => column.width)}

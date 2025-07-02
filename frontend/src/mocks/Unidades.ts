@@ -136,10 +136,11 @@ export const columnsVer = [
 ];
 
 export const columnsButtons = [
-  { value: 'Nome', width: '30%' },
-  { value: 'Email', width: '30%' },
+  { value: 'Nome', width: '25%' },
+  { value: 'Email', width: '25%' },
   { value: 'Instituição', width: '20%' },
-  { value: 'Curso', width: '20%' },
+  { value: 'Curso', width: '15%' },
+  { value: 'Status', width: '15%' },
 ];
 
 export const columnsApproval = [

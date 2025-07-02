@@ -207,6 +207,7 @@ function ViewClass() {
                       rowData.email,
                       rowData.instituicao,
                       rowData.curso,
+                      rowData.status,
                     ]}
                     rowIndex={index}
                     columnWidths={columnsButtons.map((column) => column.width)}
