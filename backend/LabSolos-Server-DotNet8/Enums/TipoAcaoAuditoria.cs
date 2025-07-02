@@ -1,0 +1,34 @@
+namespace LabSolos_Server_DotNet8.Enums
+{
+    public enum TipoAcaoAuditoria
+    {
+        Login,
+        Logout,
+        LoginFalhado,
+        CriacaoUsuario,
+        AlteracaoUsuario,
+        ExclusaoUsuario,
+        CriacaoProduto,
+        AlteracaoProduto,
+        ExclusaoProduto,
+        CriacaoEmprestimo,
+        AprovacaoEmprestimo,
+        RejeicaoEmprestimo,
+        DevolucaoEmprestimo,
+        AcessoRelatorio,
+        ExportacaoDados,
+        AlteracaoSenha,
+        ResetSenha,
+        AcessoAdministrativo,
+        TentativaAcessoNaoAutorizado,
+        AcessoRecursoRestrito,
+        OperacaoEmLote,
+        BackupDados,
+        RestauracaoDados,
+        ConfiguracaoSistema,
+        VisualizacaoInformacoesSensiveis,
+        DownloadArquivo,
+        UploadArquivo,
+        Outro
+    }
+}

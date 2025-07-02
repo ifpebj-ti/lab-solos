@@ -8,6 +8,7 @@ import {
   Send,
   Share2,
   House,
+  Shield,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
@@ -89,6 +90,11 @@ const menus = {
             url: '/admin/all-loans',
           },
         ],
+      },
+      {
+        title: 'Auditoria',
+        url: '/admin/auditoria',
+        icon: Shield,
       },
     ],
     projects: [

@@ -9,7 +9,7 @@ using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Serilog;
+using LabSolos_Server_DotNet8.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +39,7 @@ builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -47,21 +48,6 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
-
-// Configurar o Serilog para escrever logs no console e em arquivos
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console() // Adiciona logs no console
-    .WriteTo.File("Logs/General/general-log-.log", rollingInterval: RollingInterval.Day) // Logs diários em arquivos
-    .WriteTo.Logger(lc => lc
-                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiLoggingFilter"))
-                .WriteTo.File("Logs/Actions/action-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiLoggingFilter
-    .WriteTo.Logger(lc => lc
-                .Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("LabSolos_Server_DotNet8.Filters.ApiExceptionFilter"))
-                .WriteTo.File("Logs/Exceptions/exception-log-.log", rollingInterval: RollingInterval.Day)) // Logs do ApiExceptionFilter
-    .CreateLogger();
-
-// Substituir o logger padrão do ASP.NET Core pelo Serilog
-builder.Host.UseSerilog();
 
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
@@ -157,6 +143,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+app.UseMiddleware<AuditoriaMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

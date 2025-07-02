@@ -17,6 +17,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         IRepository<Usuario> UsuarioRepository { get; }
         IRepository<Vidraria> VidrariaRepository { get; }
         INotificacaoRepository NotificacaoRepository { get; }
+        ILogAuditoriaRepository LogAuditoriaRepository { get; }
 
         Task CommitAsync();
     }
@@ -36,6 +37,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         private IRepository<Usuario>? _usuarioRepository;
         private IRepository<Vidraria>? _vidrariaRepository;
         private INotificacaoRepository? _notificacaoRepository;
+        private ILogAuditoriaRepository? _logAuditoriaRepository;
 
         public UnitOfWork(AppDbContext context)
         {
@@ -127,6 +129,14 @@ namespace LabSolos_Server_DotNet8.Repositories
             get
             {
                 return _notificacaoRepository ??= new NotificacaoRepository(_context);
+            }
+        }
+
+        public ILogAuditoriaRepository LogAuditoriaRepository
+        {
+            get
+            {
+                return _logAuditoriaRepository ??= new LogAuditoriaRepository(_context);
             }
         }
 

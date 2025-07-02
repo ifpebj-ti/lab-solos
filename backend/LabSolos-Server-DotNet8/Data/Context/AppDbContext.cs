@@ -16,6 +16,7 @@ namespace LabSolos_Server_DotNet8.Data.Context
         public DbSet<Lote> Lotes { get; set; }
         public DbSet<ProdutoEmprestado> ProdutosEmprestados { get; set; }  // Adicionando a tabela intermediária
         public DbSet<Notificacao> Notificacoes { get; set; }
+        public DbSet<LogAuditoria> LogsAuditoria { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -95,6 +96,36 @@ namespace LabSolos_Server_DotNet8.Data.Context
 
             modelBuilder.Entity<Notificacao>()
                 .HasIndex(n => n.DataCriacao);
+
+            // Configuração do relacionamento entre LogAuditoria e Usuario
+            modelBuilder.Entity<LogAuditoria>()
+                .HasOne(l => l.Usuario)
+                .WithMany()
+                .HasForeignKey(l => l.UsuarioId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configuração de índices para LogAuditoria para performance e análise
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.UsuarioId);
+
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.DataHora);
+
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.TipoAcao);
+
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.NivelRisco);
+
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.Suspeita);
+
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => l.EnderecoIP);
+
+            // Índice composto para consultas de auditoria mais eficientes
+            modelBuilder.Entity<LogAuditoria>()
+                .HasIndex(l => new { l.DataHora, l.UsuarioId, l.TipoAcao });
         }
     }
 }

@@ -46,6 +46,7 @@ import CreateInfo from './pages/admin/CreateInfo';
 import ViewInfo from './pages/admin/ViewInfo';
 import ReturnLoan from './pages/admin/ReturnLoan';
 import Settings from './pages/admin/Settings';
+import Auditoria from './pages/admin/Auditoria';
 import { Layout } from './components/ui/layout';
 
 function AppRoutes() {
@@ -246,6 +247,15 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<Settings />}
+                requiredRank={['Administrador']}
+              />
+            }
+          />
+          <Route
+            path='auditoria'
+            element={
+              <PrivateRoute
+                element={<Auditoria />}
                 requiredRank={['Administrador']}
               />
             }
