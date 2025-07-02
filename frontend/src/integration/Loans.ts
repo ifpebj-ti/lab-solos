@@ -163,3 +163,28 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
     throw error;
   }
 };
+
+export const returnLoan = async (EmprestimoId: string | number) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'PATCH',
+      url: `/Emprestimos/devolver/${EmprestimoId}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Erro ao devolver empréstimo:', error);
+    }
+    throw error;
+  }
+};

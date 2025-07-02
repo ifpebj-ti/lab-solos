@@ -5,10 +5,12 @@ import HeaderTable from '@/components/global/table/Header';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { formatDate } from '@/function/date';
-import { getLoansById } from '@/integration/Loans';
+import { getLoansById, returnLoan } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ItemReturn from '@/components/global/table/ItemReturn';
 import ItemTable from '@/components/global/table/Item';
+import { toast } from '@/components/hooks/use-toast';
+import { RefreshCw } from 'lucide-react';
 
 export interface ILote {
   codigoLote: string;
@@ -89,6 +91,29 @@ function ReturnLoan() {
     fetchGetUserById();
   }, [id]);
 
+  const handleReturn = async () => {
+    if (!loans?.id) return;
+
+    try {
+      await returnLoan(loans.id);
+      toast({
+        title: 'Devolução registrada',
+        description: 'A devolução do empréstimo foi registrada com sucesso!',
+      });
+      // Recarregar os dados do empréstimo
+      const loansResponse = await getLoansById({ id });
+      setLoans(loansResponse);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao registrar devolução:', error);
+      }
+      toast({
+        title: 'Erro durante devolução',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+
   const infoItems = loans
     ? [
         {
@@ -151,6 +176,21 @@ function ReturnLoan() {
               Devolução de Empréstimo
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
+              {loans?.status === 'Aprovado' && !loans?.dataDevolucao && (
+                <button
+                  onClick={handleReturn}
+                  className='font-rajdhani-semibold text-white bg-green-600 text-base h-10 px-4 rounded-md hover:bg-green-700 flex gap-x-2 items-center justify-center transition-all ease-in-out duration-150'
+                >
+                  <RefreshCw width={18} />
+                  Registrar Devolução
+                </button>
+              )}
+              {loans?.status === 'Aprovado' && loans?.dataDevolucao && (
+                <div className='flex items-center gap-x-2 text-green-600 font-rajdhani-semibold'>
+                  <RefreshCw width={18} />
+                  Devolvido
+                </div>
+              )}
               <OpenSearch />
             </div>
           </div>

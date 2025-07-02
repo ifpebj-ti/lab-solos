@@ -10,8 +10,13 @@ import ItemTable from '@/components/global/table/Item';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { approveLoan, getLoansById, rejectLoan } from '@/integration/Loans';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  approveLoan,
+  getLoansById,
+  rejectLoan,
+  returnLoan,
+} from '@/integration/Loans';
+import { useLocation } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 import { toast } from '@/components/hooks/use-toast';
 import { FileText, RefreshCw } from 'lucide-react';
@@ -151,6 +156,27 @@ function LoanHistoryMentee() {
     }
   };
 
+  const handleReturn = async (loanId: number) => {
+    try {
+      await returnLoan(loanId);
+      toast({
+        title: 'Devolução registrada',
+        description: 'A devolução do empréstimo foi registrada com sucesso!',
+      });
+      // Recarregar os dados do empréstimo
+      const response = await getLoansById({ id });
+      setLoan(response);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Erro ao registrar devolução:', error);
+      }
+      toast({
+        title: 'Erro durante devolução',
+        description: 'Tente novamente mais tarde...',
+      });
+    }
+  };
+
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
@@ -161,15 +187,6 @@ function LoanHistoryMentee() {
   const sortedUsers = isAscending
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
-  const navigate = useNavigate();
-  interface IHandle {
-    id: number | string;
-  }
-
-  const handleClick = ({ id }: IHandle) => {
-    navigate('/admin/return', { state: { id } });
-  };
-
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Dados de Empréstimo');
@@ -250,16 +267,24 @@ function LoanHistoryMentee() {
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos Selecionados
               </p>
-              {loan?.status === 'Aprovado' && (
+              {loan?.status === 'Aprovado' && !loan?.dataDevolucao && (
                 <button
                   onClick={() =>
-                    loan?.id !== undefined && handleClick({ id: loan.id })
+                    loan?.id !== undefined && handleReturn(loan.id)
                   }
-                  className='font-rajdhani-semibold text-primaryMy text-xl h-10 border border-primaryMy px-4 rounded-md hover:bg-cl-table-item flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
+                  className='font-rajdhani-semibold text-green-600 text-xl h-10 border border-green-600 px-4 rounded-md hover:bg-green-50 flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
                 >
-                  Devolução
+                  Registrar Devolução
                   <RefreshCw stroke='#16a34a' width={20} />
                 </button>
+              )}
+              {loan?.status === 'Aprovado' && loan?.dataDevolucao && (
+                <div className='flex items-center gap-x-2 text-green-600'>
+                  <RefreshCw stroke='#16a34a' width={16} />
+                  <span className='font-rajdhani-semibold text-lg'>
+                    Empréstimo Devolvido
+                  </span>
+                </div>
               )}
             </div>
             <div className='flex flex-col items-center justify-center w-full px-4'>

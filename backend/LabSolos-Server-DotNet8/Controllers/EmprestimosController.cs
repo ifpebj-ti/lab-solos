@@ -370,5 +370,92 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             return NoContent();
         }
+
+        [HttpPatch("devolver/{emprestimoId}")]
+        [Authorize]
+        public async Task<IActionResult> DevolverEmprestimo(int emprestimoId)
+        {
+            // Obter usuário autenticado
+            var user = HttpContext.User;
+
+            if (user == null)
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            // Obter o ID do usuário autenticado
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+
+            // Verificar se o usuário tem o papel de admin ou mentor
+            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (nivelClaim == null || (nivelClaim.Value != NivelUsuario.Administrador.ToString() && nivelClaim.Value != NivelUsuario.Mentor.ToString()))
+            {
+                return Unauthorized("Apenas administradores ou mentores podem registrar devoluções de empréstimos.");
+            }
+
+            // Buscar o empréstimo pelo ID
+            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
+                query => query
+                    .Include(e => e.Produtos)
+                    .ThenInclude(p => p.Produto)
+            );
+
+            if (emprestimo == null)
+            {
+                return NotFound("Empréstimo não encontrado.");
+            }
+
+            // Verificar se o empréstimo está aprovado
+            if (emprestimo.Status != StatusEmprestimo.Aprovado)
+            {
+                return BadRequest("Apenas empréstimos aprovados podem ser devolvidos.");
+            }
+
+            // Verificar se o empréstimo já foi devolvido
+            if (emprestimo.DataDevolucao != null)
+            {
+                return BadRequest("Este empréstimo já foi devolvido.");
+            }
+
+            // Restaurar a quantidade dos produtos
+            foreach (var item in emprestimo.Produtos)
+            {
+                var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == item.ProdutoId);
+                if (produto == null)
+                {
+                    return NotFound($"Produto com ID {item.ProdutoId} não encontrado.");
+                }
+
+                // Restaurar quantidade
+                produto.Quantidade += item.Quantidade;
+
+                // Atualizar status do produto baseado na disponibilidade e validade
+                if (produto.DataValidade < DateTime.UtcNow.Date)
+                {
+                    produto.Status = StatusProduto.Vencido;
+                }
+                else if (produto.Quantidade > 0)
+                {
+                    produto.Status = StatusProduto.Disponivel;
+                }
+
+                _uow.ProdutoRepository.Atualizar(produto);
+            }
+
+            // Atualizar a data de devolução para agora
+            emprestimo.DataDevolucao = DateTime.UtcNow;
+
+            // Salvar as mudanças no banco de dados
+            _uow.EmprestimoRepository.Atualizar(emprestimo);
+            await _uow.CommitAsync();
+
+            return NoContent();
+        }
     }
 }
