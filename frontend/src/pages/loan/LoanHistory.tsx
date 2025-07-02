@@ -406,13 +406,13 @@ function LoanHistoryMentee() {
           {loan?.status != 'Aprovado' ? (
             <div className='w-11/12 gap-x-5 h-10 mt-6 flex items-center justify-end'>
               <button
-                onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
+                onClick={() => loan?.id !== undefined && handleReject(loan.id)}
                 className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
               >
                 Rejeitar
               </button>
               <button
-                onClick={() => loan?.id !== undefined && handleReject(loan.id)}
+                onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
                 className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
               >
                 Aceitar

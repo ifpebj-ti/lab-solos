@@ -211,12 +211,17 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 int? responsavelId = null;
 
-                if (addUsuarioDTO.NivelUsuario == NivelUsuario.Mentor.ToString() && addUsuarioDTO.ResponsavelEmail is not null)
+                // Verificar se um responsável foi informado (aplicável para Mentorados que precisam de um Mentor responsável)
+                if (addUsuarioDTO.ResponsavelEmail is not null)
                 {
                     var responsavel = await _uow.UsuarioRepository.ObterAsync(u => u.Email == addUsuarioDTO.ResponsavelEmail);
 
                     if (responsavel == null)
                         return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
+
+                    // Validar se o responsável tem nível adequado para ser responsável
+                    if (responsavel.NivelUsuario != NivelUsuario.Mentor && responsavel.NivelUsuario != NivelUsuario.Administrador)
+                        return BadRequest("O usuário informado como responsável deve ser um Mentor ou Administrador");
 
                     responsavelId = responsavel.Id;
                 }
