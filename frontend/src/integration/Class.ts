@@ -139,7 +139,7 @@ export const approveDependente = async (solicitanteId: string | number) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `/Usuarios/${solicitanteId}/aprovar`,
+      url: `/Usuarios/dependentes/${solicitanteId}/aprovar`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -168,7 +168,7 @@ export const rejectDependente = async (solicitanteId: string | number) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `/Usuarios/${solicitanteId}/rejeitar`,
+      url: `/Usuarios/dependentes/${solicitanteId}/rejeitar`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
