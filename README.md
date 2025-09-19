@@ -17,18 +17,6 @@ Labon é um sistema web completo para o gerenciamento de insumos e reagentes em 
 
 Este software foi projetado para ser adaptável a diferentes contextos laboratoriais, permitindo que administradores configurem o sistema de acordo com as necessidades específicas de cada ambiente, seja em instituições de ensino, centros de pesquisa ou laboratórios industriais.
 
-
-## Objetivos Principais
-**- Gerenciar o Estoque de Insumos e Reagentes:** Manter um inventário atualizado e centralizado, com todos os itens necessários para as atividades laboratoriais.
-
-**- Controle de Retiradas:** Registrar as retiradas de insumos por usuários previamente cadastrados, evitando o uso não autorizado de materiais.
-
-**- Gestão de Usuários e Níveis de Acesso:** Garantir que apenas usuários autorizados, como alunos, professores e técnicos, possam acessar e retirar insumos, enquanto os administradores mantêm o controle das permissões e de novas adições ao inventário.
-
-**- Facilidade de Adição e Atualização de Materiais:** Permitir que o administrador registre rapidamente novos insumos recebidos e atualize o status dos itens existentes.
-
-**- Histórico de Uso e Relatórios:** Prover um histórico detalhado do uso de insumos e reagentes, possibilitando que o laboratório monitore a frequência de consumo e tome decisões informadas sobre a reposição de materiais.
-
 ## Tecnologias Utilizadas
 
 O projeto utiliza um conjunto de tecnologias modernas para garantir um desempenho confiável e uma experiência de usuário agradável:
