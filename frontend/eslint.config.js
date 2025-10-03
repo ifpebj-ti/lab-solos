@@ -31,7 +31,7 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      'prettier/prettier': 'warn',
+      'prettier/prettier': 0,
     },
   },
 
@@ -45,6 +45,7 @@ export default [
     },
     rules: {
       'no-undef': 'off', // Desativa o erro para variáveis globais como `window`
+      'prettier/prettier': ['error', { 'endOfLine': 'auto' }],
     },
   },
 ];
