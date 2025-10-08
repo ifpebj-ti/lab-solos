@@ -20,10 +20,6 @@ RUN dotnet publish -c Release -o /app/out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# SEGURANÇA: Cria um usuário não-root para rodar a aplicação
-RUN addgroup -g 1000 app && \
-    adduser -S -D -H -u 1000 -G app app
-
 # Mudar para o usuário não-root
 USER app
 
