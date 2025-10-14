@@ -18,36 +18,32 @@ function Carousel({ informacoes, imageSrc }: ICarousel) {
   }, [totalItems]);
 
   useEffect(() => {
-    const interval = setInterval(goToNextIndex, 3000);
+    const interval = setInterval(goToNextIndex, 5000);
 
     // Limpa o intervalo e reinicia quando currentIndex muda
     return () => clearInterval(interval);
   }, [goToNextIndex]); // Agora goToNextIndex é a dependência
 
   return (
-    <div className='flex flex-col items-center w-full'>
-      <div className='flex items-center justify-between w-full'>
-        {Array.from({ length: 3 }, (_, i) => {
+    <div className='w-full h-full flex items-center'>
+      <div className=' w-full h-full flex flex-wrap lg:flex-nowrap items-center justify-center gap-5 lg:gap-2 '>
+        {Array.from({ length: 4 }, (_, i) => {
           const itemIndex = getCircularIndex(currentIndex + i - 1);
-          const scaleClass = i === 1 ? 'scale-110' : 'scale-100';
+          // const scaleClass = i === 1 ? 'scale-110' : 'scale-100';
 
           return (
             <div
               key={itemIndex}
-              className={`flex items-center justify-center transition-transform ${scaleClass} bg-cl-table shadow-sm`}
-              style={{
-                width: i === 1 ? '30%' : '25%',
-                height: i === 1 ? '160px' : '155px',
-              }}
+              className={`w-[40%] h-[45%] lg:w-[20%] flex items-center justify-center transition-transform bg-cl-table shadow-sm`}
             >
-              <div className='rounded-md flex items-center justify-center w-full h-full border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200 gap-x-4 text-clt-2'>
+              <div className=' w-full h-full rounded-md flex flex-col xl:flex-row items-center justify-center border border-borderMy hover:bg-cl-table-item transition-all ease-in-out duration-200 gap-x-2 text-clt-2'>
                 <img
-                  alt='Imagem descritiva da informção'
+                  alt='Imagem descritiva da informação'
                   src={imageSrc[itemIndex]}
-                  className='w-4/12'
+                  className='w-4/12 h-auto md:w-4/12 lg:w-3/12 m-2'
                 ></img>
-                <div className='w-5/12'>
-                  <p className='font-rajdhani-medium text-xl text-clt-1 text-wrap'>
+                <div className='w-full h-[40%] lg:w-7/12 flex items-center justify-center text-center py-2'>
+                  <p className='font-rajdhani-medium text-sm md:text-base xl:text-lg text-clt-1 text-wrap'>
                     {informacoes[itemIndex]}
                   </p>
                 </div>

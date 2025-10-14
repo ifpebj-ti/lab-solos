@@ -6,7 +6,7 @@ export function SiteHeader() {
     const { toggleSidebar } = useSidebar();
 
     return (
-        <header className='flex sticky top-0 z-50 h-16 w-full items-center border-b bg-background px-4'>
+        <header className='flex sticky top-0 z-50 w-full h-full items-center border-b bg-background px-4'>
             {/* Botão Hambúrguer para o MOBILE */}
             <Button
                 className='h-8 w-8'

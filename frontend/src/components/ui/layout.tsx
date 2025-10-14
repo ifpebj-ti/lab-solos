@@ -9,9 +9,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* O AppSidebar renderiza o menu lateral (ou a gaveta no mobile) */}
       <AppSidebar />
 
-      {/* Esta div agrupa o Header e o conteúdo principal */}
       <div className="flex flex-col w-full">
-        <SiteHeader />
+        {/* O SiteHeader renderiza o cabeçalho fixo no topo */}
+        <div className='h-[40px] md:h-[60px] '>
+          <SiteHeader />
+        </div>
 
         <main className="flex-1 relative">
           {children}
@@ -20,3 +22,4 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+

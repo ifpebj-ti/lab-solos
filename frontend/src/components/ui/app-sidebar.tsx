@@ -255,10 +255,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   to={`/${userType.toLowerCase()}/`}
                   className='flex items-center gap-3 w-full'
                 >
-                  <div className='flex-shrink-0 w-12 h-12 flex items-center justify-center'>
+                  <div className='w-12 h-12 flex items-center justify-center'>
                     <img
                       src={logo}
-                      className='object-contain w-full h-full transition-opacity hover:opacity-0'
+                      className='object-contain w-12 h-full transition-opacity hover:opacity-0'
                       alt='Logo'
                     />
                     <img
