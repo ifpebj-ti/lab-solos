@@ -1,26 +1,35 @@
 # Etapa 1: Build (usa o SDK para compilar)
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copiar apenas o arquivo .csproj do subdiretório correto
-COPY LabSolos-Server-DotNet8/*.csproj ./
+# Otimização de cache: copia primeiro os arquivos de projeto/solução
+COPY LabSolos-Server-DotNet8/*.csproj LabSolos-Server-DotNet8/
+COPY backend.sln .
+
+WORKDIR /src/LabSolos-Server-DotNet8
 RUN dotnet restore
 
-# Copiar o restante dos arquivos do subdiretório
-COPY LabSolos-Server-DotNet8/. ./
-RUN dotnet publish LabSolos-Server-DotNet8.csproj -c Release -o out
+# Copiar o restante dos arquivos
+WORKDIR /src
+COPY LabSolos-Server-DotNet8/. LabSolos-Server-DotNet8/
 
-# Etapa 2: Runtime (usa apenas para rodar a aplicação)
+WORKDIR /src/LabSolos-Server-DotNet8
+RUN dotnet publish -c Release -o /app/out
+
+# Runtime (usa apenas para rodar a aplicação)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Mudar para o usuário não-root
+USER app
+
 COPY --from=build /app/out ./
 
-# Expor a porta correta
-EXPOSE 5000
+# Expor a porta (portas > 1024 não exigem privilégio root)
+EXPOSE 8080
 
 # Configuração do Kestrel
-ENV ASPNETCORE_URLS=http://*:5000
+ENV ASPNETCORE_URLS=http://*:8080
 
 # Comando de entrada para iniciar a API
 ENTRYPOINT ["dotnet", "LabSolos-Server-DotNet8.dll"]
-

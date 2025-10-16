@@ -6,7 +6,7 @@ networks:
 
 services:
   frontend:
-    image: jrrs1/frontend-labon:latest
+    image: ghcr.io/ifpebj-ti/lab-solos-frontend:latest
     container_name: frontend
     restart: unless-stopped
     ports:
@@ -19,7 +19,7 @@ services:
       - public_network
 
   backend:
-    image: jrrs1/backend-labon:latest
+    image: ghcr.io/ifpebj-ti/lab-solos-backend:latest
     container_name: backend
     restart: unless-stopped
     ports:
