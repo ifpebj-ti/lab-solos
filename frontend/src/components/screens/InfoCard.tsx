@@ -15,7 +15,7 @@ function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
   return (
     <Link
       to={link}
-      className='relative w-1/4 gap-x-4 h-full border-borderMy border rounded-md flex items-center px-5 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm max-h-32'
+      className='w-[45%] h-[30%] lg:w-[30%] landscape:w-[40%] max-h-32 rounded-md flex items-center justify-between px-5 hover:bg-green-100 transition-all ease-in-out duration-200 shadow-md gap-2'
     >
       <div className='relative min-w-7 flex items-center justify-center'>
         {icon}
@@ -28,7 +28,7 @@ function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
           </span>
         )}
       </div>
-      <p className='font-inter-medium uppercase text-clt-2 text-sm line-clamp-2'>
+      <p className='font-inter-medium uppercase text-clt-2 text-xs line-clamp-2 landscape:px-0'>
         {text}
       </p>
     </Link>

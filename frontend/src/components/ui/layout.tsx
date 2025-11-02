@@ -11,7 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-col w-full">
         {/* O SiteHeader renderiza o cabeçalho fixo no topo */}
-        <div className='h-[40px] md:h-[60px] '>
+        <div className='h-[40px] md:h-[60px]'>
           <SiteHeader />
         </div>
 

@@ -41,7 +41,7 @@ function Home() {
           <div className='w-full h-[80%] flex flex-col landscape:md:flex-row landscape:lg:flex-col items-center justify-around mt-2'>
             <div className='w-full h-[35%] lg:h-[40%] landscape:md:w-full landscape:md:h-full flex items-center justify-between py-2 px-5'>
               <div className='w-full h-full flex justify-center flex-col font-rajdhani-semibold text-4xl md:text-5xl lg:text-6xl landscape:text-2xl md:landscape:text-lg lg:landscape:text-4xl text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)]  bg-no-repeat bg-center lg:bg-right-bottom bg-contain '>
-                <div className='w-full h-full md:w-11/12 landscape:md:w-[80%] landscape:lg:w-[60%] landscape:md:text-3xl landscape:lg:text-5xl flex items-center justify-center  bg-backgroundMy/80 lg:bg-transparent p-5 lg:p-0'>
+                <div className='w-full h-full md:w-11/12 landscape:md:w-[80%] landscape:lg:w-[60%] landscape:md:text-3xl landscape:lg:text-4xl flex items-center justify-center  bg-backgroundMy/80 lg:bg-transparent p-5 lg:p-0'>
                   <p>Bem-vindo(a) ao Laboratório de
                     <span className='text-primaryMy'> Solos e</span>
                     <span className='text-primaryMy'> Sustentabilidade </span>
