@@ -18,5 +18,11 @@ namespace LabSolos_Server_DotNet8.Controllers
             var result = await _systemService.ObterQuantidadesDoSistema();
             return Ok(result);
         }
+
+        [HttpGet("health")]
+        public IActionResult VerificarSaudeDoSistema()
+        {
+            return Ok(new { status = "healthy 1.0" });
+        }
     }
 }
