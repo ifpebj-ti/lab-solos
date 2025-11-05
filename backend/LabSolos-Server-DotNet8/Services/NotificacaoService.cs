@@ -223,7 +223,7 @@ namespace LabSolos_Server_DotNet8.Services
 
         public async Task CriarNotificacaoProdutoVencidoAsync(int produtoId, string nomeProduto, DateTime dataVencimento)
         {
-            var diasVencimento = (dataVencimento - DateTime.Now).Days;
+            var diasVencimento = (dataVencimento - DateTime.UtcNow).Days;
             var tipo = diasVencimento <= 0 ? TipoNotificacao.ProdutoVencido : TipoNotificacao.ProdutoProximoVencimento;
 
             var titulo = diasVencimento <= 0 ? "Produto Vencido" : "Produto Próximo ao Vencimento";
@@ -360,12 +360,12 @@ namespace LabSolos_Server_DotNet8.Services
                 }
 
                 // Buscar produtos próximos ao vencimento (10 dias)
-                var dataLimite = DateTime.Now.AddDays(10);
+                var dataLimite = DateTime.UtcNow.AddDays(10);
                 var produtosProximosVencimento = await _uow.ProdutoRepository.ObterTodosAsync(p => p.DataValidade != null && p.DataValidade <= dataLimite);
 
                 foreach (var produto in produtosProximosVencimento)
                 {
-                    var tipo = produto.DataValidade <= DateTime.Now ? TipoNotificacao.ProdutoVencido : TipoNotificacao.ProdutoProximoVencimento;
+                    var tipo = produto.DataValidade <= DateTime.UtcNow ? TipoNotificacao.ProdutoVencido : TipoNotificacao.ProdutoProximoVencimento;
 
                     // Verificar se já existe uma notificação recente para este produto
                     var notificacoesExistentes = await _uow.NotificacaoRepository.ObterPorTipoAsync(tipo);
@@ -392,7 +392,7 @@ namespace LabSolos_Server_DotNet8.Services
         {
             try
             {
-                var dataLimite = DateTime.Now.AddDays(-7); // Empréstimos aprovados há mais de 7 dias
+                var dataLimite = DateTime.UtcNow.AddDays(-7); // Empréstimos aprovados há mais de 7 dias
 
                 var emprestimosVencidos = await _uow.EmprestimoRepository.ObterTodosAsync(e =>
                     e.Status == StatusEmprestimo.Aprovado &&
@@ -424,7 +424,7 @@ namespace LabSolos_Server_DotNet8.Services
             try
             {
                 // Verifica se já existe uma notificação para este empréstimo vencido nas últimas 24 horas
-                var ontemDateTime = DateTime.Now.AddDays(-1);
+                var ontemDateTime = DateTime.UtcNow.AddDays(-1);
                 var notificacaoRecente = await _uow.NotificacaoRepository.ObterTodosAsync(n =>
                     n.TipoReferencia == "EmprestimoVencido" &&
                     n.ReferenciaId == emprestimo.Id &&
@@ -440,7 +440,7 @@ namespace LabSolos_Server_DotNet8.Services
                     u.TipoUsuario == TipoUsuario.Administrador &&
                     u.Status == StatusUsuario.Habilitado);
 
-                var diasVencido = (DateTime.Now - emprestimo.DataAprovacao!.Value).Days;
+                var diasVencido = (DateTime.UtcNow - emprestimo.DataAprovacao!.Value).Days;
                 var produtosList = string.Join(", ", emprestimo.Produtos.Select(p => p.Produto.NomeProduto));
 
                 var titulo = $"Empréstimo vencido há {diasVencido} dias";
