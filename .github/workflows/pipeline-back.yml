@@ -151,23 +151,25 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/lab-solos-backend:$CREATED_TAG
           docker push ghcr.io/${{ github.repository_owner }}/lab-solos-backend:latest
       
-      # - name: Log in to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Deploy to Azure Container Apps
-      #   uses: azure/container-apps-deploy-action@v1
-      #   with:
-      #     containerAppName: lab-solos-backend
-      #     resourceGroup: lab-solos
-      #     imageToDeploy: ghcr.io/${{ github.repository_owner }}/lab-solos-backend:${{ env.CREATED_TAG }}
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: lab-solos-backend
+          resourceGroup: lab-solos
+          imageToDeploy: ghcr.io/${{ github.repository_owner }}/lab-solos-backend:${{ env.CREATED_TAG }}
     
   # RELEASE CREATION TO REPOSITORY
   release-creation:
     name: 2. Automatic Creation Process of New Releases
     runs-on: ubuntu-latest
     needs: [tag-creation, backend]
+    permissions:
+      contents: write
     env:
       CREATED_TAG: ${{ needs.tag-creation.outputs.created_tag }}
       CHANGE_TYPE: ${{ needs.tag-creation.outputs.change_type }}
