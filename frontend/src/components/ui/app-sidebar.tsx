@@ -1,4 +1,5 @@
 import logo from './../../../public/images/logo.png';
+import logoBlack from './../../../public/images/logoBlack.png';
 
 import * as React from 'react';
 import {
@@ -26,9 +27,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { getUserById } from '@/integration/Users';
 import { IUser } from '@/pages/Profile';
+
+
+import { SheetClose } from '@/components/ui/sheet'; // 1. IMPORTE O SHEETCLOSE
+import { X } from 'lucide-react'; // Ícone de 'X'
+import { Button } from '@/components/ui/button';
 
 // Ajuste os tipos para refletir os valores reais do backend
 type UserType = 'Administrador' | 'Mentor' | 'Mentorado' | 'Comum';
@@ -176,6 +183,7 @@ const menus = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { isMobile } = useSidebar();
   const [user, setUser] = useState<IUser>();
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -224,9 +232,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items:
         'items' in item
           ? item.items?.map((subItem: { title: string; url: string }) => ({
-              ...subItem,
-              isActive: isSubItemActive(subItem.url),
-            }))
+            ...subItem,
+            isActive: isSubItemActive(subItem.url),
+          }))
           : undefined,
     })),
     projects: menus[userType].projects,
@@ -237,39 +245,60 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className='top-[--header-height] !h-[calc(100svh-var(--header-height))]'
       {...props}
     >
+      {/* Cabeçalho com logo e tipo do usuário e descrição */}
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size='lg' asChild>
-              <Link
-                to={`/${userType.toLowerCase()}/`}
-                className='flex items-center gap-3 w-full'
-              >
-                <div className='flex-shrink-0 w-12 h-12 flex items-center justify-center'>
-                  <img
-                    src={logo}
-                    className='object-contain w-full h-full'
-                    alt='Logo'
-                  />
-                </div>
-                <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-semibold'>
-                    {user?.nivelUsuario}
-                  </span>
-                  <span className='truncate text-xs'>
-                    Solos e Sustentabilidade Ambiental
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center justify-between gap-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size='lg' asChild>
+                <Link
+                  to={`/${userType.toLowerCase()}/`}
+                  className='flex items-center gap-3 w-full'
+                >
+                  <div className='w-12 h-12 flex items-center justify-center'>
+                    <img
+                      src={logo}
+                      className='object-contain w-12 h-full transition-opacity hover:opacity-0'
+                      alt='Logo'
+                    />
+                    <img
+                      src={logoBlack}
+                      className='object-contain w-full h-full transition-opacity absolute opacity-0 hover:opacity-100'
+                      alt='Logo Alternativo'
+                    />
+                  </div>
+                  <div className='grid flex-1 text-left text-sm leading-tight'>
+                    <span className='truncate font-semibold'>
+                      {user?.nivelUsuario}
+                    </span>
+                    <span className='truncate text-xs'>
+                      Solos e Sustentabilidade Ambiental
+                    </span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+
+          {isMobile && (
+            <SheetClose asChild className="md:hidden bg-white text-black">
+              <Button variant="ghost" size="icon">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Fechar Menu</span>
+              </Button>
+            </SheetClose>
+          )}
+        </div>
       </SidebarHeader>
+
+      {/* Conteúdo principal com navegação */}
       <SidebarContent>
         <NavMain items={data.navMain} />
         {data.projects.length > 0 && <NavProjects projects={data.projects} />}
         <NavSecondary items={[]} className='mt-auto' />
       </SidebarContent>
+
+      {/* Rodapé com informações do usuário */}
       <SidebarFooter>
         {!loading && user && (
           <NavUser
