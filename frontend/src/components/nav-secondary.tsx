@@ -123,13 +123,16 @@ function NotificationItem() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <SidebarMenuButton size='sm' className='relative'>
-          <Bell className='h-4 w-4' />
-          <span>Notificações</span>
+        <SidebarMenuButton className='flex justify-between items-center '>
+          <div className='flex items-center gap-2'>
+            <Bell className='h-4 w-4' />
+            <span>Notificações</span>
+          </div>
+
           {countNaoLidas > 0 && (
             <Badge
               variant='destructive'
-              className='absolute -top-1 -right-1 h-5 w-5 p-0 text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md'
+              className=' h-5 w-5 p-0 text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md'
             >
               {countNaoLidas > 9 ? '9+' : countNaoLidas}
             </Badge>
@@ -155,9 +158,8 @@ function NotificationItem() {
             notificacoes.slice(0, 10).map((notificacao) => (
               <div
                 key={notificacao.id}
-                className={`p-3 border-b cursor-pointer hover:bg-muted/50 ${
-                  !notificacao.lida ? 'bg-muted/30' : ''
-                }`}
+                className={`p-3 border-b cursor-pointer hover:bg-muted/50 ${!notificacao.lida ? 'bg-muted/30' : ''
+                  }`}
                 onClick={() => handleNotificacaoClick(notificacao)}
               >
                 <div className='flex items-start gap-3'>

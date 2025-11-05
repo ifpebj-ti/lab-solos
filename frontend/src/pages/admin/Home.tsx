@@ -1,4 +1,4 @@
-import Laboratory from '../../../public/images/laboratory.png';
+// import Laboratory from '../../../public/images/laboratory.png';
 import InfoCard from '@/components/screens/InfoCard';
 import AlertIcon from '../../../public/icons/AlertIcon';
 import JoinIcon from '../../../public/icons/JoinIcon';
@@ -152,42 +152,51 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className='h-full max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy mb-20'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className=' w-full h-full flex justify-center items-center flex-col bg-transparent gap-1'>
+          <div className='w-11/12 h-[10%] flex items-center justify-between pt-2'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home
             </h1>
           </div>
-          <div className='w-11/12 h-[50%] flex items-center justify-between mt-6'>
-            <div className='flex justify-center flex-col h-full font-rajdhani-semibold text-4xl lg:text-5xl  text-clt-2 gap-y-3'>
-              <p>Bem-vindo(a) ao</p>
-              <p>
-                Laboratório de <span className='text-primaryMy'>Solos</span>
-              </p>
-              <p className='text-primaryMy'>e Sustentabilidade</p>
-              <p>
-                <span className='text-primaryMy'> Ambiental </span>- IFPEBJ
-              </p>
+          <div className='w-full h-[80%] flex flex-col landscape:md:flex-row landscape:lg:flex-col items-center justify-around mt-2'>
+            <div className='w-full h-[40%] landscape:md:w-full landscape:md:h-full flex items-center justify-between py-2 px-5'>
+              <div className='w-full h-full flex justify-center flex-col font-rajdhani-semibold  text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)]  bg-no-repeat bg-center lg:bg-right-bottom bg-contain '>
+                <div className="
+                  flex w-full h-full 
+                  md:w-11/12 
+                  landscape:md:w-8/12
+                  landscape:lg:w-6/12
+                  items-center justify-center
+                  lg:bg-transparent p-5 lg:p-0
+                  text-4xl        
+                  md:text-4xl 
+                  lg:text-8xl
+                  xl:text-9xl
+                  md:landscape:text-3xl
+                  landscape:md:mx-0
+                  mx-3"
+                >
+                  <p>Bem-vindo(a) ao Laboratório de
+                    <span className='text-primaryMy'> Solos e</span>
+                    <span className='text-primaryMy'> Sustentabilidade </span>
+                    Ambiental -
+                    <span className='text-primaryMy'> IFPEBJ</span>
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className='h-full'>
-              <img
-                src={Laboratory}
-                alt='Foto ilustrativa de um laboratório'
-                className='h-full w-auto'
-              ></img>
+            <div className='w-full h-[40%] landscape:md:h-full flex items-center justify-center px-2 flex-wrap  gap-4'>
+              {infoCards.map((card) => (
+                <InfoCard
+                  key={card.text}
+                  icon={card.icon}
+                  text={card.text}
+                  notify={card.notify}
+                  link={card.link}
+                  quant={card.quant}
+                />
+              ))}
             </div>
-          </div>
-          <div className='w-11/12 flex flex-wrap gap-6 justify-between mt-14'>
-            {infoCards.map((card) => (
-              <InfoCard
-                key={card.text}
-                icon={card.icon}
-                text={card.text}
-                notify={card.notify}
-                link={card.link}
-                quant={card.quant}
-              />
-            ))}
           </div>
         </div>
       )}
