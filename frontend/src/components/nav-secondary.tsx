@@ -158,8 +158,9 @@ function NotificationItem() {
             notificacoes.slice(0, 10).map((notificacao) => (
               <div
                 key={notificacao.id}
-                className={`p-3 border-b cursor-pointer hover:bg-muted/50 ${!notificacao.lida ? 'bg-muted/30' : ''
-                  }`}
+                className={`p-3 border-b cursor-pointer hover:bg-muted/50 ${
+                  !notificacao.lida ? 'bg-muted/30' : ''
+                }`}
                 onClick={() => handleNotificacaoClick(notificacao)}
               >
                 <div className='flex items-start gap-3'>
