@@ -231,9 +231,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items:
         'items' in item
           ? item.items?.map((subItem: { title: string; url: string }) => ({
-              ...subItem,
-              isActive: isSubItemActive(subItem.url),
-            }))
+            ...subItem,
+            isActive: isSubItemActive(subItem.url),
+          }))
           : undefined,
     })),
     projects: menus[userType].projects,
@@ -251,7 +251,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton size='lg' asChild>
                 <Link
-                  to={`/${userType.toLowerCase()}/`}
+                  to={data.navMain[0].url}
                   className='flex items-center gap-3 w-full'
                 >
                   <div className='w-12 h-12 flex items-center justify-center'>
