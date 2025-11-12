@@ -35,7 +35,7 @@ function Carousel({ informacoes, imageSrc }: ICarousel) {
               key={itemIndex}
               className={`w-[40%] h-[45%] lg:w-[20%] lg:h-[40%] landscape:h-[40%] landscape:lg:h-[80%] landscape:md:flex items-center justify-center transition-transform shadow-sm`}
             >
-              <div className=' w-full h-full rounded-md flex flex-col xl:flex-row items-center justify-center hover:bg-green-100 transition-all ease-in-out duration-200 shadow-md gap-2'>
+              <div className=' w-full h-full rounded-md flex flex-col xl:flex-row items-center justify-center hover:bg-green-400 transition-all ease-in-out duration-200 shadow-md gap-2'>
                 <img
                   alt='Imagem descritiva da informação'
                   src={imageSrc[itemIndex]}
