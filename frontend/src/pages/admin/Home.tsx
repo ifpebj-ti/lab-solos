@@ -152,35 +152,21 @@ function Home() {
           Carregando...
         </div>
       ) : (
-        <div className=' w-full h-full flex justify-center items-center flex-col bg-transparent gap-1'>
-          <div className='w-11/12 h-[10%] flex items-center justify-between pt-2'>
+        <div className='w-full h-screen flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy gap-1 '>
+          <div className='w-full h-[10%] flex items-center justify-between mt-2 px-10'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Home
             </h1>
           </div>
-          <div className='w-full h-[80%] flex flex-col landscape:md:flex-row landscape:lg:flex-col items-center justify-around mt-2'>
-            <div className='w-full h-[40%] landscape:md:w-full landscape:md:h-full flex items-center justify-between py-2 px-5'>
-              <div className='w-full h-full flex justify-center flex-col font-rajdhani-semibold  text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)]  bg-no-repeat bg-center lg:bg-right-bottom bg-contain '>
-                <div className="
-                  flex w-full h-full 
-                  md:w-11/12 
-                  landscape:md:w-8/12
-                  landscape:lg:w-6/12
-                  items-center justify-center
-                  lg:bg-transparent p-5 lg:p-0
-                  text-4xl        
-                  md:text-4xl 
-                  lg:text-8xl
-                  xl:text-9xl
-                  md:landscape:text-3xl
-                  landscape:md:mx-0
-                  mx-3"
-                >
-                  <p>Bem-vindo(a) ao Laboratório de
+          <div className='w-full h-[80%] flex flex-col landscape:md:flex-row landscape:lg:flex-col items-center justify-around mt-2 px-10'>
+            <div className='w-full h-[35%] lg:h-[40%] landscape:md:w-full landscape:md:h-full flex items-center justify-between py-2 p-0'>
+              <div className='w-full h-full flex justify-center flex-col font-rajdhani-semibold text-4xl md:text-5xl lg:text-6xl landscape:text-2xl md:landscape:text-lg lg:landscape:text-4xl text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)] bg-no-repeat bg-center lg:bg-right-bottom bg-contain '>
+                <div className='w-full h-full md:w-11/12 landscape:md:w-[80%] landscape:lg:w-[60%] landscape:md:text-3xl landscape:lg:text-4xl flex items-center justify-center bg-backgroundMy/80 lg:bg-transparent p-0 '>
+                  <p>
+                    Bem-vindo(a) ao Laboratório de
                     <span className='text-primaryMy'> Solos e</span>
                     <span className='text-primaryMy'> Sustentabilidade </span>
-                    Ambiental -
-                    <span className='text-primaryMy'> IFPEBJ</span>
+                    Ambiental -<span className='text-primaryMy'> IFPEBJ</span>
                   </p>
                 </div>
               </div>

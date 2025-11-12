@@ -32,7 +32,6 @@ import {
 import { getUserById } from '@/integration/Users';
 import { IUser } from '@/pages/Profile';
 
-
 import { SheetClose } from '@/components/ui/sheet'; // 1. IMPORTE O SHEETCLOSE
 import { X } from 'lucide-react'; // Ícone de 'X'
 import { Button } from '@/components/ui/button';
@@ -247,12 +246,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     >
       {/* Cabeçalho com logo e tipo do usuário e descrição */}
       <SidebarHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className='flex items-center justify-between gap-2'>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size='lg' asChild>
                 <Link
-                  to={`/${userType.toLowerCase()}/`}
+                  to={data.navMain[0].url}
                   className='flex items-center gap-3 w-full'
                 >
                   <div className='w-12 h-12 flex items-center justify-center'>
@@ -281,10 +280,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
 
           {isMobile && (
-            <SheetClose asChild className="md:hidden bg-white text-black">
-              <Button variant="ghost" size="icon">
-                <X className="h-5 w-5" />
-                <span className="sr-only">Fechar Menu</span>
+            <SheetClose asChild className='md:hidden bg-white text-black'>
+              <Button variant='ghost' size='icon'>
+                <X className='h-5 w-5' />
+                <span className='sr-only'>Fechar Menu</span>
               </Button>
             </SheetClose>
           )}
