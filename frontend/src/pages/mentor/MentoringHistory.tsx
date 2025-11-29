@@ -140,58 +140,58 @@ function MentoringHistory() {
 
   const infoItems = user
     ? [
-        {
-          title: 'Nome',
-          value: user.nomeCompleto || 'Não Corresponde',
-          width: '50%',
-        },
-        {
-          title: 'Email',
-          value: user.email || 'Não Corresponde',
-          width: '30%',
-        },
-        {
-          title: 'Instituição',
-          value: user.instituicao || 'Não Corresponde',
-          width: '20%',
-        },
-      ]
+      {
+        title: 'Nome',
+        value: user.nomeCompleto || 'Não Corresponde',
+        width: '50%',
+      },
+      {
+        title: 'Email',
+        value: user.email || 'Não Corresponde',
+        width: '30%',
+      },
+      {
+        title: 'Instituição',
+        value: user.instituicao || 'Não Corresponde',
+        width: '20%',
+      },
+    ]
     : [];
   const infoItems2 = user
     ? [
-        {
-          title: 'Cidade',
-          value: user.cidade || 'Não Corresponde',
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Cidade',
+        value: user.cidade || 'Não Corresponde',
+        width: '100%',
+      },
+    ]
     : [];
   const infoItems3 = user
     ? [
-        {
-          title: 'Número para Contato',
-          value: user.telefone,
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Número para Contato',
+        value: user.telefone,
+        width: '100%',
+      },
+    ]
     : [];
   const infoItems4 = user
     ? [
-        {
-          title: 'Data de Ingresso',
-          value: formatDate(user.dataIngresso),
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Data de Ingresso',
+        value: formatDate(user.dataIngresso),
+        width: '100%',
+      },
+    ]
     : [];
   const infoItems5 = user
     ? [
-        {
-          title: 'Curso',
-          value: user.curso || 'Não Corresponde',
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Curso',
+        value: user.curso || 'Não Corresponde',
+        width: '100%',
+      },
+    ]
     : [];
   return (
     <>

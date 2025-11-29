@@ -3,7 +3,7 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import FollowUpCard from './FollowUp';
 import HeaderTable from '../global/table/Header';
 import SearchInput from '../global/inputs/SearchInput';
-// import TopDown from '../global/table/TopDown';
+import TopDown from '../global/table/TopDown';
 import SelectInput from '../global/inputs/SelectInput';
 import Pagination from '../global/table/Pagination';
 import LayersIcon from '../../../public/icons/LayersIcon';
@@ -127,12 +127,12 @@ function SearchMaterialComponent({
   ];
 
   const [searchTerm, setSearchTerm] = useState('');
-  // const [isAscending, setIsAscending] = useState(true);
-  const [isAscending] = useState(true);
+  const [isAscending, setIsAscending] = useState(true);
+  // const [isAscending] = useState(true);
 
-  // const toggleSortOrder = (ascending: boolean) => {
-  //   setIsAscending(ascending);
-  // };
+  const toggleSortOrder = (ascending: boolean) => {
+    setIsAscending(ascending);
+  };
 
   const filteredProducts = products.filter((item) => {
     const searchName = item.nomeProduto
@@ -221,16 +221,24 @@ function SearchMaterialComponent({
             />
           </div>
           <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  value={searchTerm}
-                />
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-1/2  flex justify-start items-start gap-2'>
+                <div className='w-auto flex items-center justify-evenly'>
+                  <TopDown
+                    onClick={() => toggleSortOrder(!isAscending)}
+                    top={isAscending}
+                  />
+                </div>
+                <div className='w-full flex items-center justify-evenly'>
+                  <SearchInput
+                    name='search'
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchTerm}
+                  />
+                </div>
               </div>
-              <div className='w-full lg:w-2/4 flex justify-between'>
-                <div className='w-1/2 -mt-2 lg:-mt-4'>
+              <div className='w-full lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => setValue(value)}
@@ -244,7 +252,7 @@ function SearchMaterialComponent({
             <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
               <div className='min-w-[800px]'>
                 <HeaderTable columns={columns} />
-                <div className='w-full items-center flex flex-col justify-between min-h-72'>
+                <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
                       <div className='w-full h-40 flex items-center justify-center font-inter-regular'>

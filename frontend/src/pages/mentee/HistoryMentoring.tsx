@@ -123,42 +123,65 @@ function HistoryMentoring() {
 
   const infoItems = user
     ? [
-        {
-          title: 'Nome',
-          value: user.nomeCompleto,
-          width: '50%',
-        },
-        {
-          title: 'Email',
-          value: user.email,
-          width: '30%',
-        },
-        { title: 'Instituição', value: user.instituicao, width: '20%' },
-      ]
+      {
+        title: 'Nome',
+        value: user.nomeCompleto,
+        width: '100%',
+      },
+    ]
     : [];
   const infoItems2 = user
-    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
+    ? [
+      {
+        title: 'Email',
+        value: user.email,
+        width: '100%',
+      },
+    ]
     : [];
   const infoItems3 = user
     ? [
-        {
-          title: 'Número para Contato',
-          value: user.telefone,
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Instituição',
+        value: user.instituicao,
+        width: '100%'
+      },
+    ]
     : [];
   const infoItems4 = user
     ? [
-        {
-          title: 'Data de Ingresso',
-          value: formatDate(user.dataIngresso),
-          width: '100%',
-        },
-      ]
+      {
+        title: 'Cidade',
+        value: user.cidade,
+        width: '100%'
+      }]
     : [];
   const infoItems5 = user
-    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
+    ? [
+      {
+        title: 'Número para Contato',
+        value: user.telefone,
+        width: '100%',
+      },
+    ]
+    : [];
+  const infoItems6 = user
+    ? [
+      {
+        title: 'Data de Ingresso',
+        value: formatDate(user.dataIngresso),
+        width: '100%',
+      },
+    ]
+    : [];
+  const infoItems7 = user
+    ? [
+      {
+        title: 'Curso',
+        value: user.curso,
+        width: '100%'
+      }
+    ]
     : [];
   return (
     <>
@@ -179,87 +202,97 @@ function HistoryMentoring() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
-            <InfoContainer items={infoItems} />
-            <div className='w-full flex gap-x-8 mt-5'>
+          <div className='w-11/12 flex flex-wrap mt-7 gap-y-3'>
+            <div className='w-full flex flex-wrap gap-y-3 lg:flex lg:flex-wrap lg:gap-y-3 justify-between lg:gap-x-4'>
+              <InfoContainer items={infoItems} />
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
               <InfoContainer items={infoItems5} />
+              <InfoContainer items={infoItems6} />
+              <InfoContainer items={infoItems7} />
             </div>
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
-              </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+                <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
+                <div className='w-full flex items-center justify-evenly'>
+                  <SearchInput
+                    name='search'
+                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    value={searchTerm}
+                  />
+                </div>
+              </div>
+              <div className='w-full lg:w-2/4 flex justify-end items-center'>
+                <div className='w-1/2 h-9 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
                   <p>{searchTerm ? sortedUsers.length : loans.length}</p>
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsLoan} />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
-                    <div className='text-6xl text-gray-300'>📋</div>
-                    <p className='text-lg text-center'>
-                      {loans.length === 0
-                        ? 'Você ainda não possui empréstimos registrados.'
-                        : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
-                    </p>
-                    {loans.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        Seus empréstimos aparecerão aqui quando você realizar
-                        solicitações.
-                      </p>
+
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
+                <HeaderTable columns={columnsLoan} />
+                <div className='w-full items-center flex flex-col justify-start min-h-72'>
+                  <div className='w-full'>
+                    {currentData.length === 0 ? (
+                      <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
+                        <div className='text-6xl text-gray-300'>📋</div>
+                        <p className='text-lg text-center'>
+                          {loans.length === 0
+                            ? 'Você ainda não possui empréstimos registrados.'
+                            : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
+                        </p>
+                        {loans.length === 0 && (
+                          <p className='text-sm text-gray-500 text-center'>
+                            Seus empréstimos aparecerão aqui quando você realizar
+                            solicitações.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      currentData.map((rowData, index) => (
+                        <ClickableItemTable
+                          key={index}
+                          data={[
+                            String(rowData.id),
+                            formatDateTime(rowData.dataRealizacao),
+                            Array.isArray(rowData.produtos)
+                              ? String(rowData.produtos.length)
+                              : '0',
+                            rowData.status,
+                          ]}
+                          rowIndex={index}
+                          columnWidths={columnsLoan.map((column) => column.width)}
+                          destinationRoute='/mentee/history/loan'
+                          id={rowData.id}
+                        />
+                      ))
                     )}
                   </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <ClickableItemTable
-                      key={index}
-                      data={[
-                        String(rowData.id),
-                        formatDateTime(rowData.dataRealizacao),
-                        Array.isArray(rowData.produtos)
-                          ? String(rowData.produtos.length)
-                          : '0',
-                        rowData.status,
-                      ]}
-                      rowIndex={index}
-                      columnWidths={columnsLoan.map((column) => column.width)}
-                      destinationRoute='/mentee/history/loan'
-                      id={rowData.id}
-                    />
-                  ))
-                )}
-              </div>
-              {/* Componente de Paginação - só aparece quando há dados */}
-              {currentData.length > 0 && loans.length > 0 && (
-                <div className='mt-auto'>
-                  <Pagination
-                    totalItems={sortedUsers.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                  />
                 </div>
-              )}
+              </div>
             </div>
+            {/* Componente de Paginação - só aparece quando há dados */}
+            {currentData.length > 0 && loans.length > 0 && (
+              <div className='mt-auto'>
+                <Pagination
+                  totalItems={sortedUsers.length}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
