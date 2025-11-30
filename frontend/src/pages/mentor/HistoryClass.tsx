@@ -121,11 +121,11 @@ function HistoryClass() {
   // Ordenação dos empréstimos
   const sortedLoans = isAscending
     ? [...filteredLoans].sort((a, b) =>
-        a.dataRealizacao.localeCompare(b.dataRealizacao)
-      )
+      a.dataRealizacao.localeCompare(b.dataRealizacao)
+    )
     : [...filteredLoans].sort((a, b) =>
-        b.dataRealizacao.localeCompare(a.dataRealizacao)
-      );
+      b.dataRealizacao.localeCompare(a.dataRealizacao)
+    );
 
   // Dados da página atual
   const currentData = sortedLoans.slice(
@@ -178,7 +178,8 @@ function HistoryClass() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+
+          <div className='w-11/12 h-32 mt-7 flex items-center justify-center gap-x-8'>
             <FollowUpCard
               title='Devolvidos'
               number={getLoanCountText('devolvido')}
@@ -190,21 +191,26 @@ function HistoryClass() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='w-11/12 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
-            <div className='flex flex-col items-center justify-center w-full px-4'>
-              <div className='flex items-center justify-start gap-x-7 mt-6 w-full'>
-                <div className='w-[40%]'>
+
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+                <div className='w-auto flex items-center justify-evenly'>
+                  <TopDown
+                    onClick={() => toggleSortOrder(!isAscending)}
+                    top={isAscending}
+                  />
+                </div>
+                <div className='w-full flex items-center justify-evenly'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
                     value={searchTerm}
                   />
                 </div>
-                <TopDown
-                  onClick={() => toggleSortOrder(!isAscending)}
-                  top={isAscending}
-                />
-                <div className='w-[30%] -mt-4'>
+              </div>
+              <div className='w-full lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
@@ -215,48 +221,54 @@ function HistoryClass() {
                   />
                 </div>
               </div>
-              <HeaderTable columns={columnsHistories} />
-              <div className='w-full items-center flex flex-col min-h-72'>
-                {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
-                    <div className='text-6xl text-gray-300'>📋</div>
-                    <p className='text-lg text-center'>
-                      Nenhum empréstimo encontrado.
-                    </p>
-                    <p className='text-sm text-gray-500 text-center'>
-                      Os empréstimos da sua turma aparecerão aqui quando houver
-                      solicitações.
-                    </p>
-                  </div>
-                ) : (
-                  currentData.map((loan, index) => (
-                    <ClickableItemTable
-                      key={index}
-                      data={[
-                        String(loan?.id),
-                        String(loan.solicitante?.nomeCompleto),
-                        formatDateTime(loan?.dataRealizacao),
-                        String(loan.produtos.length),
-                        loan?.status,
-                      ]}
-                      rowIndex={index}
-                      columnWidths={columnsHistories.map(
-                        (column) => column.width
-                      )}
-                      id={loan.id}
-                      destinationRoute='/mentor/history/loan'
-                    />
-                  ))
-                )}
+            </div>
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
+                <HeaderTable columns={columnsHistories} />
+                <div className='w-full items-center flex flex-col min-h-72'>
+                  {currentData.length === 0 ? (
+                    <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
+                      <div className='text-6xl text-gray-300'>📋</div>
+                      <p className='text-lg text-center'>
+                        Nenhum empréstimo encontrado.
+                      </p>
+                      <p className='text-sm text-gray-500 text-center'>
+                        Os empréstimos da sua turma aparecerão aqui quando houver
+                        solicitações.
+                      </p>
+                    </div>
+                  ) : (
+                    currentData.map((loan, index) => (
+                      <ClickableItemTable
+                        key={index}
+                        data={[
+                          String(loan?.id),
+                          String(loan.solicitante?.nomeCompleto),
+                          formatDateTime(loan?.dataRealizacao),
+                          String(loan.produtos.length),
+                          loan?.status,
+                        ]}
+                        rowIndex={index}
+                        columnWidths={columnsHistories.map(
+                          (column) => column.width
+                        )}
+                        id={loan.id}
+                        destinationRoute='/mentor/history/loan'
+                      />
+                    ))
+                  )}
+                </div>
+
               </div>
-              <div className='mb-4'>
-                <Pagination
-                  totalItems={filteredLoans.length}
-                  itemsPerPage={itemsPerPage}
-                  currentPage={currentPage}
-                  onPageChange={setCurrentPage}
-                />
-              </div>
+            </div>
+            <div className='mb-4'>
+              <Pagination
+                totalItems={filteredLoans.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </div>
         </div>
