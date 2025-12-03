@@ -10,7 +10,9 @@
     <div id="root"></div>
 
     <!-- ⚠️ Carrega variáveis de ambiente em tempo de execução -->
-    <script src="/.env.js"></script>
+
+    <!-- <script src="/.env.js"></script> --> 
+    <!-- No Vite as variáveis de ambiente (.env) são processadas durante o build e acessadas via import.meta.env, não precisam de um arquivo js externo no navegador. por isso comentei a linha de script acima -->
 
     <!-- ⚙️ Carrega o app depois -->
     <script type="module" src="/src/main.tsx"></script>

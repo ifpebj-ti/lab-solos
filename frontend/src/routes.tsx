@@ -51,8 +51,16 @@ import { Layout } from './components/ui/layout';
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
+        <Route
+          path='/admin'
+          element={
+            <Layout>
+              <BaseAdmin />
+            </Layout>
+          }
+        ></Route>
         {/* Rotas de Admin  */}
         <Route
           path='/admin'
@@ -457,6 +465,7 @@ function AppRoutes() {
         {/* pdf */}
       </Routes>
     </BrowserRouter>
+
   );
 }
 
