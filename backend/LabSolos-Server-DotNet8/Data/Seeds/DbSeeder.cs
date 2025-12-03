@@ -1,14 +1,15 @@
 using LabSolos_Server_DotNet8.Data.Context;
+using Microsoft.Extensions.Configuration;
 
 namespace LabSolos_Server_DotNet8.Data.Seeds
 {
     public static partial class DbSeeder
     {
-        public static void Seed(AppDbContext context, string environmentName)
+        public static void Seed(AppDbContext context, string environmentName, IConfiguration configuration)
         {
             if (environmentName == "Development")
             {
-                SeedDevelopment(context);
+                SeedDevelopment(context, configuration);
             }
             else if (environmentName == "Production")
             {

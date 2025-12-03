@@ -14,6 +14,7 @@ FROM nginx:1.29.3-alpine
 COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 # Copia os arquivos de configuração
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx .env.template.js /usr/share/nginx/html/
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

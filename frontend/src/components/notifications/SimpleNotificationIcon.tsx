@@ -12,7 +12,7 @@ import {
   marcarNotificacaoComoLida,
 } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Cookie from 'js-cookie';
@@ -90,7 +90,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
   const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const fetchNotificacoes = async () => {
     try {
@@ -145,9 +145,9 @@ export function SimpleNotificationIcon(): React.JSX.Element {
     setIsOpen(false);
 
     // Navegar para o link de ação se existir
-    if (notificacao.linkAcao) {
-      navigate(notificacao.linkAcao);
-    }
+    // if (notificacao.linkAcao) {
+    //   navigate(notificacao.linkAcao);
+    // }
   };
 
   const formatarData = (data: string) => {
