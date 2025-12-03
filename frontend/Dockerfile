@@ -10,6 +10,9 @@ RUN npm run build
 # Etapa de produção
 FROM nginx:1.29.3-alpine
 
+# Atualiza os pacotes do sistema para as versões seguras
+RUN apk update && apk upgrade --no-cache
+
 # Copia build e ajusta permissões para o novo usuário
 COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
