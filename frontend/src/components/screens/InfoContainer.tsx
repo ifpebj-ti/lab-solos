@@ -10,7 +10,7 @@ type InfoContainerProps = {
 
 function InfoContainer({ items }: InfoContainerProps) {
   return (
-    <div className='w-full h-20 rounded-md border border-borderMy flex items-center justify-between p-4'>
+    <div className='w-full lg:w-[49%] h-20 rounded-md shadow-sm bg-white flex items-center justify-between p-4'>
       {items.map((item, index) => (
         <div
           key={index}
