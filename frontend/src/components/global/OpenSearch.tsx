@@ -159,12 +159,15 @@ function OpenSearch() {
   }, [isOpen]);
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger className='flex'>
-          <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-            <AlertDialogTitle className='text-transparent'>.</AlertDialogTitle>
+    //Controle de estado aberto/fechado
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <TooltipProvider>
+        <Tooltip>
+          {/* O TooltipTrigger usa asChild para repassar eventos para o filho */}
+          <TooltipTrigger asChild>
+            {/* AlertDialogTrigger também usa asChild para repassar o clique para o botão real */}
             <AlertDialogTrigger asChild>
+              {/*ÚNICO elemento <button> real no DOM */}
               <button
                 onClick={() => setIsOpen(true)}
                 className='border border-borderMy rounded-md h-11 w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
@@ -172,96 +175,105 @@ function OpenSearch() {
                 <SearchIcon fill='#232323' />
               </button>
             </AlertDialogTrigger>
-            <AlertDialogContent ref={dialogRef}>
-              <AlertDialogHeader>
-                <AlertDialogDescription>
-                  <Command className='border border-borderMy'>
-                    <CommandInput placeholder='Pesquisar link' />
-                    <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
-                      Links
-                    </p>
-                    <CommandList>
-                      <CommandEmpty>Link não encontrado.</CommandEmpty>
-                      <CommandGroup>
-                        {decoded.role === 'Administrador' &&
-                          routesAdmin.map((framework) => (
-                            <CommandItem
-                              key={framework.value}
-                              value={framework.value}
-                              onSelect={() => {
-                                navigate(framework.route);
-                              }}
-                              className='font-inter-regular'
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  value === framework.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                              />
-                              <LinkIcon />
-                              {framework.label}
-                            </CommandItem>
-                          ))}
-                        {decoded.role === 'Mentor' &&
-                          routesMentor.map((framework) => (
-                            <CommandItem
-                              key={framework.value}
-                              value={framework.value}
-                              onSelect={() => {
-                                navigate(framework.route);
-                              }}
-                              className='font-inter-regular'
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  value === framework.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                              />
-                              <LinkIcon />
-                              {framework.label}
-                            </CommandItem>
-                          ))}
-                        {decoded.role === 'Mentorado' &&
-                          routesMentee.map((framework) => (
-                            <CommandItem
-                              key={framework.value}
-                              value={framework.value}
-                              onSelect={() => {
-                                navigate(framework.route);
-                              }}
-                              className='font-inter-regular'
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  value === framework.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                              />
-                              <LinkIcon />
-                              {framework.label}
-                            </CommandItem>
-                          ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-            </AlertDialogContent>
-          </AlertDialog>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p className='font-inter-medium'>Abrir rotas</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+          </TooltipTrigger>
+
+          <TooltipContent>
+            <p className='font-inter-medium'>Abrir rotas</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Conteúdo do Modal */}
+      <AlertDialogContent ref={dialogRef}>
+        <AlertDialogHeader>
+          {/* Título invisível para acessibilidade (obrigatório no Radix UI) */}
+          <AlertDialogTitle className='sr-only'>Pesquisar Rotas</AlertDialogTitle>
+
+          {/* asChild aqui evita criar uma tag <p> que conteria divs (inválido) */}
+          <AlertDialogDescription asChild>
+            <div className="w-full">
+              <Command className='border border-borderMy'>
+                <CommandInput placeholder='Pesquisar link' />
+                <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
+                  Links
+                </p>
+                <CommandList>
+                  <CommandEmpty>Link não encontrado.</CommandEmpty>
+                  <CommandGroup>
+                    {decoded.role === 'Administrador' &&
+                      routesAdmin.map((framework) => (
+                        <CommandItem
+                          key={framework.value}
+                          value={framework.value}
+                          onSelect={() => {
+                            navigate(framework.route);
+                          }}
+                          className='font-inter-regular'
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value === framework.value
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <LinkIcon />
+                          {framework.label}
+                        </CommandItem>
+                      ))}
+                    {decoded.role === 'Mentor' &&
+                      routesMentor.map((framework) => (
+                        <CommandItem
+                          key={framework.value}
+                          value={framework.value}
+                          onSelect={() => {
+                            navigate(framework.route);
+                          }}
+                          className='font-inter-regular'
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value === framework.value
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <LinkIcon />
+                          {framework.label}
+                        </CommandItem>
+                      ))}
+                    {decoded.role === 'Mentorado' &&
+                      routesMentee.map((framework) => (
+                        <CommandItem
+                          key={framework.value}
+                          value={framework.value}
+                          onSelect={() => {
+                            navigate(framework.route);
+                          }}
+                          className='font-inter-regular'
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value === framework.value
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <LinkIcon />
+                          {framework.label}
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

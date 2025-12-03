@@ -36,7 +36,7 @@ const SelectInput = ({
         >
           <SelectValue placeholder='Selecione' />
         </SelectTrigger>
-        <SelectContent className='border border-borderMy rounded-md font-inter-regular bg-backgroundMy'>
+        <SelectContent className='border border-borderMy rounded-md font-inter-regular bg-white'>
           {options.map((option) => (
             <SelectItem
               key={option.value}

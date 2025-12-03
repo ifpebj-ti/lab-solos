@@ -229,8 +229,10 @@ function LoanCreation() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col shadow-sm'>
-            <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+
+          {/* Utilizadores */}
+          <div className='w-11/12 min-h-32 mt-7 rounded-md bg-white flex flex-col shadow-sm'>
+            <div className='w-full rounded-t-md border-b flex items-center justify-between p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Utilizadores
               </p>
@@ -259,7 +261,8 @@ function LoanCreation() {
               </div>
             </form>
           </div>
-          <div className='w-11/12 min-h-32 mt-9 rounded-md border border-borderMy flex flex-col shadow-sm'>
+
+          <div className='w-11/12 min-h-32 mt-9 rounded-md border bg-white flex flex-col shadow-sm'>
             <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos
@@ -268,6 +271,7 @@ function LoanCreation() {
                 <ShoppingCart size={25} stroke='#474747' strokeWidth={1.75} />
               </div>
             </div>
+
             <form
               onSubmit={handleSubmit(handleAddProduct)}
               className='flex flex-col items-center justify-center w-full'
@@ -297,8 +301,8 @@ function LoanCreation() {
                   error={errors.item?.message}
                 />
               </div>
-              <div className='flex items-center justify-center gap-x-5 w-full px-4 mb-5'>
-                <div className='w-1/2'>
+              <div className='flex flex-col items-center justify-center gap-x-5 w-full px-4 mb-5'>
+                <div className='w-full'>
                   <InputText
                     label={'Quantidade'}
                     type={'number'}
@@ -307,8 +311,9 @@ function LoanCreation() {
                     error={errors.quantity?.message}
                   />
                 </div>
-                <div className='w-1/2 flex gap-x-5'>
-                  <div className='w-1/2'>
+
+                <div className='w-full flex gap-x-5'>
+                  <div className='w-full'>
                     <PopoverInput
                       title='Unidade de Medida'
                       unidades={unidadesMedidaOptions}
@@ -322,15 +327,16 @@ function LoanCreation() {
                   </div>
                   <button
                     type='submit'
-                    className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-9 w-1/2  rounded-sm hover:bg-opacity-90 transition-all ease-in-out duration-150'
+                    className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-9 w-1/3  rounded-sm hover:bg-opacity-90 transition-all ease-in-out duration-150'
                   >
                     Adicionar
                   </button>
                 </div>
               </div>
             </form>
-            <div className='w-full border-t border-borderMy pb-4 px-4 pt-2 rounded-b-md flex flex-col items-center justify-center'>
-              <div className='flex flex-col items-center justify-center w-full'>
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
                 <HeaderTable columns={loanCreationHeader} />
                 <div className='w-full items-center flex flex-col min-h-14'>
                   {selectedProducts.length === 0 ? (

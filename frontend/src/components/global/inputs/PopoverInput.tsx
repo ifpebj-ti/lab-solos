@@ -45,12 +45,12 @@ const PopoverInput = ({
           >
             {value
               ? unidades.find((unidade) => unidade.value === value)?.label
-              : 'Clique e selecione...'}
+              : 'Selecione...'}
             <UpDownIcon />
           </button>
         </PopoverTrigger>
         <PopoverContent className='p-0'>
-          <Command className='border border-borderMy bg-backgroundMy'>
+          <Command className='border border-borderMy bg-white'>
             <CommandInput
               placeholder='Pesquisar'
               className='h-9 font-inter-regular'
