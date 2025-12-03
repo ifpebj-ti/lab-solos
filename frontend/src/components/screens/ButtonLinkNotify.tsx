@@ -3,7 +3,7 @@
 interface IButtonLinkNotifyProps {
   text: string;
   notify: boolean;
-  // link: string;
+  link: string;
   quant?: number;
 }
 
