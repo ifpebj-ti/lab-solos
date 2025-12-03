@@ -200,7 +200,7 @@ function RegisteredUsers() {
         </div>
       ) : registeredUsers.length != 0 ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+          <div className='w-11/12 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Usuários Cadastrados
             </h1>
@@ -214,7 +214,7 @@ function RegisteredUsers() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+          <div className='w-11/12 mt-7 flex  items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Administradores'
               number={getUserCountText('Administrador')}
@@ -231,27 +231,29 @@ function RegisteredUsers() {
               icon={<UsersIcon />}
             />
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-3'>
-              <div className='w-2/6'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-2/5 h-9 flex justify-start items-start gap-2'>
+                <div className='w-full flex items-center justify-evenly gap-2'>
+                  <TopDown
+                    onClick={() => toggleSortOrder(!isAscending)}
+                    top={isAscending}
+                  />
+                  <SearchInput
+                    name='search'
+                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    value={searchTerm}
+                  />
+                </div>
               </div>
-              <div className='w-2/6 flex justify-evenly'>
-                <TopDown
-                  onClick={() => toggleSortOrder(!isAscending)}
-                  top={isAscending}
-                />
+              <div className='w-full lg:w-2/5 flex items-center justify-evenly gap-2'>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className='border border-borderMy rounded-sm h-9 w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
                       <FileText stroke='#232323' width={21} strokeWidth={1.5} />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className='w-32 shadow-lg border border-borderMy bg-backgroundMy p-2'>
+                  <PopoverContent className='w-auto shadow-lg border border-borderMy bg-backgroundMy p-2'>
                     <ul className='w-full flex flex-col items-start gap-y-1'>
                       <li className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center'>
                         <PDFDownloadLink
@@ -311,67 +313,75 @@ function RegisteredUsers() {
                     </ul>
                   </PopoverContent>
                 </Popover>
+                <div className='w-full flex justify-center items-center'>
+                  <SelectInput
+                    options={options}
+                    onValueChange={(value) => {
+                      setValue(value);
+                      setCurrentPage(1);
+                    }}
+                    value={value}
+                  />
+                </div>
               </div>
-              <div className='w-2/6 -mt-4'>
-                <SelectInput
-                  options={options}
-                  onValueChange={(value) => {
-                    setValue(value);
-                    setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
-                  }}
-                  value={value}
-                />
-              </div>
+
             </div>
-            <HeaderTable columns={headerTable} />
-            <div className='w-full items-center flex flex-col justify-between min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
+
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
+                <HeaderTable columns={headerTable} />
+                <div className='w-full items-center flex flex-col justify-between min-h-72'>
+                  <div className='w-full'>
+                    {currentData.length === 0 ? (
+                      <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
+                        Nenhum dado disponível para exibição.
+                      </div>
+                    ) : (
+                      currentData.map((rowData, index) => (
+                        <TableItemWithActions
+                          key={index}
+                          data={[
+                            formatDate(rowData?.dataIngresso),
+                            rowData?.nomeCompleto || 'Nome não disponível',
+                            rowData?.nivelUsuario,
+                            <UserStatusManager
+                              key={`status-${rowData.id}`}
+                              userId={Number(rowData.id)}
+                              currentStatus={rowData.status}
+                              userName={rowData.nomeCompleto}
+                              onStatusUpdate={(newStatus) => {
+                                // Atualizar o estado local para refletir a mudança
+                                setRegisteredUsers((prev) =>
+                                  prev.map((user) =>
+                                    user.id === rowData.id
+                                      ? { ...user, status: newStatus }
+                                      : user
+                                  )
+                                );
+                              }}
+                            />,
+                          ]}
+                          rowIndex={index}
+                          columnWidths={headerTable.map((column) => column.width)}
+                          destinationRoute={getDestinationRoute(
+                            rowData?.nivelUsuario
+                          )}
+                          id={rowData.id}
+                        />
+                      ))
+                    )}
                   </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <TableItemWithActions
-                      key={index}
-                      data={[
-                        formatDate(rowData?.dataIngresso),
-                        rowData?.nomeCompleto || 'Nome não disponível',
-                        rowData?.nivelUsuario,
-                        <UserStatusManager
-                          key={`status-${rowData.id}`}
-                          userId={Number(rowData.id)}
-                          currentStatus={rowData.status}
-                          userName={rowData.nomeCompleto}
-                          onStatusUpdate={(newStatus) => {
-                            // Atualizar o estado local para refletir a mudança
-                            setRegisteredUsers((prev) =>
-                              prev.map((user) =>
-                                user.id === rowData.id
-                                  ? { ...user, status: newStatus }
-                                  : user
-                              )
-                            );
-                          }}
-                        />,
-                      ]}
-                      rowIndex={index}
-                      columnWidths={headerTable.map((column) => column.width)}
-                      destinationRoute={getDestinationRoute(
-                        rowData?.nivelUsuario
-                      )}
-                      id={rowData.id}
-                    />
-                  ))
-                )}
+
+                </div>
               </div>
-              <Pagination
-                totalItems={registeredUsers.length}
-                itemsPerPage={itemsPerPage}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
             </div>
+            <Pagination
+              totalItems={registeredUsers.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
       ) : (
