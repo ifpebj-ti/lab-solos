@@ -131,87 +131,95 @@ function RegistrationRequest() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+
+          <div className='w-11/12 h-32 mt-7 flex items-center justify-center gap-x-8'>
             <FollowUpCard
               title='Mentores'
               number={approval.length}
               icon={<UserIcon />}
             />
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
-              </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
+
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+                <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-              </div>
-            </div>
-            <HeaderTable columns={columnsApproval22} />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                    <div className='text-6xl text-gray-300'>📝</div>
-                    <p className='text-lg text-center'>
-                      {approval.length === 0
-                        ? 'Nenhuma solicitação de cadastro pendente.'
-                        : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
-                    </p>
-                    {approval.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        As solicitações de cadastro aparecerão aqui quando
-                        usuários solicitarem acesso.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <ItemTableButton
-                      key={index}
-                      data={[
-                        String(formatDateTime(rowData.dataIngresso)) ||
-                          'Não corresponde',
-                        String(rowData.nomeCompleto) || 'Não corresponde',
-                        String(rowData.email) || 'Não corresponde',
-                        String(rowData.instituicao) || 'Não corresponde',
-                      ]}
-                      rowIndex={index}
-                      columnWidths={columnsApproval22.map(
-                        (column) => column.width
-                      )}
-                      onClick1={() => handleReject(rowData.id)}
-                      onClick2={() => handleApprove(rowData.id)}
-                      icon1={
-                        <SquareX width={20} height={20} stroke='#dd1313' />
-                      }
-                      icon2={
-                        <SquareCheck width={20} height={20} stroke='#16a34a' />
-                      }
-                    />
-                  ))
-                )}
-              </div>
-              {/* Componente de Paginação - só aparece quando há dados */}
-              {currentData.length > 0 && approval.length > 0 && (
-                <div className='mt-auto'>
-                  <Pagination
-                    totalItems={sortedUsers.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
+                <div className='w-full flex items-center justify-evenly'>
+                  <SearchInput
+                    name='search'
+                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    value={searchTerm}
                   />
                 </div>
-              )}
+              </div>
+            </div>
+
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
+                <HeaderTable columns={columnsApproval22} />
+                <div className='w-full items-center flex flex-col justify-center min-h-72'>
+                  <div className='w-full'>
+                    {currentData.length === 0 ? (
+                      <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                        <div className='text-6xl text-gray-300'>📝</div>
+                        <p className='text-lg text-center'>
+                          {approval.length === 0
+                            ? 'Nenhuma solicitação de cadastro pendente.'
+                            : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
+                        </p>
+                        {approval.length === 0 && (
+                          <p className='text-sm text-gray-500 text-center'>
+                            As solicitações de cadastro aparecerão aqui quando
+                            usuários solicitarem acesso.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      currentData.map((rowData, index) => (
+                        <ItemTableButton
+                          key={index}
+                          data={[
+                            String(formatDateTime(rowData.dataIngresso)) ||
+                            'Não corresponde',
+                            String(rowData.nomeCompleto) || 'Não corresponde',
+                            String(rowData.email) || 'Não corresponde',
+                            String(rowData.instituicao) || 'Não corresponde',
+                          ]}
+                          rowIndex={index}
+                          columnWidths={columnsApproval22.map(
+                            (column) => column.width
+                          )}
+                          onClick1={() => handleReject(rowData.id)}
+                          onClick2={() => handleApprove(rowData.id)}
+                          icon1={
+                            <SquareX width={20} height={20} stroke='#dd1313' />
+                          }
+                          icon2={
+                            <SquareCheck width={20} height={20} stroke='#16a34a' />
+                          }
+                        />
+                      ))
+                    )}
+                  </div>
+                  {/* Componente de Paginação - só aparece quando há dados */}
+                  {currentData.length > 0 && approval.length > 0 && (
+                    <div className='mt-auto'>
+                      <Pagination
+                        totalItems={sortedUsers.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
