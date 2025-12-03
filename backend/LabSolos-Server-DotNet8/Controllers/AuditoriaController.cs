@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Extensions;
+using LabSolos_Server_DotNet8.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace LabSolos_Server_DotNet8.Controllers
@@ -27,7 +28,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
                 var userId = userIdClaim != null ? int.Parse(userIdClaim.Value) : (int?)null;
 
-                var enderecoIP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var enderecoIP = HttpContext.GetClientIpAddress();
                 var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
                 await _auditoriaService.RegistrarLogAsync(logDto, userId, enderecoIP, userAgent);
@@ -104,7 +105,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         {
             try
             {
-                var enderecoIP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var enderecoIP = HttpContext.GetClientIpAddress();
                 var suspeita = await _auditoriaService.VerificarAtividadeSuspeitaAsync(usuarioId, enderecoIP);
 
                 return Ok(new { suspeita });

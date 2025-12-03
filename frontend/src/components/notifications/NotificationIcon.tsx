@@ -13,7 +13,7 @@ import {
   marcarVariasNotificacoesComoLidas,
 } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -84,7 +84,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
   const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const fetchNotificacoes = async () => {
     try {
@@ -138,10 +138,10 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
     }
 
     // Navegar para o link de ação se existir
-    if (notificacao.linkAcao) {
-      navigate(notificacao.linkAcao);
-      setIsOpen(false);
-    }
+    // if (notificacao.linkAcao) {
+    //   navigate(notificacao.linkAcao);
+    //   setIsOpen(false);
+    // }
   };
 
   const formatarData = (data: string) => {

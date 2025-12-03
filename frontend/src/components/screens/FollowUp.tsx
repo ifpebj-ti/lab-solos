@@ -13,7 +13,7 @@ function FollowUpCard({ title, number, icon }: FollowUpCardProps) {
         <p className='text-sm font-inter-regular text-clt-2'>{title}</p>
         <span className='h-full'>{icon}</span>
       </div>
-      <div className='text-5xl font-inter-medium text-clt-1'>+{number}</div>
+      <div className='text-2xl font-inter-medium text-clt-1'>+{number}</div>
     </div>
   );
 }

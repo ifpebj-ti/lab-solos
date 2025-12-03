@@ -1,25 +1,22 @@
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 
 interface IButtonLinkNotifyProps {
   text: string;
   notify: boolean;
-  link: string;
+  // link: string;
   quant?: number;
 }
 
 function ButtonLinkNotify({
   text,
   notify,
-  link,
+  // link,
   quant,
 }: IButtonLinkNotifyProps) {
   const notifyProp = notify;
 
   return (
-    <Link
-      to={link}
-      className='relative gap-x-4 border-borderMy border rounded-md flex items-center px-7 h-11 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm'
-    >
+    <div className='relative gap-x-4 border-borderMy border rounded-md flex items-center px-7 h-11 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm'>
       <p className='font-inter-medium uppercase text-clt-2 text-sm line-clamp-2'>
         {text}
       </p>
@@ -32,7 +29,7 @@ function ButtonLinkNotify({
           </span>
         </span>
       )}
-    </Link>
+    </div>
   );
 }
 

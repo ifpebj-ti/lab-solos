@@ -1,16 +1,17 @@
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json.Serialization;
+using LabSolos_Server_DotNet8.BackgroundServices;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
 using LabSolos_Server_DotNet8.Filters;
+using LabSolos_Server_DotNet8.Middlewares;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
-using LabSolos_Server_DotNet8.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using LabSolos_Server_DotNet8.Middlewares;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,6 +114,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+});
+
+app.UseRouting();
+
 // Configurar o pipeline de requisição
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
@@ -130,7 +138,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 
     context.Database.EnsureCreated();
 
-    DbSeeder.Seed(context, app.Environment.EnvironmentName);
+    DbSeeder.Seed(context, app.Environment.EnvironmentName, app.Configuration);
 }
 else
 {

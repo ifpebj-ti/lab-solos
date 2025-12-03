@@ -12,7 +12,7 @@ function SearchInput({ name, onChange, value }: IInputSearch) {
       <input
         type='text'
         name={name}
-        className='w-full px-3 bg-backgroundMy h-full text-sm shadow-sm focus:outline-none'
+        className='w-full px-3 bg-white h-full text-sm shadow-sm focus:outline-none'
         value={value} // Exibe o valor atual
         onChange={onChange} // Chama o manipulador quando o valor muda
       />
