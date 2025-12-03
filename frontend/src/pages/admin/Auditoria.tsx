@@ -212,8 +212,8 @@ function AuditoriaPage() {
       )}
 
       {/* Filtros */}
-      <div className='w-11/12 bg-white p-4 rounded-lg border border-borderMy mt-7'>
-        <div className='flex items-center gap-4 flex-wrap'>
+      <div className='w-11/12 flex justify-center bg-white p-4 rounded-lg border border-borderMy mt-7'>
+        <div className='flex items-center justify-center gap-4 flex-wrap'>
           <div className='flex items-center gap-2'>
             <Filter className='h-4 w-4' />
             <span className='font-medium'>Filtros:</span>
@@ -227,7 +227,7 @@ function AuditoriaPage() {
               }))
             }
           >
-            <SelectTrigger className='w-40'>
+            <SelectTrigger className='w-35'>
               <SelectValue placeholder='Nível de Risco' />
             </SelectTrigger>
             <SelectContent>
@@ -247,7 +247,7 @@ function AuditoriaPage() {
               }))
             }
           >
-            <SelectTrigger className='w-40'>
+            <SelectTrigger className='w-35'>
               <SelectValue placeholder='Tipo' />
             </SelectTrigger>
             <SelectContent>
@@ -259,7 +259,7 @@ function AuditoriaPage() {
           <Input
             type='date'
             placeholder='Data Início'
-            className='w-40'
+            className='w-33'
             onChange={(e) =>
               setFiltro((prev) => ({ ...prev, dataInicio: e.target.value }))
             }
@@ -268,7 +268,7 @@ function AuditoriaPage() {
           <Input
             type='date'
             placeholder='Data Fim'
-            className='w-40'
+            className='w-33'
             onChange={(e) =>
               setFiltro((prev) => ({ ...prev, dataFim: e.target.value }))
             }

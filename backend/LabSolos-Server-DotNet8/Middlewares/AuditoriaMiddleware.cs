@@ -1,6 +1,7 @@
-using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Extensions;
+using LabSolos_Server_DotNet8.Services;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -121,7 +122,7 @@ namespace LabSolos_Server_DotNet8.Middlewares
                     Origem = "Web"
                 };
 
-                var enderecoIP = context.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var enderecoIP = context.GetClientIpAddress();
                 var userAgent = context.Request.Headers["User-Agent"].ToString();
 
                 await auditoriaService.RegistrarLogAsync(logDto, userId, enderecoIP, userAgent);

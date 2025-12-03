@@ -8,12 +8,13 @@ COPY . .
 RUN npm run build
 
 # Etapa de produção
-FROM nginx:1.28.0-alpine
+FROM nginx:1.29.3-alpine
 
 # Copia build e ajusta permissões para o novo usuário
 COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 # Copia os arquivos de configuração
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx .env.template.js /usr/share/nginx/html/
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

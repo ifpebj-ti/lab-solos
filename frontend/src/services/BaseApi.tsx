@@ -3,7 +3,7 @@ import Cookie from 'js-cookie';
 import { toast } from '@/components/hooks/use-toast';
 
 export const api = axios.create({
-  baseURL: window.env?.VITE_API_URL || 'http://localhost:5000/api/',
+  baseURL: window.env?.VITE_API_URL || 'http://localhost:8080/api/',
 });
 
 api.interceptors.response.use(

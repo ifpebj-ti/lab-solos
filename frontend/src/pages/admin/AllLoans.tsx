@@ -149,10 +149,12 @@ function AllLoans() {
         </div>
       ) : currentData.length != 0 ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico de Empréstimos
-            </h1>
+          <div className='w-11/12 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
+            <div>
+              <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+                Histórico de Empréstimos
+              </h1>
+            </div>
             <div className='flex items-center justify-between gap-x-4'>
               <ButtonLinkNotify
                 text='Solicitações de Empréstimo'
@@ -163,7 +165,8 @@ function AllLoans() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+
+          <div className='w-11/12 mt-7 flex items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Aprovados'
               number={getUserCountText('Aprovado')}
@@ -180,88 +183,97 @@ function AllLoans() {
               icon={<ShieldAlert stroke='#A9A9A9' width={20} />}
             />
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
-              </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
+
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+                <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 -mt-4 '>
+                <div className='w-full flex items-center justify-evenly'>
+                  <SearchInput
+                    name='search'
+                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    value={searchTerm}
+                  />
+                </div>
+              </div>
+              <div className='w-full lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
                       setValue(value);
-                      setCurrentPage(1); // Reinicia a paginação ao alterar o filtro
+                      setCurrentPage(1);
                     }}
                     value={value}
                   />
                 </div>
               </div>
             </div>
-            <HeaderTable columns={headerTable} />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                    <div className='text-6xl text-gray-300'>📦</div>
-                    <p className='text-lg text-center'>
-                      {loan.length === 0
-                        ? 'Nenhum empréstimo registrado no sistema.'
-                        : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
-                    </p>
-                    {loan.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        Os empréstimos aparecerão aqui quando usuários
-                        realizarem solicitações.
-                      </p>
+
+            {/* 🔹 Container com scroll horizontal */}
+            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
+              <div className='min-w-[800px]'>
+                <HeaderTable columns={headerTable} />
+                <div className='w-full items-center flex flex-col justify-center min-h-72'>
+                  <div className='w-full'>
+                    {currentData.length === 0 ? (
+                      <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                        <div className='text-6xl text-gray-300'>📦</div>
+                        <p className='text-lg text-center'>
+                          {loan.length === 0
+                            ? 'Nenhum empréstimo registrado no sistema.'
+                            : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
+                        </p>
+                        {loan.length === 0 && (
+                          <p className='text-sm text-gray-500 text-center'>
+                            Os empréstimos aparecerão aqui quando usuários
+                            realizarem solicitações.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      currentData.map((rowData, index) => (
+                        <ClickableItemTable
+                          key={index}
+                          data={[
+                            formatDate(rowData?.dataRealizacao),
+                            rowData?.solicitante?.nomeCompleto ||
+                            'Nome não disponível',
+                            rowData?.aprovador?.nomeCompleto ||
+                            'Nome não disponível',
+                            String(
+                              rowData?.produtos.length ||
+                              'Quantidade não disponível'
+                            ),
+                            rowData?.status || 'Status não disponível',
+                          ]}
+                          rowIndex={index}
+                          columnWidths={headerTable.map((column) => column.width)}
+                          destinationRoute={'/admin/history/loan'}
+                          id={rowData.id}
+                        />
+                      ))
                     )}
                   </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <ClickableItemTable
-                      key={index}
-                      data={[
-                        formatDate(rowData?.dataRealizacao),
-                        rowData?.solicitante?.nomeCompleto ||
-                          'Nome não disponível',
-                        rowData?.aprovador?.nomeCompleto ||
-                          'Nome não disponível',
-                        String(
-                          rowData?.produtos.length ||
-                            'Quantidade não disponível'
-                        ),
-                        rowData?.status || 'Status não disponível',
-                      ]}
-                      rowIndex={index}
-                      columnWidths={headerTable.map((column) => column.width)}
-                      destinationRoute={'/admin/history/loan'}
-                      id={rowData.id}
-                    />
-                  ))
-                )}
-              </div>
-              {/* Componente de Paginação - só aparece quando há dados */}
-              {currentData.length > 0 && loan.length > 0 && (
-                <div className='mt-auto'>
-                  <Pagination
-                    totalItems={sortedUsers.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                  />
                 </div>
-              )}
+              </div>
             </div>
+            {/* Componente de Paginação - só aparece quando há dados */}
+            {currentData.length > 0 && loan.length > 0 && (
+              <div className='mt-auto'>
+                <Pagination
+                  totalItems={sortedUsers.length}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         </div>
       ) : (
