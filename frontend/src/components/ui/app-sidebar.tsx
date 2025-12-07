@@ -35,6 +35,7 @@ import { IUser } from '@/pages/Profile';
 import { SheetClose } from '@/components/ui/sheet'; // 1. IMPORTE O SHEETCLOSE
 import { X } from 'lucide-react'; // Ícone de 'X'
 import { Button } from '@/components/ui/button';
+import VersionDisplay from '@/components/VersionDisplay';
 
 // Ajuste os tipos para refletir os valores reais do backend
 type UserType = 'Administrador' | 'Mentor' | 'Mentorado' | 'Comum';
@@ -309,6 +310,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           />
         )}
       </SidebarFooter>
+
+      <div className="w-full mt-auto mb-2">
+        <VersionDisplay />
+      </div>
     </Sidebar>
   );
 }
