@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Etapa de produção
-FROM nginx:1.29.3-alpine
+FROM nginx:1.29.3-alpine-slim
 
 # Atualiza os pacotes do sistema para as versões seguras
 RUN apk update && apk upgrade --no-cache
