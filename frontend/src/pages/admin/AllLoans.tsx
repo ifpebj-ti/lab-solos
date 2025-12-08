@@ -160,7 +160,7 @@ function AllLoans() {
                 text='Solicitações de Empréstimo'
                 notify={loanNotify.length != 0 ? true : false}
                 quant={loanNotify.length}
-                link='/admin/loans-request'
+                // link='/admin/loans-request'
               />
               <OpenSearch />
             </div>

@@ -2,8 +2,15 @@ import axios, { AxiosError } from 'axios';
 import Cookie from 'js-cookie';
 import { toast } from '@/components/hooks/use-toast';
 
+const baseURL =
+  window.env?.VITE_API_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:8080/api/';
+
+console.log('API Base URL:', baseURL); // Dica: Adicione isso para debugar no console do navegador
+
 export const api = axios.create({
-  baseURL: window.env?.VITE_API_URL || 'http://localhost:8080/api/',
+  baseURL: baseURL,
 });
 
 api.interceptors.response.use(
