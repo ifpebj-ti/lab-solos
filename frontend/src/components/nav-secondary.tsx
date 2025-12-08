@@ -21,7 +21,7 @@ import {
   getCountNotificacoesNaoLidas,
   marcarNotificacaoComoLida,
 } from '@/integration/Notifications';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -57,7 +57,7 @@ function NotificationItem() {
   const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const fetchNotificacoes = async () => {
     try {
@@ -104,9 +104,9 @@ function NotificationItem() {
 
     setIsOpen(false);
 
-    if (notificacao.linkAcao) {
-      navigate(notificacao.linkAcao);
-    }
+    // if (notificacao.linkAcao) {
+    //   navigate(notificacao.linkAcao);
+    // }
   };
 
   const formatarData = (data: string) => {

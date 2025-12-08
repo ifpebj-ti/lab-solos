@@ -209,7 +209,7 @@ function RegisteredUsers() {
                 text='Solicitações de Cadastro'
                 notify={approval.length != 0 ? true : false}
                 quant={approval.length}
-                link='/admin/register-request'
+                // link='/admin/register-request'
               />
               <OpenSearch />
             </div>
