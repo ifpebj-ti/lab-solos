@@ -131,7 +131,7 @@ jobs:
       - name: Restore with vulnerability gate
         id: nuget-restore
         continue-on-error: true
-        run: dotnet restore backend/backend.sln -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=high -p:WarningsAsErrors="NU1903;NU1904"
+        run: dotnet restore backend/backend.sln -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=high -p:WarningsAsErrors=NU1903%3BNU1904
 
       - name: Export NuGet vulnerability report
         id: nuget-report

@@ -74,8 +74,15 @@ class SecurityDependenciesWorkflowTests(unittest.TestCase):
             npm,
         )
 
+        portable_restore = (
+            "dotnet restore backend/backend.sln -p:NuGetAudit=true "
+            "-p:NuGetAuditMode=all -p:NuGetAuditLevel=high "
+            "-p:WarningsAsErrors=NU1903%3BNU1904"
+        )
+        self.assertIn(portable_restore, dotnet)
+        self.assertNotIn('-p:WarningsAsErrors="NU1903;NU1904"', dotnet)
+
         for command in (
-            'dotnet restore backend/backend.sln -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=high -p:WarningsAsErrors="NU1903;NU1904"',
             "dotnet list backend/backend.sln package --vulnerable --include-transitive --format json > nuget-audit.json",
             "dotnet build backend/backend.sln --no-restore -c Release --nologo --disable-build-servers",
             "dotnet test backend/backend.sln --no-build -c Release --nologo --disable-build-servers",
