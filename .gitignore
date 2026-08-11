@@ -7,4 +7,16 @@
 !.codex/docs/specs/
 !.codex/docs/specs/**
 .codex/docs/specs/ordem.txt
+!.codex/skills/
+.codex/skills/*
+!.codex/skills/create-prd/
+!.codex/skills/create-prd/**
+!.codex/skills/create-techspec/
+!.codex/skills/create-techspec/**
+!.codex/skills/create-tasks/
+!.codex/skills/create-tasks/**
+!.codex/skills/execute-task/
+!.codex/skills/execute-task/**
+!.codex/skills/execute-task-orchestrator/
+!.codex/skills/execute-task-orchestrator/**
 __pycache__/

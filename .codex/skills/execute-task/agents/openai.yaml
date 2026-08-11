@@ -1,0 +1,4 @@
+interface:
+  display_name: "Executar tarefa"
+  short_description: "Executa exatamente uma tarefa usando TDD"
+  default_prompt: "Use $execute-task para implementar uma única tarefa do plano com TDD e validações."

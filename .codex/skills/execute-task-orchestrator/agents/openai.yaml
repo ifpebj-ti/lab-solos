@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orquestrar tarefas"
+  short_description: "Orquestra tarefas independentes com subagentes"
+  default_prompt: "Use $execute-task-orchestrator para executar em paralelo as tarefas prontas e sem conflito."

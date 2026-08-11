@@ -14,7 +14,7 @@ Obrigado pelo seu interesse em contribuir para este projeto! Siga estas diretriz
 
 ### 2. Fluxo de Trabalho de Contribuição
 
-Este projeto usa a estratégia **trunk-based** para controle de versionamento, o que significa que trabalhamos com um fluxo direto, focado na ramificação principal (`main`). 
+Este projeto usa uma variação da estratégia **trunk-based** com integração contínua na branch `develop`. Toda contribuição deve partir de `develop` e retornar para `develop` por Pull Request. A branch `main` fica reservada para integração estável e releases; não abrir Pull Requests de contribuição diretamente para ela.
 
 #### Passo a Passo
 
@@ -32,8 +32,10 @@ Este projeto usa a estratégia **trunk-based** para controle de versionamento, o
      ```
 
 3. **Criação de uma Branch Local**
-   - Como seguimos o trunk-based, crie uma branch local a partir da `main` para cada nova contribuição:
+   - Atualize a `develop` e crie uma branch local a partir dela para cada nova contribuição:
      ```bash
+     git checkout develop
+     git pull origin develop
      git checkout -b nome-da-sua-branch
      ```
 
@@ -58,8 +60,8 @@ Este projeto usa a estratégia **trunk-based** para controle de versionamento, o
      ```
 
 7. **Criação de Pull Request**
-   - Acesse seu repositório no GitHub e abra um Pull Request para a branch `main` do repositório original.
-   - Adicione uma descrição clara e concisa sobre suas mudanças.
+   - Acesse seu repositório no GitHub e abra um Pull Request para a branch `develop` do repositório original. Nunca use `main` como base de uma contribuição.
+   - Preserve a estrutura de `.github/pull_request_template.md`, marque exatamente um tipo de mudança e substitua o campo de descrição por um texto claro sobre contexto, propósito e impactos.
 
 8. **Revisão de Código**
    - Aguarde que sua contribuição seja revisada. A equipe pode solicitar alterações, então, esteja atento às notificações.
