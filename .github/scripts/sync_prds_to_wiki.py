@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish versioned PRDs as deterministic GitHub Wiki pages."""
+"""Publish versioned PRDs as sections of one deterministic GitHub Wiki page."""
 
 from __future__ import annotations
 
@@ -25,6 +25,16 @@ def prd_slugs(source: Path) -> list[str]:
     )
 
 
+def demote_headings(content: str) -> str:
+    """Move source headings one level down so each PRD fits under the wiki page."""
+    return re.sub(
+        r"^(#{1,5})(\s+)",
+        lambda match: f"#{match.group(1)}{match.group(2)}",
+        content,
+        flags=re.MULTILINE,
+    )
+
+
 def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
     if not source.is_dir():
         raise FileNotFoundError(f"Diretório de PRDs não encontrado: {source}")
@@ -39,6 +49,7 @@ def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
         old_page.unlink()
 
     rows: list[str] = []
+    sections: list[str] = []
     for slug in slugs:
         if not SLUG_PATTERN.fullmatch(slug):
             raise ValueError(f"Slug inválido para página da wiki: {slug}")
@@ -56,29 +67,36 @@ def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
             f"https://github.com/{repository}/blob/{ref}/"
             f".codex/docs/specs/{slug}/prd.md"
         )
-        notice = (
-            "<!-- Página gerada automaticamente. Edite o PRD no repositório principal. -->\n\n"
-            f"> Documento publicado automaticamente a partir do "
-            f"[PRD versionado no repositório principal]({source_url}).\n\n"
+        sections.append(
+            "\n".join(
+                [
+                    "---",
+                    "",
+                    f'<a id="prd-{slug}"></a>',
+                    "",
+                    demote_headings(content),
+                    "",
+                    f"> Fonte: [PRD versionado no repositório principal]({source_url}).",
+                ]
+            )
         )
-        (wiki / f"PRD-{slug}.md").write_text(
-            notice + content + "\n", encoding="utf-8", newline="\n"
-        )
-        rows.append(f"| [{title}](PRD-{slug}) | {status} | {updated} |")
+        rows.append(f"| [{title}](#prd-{slug}) | {status} | {updated} |")
 
     index = "\n".join(
         [
             "# Product Requirements Document (PRD)",
             "",
             "Esta página reúne os documentos de requisitos do produto do LabOn. "
-            "As páginas são publicadas automaticamente a partir dos PRDs versionados "
+            "As seções são publicadas automaticamente a partir dos PRDs versionados "
             "no repositório principal.",
             "",
             "| PRD | Status | Atualizado em |",
             "| --- | --- | --- |",
             *rows,
             "",
-            "<!-- Índice gerado automaticamente. -->",
+            "<!-- Página gerada automaticamente. Edite os PRDs no repositório principal. -->",
+            "",
+            *sections,
             "",
         ]
     )
