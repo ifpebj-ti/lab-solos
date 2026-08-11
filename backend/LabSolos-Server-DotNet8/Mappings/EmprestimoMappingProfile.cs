@@ -13,7 +13,7 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Produtos, opt => opt.MapFrom(src => src.Produtos)) 
                 .ReverseMap();
 
-            CreateMap<AddEmprestimoDTO, Emprestimo>()
+            CreateMap<AddEmprestimoDTO, Emprestimo>(MemberList.None)
             .ForMember(dest => dest.DataRealizacao, opt => opt.MapFrom(_ => DateTime.UtcNow))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => StatusEmprestimo.Pendente))
             .ForMember(dest => dest.Produtos, opt => opt.MapFrom(src =>
@@ -24,7 +24,7 @@ namespace Core.DTOs.Mappings
                 }).ToList()
             ));
 
-            CreateMap<ProdutoEmprestadoDTO, ProdutoEmprestado>()
+            CreateMap<ProdutoEmprestadoDTO, ProdutoEmprestado>(MemberList.None)
                 .ReverseMap();
 
         }
