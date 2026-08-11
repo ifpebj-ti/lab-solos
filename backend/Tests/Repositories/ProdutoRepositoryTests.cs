@@ -118,6 +118,7 @@ namespace Tests.Repositories
                 Odor = Odor.Inodoro
             };
             await repositorio.AddAsync(produto);
+            contexto.ChangeTracker.Clear();
 
             // Act
             produto.NomeProduto = "Produto Atualizado";

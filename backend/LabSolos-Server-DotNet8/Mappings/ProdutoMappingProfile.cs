@@ -28,7 +28,8 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.GrauPureza, opt => opt.MapFrom(src => src.GrauPureza))
                 .ForMember(dest => dest.FormulaQuimica, opt => opt.MapFrom(src => src.FormulaQuimica))
                 .ForMember(dest => dest.Grupo, opt => opt.MapFrom(src => src.Grupo))
-                .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()));
+                .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()))
+                .ReverseMap();
 
             // Mapeamento específico para Vidraria -> VidrariaDTO
             CreateMap<Vidraria, VidrariaDTO>()
@@ -38,17 +39,18 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Altura, opt => opt.MapFrom(src => src.Altura))
                 .ForMember(dest => dest.Capacidade, opt => opt.MapFrom(src => src.Capacidade))
                 .ForMember(dest => dest.Graduada, opt => opt.MapFrom(src => src.Graduada))
-                .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()));
+                .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()))
+                .ReverseMap();
 
             // Mapeamento de AddProdutoDTO para Produto
-            CreateMap<AddProdutoDTO, Produto>()
+            CreateMap<AddProdutoDTO, Produto>(MemberList.None)
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
                     DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc)))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
                     DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc)));
 
             // Mapeamento de AddProdutoDTO para Quimico
-            CreateMap<AddProdutoDTO, Quimico>()
+            CreateMap<AddProdutoDTO, Quimico>(MemberList.None)
                 .IncludeBase<AddProdutoDTO, Produto>()
                 .ForMember(dest => dest.EstadoFisico, opt => opt.MapFrom(src => src.EstadoFisico))
                 .ForMember(dest => dest.Cor, opt => opt.MapFrom(src => src.Cor))
@@ -60,7 +62,7 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Grupo, opt => opt.MapFrom(src => src.Grupo));
 
             // Mapeamento de AddProdutoDTO para Vidraria
-            CreateMap<AddProdutoDTO, Vidraria>()
+            CreateMap<AddProdutoDTO, Vidraria>(MemberList.None)
                 .IncludeBase<AddProdutoDTO, Produto>()
                 .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Material))
                 .ForMember(dest => dest.Formato, opt => opt.MapFrom(src => src.Formato))
@@ -69,7 +71,7 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Graduada, opt => opt.MapFrom(src => src.Graduada));
 
             // Mapeamento de UpdateProdutoDTO para Produto
-            CreateMap<UpdateProdutoDTO, Produto>()
+            CreateMap<UpdateProdutoDTO, Produto>(MemberList.None)
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
                     src.DataFabricacao != null ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc) : (DateTime?)null))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
@@ -83,7 +85,7 @@ namespace Core.DTOs.Mappings
                     src.DataValidade.ToString()))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
-            CreateMap<ProdutoDTOPatchRequest, Produto>()
+            CreateMap<ProdutoDTOPatchRequest, Produto>(MemberList.None)
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
                     !string.IsNullOrEmpty(src.DataFabricacao) ? DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc) : (DateTime?)null))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>

@@ -3,10 +3,13 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
-import prettier from 'eslint-plugin-prettier'; // O plugin que RODA o Prettier
 import prettierConfig from 'eslint-config-prettier'; // O config que DESLIGA regras conflitantes
 
 export default [
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
+
   // Configuração JavaScript básica
   js.configs.recommended,
 
@@ -16,7 +19,6 @@ export default [
   // Configuração específica do projeto (TS/TSX)
   {
     files: ['**/*.{ts,tsx}'],
-    ignores: ['dist'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -24,7 +26,6 @@ export default [
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      prettier, // <--- Plugin registrado aqui
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -32,28 +33,21 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      'prettier/prettier': 'warn', // <--- Regra usada aqui
     },
   },
 
   // Configuração para arquivos JavaScript
   {
     files: ['**/*.js'],
-    ignores: ['dist'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
     },
-    plugins: {
-      prettier, // <--- SOLUÇÃO 1: Registre o plugin aqui também
-    },
     rules: {
       'no-undef': 'off',
-      'prettier/prettier': ['error', { endOfLine: 'auto' }], // <--- Agora vai funcionar
     },
   },
 
-  // SOLUÇÃO 2: Adicione isso AO FINAL do array
   // Isso desliga regras do ESLint/TypeScript que conflitam com o Prettier
   prettierConfig,
 ];

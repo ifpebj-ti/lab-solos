@@ -1,0 +1,203 @@
+name: Dependency security gate
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
+      - "backend/**/*.csproj"
+      - "backend/backend.sln"
+      - ".github/scripts/audit_dependencies.py"
+      - ".github/scripts/tests/**"
+      - ".github/workflows/security-dependencies.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-security-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm:
+    name: npm dependency gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Audit high and critical vulnerabilities
+        id: npm-audit
+        continue-on-error: true
+        run: npm audit --audit-level=high --json > npm-audit.json
+
+      - name: Run frontend tests
+        run: npm run test -- --run
+
+      - name: Run frontend lint
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Test audit normalizer
+        run: python -m unittest discover -s ../.github/scripts/tests -p "test_audit_dependencies.py" -v
+
+      - name: Publish npm audit summary
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const lines = ["## npm dependency security", `- Commit: \`${process.env.GITHUB_SHA}\``];
+          if (fs.existsSync("npm-audit.json")) {
+            try {
+              const report = JSON.parse(fs.readFileSync("npm-audit.json", "utf8"));
+              const counts = report.metadata?.vulnerabilities ?? {};
+              const vulnerabilities = Object.values(report.vulnerabilities ?? {});
+              const fixable = vulnerabilities.filter(
+                (item) => ["critical", "high"].includes(item.severity) && item.fixAvailable !== false,
+              ).length;
+              lines.push(`- critical: ${counts.critical ?? 0}`);
+              lines.push(`- high: ${counts.high ?? 0}`);
+              lines.push(`- critical/high fixable: ${fixable}`);
+            } catch {
+              lines.push("- npm audit report: invalid JSON");
+            }
+          } else {
+            lines.push("- npm audit report: not produced");
+          }
+          const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+          lines.push(`- Artifact: [npm-audit-report](${runUrl})`);
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+          NODE
+
+      - name: Upload npm audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: frontend/npm-audit.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce npm audit result
+        if: always()
+        shell: bash
+        run: test "${{ steps.npm-audit.outcome }}" = "success"
+
+  dotnet:
+    name: NuGet dependency gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore with vulnerability gate
+        id: nuget-restore
+        continue-on-error: true
+        run: dotnet restore backend/backend.sln -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=high -p:WarningsAsErrors=NU1903%3BNU1904
+
+      - name: Export NuGet vulnerability report
+        id: nuget-report
+        if: always()
+        continue-on-error: true
+        run: dotnet list backend/backend.sln package --vulnerable --include-transitive --format json > nuget-audit.json
+
+      - name: Build backend
+        run: dotnet build backend/backend.sln --no-restore -c Release --nologo --disable-build-servers
+
+      - name: Test backend solution
+        run: dotnet test backend/backend.sln --no-build -c Release --nologo --disable-build-servers
+
+      - name: Publish NuGet audit summary
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report_path = Path("nuget-audit.json")
+          counts = {"critical": 0, "high": 0}
+          if report_path.exists():
+              try:
+                  report = json.loads(report_path.read_text(encoding="utf-8"))
+                  for project in report.get("projects", []):
+                      for framework in project.get("frameworks", []):
+                          for group in ("topLevelPackages", "transitivePackages"):
+                              for package in framework.get(group, []):
+                                  for vulnerability in package.get("vulnerabilities", []):
+                                      severity = str(vulnerability.get("severity", "")).lower()
+                                      if severity in counts:
+                                          counts[severity] += 1
+                  status = "collected"
+              except (OSError, ValueError, TypeError):
+                  status = "invalid JSON"
+          else:
+              status = "not produced"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## NuGet dependency security\n")
+              summary.write(f"- Commit: `{os.environ['GITHUB_SHA']}`\n")
+              summary.write(f"- Report: {status}\n")
+              summary.write(f"- critical: {counts['critical']}\n")
+              summary.write(f"- high: {counts['high']}\n")
+              summary.write("- critical/high fixable: not determined by dotnet list\n")
+              run_url = (
+                  f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+                  f"/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+              )
+              summary.write(f"- Artifact: [nuget-audit-report]({run_url})\n")
+          PY
+
+      - name: Upload NuGet audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-audit-report
+          path: nuget-audit.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce NuGet audit result
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.nuget-restore.outcome }}" = "success"
+          test "${{ steps.nuget-report.outcome }}" = "success"

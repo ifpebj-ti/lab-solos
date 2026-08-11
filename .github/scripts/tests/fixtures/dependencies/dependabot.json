@@ -1,0 +1,49 @@
+[
+  {
+    "number": 10,
+    "state": "open",
+    "dependency": {
+      "package": {"ecosystem": "npm", "name": "alpha"},
+      "manifest_path": "frontend/package-lock.json",
+      "scope": "runtime",
+      "relationship": "direct"
+    },
+    "security_advisory": {
+      "ghsa_id": "GHSA-aaaa-bbbb-cccc",
+      "cve_id": "CVE-2026-0001",
+      "summary": "Critical alpha advisory",
+      "severity": "critical"
+    },
+    "security_vulnerability": {
+      "package": {"ecosystem": "npm", "name": "alpha"},
+      "severity": "critical",
+      "vulnerable_version_range": "< 2.0.0",
+      "first_patched_version": {"identifier": "2.0.0"}
+    },
+    "html_url": "https://github.com/example/repo/security/dependabot/10"
+  },
+  {
+    "number": 11,
+    "state": "open",
+    "dependency": {
+      "package": {"ecosystem": "pip", "name": "legacy-lib"},
+      "manifest_path": "tools/requirements.txt",
+      "scope": "development",
+      "relationship": "indirect",
+      "dependency_root": "root-lib"
+    },
+    "security_advisory": {
+      "ghsa_id": "GHSA-1111-2222-3333",
+      "cve_id": null,
+      "summary": "No patched release",
+      "severity": "moderate"
+    },
+    "security_vulnerability": {
+      "package": {"ecosystem": "pip", "name": "legacy-lib"},
+      "severity": "moderate",
+      "vulnerable_version_range": "<= 1.0.0",
+      "first_patched_version": null
+    },
+    "html_url": "https://github.com/example/repo/security/dependabot/11"
+  }
+]

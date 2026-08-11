@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": [
+    "https://api.nuget.org/v3/index.json"
+  ],
+  "projects": [
+    {
+      "path": "D:/lab-solos/backend/LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj"
+    },
+    {
+      "path": "D:/lab-solos/backend/Tests/Tests.csproj"
+    }
+  ]
+}

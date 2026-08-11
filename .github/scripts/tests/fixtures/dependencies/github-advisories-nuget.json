@@ -1,0 +1,22 @@
+[
+  {
+    "ghsa_id": "GHSA-6654-xx9j-4c5x",
+    "vulnerabilities": [
+      {
+        "package": {"ecosystem": "NuGet", "name": "AutoMapper"},
+        "vulnerable_version_range": ">= 14.0.0, < 15.0.1",
+        "first_patched_version": {"identifier": "15.0.1"}
+      }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-ghhp-997w-qr28",
+    "vulnerabilities": [
+      {
+        "package": {"ecosystem": "NuGet", "name": "System.Text.Encodings.Web"},
+        "vulnerable_version_range": ">= 4.0.0, < 4.7.2",
+        "first_patched_version": {"identifier": "4.7.2"}
+      }
+    ]
+  }
+]

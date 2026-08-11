@@ -1,0 +1,36 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "transitive-tool": {
+      "name": "transitive-tool",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 2001,
+          "name": "transitive-tool",
+          "dependency": "transitive-tool",
+          "title": "High advisory with boolean fix availability",
+          "url": "https://github.com/advisories/GHSA-abcd-1234-efgh",
+          "severity": "high",
+          "range": "<3.1.0"
+        }
+      ],
+      "effects": ["root-tool"],
+      "range": "<3.1.0",
+      "nodes": ["node_modules/transitive-tool"],
+      "fixAvailable": true,
+      "dependencyRoot": "root-tool"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 1,
+      "critical": 0,
+      "total": 1
+    }
+  }
+}

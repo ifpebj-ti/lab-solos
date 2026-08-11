@@ -1,0 +1,39 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "alpha": {
+      "name": "alpha",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1001,
+          "name": "alpha",
+          "dependency": "alpha",
+          "title": "Critical alpha advisory",
+          "url": "https://github.com/advisories/GHSA-aaaa-bbbb-cccc",
+          "severity": "critical",
+          "range": "<2.0.0"
+        }
+      ],
+      "effects": [],
+      "range": "<2.0.0",
+      "nodes": ["node_modules/alpha"],
+      "fixAvailable": {
+        "name": "alpha",
+        "version": "2.0.0",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 1,
+      "total": 1
+    }
+  }
+}
