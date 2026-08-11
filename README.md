@@ -45,3 +45,7 @@ Visualizar o passo a passo em: [Fluxo de Contribuição](https://github.com/ifpe
 ## Wiki
 Para mais informações e documentação do projeto, acesse nossa [Wiki](https://github.com/ifpebj-ti/lab-solos/wiki).
 
+## Gestão do Projeto
+
+O desenvolvimento, a qualidade e os indicadores do LabOn são acompanhados no [GitHub Project — LabOn: Desenvolvimento e Qualidade](https://github.com/users/nathannmvr/projects/4).
+
