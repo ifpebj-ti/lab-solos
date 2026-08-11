@@ -1,4 +1,4 @@
 interface:
   display_name: "Executar tarefa"
-  short_description: "Executa exatamente uma tarefa usando TDD"
-  default_prompt: "Use $execute-task para implementar uma única tarefa do plano com TDD e validações."
+  short_description: "Executa uma tarefa com TDD e sincroniza sua issue"
+  default_prompt: "Use $execute-task para implementar uma única tarefa com TDD e manter a issue correspondente sincronizada no GitHub Project."
