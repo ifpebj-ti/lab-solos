@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": ["https://api.nuget.org/v3/index.json"],
+  "projects": [
+    {
+      "path": "backend/App/App.csproj",
+      "frameworks": [
+        {
+          "framework": "net8.0",
+          "topLevelPackages": [
+            {
+              "id": "AutoMapper",
+              "requestedVersion": "14.0.0",
+              "resolvedVersion": "14.0.0",
+              "vulnerabilities": [
+                {
+                  "severity": "High",
+                  "advisoryurl": "https://github.com/advisories/GHSA-6654-xx9j-4c5x"
+                }
+              ]
+            }
+          ],
+          "transitivePackages": [
+            {
+              "id": "System.Text.Encodings.Web",
+              "resolvedVersion": "4.5.0",
+              "dependencyRoot": "Microsoft.AspNetCore.Identity",
+              "vulnerabilities": [
+                {
+                  "severity": "Critical",
+                  "advisoryurl": "https://github.com/advisories/GHSA-ghhp-997w-qr28"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

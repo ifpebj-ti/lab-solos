@@ -1,0 +1,36 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "tar": {
+      "name": "tar",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 3001,
+          "name": "tar",
+          "dependency": "tar",
+          "title": "High advisory with string patched version",
+          "url": "https://github.com/advisories/GHSA-356w-63v5-8wf4",
+          "severity": "high",
+          "range": ">=6.0.0 <6.2.6"
+        }
+      ],
+      "effects": ["root-tool"],
+      "range": ">=6.0.0 <6.2.6",
+      "nodes": ["node_modules/tar"],
+      "fixAvailable": true,
+      "dependencyRoot": "root-tool"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 1,
+      "critical": 0,
+      "total": 1
+    }
+  }
+}

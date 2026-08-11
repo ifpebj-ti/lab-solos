@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": ["https://api.nuget.org/v3/index.json"],
+  "projects": [
+    {
+      "path": "backend/App/App.csproj",
+      "frameworks": [
+        {
+          "framework": "net8.0",
+          "topLevelPackages": [],
+          "transitivePackages": [
+            {
+              "id": "Transitive.Package",
+              "resolvedVersion": "1.0.0",
+              "dependencyRoot": "Root.Package",
+              "vulnerabilities": [
+                {
+                  "severity": "High",
+                  "advisoryurl": "https://github.com/advisories/GHSA-dddd-eeee-ffff",
+                  "vulnerableRange": "[1.0.0, 3.0.0)",
+                  "fixedVersion": "3.0.0"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

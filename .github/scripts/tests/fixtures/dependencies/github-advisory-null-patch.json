@@ -1,0 +1,10 @@
+{
+  "ghsa_id": "GHSA-2m69-gcr7-jv3q",
+  "vulnerabilities": [
+    {
+      "package": {"ecosystem": "NuGet", "name": "SQLitePCLRaw.lib.e_sqlite3"},
+      "vulnerable_version_range": ">= 2.0.0, <= 2.1.6",
+      "first_patched_version": null
+    }
+  ]
+}
