@@ -1,6 +1,6 @@
 ---
 name: execute-task
-description: Executar exatamente uma tarefa de um tasks.md no fluxo de Desenvolvimento Orientado por Especificações (SDD), implementando código com TDD e validando a esteira de testes. Usar quando o usuário indicar uma tarefa específica, pedir a próxima tarefa pronta ou solicitar implementação incremental sem orquestração. Respeitar escopo, dependências e caminhos sob responsabilidade; parar após uma única tarefa e registrar evidências RED-GREEN-REFACTOR.
+description: Executar exatamente uma tarefa de um tasks.md no fluxo de Desenvolvimento Orientado por Especificações (SDD), sincronizando a issue correspondente no GitHub Project, implementando código com TDD e validando a esteira de testes. Usar quando o usuário indicar uma tarefa específica, pedir a próxima tarefa pronta ou solicitar implementação incremental sem orquestração. Respeitar escopo, dependências e caminhos sob responsabilidade; parar após uma única tarefa e registrar evidências RED-GREEN-REFACTOR.
 ---
 
 # Executar uma tarefa
@@ -18,6 +18,17 @@ Ler `references/project-quality.md` antes de validar código neste repositório.
 3. Inspecionar `git status --short` e o diff relevante. Preservar alterações do usuário e não editar fora do escopo.
 4. Executar o teste direcionado existente ou a linha de base pertinente. Distinguir falha preexistente de regressão.
 5. Marcar a tarefa `em andamento`, salvo quando um orquestrador ordenar explicitamente que somente ele edite `tasks.md`.
+
+## Sincronização da issue e do Project
+
+Executar esta sincronização antes do RED. A solicitação para executar uma tarefa autoriza somente atribuir a issue correspondente e alterar o status do item dela no Project; não autoriza comentários, fechamento da issue nem outras mutações externas.
+
+1. Resolver a issue pela referência explícita na tarefa (`#<número>` ou URL). Se ela estiver ausente, herdar a referência do PRD somente quando houver exatamente uma issue relacionada. Com nenhuma ou várias candidatas, parar e solicitar uma associação inequívoca; nunca adivinhar.
+2. Confirmar que a issue pertence ao repositório atual. Obter o usuário autenticado com `gh api user --jq .login` e as configurações com `gh variable get PROJECT_OWNER --repo <owner/repo>` e `gh variable get PROJECT_NUMBER --repo <owner/repo>`. Nunca imprimir nem ler o valor de `PROJECT_TOKEN` durante uma execução local.
+3. Verificar se a issue está no Project configurado; adicioná-la se estiver ausente. Atribuí-la ao usuário autenticado, preservando responsáveis existentes, e alterar o campo `Status` do item para `In Progress`.
+4. Só iniciar implementação depois de validar no GitHub que o assignee e o status foram persistidos. Se autenticação, permissão, configuração ou atualização falhar, parar antes de editar código para evitar divergência entre tarefa e quadro.
+
+Na conclusão, manter `In Progress` quando a issue ainda tiver outras tarefas ou critérios pendentes. Alterar o item para `Done` somente quando esta for a última tarefa necessária e todos os critérios de aceitação da issue estiverem atendidos. Em caso de bloqueio, manter `In Progress` e relatar a causa. Nunca fechar a issue automaticamente.
 
 ## TDD obrigatório
 
@@ -52,4 +63,4 @@ Quando o usuário solicitar explicitamente branch, commit, push ou Pull Request:
 
 Marcar `concluída` somente com critérios atendidos e evidências RED/GREEN/REFACTOR, ou caracterização/verificação com falha inicial justificadas pelas exceções acima. Caso contrário, marcar `bloqueada` com causa acionável. Acrescentar uma linha ao log de execução, salvo sob controle do orquestrador.
 
-Ao terminar, informar: tarefa executada, arquivos alterados, evidência RED, comandos verdes, lacunas/preexistências e riscos restantes. Encerrar sem iniciar outra tarefa.
+Ao terminar, informar: tarefa e issue executadas, status final no Project, arquivos alterados, evidência RED, comandos verdes, lacunas/preexistências e riscos restantes. Encerrar sem iniciar outra tarefa.
