@@ -1,12 +1,17 @@
 version: 2
 updates:
-  # target-branch routes version updates; security updates and alerts remain tied to the default branch.
+  # Version updates are grouped on develop to avoid exhausting the PR limit.
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 5
+    groups:
+      npm-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
     labels:
       - "DevSecOps"
       - "Frontend"
@@ -17,6 +22,41 @@ updates:
       interval: "weekly"
     target-branch: "develop"
     open-pull-requests-limit: 5
+    groups:
+      nuget-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+    labels:
+      - "DevSecOps"
+      - "Backend"
+
+  # Security updates target the default branch. A dedicated entry is required
+  # because options from entries with target-branch do not apply to them.
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      npm-security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+    labels:
+      - "DevSecOps"
+      - "Frontend"
+
+  - package-ecosystem: "nuget"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      nuget-security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
     labels:
       - "DevSecOps"
       - "Backend"
