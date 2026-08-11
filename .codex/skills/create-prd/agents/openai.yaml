@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criar PRD"
+  short_description: "Cria PRDs rastreáveis para o fluxo SDD"
+  default_prompt: "Use $create-prd para criar um PRD baseado neste repositório e na necessidade descrita."
