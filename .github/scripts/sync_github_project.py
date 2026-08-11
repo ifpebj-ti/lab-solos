@@ -159,11 +159,31 @@ class ProjectSync:
             "project", "item-list", str(self.number), "--owner", self.owner,
             "--limit", "500", "--format", "json",
         )
+        self.project_items = data["items"]
         self.items = {
             item.get("content", {}).get("url"): item
-            for item in data["items"]
+            for item in self.project_items
             if item.get("content", {}).get("url")
         }
+
+    def remove_non_issue_items(self) -> None:
+        removed = False
+        for item in self.project_items:
+            if item.get("content", {}).get("type") == "Issue":
+                continue
+            item_id = item.get("id")
+            if not item_id:
+                continue
+            if self.dry_run:
+                print(f"DRY-RUN remover item não-Issue: {item_id}")
+            else:
+                run_gh(
+                    "project", "item-delete", str(self.number), "--owner", self.owner,
+                    "--id", item_id,
+                )
+            removed = True
+        if removed and not self.dry_run:
+            self.refresh_items()
 
     def ensure_item(self, content: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
         url = content["url"]
@@ -213,11 +233,7 @@ class ProjectSync:
             "issue", "list", "--repo", self.repository, "--state", "open", "--limit", "500",
             "--json", "number,title,url,labels",
         )
-        pulls = gh_json(
-            "pr", "list", "--repo", self.repository, "--state", "open", "--limit", "500",
-            "--json", "number,title,url,labels,isDraft",
-        )
-        for content in [*issues, *pulls]:
+        for content in issues:
             item, created = self.ensure_item(content)
             if created and item:
                 self.set_select(item["id"], "Status", "Todo")
@@ -226,11 +242,11 @@ class ProjectSync:
     def sync_event(self) -> None:
         event_path = os.getenv("GITHUB_EVENT_PATH")
         event_name = os.getenv("GITHUB_EVENT_NAME", "")
-        if not event_path or event_name not in {"issues", "pull_request_target"}:
+        if not event_path or event_name != "issues":
             return
         with open(event_path, encoding="utf-8") as event_file:
             payload = json.load(event_file)
-        content = payload.get("issue") or payload.get("pull_request")
+        content = payload.get("issue")
         if not content:
             return
         normalized_content = {
@@ -353,6 +369,7 @@ def main() -> None:
         raise RuntimeError("PROJECT_REPOSITORY ou GITHUB_REPOSITORY deve ser informado.")
 
     sync = ProjectSync(owner, number, repository, args.dry_run)
+    sync.remove_non_issue_items()
     sync.sync_open_items()
     sync.sync_event()
     sync.update_metrics()
