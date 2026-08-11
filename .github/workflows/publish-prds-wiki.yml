@@ -3,7 +3,7 @@ name: Publicar PRDs na Wiki
 on:
   push:
     branches:
-      - main
+      - develop
     paths:
       - ".codex/docs/specs/**"
       - ".github/scripts/sync_prds_to_wiki.py"
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   publish:
     name: Sincronizar PRDs
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,7 @@ jobs:
           --source .codex/docs/specs
           --wiki wiki
           --repository "${GITHUB_REPOSITORY}"
-          --ref main
+          --ref develop
 
       - name: Publicar alterações
         working-directory: wiki
