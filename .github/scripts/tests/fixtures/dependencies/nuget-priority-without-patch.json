@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "parameters": "--vulnerable --include-transitive",
+  "sources": ["https://api.nuget.org/v3/index.json"],
+  "projects": [
+    {
+      "path": "backend/App/App.csproj",
+      "frameworks": [
+        {
+          "framework": "net8.0",
+          "topLevelPackages": [],
+          "transitivePackages": [
+            {
+              "id": "SQLitePCLRaw.lib.e_sqlite3",
+              "resolvedVersion": "2.1.6",
+              "dependencyRoot": "Microsoft.EntityFrameworkCore.Sqlite",
+              "vulnerabilities": [
+                {
+                  "severity": "High",
+                  "advisoryurl": "https://github.com/advisories/GHSA-2m69-gcr7-jv3q"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

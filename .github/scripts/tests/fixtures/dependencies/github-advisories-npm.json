@@ -1,0 +1,12 @@
+[
+  {
+    "ghsa_id": "GHSA-abcd-1234-efgh",
+    "vulnerabilities": [
+      {
+        "package": {"ecosystem": "npm", "name": "transitive-tool"},
+        "vulnerable_version_range": "< 3.1.0",
+        "first_patched_version": {"identifier": "3.1.0"}
+      }
+    ]
+  }
+]

@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # target-branch routes version updates; security updates and alerts remain tied to the default branch.
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop"
+    open-pull-requests-limit: 5
+    labels:
+      - "DevSecOps"
+      - "Frontend"
+
+  - package-ecosystem: "nuget"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop"
+    open-pull-requests-limit: 5
+    labels:
+      - "DevSecOps"
+      - "Backend"

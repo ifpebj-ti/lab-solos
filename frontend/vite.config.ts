@@ -1,6 +1,6 @@
 import path from 'path';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { execSync } from 'child_process';
 
 let gitHash = 'latest';
@@ -49,6 +49,10 @@ export default defineConfig(async () => {
       __APP_VERSION__: JSON.stringify(appVersion),
       __APP_GIT_HASH__: JSON.stringify(gitHash),
       __APP_BUILD_DATE__: JSON.stringify(buildDate),
+    },
+    test: {
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
     },
   };
 });

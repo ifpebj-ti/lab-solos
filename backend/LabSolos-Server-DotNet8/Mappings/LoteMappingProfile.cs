@@ -21,7 +21,7 @@ namespace Core.DTOs.Mappings
                     ? DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc)
                     : (DateTime?)null));
 
-            CreateMap<AddLoteDTO, Lote>();
+            CreateMap<AddLoteDTO, Lote>(MemberList.None);
         }
     }
 }
