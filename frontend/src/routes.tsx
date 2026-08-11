@@ -51,7 +51,7 @@ import { Layout } from './components/ui/layout';
 
 function AppRoutes() {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <Routes>
         <Route
           path='/admin'
@@ -465,7 +465,6 @@ function AppRoutes() {
         {/* pdf */}
       </Routes>
     </BrowserRouter>
-
   );
 }
 
