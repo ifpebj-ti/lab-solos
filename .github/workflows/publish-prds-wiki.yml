@@ -1,0 +1,56 @@
+name: Publicar PRDs na Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".codex/docs/specs/**"
+      - ".github/scripts/sync_prds_to_wiki.py"
+      - ".github/workflows/publish-prds-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-prds-wiki
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Sincronizar PRDs
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter repositório principal
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Clonar wiki
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN || github.token }}
+        run: git clone "https://x-access-token:${WIKI_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki
+
+      - name: Gerar páginas dos PRDs
+        run: >-
+          python .github/scripts/sync_prds_to_wiki.py
+          --source .codex/docs/specs
+          --wiki wiki
+          --repository "${GITHUB_REPOSITORY}"
+          --ref main
+
+      - name: Publicar alterações
+        working-directory: wiki
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "A wiki já está atualizada."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: sincronizar PRDs"
+          git push origin HEAD:master

@@ -1,4 +1,10 @@
 .env
 .env.prod
 .env.dev
-.codex/
+.codex/*
+!.codex/docs/
+.codex/docs/*
+!.codex/docs/specs/
+!.codex/docs/specs/**
+.codex/docs/specs/ordem.txt
+__pycache__/
