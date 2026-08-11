@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criar especificação técnica"
+  short_description: "Projeta especificações técnicas orientadas a testes"
+  default_prompt: "Use $create-techspec para derivar uma especificação técnica testável a partir do PRD."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criar tarefas"
+  short_description: "Decompõe specs em tarefas TDD executáveis"
+  default_prompt: "Use $create-tasks para decompor o PRD e a especificação técnica em tarefas pequenas e rastreáveis."
