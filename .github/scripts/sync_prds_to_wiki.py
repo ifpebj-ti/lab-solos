@@ -25,11 +25,18 @@ def prd_slugs(source: Path) -> list[str]:
     )
 
 
-def demote_headings(content: str) -> str:
-    """Move source headings one level down so each PRD fits under the wiki page."""
+def format_prd_content(content: str) -> str:
+    """Keep only the PRD title in the wiki outline."""
+
+    def replace_heading(match: re.Match[str]) -> str:
+        level, title = match.groups()
+        if level == "#":
+            return f"## {title}"
+        return f"**{title}**"
+
     return re.sub(
-        r"^(#{1,5})(\s+)",
-        lambda match: f"#{match.group(1)}{match.group(2)}",
+        r"^(#{1,6})[ \t]+(.+?)[ \t]*$",
+        replace_heading,
         content,
         flags=re.MULTILINE,
     )
@@ -74,7 +81,7 @@ def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
                     "",
                     f'<a id="prd-{slug}"></a>',
                     "",
-                    demote_headings(content),
+                    format_prd_content(content),
                     "",
                     f"> Fonte: [PRD versionado no repositório principal]({source_url}).",
                 ]
