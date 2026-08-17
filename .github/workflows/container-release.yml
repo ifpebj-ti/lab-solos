@@ -1,0 +1,754 @@
+name: Container Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Canonical SemVer without a v prefix
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: container-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.release.outputs.release }}
+      version: ${{ steps.release.outputs.version }}
+      change-type: ${{ steps.release.outputs.change_type }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - name: Select the main commit
+        id: source
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          DISPATCH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            printf 'sha=%s\n' "$MERGE_SHA" >> "$GITHUB_OUTPUT"
+          else
+            printf 'sha=%s\n' "$DISPATCH_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the selected main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+          persist-credentials: false
+
+      - name: Resolve release metadata
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          DISPATCH_VERSION: ${{ inputs.version }}
+          DISPATCH_REF: ${{ github.ref }}
+          RELEASE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            release_tags="$(gh release list --limit 100 --json tagName --jq '.[].tagName')"
+            latest_tag="$(printf '%s\n' "$release_tags" \
+              | awk '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/' \
+              | sort -V | tail -n 1)"
+            arguments=(
+              --event pull_request
+              --pr-body "$PR_BODY"
+              --github-output "$GITHUB_OUTPUT"
+            )
+            if [[ -n "$latest_tag" ]]; then
+              arguments+=(--latest-tag "$latest_tag")
+            fi
+          else
+            arguments=(
+              --event workflow_dispatch
+              --version "$DISPATCH_VERSION"
+              --ref "$DISPATCH_REF"
+              --github-output "$GITHUB_OUTPUT"
+            )
+          fi
+          python .github/scripts/resolve_container_version.py "${arguments[@]}"
+          printf 'sha=%s\n' "$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize preparation
+        shell: bash
+        env:
+          RELEASE: ${{ steps.release.outputs.release }}
+          VERSION: ${{ steps.release.outputs.version }}
+          CHANGE_TYPE: ${{ steps.release.outputs.change_type }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          {
+            echo '## Container release preparation'
+            echo
+            echo "- Actor: ${GITHUB_ACTOR}"
+            echo "- SHA: ${RELEASE_SHA}"
+            echo "- Release: ${RELEASE}"
+            echo "- Version: ${VERSION:-not applicable}"
+            echo "- Change type: ${CHANGE_TYPE}"
+            echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  finalize-release:
+    needs:
+      - prepare
+      - promote-version
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Check out the selected main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote latest atomically and create the GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -Eeuo pipefail
+          mkdir -p .tmp/manifests
+
+          FRONTEND_VERSION="${FRONTEND_IMAGE}:${VERSION}"
+          BACKEND_VERSION="${BACKEND_IMAGE}:${VERSION}"
+          FRONTEND_LATEST="${FRONTEND_IMAGE}:latest"
+          BACKEND_LATEST="${BACKEND_IMAGE}:latest"
+
+          registry_digest() {
+            local reference=$1
+            local digest
+            digest="$(docker buildx imagetools inspect "$reference" --format '{{.Manifest.Digest}}')"
+            digest="$(printf '%s' "$digest" | tr -d '\r\n')"
+            if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "Invalid registry digest for ${reference}" >&2
+              return 1
+            fi
+            printf '%s' "$digest"
+          }
+
+          docker buildx imagetools inspect --raw "$FRONTEND_VERSION" \
+            > .tmp/manifests/frontend-version.json
+          python .github/scripts/validate_container_manifest.py \
+            .tmp/manifests/frontend-version.json
+          FRONTEND_VERSION_DIGEST="$(registry_digest "$FRONTEND_VERSION")"
+
+          docker buildx imagetools inspect --raw "$BACKEND_VERSION" \
+            > .tmp/manifests/backend-version.json
+          python .github/scripts/validate_container_manifest.py \
+            .tmp/manifests/backend-version.json
+          BACKEND_VERSION_DIGEST="$(registry_digest "$BACKEND_VERSION")"
+
+          capture_latest() {
+            local reference=$1
+            local component=$2
+            local digest
+            if ! docker buildx imagetools inspect --raw "$reference" \
+              > ".tmp/manifests/${component}-latest-before.json"; then
+              echo "Cannot capture ${reference}; aborting before latest promotion" >&2
+              return 1
+            fi
+            python .github/scripts/validate_container_manifest.py \
+              ".tmp/manifests/${component}-latest-before.json"
+            digest="$(registry_digest "$reference")"
+            case "$component" in
+              frontend) FRONTEND_PREVIOUS_DIGEST=$digest ;;
+              backend) BACKEND_PREVIOUS_DIGEST=$digest ;;
+              *) echo "Unsupported component: ${component}" >&2; return 1 ;;
+            esac
+          }
+
+          capture_latest "$FRONTEND_LATEST" frontend
+          capture_latest "$BACKEND_LATEST" backend
+
+          FRONTEND_STATE=needs-promotion
+          BACKEND_STATE=needs-promotion
+          if python .github/scripts/validate_container_manifest.py \
+            .tmp/manifests/frontend-latest-before.json \
+            --compare .tmp/manifests/frontend-version.json; then
+            FRONTEND_STATE=existing-identical
+          fi
+          if python .github/scripts/validate_container_manifest.py \
+            .tmp/manifests/backend-latest-before.json \
+            --compare .tmp/manifests/backend-version.json; then
+            BACKEND_STATE=existing-identical
+          fi
+
+          FRONTEND_WRITTEN=false
+          BACKEND_WRITTEN=false
+
+          rollback_latest() {
+            local failure_status=$?
+            local rollback_failed=0
+            trap - ERR
+            set +e
+
+            if [[ "$BACKEND_WRITTEN" == true ]]; then
+              if ! docker buildx imagetools create --tag "$BACKEND_LATEST" \
+                "${BACKEND_IMAGE}@${BACKEND_PREVIOUS_DIGEST}"; then
+                echo "Failed to restore ${BACKEND_LATEST}" >&2
+                rollback_failed=1
+              elif ! docker buildx imagetools inspect --raw "$BACKEND_LATEST" \
+                > .tmp/manifests/backend-latest-restored.json; then
+                echo "Failed to inspect restored ${BACKEND_LATEST}" >&2
+                rollback_failed=1
+              elif ! python .github/scripts/validate_container_manifest.py \
+                .tmp/manifests/backend-latest-restored.json --compare .tmp/manifests/backend-latest-before.json; then
+                echo "Restored ${BACKEND_LATEST} does not match its captured state" >&2
+                rollback_failed=1
+              fi
+            fi
+
+            if [[ "$FRONTEND_WRITTEN" == true ]]; then
+              if ! docker buildx imagetools create --tag "$FRONTEND_LATEST" \
+                "${FRONTEND_IMAGE}@${FRONTEND_PREVIOUS_DIGEST}"; then
+                echo "Failed to restore ${FRONTEND_LATEST}" >&2
+                rollback_failed=1
+              elif ! docker buildx imagetools inspect --raw "$FRONTEND_LATEST" \
+                > .tmp/manifests/frontend-latest-restored.json; then
+                echo "Failed to inspect restored ${FRONTEND_LATEST}" >&2
+                rollback_failed=1
+              elif ! python .github/scripts/validate_container_manifest.py \
+                .tmp/manifests/frontend-latest-restored.json --compare .tmp/manifests/frontend-latest-before.json; then
+                echo "Restored ${FRONTEND_LATEST} does not match its captured state" >&2
+                rollback_failed=1
+              fi
+            fi
+
+            {
+              echo '## Latest rollback'
+              echo
+              echo "- Frontend previous digest: ${FRONTEND_PREVIOUS_DIGEST}"
+              echo "- Backend previous digest: ${BACKEND_PREVIOUS_DIGEST}"
+              echo "- Manual intervention required: $([[ $rollback_failed == 0 ]] && echo no || echo yes)"
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            if (( rollback_failed != 0 )); then
+              echo "::error::Rollback compensation failed; manual intervention is required" >&2
+              exit 2
+            fi
+            echo "::error::Latest promotion failed; captured state was restored" >&2
+            exit "$failure_status"
+          }
+
+          trap rollback_latest ERR
+
+          if [[ "$FRONTEND_STATE" == needs-promotion ]]; then
+            FRONTEND_WRITTEN=true
+            docker buildx imagetools create --tag "$FRONTEND_LATEST" \
+              "${FRONTEND_IMAGE}@${FRONTEND_VERSION_DIGEST}"
+            docker buildx imagetools inspect --raw "$FRONTEND_LATEST" \
+              > .tmp/manifests/frontend-latest.json
+            python .github/scripts/validate_container_manifest.py .tmp/manifests/frontend-latest.json --compare .tmp/manifests/frontend-version.json
+          else
+            cp .tmp/manifests/frontend-latest-before.json .tmp/manifests/frontend-latest.json
+          fi
+
+          if [[ "$BACKEND_STATE" == needs-promotion ]]; then
+            BACKEND_WRITTEN=true
+            docker buildx imagetools create --tag "$BACKEND_LATEST" \
+              "${BACKEND_IMAGE}@${BACKEND_VERSION_DIGEST}"
+            docker buildx imagetools inspect --raw "$BACKEND_LATEST" \
+              > .tmp/manifests/backend-latest.json
+            python .github/scripts/validate_container_manifest.py .tmp/manifests/backend-latest.json --compare .tmp/manifests/backend-version.json
+          else
+            cp .tmp/manifests/backend-latest-before.json .tmp/manifests/backend-latest.json
+          fi
+
+          FRONTEND_LATEST_DIGEST="$(registry_digest "$FRONTEND_LATEST")"
+          BACKEND_LATEST_DIGEST="$(registry_digest "$BACKEND_LATEST")"
+          trap - ERR
+
+          RELEASE_STATE=absent
+          RELEASE_URL=''
+          if gh release view "$VERSION" --json tagName,targetCommitish,url \
+            > .tmp/release.json 2> .tmp/release.err; then
+            EXISTING_TAG="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["tagName"])')"
+            EXISTING_TARGET="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["targetCommitish"])')"
+            RELEASE_URL="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["url"])')"
+            if [[ "$EXISTING_TAG" != "$VERSION" || "$EXISTING_TARGET" != "$RELEASE_SHA" ]]; then
+              echo "Release conflict: ${VERSION} does not target ${RELEASE_SHA}" >&2
+              exit 1
+            fi
+            RELEASE_STATE=existing-identical
+          else
+            release_status=$?
+            if ! grep -Eqi 'release not found|HTTP 404|Not Found' .tmp/release.err; then
+              cat .tmp/release.err >&2
+              exit "$release_status"
+            fi
+          fi
+
+          if [[ "$RELEASE_STATE" == absent ]]; then
+            RELEASE_URL="$(gh release create "$VERSION" \
+              --target "$RELEASE_SHA" \
+              --title "$VERSION" \
+              --generate-notes)"
+          fi
+
+          {
+            echo '## Container release completed'
+            echo
+            echo "- Actor: ${GITHUB_ACTOR}"
+            echo "- SHA: ${RELEASE_SHA}"
+            echo "- Version: ${VERSION}"
+            echo "- Release state: ${RELEASE_STATE}"
+            echo "- Release: ${RELEASE_URL}"
+            echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '| Component | Version digest | Latest digest | Previous latest digest |'
+            echo '|---|---|---|---|'
+            echo "| frontend | ${FRONTEND_VERSION_DIGEST} | ${FRONTEND_LATEST_DIGEST} | ${FRONTEND_PREVIOUS_DIGEST} |"
+            echo "| backend | ${BACKEND_VERSION_DIGEST} | ${BACKEND_LATEST_DIGEST} | ${BACKEND_PREVIOUS_DIGEST} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: prepare
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - component: frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+            image: ghcr.io/ifpebj-ti/lab-solos-frontend
+            platform: linux/amd64
+            arch: amd64
+          - component: frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+            image: ghcr.io/ifpebj-ti/lab-solos-frontend
+            platform: linux/arm64
+            arch: arm64
+          - component: backend
+            context: backend
+            dockerfile: backend/Dockerfile
+            image: ghcr.io/ifpebj-ti/lab-solos-backend
+            platform: linux/amd64
+            arch: amd64
+          - component: backend
+            context: backend
+            dockerfile: backend/Dockerfile
+            image: ghcr.io/ifpebj-ti/lab-solos-backend
+            platform: linux/arm64
+            arch: arm64
+    steps:
+      - name: Check out the selected main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push canonical digest
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          provenance: false
+          sbom: false
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.sha }}
+
+      - name: Persist digest
+        id: digest
+        shell: bash
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          test "$DIGEST" != ""
+          mkdir -p .tmp/digests
+          printf '%s\n' "$DIGEST" > ".tmp/digests/${{ matrix.component }}-${{ matrix.arch }}.txt"
+          printf 'digest=%s\n' "$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: digest-${{ matrix.component }}-${{ matrix.arch }}
+          path: .tmp/digests/${{ matrix.component }}-${{ matrix.arch }}.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Summarize build
+        shell: bash
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: |
+          echo "- ${{ matrix.component }} ${{ matrix.platform }}: ${DIGEST}" >> "$GITHUB_STEP_SUMMARY"
+
+  scan:
+    needs:
+      - prepare
+      - build
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - component: frontend
+            image: ghcr.io/ifpebj-ti/lab-solos-frontend
+            platform: linux/amd64
+            arch: amd64
+          - component: frontend
+            image: ghcr.io/ifpebj-ti/lab-solos-frontend
+            platform: linux/arm64
+            arch: arm64
+          - component: backend
+            image: ghcr.io/ifpebj-ti/lab-solos-backend
+            platform: linux/amd64
+            arch: amd64
+          - component: backend
+            image: ghcr.io/ifpebj-ti/lab-solos-backend
+            platform: linux/arm64
+            arch: arm64
+    steps:
+      - name: Check out the selected main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+
+      - name: Download digest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: digest-${{ matrix.component }}-${{ matrix.arch }}
+          path: .tmp/digest
+
+      - name: Read immutable reference
+        id: digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest="$(cat ".tmp/digest/${{ matrix.component }}-${{ matrix.arch }}.txt")"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'digest=%s\n' "$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Trivy
+        shell: bash
+        run: bash .github/scripts/install_trivy.sh .tmp/trivy-bin
+
+      - name: Generate Trivy table
+        shell: bash
+        env:
+          SCAN_REFERENCE: ${{ matrix.image }}@${{ steps.digest.outputs.digest }}
+        run: |
+          mkdir -p .tmp/trivy-reports
+          .tmp/trivy-bin/trivy image --config .trivy.yaml --exit-code 0 \
+            --format table --output ".tmp/trivy-reports/${{ matrix.component }}-${{ matrix.arch }}.txt" \
+            "$SCAN_REFERENCE"
+          cat ".tmp/trivy-reports/${{ matrix.component }}-${{ matrix.arch }}.txt"
+
+      - name: Generate Trivy SARIF
+        shell: bash
+        env:
+          SCAN_REFERENCE: ${{ matrix.image }}@${{ steps.digest.outputs.digest }}
+        run: |
+          .tmp/trivy-bin/trivy image --config .trivy.yaml --exit-code 0 \
+            --format sarif --output ".tmp/trivy-reports/${{ matrix.component }}-${{ matrix.arch }}.sarif" \
+            "$SCAN_REFERENCE"
+
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: trivy-${{ matrix.component }}-${{ matrix.arch }}
+          path: .tmp/trivy-reports
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: .tmp/trivy-reports/${{ matrix.component }}-${{ matrix.arch }}.sarif
+          category: trivy-release-${{ matrix.component }}-${{ matrix.arch }}
+
+      - name: Enforce the blocking Trivy policy
+        if: always()
+        shell: bash
+        env:
+          SCAN_REFERENCE: ${{ matrix.image }}@${{ steps.digest.outputs.digest }}
+        run: |
+          .tmp/trivy-bin/trivy image --config .trivy.yaml --exit-code 1 \
+            --format table "$SCAN_REFERENCE"
+
+      - name: Summarize scan
+        if: always()
+        shell: bash
+        run: |
+          echo "- ${{ matrix.component }} ${{ matrix.platform }}: scan attempted for digest ${{ steps.digest.outputs.digest }}" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+  promote-version:
+    needs:
+      - prepare
+      - scan
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the selected main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Download all scanned digests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: digest-*
+          path: .tmp/digests
+          merge-multiple: true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect version collisions before writing tags
+        id: collision
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp/manifests
+
+          read_digest() {
+            local path=$1
+            local digest
+            digest="$(tr -d '\r\n' < "$path")"
+            if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "Invalid digest in ${path}" >&2
+              return 1
+            fi
+            printf '%s' "$digest"
+          }
+
+          FRONTEND_AMD64="$(read_digest .tmp/digests/frontend-amd64.txt)"
+          FRONTEND_ARM64="$(read_digest .tmp/digests/frontend-arm64.txt)"
+          BACKEND_AMD64="$(read_digest .tmp/digests/backend-amd64.txt)"
+          BACKEND_ARM64="$(read_digest .tmp/digests/backend-arm64.txt)"
+          FRONTEND_TAG="${FRONTEND_IMAGE}:${VERSION}"
+          BACKEND_TAG="${BACKEND_IMAGE}:${VERSION}"
+
+          python - "$FRONTEND_AMD64" "$FRONTEND_ARM64" "$BACKEND_AMD64" "$BACKEND_ARM64" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          media_type = "application/vnd.oci.image.manifest.v1+json"
+          index_media_type = "application/vnd.oci.image.index.v1+json"
+
+          def candidate(amd64_digest, arm64_digest):
+              return {
+                  "schemaVersion": 2,
+                  "mediaType": index_media_type,
+                  "manifests": [
+                      {
+                          "mediaType": media_type,
+                          "digest": amd64_digest,
+                          "platform": {"os": "linux", "architecture": "amd64"},
+                      },
+                      {
+                          "mediaType": media_type,
+                          "digest": arm64_digest,
+                          "platform": {"os": "linux", "architecture": "arm64"},
+                      },
+                  ],
+              }
+
+          output = Path(".tmp/manifests")
+          pairs = {
+              "frontend": (sys.argv[1], sys.argv[2]),
+              "backend": (sys.argv[3], sys.argv[4]),
+          }
+          for component, digests in pairs.items():
+              path = output / f"{component}-candidate.json"
+              path.write_text(json.dumps(candidate(*digests)), encoding="utf-8")
+          PY
+
+          python .github/scripts/validate_container_manifest.py .tmp/manifests/frontend-candidate.json
+          python .github/scripts/validate_container_manifest.py .tmp/manifests/backend-candidate.json
+
+          check_version_tag() {
+            local tag=$1
+            local candidate=$2
+            local existing=$3
+            local error_log=$4
+            local state_variable=$5
+            local inspect_status
+
+            if docker buildx imagetools inspect --raw "$tag" > "$existing" 2> "$error_log"; then
+              python .github/scripts/validate_container_manifest.py "$existing" --compare "$candidate"
+              printf -v "$state_variable" '%s' existing-identical
+            else
+              inspect_status=$?
+              if grep -Eqi 'manifest unknown|unexpected status.*404|: not found$' "$error_log"; then
+                printf -v "$state_variable" '%s' absent
+              else
+                cat "$error_log" >&2
+                return "$inspect_status"
+              fi
+            fi
+          }
+
+          check_version_tag "$FRONTEND_TAG" \
+            .tmp/manifests/frontend-candidate.json \
+            .tmp/manifests/frontend-existing.json \
+            .tmp/manifests/frontend-inspect.err FRONTEND_STATE
+          check_version_tag "$BACKEND_TAG" \
+            .tmp/manifests/backend-candidate.json \
+            .tmp/manifests/backend-existing.json \
+            .tmp/manifests/backend-inspect.err BACKEND_STATE
+
+          printf 'tag_state_frontend=%s\n' "$FRONTEND_STATE" >> "$GITHUB_OUTPUT"
+          printf 'tag_state_backend=%s\n' "$BACKEND_STATE" >> "$GITHUB_OUTPUT"
+          {
+            echo "- tag-state-frontend: ${FRONTEND_STATE}"
+            echo "- tag-state-backend: ${BACKEND_STATE}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create missing version tags
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+          FRONTEND_STATE: ${{ steps.collision.outputs.tag_state_frontend }}
+          BACKEND_STATE: ${{ steps.collision.outputs.tag_state_backend }}
+        run: |
+          set -euo pipefail
+          FRONTEND_AMD64="$(tr -d '\r\n' < .tmp/digests/frontend-amd64.txt)"
+          FRONTEND_ARM64="$(tr -d '\r\n' < .tmp/digests/frontend-arm64.txt)"
+          BACKEND_AMD64="$(tr -d '\r\n' < .tmp/digests/backend-amd64.txt)"
+          BACKEND_ARM64="$(tr -d '\r\n' < .tmp/digests/backend-arm64.txt)"
+          FRONTEND_TAG="${FRONTEND_IMAGE}:${VERSION}"
+          BACKEND_TAG="${BACKEND_IMAGE}:${VERSION}"
+
+          case "$FRONTEND_STATE" in
+            absent)
+              docker buildx imagetools create --tag "$FRONTEND_TAG" \
+                "${FRONTEND_IMAGE}@${FRONTEND_AMD64}" \
+                "${FRONTEND_IMAGE}@${FRONTEND_ARM64}"
+              ;;
+            existing-identical) ;;
+            *) echo "Unexpected frontend tag state" >&2; exit 1 ;;
+          esac
+          case "$BACKEND_STATE" in
+            absent)
+              docker buildx imagetools create --tag "$BACKEND_TAG" \
+                "${BACKEND_IMAGE}@${BACKEND_AMD64}" \
+                "${BACKEND_IMAGE}@${BACKEND_ARM64}"
+              ;;
+            existing-identical) ;;
+            *) echo "Unexpected backend tag state" >&2; exit 1 ;;
+          esac
+
+      - name: Verify both version manifests
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -euo pipefail
+          FRONTEND_TAG="${FRONTEND_IMAGE}:${VERSION}"
+          BACKEND_TAG="${BACKEND_IMAGE}:${VERSION}"
+          docker buildx imagetools inspect --raw "$FRONTEND_TAG" \
+            > .tmp/manifests/frontend-version.json
+          python .github/scripts/validate_container_manifest.py .tmp/manifests/frontend-version.json --compare .tmp/manifests/frontend-candidate.json
+          docker buildx imagetools inspect --raw "$BACKEND_TAG" \
+            > .tmp/manifests/backend-version.json
+          python .github/scripts/validate_container_manifest.py .tmp/manifests/backend-version.json --compare .tmp/manifests/backend-candidate.json
+          {
+            echo "## Verified version manifests"
+            echo
+            echo "- Frontend: ${FRONTEND_TAG}"
+            echo "- Backend: ${BACKEND_TAG}"
+            echo "- Revision: ${{ needs.prepare.outputs.sha }}"
+            echo "- Platforms: linux/amd64, linux/arm64"
+          } >> "$GITHUB_STEP_SUMMARY"

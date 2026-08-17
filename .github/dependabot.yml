@@ -1,5 +1,19 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+    labels:
+      - "DevSecOps"
+
   # Version updates are grouped on develop to avoid exhausting the PR limit.
   - package-ecosystem: "npm"
     directory: "/frontend"
