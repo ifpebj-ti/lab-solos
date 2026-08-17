@@ -227,6 +227,30 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
             with self.subTest(fragment=fragment):
                 self.assertLess(finalization.index(fragment), first_latest_write)
 
+    def test_legacy_single_platform_latest_is_captured_and_restored_by_digest(self):
+        finalization = self.finalization()
+        capture = finalization.split("capture_latest() {", 1)[1].split(
+            "\n          }", 1
+        )[0]
+        rollback = finalization.split("rollback_latest() {", 1)[1].split(
+            "\n          }", 1
+        )[0]
+
+        self.assertIn('imagetools inspect --raw "$reference"', capture)
+        self.assertIn('digest="$(registry_digest "$reference")"', capture)
+        self.assertNotIn("validate_container_manifest.py", capture)
+        self.assertIn("verify_registry_digest()", finalization)
+        self.assertIn(
+            'verify_registry_digest "$FRONTEND_LATEST" "$FRONTEND_PREVIOUS_DIGEST"',
+            rollback,
+        )
+        self.assertIn(
+            'verify_registry_digest "$BACKEND_LATEST" "$BACKEND_PREVIOUS_DIGEST"',
+            rollback,
+        )
+        self.assertEqual(rollback.count("--prefer-index=false"), 2)
+        self.assertNotIn("latest-restored.json --compare", rollback)
+
     def test_latest_is_promoted_from_verified_version_digests_and_compared(self):
         finalization = self.finalization()
         for component in ("frontend", "backend"):
@@ -248,8 +272,14 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
         self.assertIn('if [[ "$BACKEND_WRITTEN" == true ]]', finalization)
         self.assertIn('"${FRONTEND_IMAGE}@${FRONTEND_PREVIOUS_DIGEST}"', finalization)
         self.assertIn('"${BACKEND_IMAGE}@${BACKEND_PREVIOUS_DIGEST}"', finalization)
-        self.assertIn("frontend-latest-restored.json --compare .tmp/manifests/frontend-latest-before.json", finalization)
-        self.assertIn("backend-latest-restored.json --compare .tmp/manifests/backend-latest-before.json", finalization)
+        self.assertIn(
+            'verify_registry_digest "$FRONTEND_LATEST" "$FRONTEND_PREVIOUS_DIGEST"',
+            finalization,
+        )
+        self.assertIn(
+            'verify_registry_digest "$BACKEND_LATEST" "$BACKEND_PREVIOUS_DIGEST"',
+            finalization,
+        )
         self.assertIn("Rollback compensation failed; manual intervention is required", finalization)
 
     def test_github_release_is_idempotent_and_is_the_last_external_write(self):
