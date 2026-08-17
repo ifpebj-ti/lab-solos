@@ -241,3 +241,43 @@ O job `prepare` agora consulta a GitHub Release antes dos builds. Uma release ex
 - Integração local: regressão Python 116/116 e `git diff --check` aprovados.
 
 T007 e T009 estão concluídas localmente. A T014 volta a `pendente`: ainda exige promover estas correções pelo fluxo normal, observar CI/reexecução real e somente então configurar os required checks de `develop`. A issue `#238` e o Project 4 permanecem `In Progress`.
+
+## T014 — fechamento após promoção das correções
+
+- Data do fechamento (UTC): `2026-08-17`
+- PR das correções para `develop`: [#309](https://github.com/ifpebj-ti/lab-solos/pull/309), merge `9e035bf595146dfad91c3f2b1af8972f38bbc960`
+- PR de promoção `develop` → `main`: [#310](https://github.com/ifpebj-ti/lab-solos/pull/310), merge `98e3167ed73c6a95c88f9cfe2558edcf54990290`
+- Release controlada: [Container Release #32066291568](https://github.com/ifpebj-ti/lab-solos/actions/runs/32066291568), resultado `success`
+- Reexecução idempotente: [Container Release #32067541552](https://github.com/ifpebj-ti/lab-solos/actions/runs/32067541552), resultado `success`
+- GitHub Release única: [`2.0.5`](https://github.com/ifpebj-ti/lab-solos/releases/tag/2.0.5), apontando para `98e3167ed73c6a95c88f9cfe2558edcf54990290`
+
+### Publicação e inspeção final
+
+O run automático concluiu `prepare`, os quatro builds por digest, os quatro scans, `promote-version` e `finalize-release`. A inspeção pública após a publicação e novamente após a reexecução confirmou os mesmos índices e exatamente as plataformas `linux/amd64` e `linux/arm64`:
+
+| Imagem | Digest do índice `2.0.5`/`latest` | AMD64 varrido | ARM64 varrido |
+|---|---|---|---|
+| frontend | `sha256:e32557b9622034e9f161c839cc16bea36eb6e8f8b2d5cd6a02862f6b3cc1d56d` | `sha256:1275c103f05dddcd4e4d8f1861425fa09696036542f378b67a495163d164adbd` | `sha256:0fe971df1cde0d6cbdc3b92c0f94f98b6dce44c93adddbea774bf6d9de57a86c` |
+| backend | `sha256:e2c262e396e352419636ff08e7ca0157385dc4e26f947a790a30001f603c49eb` | `sha256:668b628804ecb87fb2f9fedb90176ba7b74bb8f509545fad946c20b0ee8b2ce1` | `sha256:ae719e9c518d83e8080f9113738ffd8d6c61ec573203f240f2b226ac219183ab` |
+
+Os quatro descritores de plataforma possuem `org.opencontainers.image.revision=98e3167ed73c6a95c88f9cfe2558edcf54990290`. O run contém os quatro artefatos Trivy esperados, além dos quatro artefatos de digest e dos registros de build; nenhum está expirado. As análises Code Scanning `1630942929`, `1630942298`, `1630942192` e `1630942038`, nas quatro categorias `trivy-release-*`, usam Trivy e registram `results_count: 0`.
+
+### Idempotência, conflito e compensação
+
+A reexecução manual usou a mesma versão `2.0.5`, o mesmo SHA e terminou com sucesso. `prepare` registrou `REUSE: true`; os jobs `build`, `scan` e `promote-version` foram ignorados, enquanto `finalize-release` reinspecionou versão, `latest`, plataformas, composição e revisão OCI. Nenhum digest mudou e a GitHub Release permaneceu única.
+
+A rejeição de conflito continua comprovada pelo run [#32060570024](https://github.com/ifpebj-ti/lab-solos/actions/runs/32060570024): uma versão existente com composição incompatível falhou antes da primeira escrita e não moveu `latest`. A compensação de avanço parcial não foi provocada destrutivamente no registry; permanece simulada com segurança pelos testes estruturais, que cobrem captura dos dois estados anteriores, restauração por digest, verificação pós-rollback e criação da GitHub Release como última escrita.
+
+### Configuração externa e secrets
+
+O ruleset de repositório `#9464959` está ativo sobre `refs/heads/develop`, exige atualização estrita e os sete checks estáveis do GitHub Actions: `Frontend quality`, `Backend quality`, `Workflow contracts` e as quatro combinações de scan por componente/plataforma. O filtro de evento que poderia impedir a criação desses checks foi removido na T007. A execução pré-merge da PR #309 confirmou os sete nomes com sucesso.
+
+Acesso de escrita ao GHCR foi confirmado pelos pushes e promoções de versão/`latest`; acesso ao Code Scanning foi confirmado pelos quatro uploads SARIF. Após a auditoria sem consumidores, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` e `AZURE_CREDENTIALS` permanecem removidos. A listagem final contém somente `PROJECT_TOKEN`; nenhum valor de secret foi lido ou registrado.
+
+### RED, GREEN e REFACTOR finais
+
+- **RED histórico:** captura incompatível de `latest` legado, reexecução que reconstruía digests diferentes e checks obrigatórios instáveis foram observados em runs reais e devolvidos às tarefas proprietárias T010, T009 e T007.
+- **GREEN:** release `2.0.5`, quatro referências públicas multiarch, quatro scans/SARIF sem bloqueantes, GitHub Release no mesmo SHA, reexecução idempotente, ruleset de `develop` e limpeza de secrets foram confirmados externamente.
+- **REFACTOR:** a regressão local final passou `116/116`; evidências históricas foram preservadas e o fechamento separa publicação, idempotência, conflito, compensação e configuração externa.
+
+Não restam pendências externas da T014. A issue `#238` permanece aberta para rastreabilidade e seu item no Project 4 foi movido de `In Progress` para `Done` após a validação de todos os critérios.
