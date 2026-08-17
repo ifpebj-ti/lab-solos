@@ -164,6 +164,17 @@ jobs:
             printf '%s' "$digest"
           }
 
+          verify_registry_digest() {
+            local reference=$1
+            local expected=$2
+            local actual
+            actual="$(registry_digest "$reference")"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Digest mismatch for ${reference}: expected ${expected}, got ${actual}" >&2
+              return 1
+            fi
+          }
+
           docker buildx imagetools inspect --raw "$FRONTEND_VERSION" \
             > .tmp/manifests/frontend-version.json
           python .github/scripts/validate_container_manifest.py \
@@ -185,8 +196,6 @@ jobs:
               echo "Cannot capture ${reference}; aborting before latest promotion" >&2
               return 1
             fi
-            python .github/scripts/validate_container_manifest.py \
-              ".tmp/manifests/${component}-latest-before.json"
             digest="$(registry_digest "$reference")"
             case "$component" in
               frontend) FRONTEND_PREVIOUS_DIGEST=$digest ;;
@@ -221,7 +230,7 @@ jobs:
             set +e
 
             if [[ "$BACKEND_WRITTEN" == true ]]; then
-              if ! docker buildx imagetools create --tag "$BACKEND_LATEST" \
+              if ! docker buildx imagetools create --prefer-index=false --tag "$BACKEND_LATEST" \
                 "${BACKEND_IMAGE}@${BACKEND_PREVIOUS_DIGEST}"; then
                 echo "Failed to restore ${BACKEND_LATEST}" >&2
                 rollback_failed=1
@@ -229,15 +238,14 @@ jobs:
                 > .tmp/manifests/backend-latest-restored.json; then
                 echo "Failed to inspect restored ${BACKEND_LATEST}" >&2
                 rollback_failed=1
-              elif ! python .github/scripts/validate_container_manifest.py \
-                .tmp/manifests/backend-latest-restored.json --compare .tmp/manifests/backend-latest-before.json; then
+              elif ! verify_registry_digest "$BACKEND_LATEST" "$BACKEND_PREVIOUS_DIGEST"; then
                 echo "Restored ${BACKEND_LATEST} does not match its captured state" >&2
                 rollback_failed=1
               fi
             fi
 
             if [[ "$FRONTEND_WRITTEN" == true ]]; then
-              if ! docker buildx imagetools create --tag "$FRONTEND_LATEST" \
+              if ! docker buildx imagetools create --prefer-index=false --tag "$FRONTEND_LATEST" \
                 "${FRONTEND_IMAGE}@${FRONTEND_PREVIOUS_DIGEST}"; then
                 echo "Failed to restore ${FRONTEND_LATEST}" >&2
                 rollback_failed=1
@@ -245,8 +253,7 @@ jobs:
                 > .tmp/manifests/frontend-latest-restored.json; then
                 echo "Failed to inspect restored ${FRONTEND_LATEST}" >&2
                 rollback_failed=1
-              elif ! python .github/scripts/validate_container_manifest.py \
-                .tmp/manifests/frontend-latest-restored.json --compare .tmp/manifests/frontend-latest-before.json; then
+              elif ! verify_registry_digest "$FRONTEND_LATEST" "$FRONTEND_PREVIOUS_DIGEST"; then
                 echo "Restored ${FRONTEND_LATEST} does not match its captured state" >&2
                 rollback_failed=1
               fi

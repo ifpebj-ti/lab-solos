@@ -47,7 +47,7 @@ jobs:
           fi
 
       - name: Obter versão confiável da automação
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: develop
           persist-credentials: false
