@@ -46,6 +46,47 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
         self.assert_has("ref: ${{ steps.source.outputs.sha }}")
         self.assertGreaterEqual(self.text.count("ref: ${{ needs.prepare.outputs.sha }}"), 2)
 
+    def test_published_release_for_the_same_sha_reuses_verified_images(self):
+        prepare = self.text.split("\n  prepare:\n", 1)[1].split(
+            "\n  finalize-release:\n", 1
+        )[0]
+        build = self.text.split("\n  build:\n", 1)[1].split("\n  scan:\n", 1)[0]
+        scan = self.text.split("\n  scan:\n", 1)[1].split(
+            "\n  promote-version:\n", 1
+        )[0]
+        promotion = self.text.split("\n  promote-version:\n", 1)[1]
+        finalization = self.finalization()
+
+        self.assertIn("reuse: ${{ steps.reuse.outputs.reuse }}", prepare)
+        self.assertIn('gh release view "$VERSION" --json tagName,targetCommitish,url', prepare)
+        self.assertIn('if [[ "$EXISTING_TARGET" != "$RELEASE_SHA" ]]', prepare)
+        self.assertIn("Release conflict", prepare)
+        self.assertIn("printf 'reuse=true\\n' >> \"$GITHUB_OUTPUT\"", prepare)
+        self.assertIn("needs.prepare.outputs.reuse != 'true'", build)
+        self.assertIn("needs.prepare.outputs.reuse != 'true'", scan)
+        self.assertIn("needs.prepare.outputs.reuse != 'true'", promotion)
+        self.assertIn("always()", finalization)
+        self.assertIn("needs.promote-version.result == 'success'", finalization)
+        self.assertIn("needs.prepare.outputs.reuse == 'true'", finalization)
+
+    def test_every_version_platform_matches_the_release_revision(self):
+        finalization = self.finalization()
+        first_latest_write = finalization.index(
+            'imagetools create --tag "$FRONTEND_LATEST"'
+        )
+
+        self.assertIn("verify_release_revision()", finalization)
+        self.assertIn("org.opencontainers.image.revision", finalization)
+        self.assertIn("{{json .Image.Config.Labels}}", finalization)
+        for component in ("frontend", "backend"):
+            call = (
+                f'verify_release_revision "${{{component.upper()}_IMAGE}}" '
+                f".tmp/manifests/{component}-version.json"
+            )
+            with self.subTest(component=component):
+                self.assertIn(call, finalization)
+                self.assertLess(finalization.index(call), first_latest_write)
+
     def test_permissions_are_isolated_by_job(self):
         self.assertRegex(self.text, r"(?ms)^permissions: \{\}$")
         self.assertRegex(

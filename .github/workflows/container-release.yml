@@ -31,6 +31,7 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       change-type: ${{ steps.release.outputs.change_type }}
       sha: ${{ steps.release.outputs.sha }}
+      reuse: ${{ steps.reuse.outputs.reuse }}
     steps:
       - name: Select the main commit
         id: source
@@ -89,6 +90,38 @@ jobs:
           python .github/scripts/resolve_container_version.py "${arguments[@]}"
           printf 'sha=%s\n' "$RELEASE_SHA" >> "$GITHUB_OUTPUT"
 
+      - name: Detect already published release
+        id: reuse
+        if: steps.release.outputs.release == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          printf 'reuse=false\n' >> "$GITHUB_OUTPUT"
+          if gh release view "$VERSION" --json tagName,targetCommitish,url \
+            > .tmp-release.json 2> .tmp-release.err; then
+            EXISTING_TAG="$(python -c 'import json; print(json.load(open(".tmp-release.json", encoding="utf-8"))["tagName"])')"
+            EXISTING_TARGET="$(python -c 'import json; print(json.load(open(".tmp-release.json", encoding="utf-8"))["targetCommitish"])')"
+            if [[ "$EXISTING_TAG" != "$VERSION" ]]; then
+              echo "Release conflict: expected tag ${VERSION}, got ${EXISTING_TAG}" >&2
+              exit 1
+            fi
+            if [[ "$EXISTING_TARGET" != "$RELEASE_SHA" ]]; then
+              echo "Release conflict: ${VERSION} does not target ${RELEASE_SHA}" >&2
+              exit 1
+            fi
+            printf 'reuse=true\n' >> "$GITHUB_OUTPUT"
+          else
+            release_status=$?
+            if ! grep -Eqi 'release not found|HTTP 404|Not Found' .tmp-release.err; then
+              cat .tmp-release.err >&2
+              exit "$release_status"
+            fi
+          fi
+
       - name: Summarize preparation
         shell: bash
         env:
@@ -96,6 +129,7 @@ jobs:
           VERSION: ${{ steps.release.outputs.version }}
           CHANGE_TYPE: ${{ steps.release.outputs.change_type }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          REUSE: ${{ steps.reuse.outputs.reuse }}
         run: |
           {
             echo '## Container release preparation'
@@ -105,6 +139,7 @@ jobs:
             echo "- Release: ${RELEASE}"
             echo "- Version: ${VERSION:-not applicable}"
             echo "- Change type: ${CHANGE_TYPE}"
+            echo "- Reuse published release: ${REUSE:-false}"
             echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -112,7 +147,11 @@ jobs:
     needs:
       - prepare
       - promote-version
-    if: needs.prepare.outputs.release == 'true'
+    if: >-
+      always() &&
+      needs.prepare.outputs.release == 'true' &&
+      (needs.promote-version.result == 'success' ||
+      (needs.prepare.outputs.reuse == 'true' && needs.promote-version.result == 'skipped'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -186,6 +225,39 @@ jobs:
           python .github/scripts/validate_container_manifest.py \
             .tmp/manifests/backend-version.json
           BACKEND_VERSION_DIGEST="$(registry_digest "$BACKEND_VERSION")"
+
+          verify_release_revision() {
+            local image=$1
+            local manifest_path=$2
+            local platform
+            local digest
+            local labels
+            local revision
+
+            while IFS=$'\t' read -r platform digest; do
+              labels="$(docker buildx imagetools inspect "${image}@${digest}" \
+                --format '{{json .Image.Config.Labels}}')"
+              revision="$(printf '%s' "$labels" | python -c \
+                'import json, sys; labels = json.load(sys.stdin) or {}; print(labels.get("org.opencontainers.image.revision", ""))')"
+              if [[ "$revision" != "$RELEASE_SHA" ]]; then
+                echo "Revision mismatch for ${image} ${platform}: expected ${RELEASE_SHA}, got ${revision:-missing}" >&2
+                return 1
+              fi
+            done < <(python - "$manifest_path" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          manifest = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          for descriptor in manifest["manifests"]:
+              platform = descriptor["platform"]
+              print(f'{platform["os"]}/{platform["architecture"]}\t{descriptor["digest"]}')
+          PY
+            )
+          }
+
+          verify_release_revision "${FRONTEND_IMAGE}" .tmp/manifests/frontend-version.json
+          verify_release_revision "${BACKEND_IMAGE}" .tmp/manifests/backend-version.json
 
           capture_latest() {
             local reference=$1
@@ -348,7 +420,7 @@ jobs:
 
   build:
     needs: prepare
-    if: needs.prepare.outputs.release == 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -447,7 +519,7 @@ jobs:
     needs:
       - prepare
       - build
-    if: needs.prepare.outputs.release == 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -563,7 +635,7 @@ jobs:
     needs:
       - prepare
       - scan
-    if: needs.prepare.outputs.release == 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

@@ -269,7 +269,7 @@ Restaurar somente efeitos gerados pelos comandos .NET que não existiam antes da
 
 ## T007 — Criar CI pré-merge de contêineres
 
-- Status: concluída
+- Status: concluída (correção de checks obrigatórios estáveis validada localmente)
 - Issue: #234
 - Dependências: T001, T004, T005, T006
 - Paralela: sim
@@ -347,7 +347,7 @@ Não executar dispatch nem publicar digests durante esta tarefa sem autorizaçã
 
 ## T009 — Promover e verificar as tags versionadas multi-arch
 
-- Status: concluída
+- Status: concluída (correção da reexecução idempotente validada localmente)
 - Issue: #238
 - Dependências: T003, T008
 - Paralela: não
@@ -496,7 +496,7 @@ O `rg` deve retornar código 1/nenhuma linha para a auditoria proibida. Não rem
 
 ## T013 — Validar integração local e CI real em PR para develop
 
-- Status: bloqueada (run real revelou chamada Trivy sem `--input` na T007)
+- Status: concluída
 - Issue: #238
 - Dependências: T012
 - Paralela: não
@@ -542,7 +542,7 @@ Sem autorização para branch/push/PR ou sem run real, registrar a evidência lo
 
 ## T014 — Validar release controlada e concluir configuração externa
 
-- Status: pendente
+- Status: pendente (correções T007/T009 locais aguardam promoção e validação externa)
 - Issue: #238
 - Dependências: T013 e promoção externa autorizada do commit validado para `main`
 - Paralela: não
@@ -605,4 +605,13 @@ Os comandos de inspeção usam `<versão>` como valor da release controlada regi
 | 2026-08-17 | T013 | validação local concluída; tarefa pendente | Python 112/112; actionlint; frontend 6/6; backend 8/8; quatro OCI/scans; fixture com 12 HIGH e gate `1` | Sem autorização para commit/push/PR, não houve run real; `gh run list` retorna 404 até o workflow existir no remoto. API do Project apresentou HTTP 503 na sincronização final. |
 | 2026-08-17 | T013 | bloqueada por defeito da T007 | PR #302; Container CI run #32041840006; gate de dependências #32041839984 verde | Qualidade frontend/backend/contratos passou, mas as quatro células de scan falharam antes dos relatórios: faltou `--input` ao passar o layout OCI para Trivy 0.72.0. |
 | 2026-08-17 | T007 | corrigida após run real | RED 7/8; GREEN 8/8; actionlint 1.7.12; Prettier; regressão 113/113; Container CI run #32043152362 | As três chamadas Trivy usam `--input`; as quatro células concluíram tabela, SARIF, artefato, Code Scanning e gate. A tentativa 2 repetiu somente jobs afetados por respostas 503/429 do GitHub. |
-| 2026-08-17 | T010 | corrigida após RED operacional | Container Release #32046897477; RED 1/25; GREEN 25/25; regressão 114/114; actionlint 1.7.12; Prettier; smoke Buildx 0.36.0 | A captura aceita manifesto simples por digest; rollback usa `--prefer-index=false` e verifica o digest restaurado, preservando fielmente formato legado ou índice multiarch. A comprovação externa permanece na T014. |
+| 2026-08-17 | T013 | concluída após merge em `develop` | Merge `f2cf3d7`; Python 113/113; frontend 6/6; backend 8/8; actionlint; Prettier; Container CI #32044118515; dependências #32044118531 | Head `963bd4a` e merge possuem árvore Git idêntica; quatro células, artefatos e categorias SARIF aprovados, sem login, push ou release. T014 permanece pendente. |
+| 2026-08-17 | T014 | bloqueada por defeito da T010 | PR #303; Container Release #32046897477; testes estruturais 24/24 | As tags `2.1.0` multiarch e os quatro scans foram concluídos, mas a captura do `latest` legado rejeitou seu manifesto Docker simples antes de qualquer escrita final. `latest` permaneceu intacto, a GitHub Release não foi criada e nenhuma configuração externa ou secret foi alterado. |
+| 2026-08-17 | T010 | reaberta após release real | Falha do job `finalize-release` no run #32046897477 | A captura transacional precisa aceitar e preservar um `latest` anterior de manifesto simples durante a primeira migração para índice multiarch, com cobertura automatizada antes de retomar a T014. |
+| 2026-08-17 | T010 | corrigida após RED operacional | RED 1/25; GREEN 25/25; regressão 114/114; actionlint 1.7.12; Prettier; smoke Buildx 0.36.0 | A captura aceita manifesto simples por digest; rollback usa `--prefer-index=false` e verifica o digest restaurado, preservando fielmente formato legado ou índice multiarch. A comprovação externa permanece na retomada da T014. |
+| 2026-08-17 | T014 | reaberta após promoção da correção | PR #308; merge `ed5b534`; Container Release #32060570024 | A correção da T010 está em `main`; o novo run concluiu `prepare` e iniciou os quatro builds. Project #238 permanece `In Progress` enquanto a release e as configurações externas são validadas. |
+| 2026-08-17 | T014 | GREEN parcial; bloqueada por T007/T009 | Release `2.0.4`; runs #32061780222 e #32063024656; regressão 114/114 | A publicação controlada, os quatro manifestos, SARIF/Code Scanning e a remoção dos três secrets legados foram concluídos. A reexecução segura divergiu nos digests reconstruídos e falhou antes de `latest`; required workflow foi rejeitado pelo GitHub em ruleset de repositório pessoal. |
+| 2026-08-17 | T009 | reaberta após reexecução real | Container Release #32063024656 | O mesmo SHA e a mesma SemVer reconstruíram digests diferentes; a proteção contra colisão funcionou, mas a reexecução não foi idempotente. |
+| 2026-08-17 | T007 | reaberta após auditoria de proteção | ruleset #9464959; API `422` para regra `workflows` | É necessário produzir checks obrigatórios estáveis sem deixar PRs fora dos filtros `paths` permanentemente pendentes. |
+| 2026-08-17 | T007 | corrigida localmente após auditoria de proteção | RED 7/8; GREEN 8/8; regressão integrada 116/116; actionlint 1.7.12; Prettier | Removidos os filtros `paths` do evento de PR; todos os jobs agora são reportados em qualquer PR para `develop`, tornando-os aptos a checks obrigatórios após promoção. |
+| 2026-08-17 | T009 | corrigida localmente após reexecução real | RED 1/26 e 1/27; GREEN 27/27; validador 10/10; regressão integrada 116/116; actionlint 1.7.12; Prettier | Release existente no mesmo SHA reutiliza as imagens verificadas sem rebuild; SHA divergente falha cedo; cada descritor publicado deve possuir `org.opencontainers.image.revision` igual ao SHA liberado. |

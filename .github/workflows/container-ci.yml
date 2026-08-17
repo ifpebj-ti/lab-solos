@@ -4,13 +4,6 @@ on:
   pull_request:
     branches: [develop]
     types: [opened, synchronize, reopened]
-    paths:
-      - "frontend/**"
-      - "backend/**"
-      - ".trivy.yaml"
-      - ".github/scripts/**"
-      - ".github/workflows/container-ci.yml"
-      - ".github/workflows/container-release.yml"
   workflow_dispatch:
 
 permissions:
