@@ -1,0 +1,14 @@
+# Blocking policy shared by the container CI and release workflows.
+scan:
+  scanners:
+    - vuln
+pkg:
+  types:
+    - os
+    - library
+severity:
+  - HIGH
+  - CRITICAL
+vulnerability:
+  ignore-unfixed: true
+exit-code: 1

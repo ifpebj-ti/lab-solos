@@ -1,5 +1,5 @@
-![Backend Status](https://github.com/ifpebj-ti/lab-solos/actions/workflows/pipeline-back.yml/badge.svg)
-![Frontend Status](https://github.com/ifpebj-ti/lab-solos/actions/workflows/pipeline-front.yml/badge.svg)
+![Container CI](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml/badge.svg)
+![Container Release](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-release.yml/badge.svg)
 ![License](https://img.shields.io/github/license/ifpebj-ti/lab-solos)
 ![Last Commit](https://img.shields.io/github/last-commit/ifpebj-ti/lab-solos)
 ![Top Languages](https://img.shields.io/github/languages/top/ifpebj-ti/lab-solos)
