@@ -23,23 +23,19 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIsNotNone(match, f"missing independent job: {name}")
         return match.group("body")
 
-    def test_runs_only_as_pre_merge_ci_for_relevant_develop_changes(self) -> None:
+    def test_runs_as_a_stable_pre_merge_check_for_every_develop_pr(self) -> None:
         self.assertTrue(WORKFLOW_PATH.is_file(), "container CI workflow is missing")
         trigger = self.workflow.split("permissions:", 1)[0]
         self.assertIn("pull_request:", trigger)
         self.assertIn("branches: [develop]", trigger)
         self.assertIn("types: [opened, synchronize, reopened]", trigger)
         self.assertIn("workflow_dispatch:", trigger)
-        for path in (
-            '"frontend/**"',
-            '"backend/**"',
-            '".trivy.yaml"',
-            '".github/scripts/**"',
-            '".github/workflows/container-ci.yml"',
-            '".github/workflows/container-release.yml"',
-        ):
-            with self.subTest(path=path):
-                self.assertIn(path, trigger)
+        self.assertNotRegex(
+            trigger,
+            r"(?m)^\s+paths(?:-ignore)?:",
+            "a required workflow must start for every develop PR; event path filters "
+            "leave required checks permanently pending when no path matches",
+        )
         for forbidden in ("closed", "branches: [main]", "pull_request_target"):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, trigger)
