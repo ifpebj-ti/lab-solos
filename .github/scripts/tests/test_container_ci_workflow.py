@@ -114,6 +114,15 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertRegex(scan, r"github\.event\.pull_request\.head\.repo\.full_name == github\.repository")
         self.assertIn("github.actor != 'dependabot[bot]'", scan)
 
+    def test_scans_the_extracted_oci_layout_as_an_explicit_input(self) -> None:
+        scan = self.job("container-scan")
+
+        self.assertEqual(
+            3,
+            scan.count('--input "${RUNNER_TEMP}/oci-layout"'),
+            "every Trivy invocation must treat the extracted OCI layout as --input",
+        )
+
     def test_never_authenticates_pushes_releases_or_deploys(self) -> None:
         lowered = self.workflow.lower()
         for forbidden in (

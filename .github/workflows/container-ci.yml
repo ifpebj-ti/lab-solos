@@ -147,13 +147,13 @@ jobs:
         shell: bash
         run: |
           .tmp/trivy/trivy image --config .trivy.yaml --exit-code 0 --format table \
-            --output "${RUNNER_TEMP}/trivy-table.txt" "${RUNNER_TEMP}/oci-layout"
+            --output "${RUNNER_TEMP}/trivy-table.txt" --input "${RUNNER_TEMP}/oci-layout"
           cat "${RUNNER_TEMP}/trivy-table.txt"
 
       - name: Generate Trivy SARIF report
         run: >-
           .tmp/trivy/trivy image --config .trivy.yaml --exit-code 0 --format sarif
-          --output "${RUNNER_TEMP}/trivy.sarif" "${RUNNER_TEMP}/oci-layout"
+          --output "${RUNNER_TEMP}/trivy.sarif" --input "${RUNNER_TEMP}/oci-layout"
 
       - name: Upload Trivy reports
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -176,4 +176,4 @@ jobs:
           category: container-${{ matrix.component }}-${{ matrix.platform }}
 
       - name: Enforce Trivy policy
-        run: .tmp/trivy/trivy image --config .trivy.yaml "${RUNNER_TEMP}/oci-layout"
+        run: .tmp/trivy/trivy image --config .trivy.yaml --input "${RUNNER_TEMP}/oci-layout"
