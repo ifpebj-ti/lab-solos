@@ -1,6 +1,6 @@
 # Tarefas: Modernização da esteira de contêineres
 
-- Status: execução local concluída; validações externas pendentes
+- Status: concluída
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
 - Atualizado em: 2026-08-17
@@ -542,7 +542,7 @@ Sem autorização para branch/push/PR ou sem run real, registrar a evidência lo
 
 ## T014 — Validar release controlada e concluir configuração externa
 
-- Status: pendente (correções T007/T009 locais aguardam promoção e validação externa)
+- Status: concluída
 - Issue: #238
 - Dependências: T013 e promoção externa autorizada do commit validado para `main`
 - Paralela: não
@@ -615,3 +615,4 @@ Os comandos de inspeção usam `<versão>` como valor da release controlada regi
 | 2026-08-17 | T007 | reaberta após auditoria de proteção | ruleset #9464959; API `422` para regra `workflows` | É necessário produzir checks obrigatórios estáveis sem deixar PRs fora dos filtros `paths` permanentemente pendentes. |
 | 2026-08-17 | T007 | corrigida localmente após auditoria de proteção | RED 7/8; GREEN 8/8; regressão integrada 116/116; actionlint 1.7.12; Prettier | Removidos os filtros `paths` do evento de PR; todos os jobs agora são reportados em qualquer PR para `develop`, tornando-os aptos a checks obrigatórios após promoção. |
 | 2026-08-17 | T009 | corrigida localmente após reexecução real | RED 1/26 e 1/27; GREEN 27/27; validador 10/10; regressão integrada 116/116; actionlint 1.7.12; Prettier | Release existente no mesmo SHA reutiliza as imagens verificadas sem rebuild; SHA divergente falha cedo; cada descritor publicado deve possuir `org.opencontainers.image.revision` igual ao SHA liberado. |
+| 2026-08-17 | T014 | concluída após promoção para `main` | PRs #309/#310; release `2.0.5`; runs #32066291568 e #32067541552; regressão 116/116 | Quatro referências AMD64/ARM64 e quatro SARIF aprovados; reexecução reutilizou a publicação sem rebuild; ruleset de `develop` exige sete checks estáveis; somente `PROJECT_TOKEN` permanece. |
