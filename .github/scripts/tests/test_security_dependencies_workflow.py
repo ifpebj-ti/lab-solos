@@ -92,7 +92,11 @@ class SecurityDependenciesWorkflowTests(unittest.TestCase):
 
     def test_publishes_summaries_and_retains_json_for_thirty_days(self):
         self.assertGreaterEqual(self.text.count("GITHUB_STEP_SUMMARY"), 2)
-        self.assertGreaterEqual(self.text.count("uses: actions/upload-artifact@v4"), 2)
+        upload_steps = re.findall(
+            r"(?m)^\s+uses:\s+actions/upload-artifact@[^\s#]+(?:\s+#.*)?$",
+            self.text,
+        )
+        self.assertGreaterEqual(len(upload_steps), 2)
         self.assertEqual(2, self.text.count("retention-days: 30"))
         self.assertIn("npm-audit.json", self.text)
         self.assertIn("nuget-audit.json", self.text)

@@ -385,7 +385,7 @@ Se o executável actionlint temporário da tarefa anterior não existir, executa
 
 ## T010 — Promover latest com rollback e criar uma única GitHub Release
 
-- Status: concluída
+- Status: concluída (correção da primeira migração de `latest`)
 - Issue: #238
 - Dependências: T009
 - Paralela: não
@@ -605,3 +605,4 @@ Os comandos de inspeção usam `<versão>` como valor da release controlada regi
 | 2026-08-17 | T013 | validação local concluída; tarefa pendente | Python 112/112; actionlint; frontend 6/6; backend 8/8; quatro OCI/scans; fixture com 12 HIGH e gate `1` | Sem autorização para commit/push/PR, não houve run real; `gh run list` retorna 404 até o workflow existir no remoto. API do Project apresentou HTTP 503 na sincronização final. |
 | 2026-08-17 | T013 | bloqueada por defeito da T007 | PR #302; Container CI run #32041840006; gate de dependências #32041839984 verde | Qualidade frontend/backend/contratos passou, mas as quatro células de scan falharam antes dos relatórios: faltou `--input` ao passar o layout OCI para Trivy 0.72.0. |
 | 2026-08-17 | T007 | corrigida após run real | RED 7/8; GREEN 8/8; actionlint 1.7.12; Prettier; regressão 113/113; Container CI run #32043152362 | As três chamadas Trivy usam `--input`; as quatro células concluíram tabela, SARIF, artefato, Code Scanning e gate. A tentativa 2 repetiu somente jobs afetados por respostas 503/429 do GitHub. |
+| 2026-08-17 | T010 | corrigida após RED operacional | Container Release #32046897477; RED 1/25; GREEN 25/25; regressão 114/114; actionlint 1.7.12; Prettier; smoke Buildx 0.36.0 | A captura aceita manifesto simples por digest; rollback usa `--prefer-index=false` e verifica o digest restaurado, preservando fielmente formato legado ou índice multiarch. A comprovação externa permanece na T014. |
