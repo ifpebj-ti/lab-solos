@@ -3,10 +3,14 @@ name: Sincronizar GitHub Project
 on:
   issues:
     types: [opened, reopened, closed, labeled, unlabeled, assigned, unassigned]
+  pull_request:
+    types: [opened, reopened, closed, ready_for_review, converted_to_draft, labeled, unlabeled, edited, synchronize]
   workflow_run:
     workflows:
-      - CI/CD Workflow - Backend
-      - CI/CD Workflow - Frontend
+      - Container CI
+      - Container Release
+      - Dependency security gate
+      - Publicar PRDs na Wiki
       - CodeQL
     types: [completed]
   schedule:
@@ -17,6 +21,7 @@ permissions:
   actions: read
   contents: read
   issues: read
+  pull-requests: read
   security-events: read
 
 concurrency:
@@ -26,6 +31,9 @@ concurrency:
 jobs:
   sync:
     name: Atualizar itens e métricas
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
       PROJECT_OWNER: ${{ vars.PROJECT_OWNER }}
