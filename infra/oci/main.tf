@@ -145,4 +145,10 @@ resource "oci_core_instance" "labon" {
     Environment = "production"
     Domain      = var.app_domain
   }
+
+  lifecycle {
+    # O cloud-init so e executado no primeiro boot. Diferencas de quebra de
+    # linha entre sistemas operacionais nao devem recriar a VM de producao.
+    ignore_changes = [metadata["user_data"]]
+  }
 }
