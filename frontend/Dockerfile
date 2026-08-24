@@ -1,5 +1,5 @@
 # Etapa de build
-FROM node:18 AS build
+FROM node:20 AS build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -20,7 +20,7 @@ COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx .env.template.js /usr/share/nginx/html/
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Altera o arquivo de configuração do Nginx para usar o usuário não-root
 RUN sed -i 's/user  nginx;/user  nginx;/' /etc/nginx/nginx.conf

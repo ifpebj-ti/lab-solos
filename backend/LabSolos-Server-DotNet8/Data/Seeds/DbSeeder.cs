@@ -13,7 +13,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             }
             else if (environmentName == "Production")
             {
-                SeedProduction(context);
+                SeedProduction(context, configuration);
             }
             else
             {

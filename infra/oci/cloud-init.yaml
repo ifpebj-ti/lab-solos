@@ -1,0 +1,25 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - ca-certificates
+  - curl
+  - docker.io
+  - docker-compose-v2
+  - jq
+
+write_files:
+  - path: /etc/sysctl.d/99-labon.conf
+    permissions: "0644"
+    content: |
+      vm.swappiness=10
+
+runcmd:
+  - [systemctl, enable, --now, docker]
+  - [usermod, -aG, docker, ubuntu]
+  - [mkdir, -p, /opt/labon]
+  - [chown, "ubuntu:ubuntu", /opt/labon]
+  - [chmod, "0750", /opt/labon]
+  - [bash, -lc, "if ! swapon --show | grep -q /swapfile; then fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab; fi"]
+  - [sysctl, --system]

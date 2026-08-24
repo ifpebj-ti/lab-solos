@@ -1,0 +1,12 @@
+[Unit]
+Description=Verifica periodicamente novas releases estáveis do LabOn
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Persistent=true
+Unit=labon-update.service
+
+[Install]
+WantedBy=timers.target
