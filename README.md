@@ -47,7 +47,7 @@ Para mais informações e documentação do projeto, acesse nossa [Wiki](https:/
 
 ## Gestão do Projeto
 
-O desenvolvimento, a qualidade e os indicadores do LabOn são acompanhados no [GitHub Project — LabOn: Desenvolvimento e Qualidade](https://github.com/users/nathannmvr/projects/4).
+O desenvolvimento, a qualidade e os indicadores do LabOn são acompanhados no [GitHub Project — LabOn: Desenvolvimento e Qualidade](https://github.com/orgs/ifpebj-ti/projects/41/views/1).
 
 ## Apresentações semanais
 
