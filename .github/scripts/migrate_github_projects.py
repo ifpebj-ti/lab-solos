@@ -239,12 +239,29 @@ def value_name(value: Any) -> Any:
     return value
 
 
+def is_gh_item_field_alias(key: str, wanted: str) -> bool:
+    """Recognize the one observed replacement-character key emitted by gh.
+
+    `gh project item-list` can serialize `Área` as `��rea`.  Keep this alias
+    deliberately narrow: the replacement character must still be present and
+    the remaining normalized key must be exactly `rea`.
+    """
+
+    return (
+        "\ufffd" in key
+        and wanted == "area"
+        and normalized_words(key).replace(" ", "") == "rea"
+    )
+
+
 def item_field_value(item: dict[str, Any], field_name: str) -> Any:
     wanted = normalized_words(field_name).replace(" ", "")
     for key, value in item.items():
         if key in {"id", "content"}:
             continue
-        if normalized_words(key).replace(" ", "") == wanted:
+        key_text = str(key)
+        normalized_key = normalized_words(key_text).replace(" ", "")
+        if normalized_key == wanted or is_gh_item_field_alias(key_text, wanted):
             return value_name(value)
     return None
 

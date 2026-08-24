@@ -201,6 +201,16 @@ class GhClientTests(unittest.TestCase):
                 MODULE.GhClient().run("project", "view", "41")
 
 
+class ItemFieldValueTests(unittest.TestCase):
+    def test_area_accepts_only_observed_gh_replacement_character_alias(self):
+        self.assertEqual(
+            MODULE.item_field_value({"\ufffd\ufffdrea": "Produto"}, "Área"),
+            "Produto",
+        )
+        self.assertIsNone(MODULE.item_field_value({"rea": "Produto"}, "Área"))
+        self.assertIsNone(MODULE.item_field_value({"\ufffdipo": "Bug"}, "Tipo"))
+
+
 class ItemListConsistencyTests(unittest.TestCase):
     def make_migrator(self, gh, sleep):
         return MODULE.ProjectMigrator(
