@@ -1,0 +1,10 @@
+tenancy_ocid        = "ocid1.tenancy.oc1..substitua"
+admin_cidr          = "203.0.113.10/32"
+ssh_public_key_path = "~/.ssh/labon_oci_ed25519.pub"
+
+# Valores aprovados para o primeiro deploy:
+region              = "sa-saopaulo-1"
+instance_shape      = "VM.Standard.A2.Flex"
+instance_ocpus      = 1
+instance_memory_gbs = 4
+app_domain          = "labon.nmvr.me"

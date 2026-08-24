@@ -20,3 +20,14 @@
 !.codex/skills/execute-task-orchestrator/
 !.codex/skills/execute-task-orchestrator/**
 __pycache__/
+
+# Terraform local state and provider cache
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+terraform.tfvars.json
+
+# Deployment secrets and generated credentials
+.deploy/
