@@ -27,3 +27,19 @@ output "ssh_command" {
   description = "Comando SSH para administrar a VM."
   value       = "ssh -i ~/.ssh/labon_oci_ed25519 ubuntu@${oci_core_instance.labon.public_ip}"
 }
+
+output "resource_schedules" {
+  description = "Agendas de funcionamento da VM no fuso de Sao Paulo."
+  value = {
+    start = {
+      name       = oci_resource_scheduler_schedule.start_labon.display_name
+      recurrence = oci_resource_scheduler_schedule.start_labon.recurrence_details
+      time_zone  = "UTC (equivalente a America/Sao_Paulo UTC-3)"
+    }
+    stop = {
+      name       = oci_resource_scheduler_schedule.stop_labon.display_name
+      recurrence = oci_resource_scheduler_schedule.stop_labon.recurrence_details
+      time_zone  = "UTC (equivalente a America/Sao_Paulo UTC-3)"
+    }
+  }
+}
