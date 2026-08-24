@@ -1,0 +1,16 @@
+{$APP_DOMAIN} {
+    encode zstd gzip
+
+    @api path /api/*
+    reverse_proxy @api backend:8080
+
+    reverse_proxy frontend:80
+
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
