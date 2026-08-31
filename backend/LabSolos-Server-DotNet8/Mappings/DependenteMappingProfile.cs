@@ -8,7 +8,9 @@ namespace Core.DTOs.Mappings
     {
         public DependenteMappingProfile()
         {
-            CreateMap<Dependente, DependenteDTO>(MemberList.None).ReverseMap();
+            CreateMap<Dependente, DependenteDTO>(MemberList.None)
+                .ForMember(dest => dest.DataIngresso, opt => opt.Ignore())
+                .ReverseMap();
         }
     }
 }

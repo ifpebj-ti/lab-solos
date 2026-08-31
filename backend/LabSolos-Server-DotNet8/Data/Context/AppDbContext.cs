@@ -45,6 +45,10 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .Property(u => u.TokenRedefinicaoHash)
                 .HasColumnName("TokenRedefinicaoHash");
 
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.DataIngresso)
+                .HasColumnType("date");
+
             // Relacionamento mentor-mentorandos (Responsável e Dependentes)
             modelBuilder.Entity<Usuario>()
                 .HasMany(u => u.Dependentes)

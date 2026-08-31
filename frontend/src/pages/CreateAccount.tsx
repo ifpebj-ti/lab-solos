@@ -7,14 +7,17 @@ import {
 } from '@/components/ui/select';
 import InputPassword from '../components/global/inputs/Password';
 import InputText from '../components/global/inputs/Text';
-import { zodResolver } from '@hookform/resolvers/zod';
 import logo from '../../public/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { createMentor } from '@/integration/Auth';
+import {
+  userRegistrationResolver,
+  type CreateAcademicUserData,
+  type UserRegistrationFormData,
+} from '@/contracts/userRegistration';
 import { toast } from '@/components/hooks/use-toast';
-import { AxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import { useEffect } from 'react';
 import { clearSession } from '@/auth/session';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,70 +32,20 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
-const submitCreateAccountSchema = z
-  .object({
-    nome: z
-      .string()
-      .toLowerCase()
-      .transform((nome) =>
-        nome
-          .trim()
-          .split(' ')
-          .map((word) => word[0].toLocaleUpperCase() + word.substring(1))
-          .join(' ')
-      ),
-    email: z.string().email('Digite um email válido').toLowerCase(),
-    senha: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
-    repeat: z.string(),
-    tipoUsuario: z.string().nonempty('Selecione o tipo de usuário'),
-    telefone: z
-      .string()
-      .regex(
-        /^\d{10,11}$/,
-        'Digite um número de telefone válido com 10 ou 11 dígitos'
-      ),
-    instituicao: z.string().min(3, 'Digite uma instituição de ensino válida'),
-    curso: z.string().min(6, 'Digite um curso válido'),
-    emailMentor: z.string().email('Digite um email válido'),
-  })
-  .superRefine((data, ctx) => {
-    const nomeParts = data.nome
-      .trim()
-      .split(' ')
-      .filter((part) => part.length > 3);
-
-    if (nomeParts.length < 2) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['nome'],
-        message: 'Forneça pelo menos dois nomes com mais de 3 caracteres',
-      });
-    }
-
-    if (data.senha !== data.repeat) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['repeat'],
-        message: 'As senhas não coincidem',
-      });
-    }
-  });
-
-type CreateAccountFormData = z.infer<typeof submitCreateAccountSchema>;
-
 function CreateAccount() {
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm<CreateAccountFormData>({
-    resolver: zodResolver(submitCreateAccountSchema),
+    setError,
+  } = useForm<UserRegistrationFormData>({
+    resolver: userRegistrationResolver,
   });
   const navigate = useNavigate();
 
-  const postCreateAccount = async (data: CreateAccountFormData) => {
-    const payload = {
+  const postCreateAccount = async (data: UserRegistrationFormData) => {
+    const payload: CreateAcademicUserData = {
       nomeCompleto: data.nome,
       email: data.email,
       senha: data.senha,
@@ -100,7 +53,7 @@ function CreateAccount() {
       nivelUsuario: data.tipoUsuario === 'mentorado' ? 'Mentorado' : 'Mentor',
       tipoUsuario: 'Academico',
       instituicao: data.instituicao,
-      cidade: 'Indefinido',
+      cidade: data.cidade,
       curso: data.curso,
       responsavelEmail: data.emailMentor,
     };
@@ -115,7 +68,18 @@ function CreateAccount() {
       }
       navigate('/');
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
+      if (
+        isAxiosError<{ errors?: Record<string, string[]> }>(error)
+      ) {
+        const fieldErrors = error.response?.data.errors;
+
+        (['cidade', 'curso'] as const).forEach((field) => {
+          const message = fieldErrors?.[field]?.[0];
+          if (message) {
+            setError(field, { type: 'server', message });
+          }
+        });
+
         if (error.response?.status === 401) {
           toast({
             title: 'Erro durante cadastro',
@@ -225,6 +189,15 @@ function CreateAccount() {
                 register={register}
                 error={errors.curso?.message}
                 name='curso'
+                required
+              />
+              <InputText
+                label='Cidade'
+                type='text'
+                register={register}
+                error={errors.cidade?.message}
+                name='cidade'
+                required
               />
               <InputText
                 label='Telefone'

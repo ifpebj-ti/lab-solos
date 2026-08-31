@@ -13,6 +13,7 @@ import { ArrowLeft, Check, ShieldAlert, Timer } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
+import type { Usuario } from '@/contracts/user';
 interface ILote {
   codigoLote: string;
   fornecedor: string;
@@ -44,21 +45,6 @@ interface IEmprestimoProduto {
   quantidade: number;
 }
 
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel?: IUsuario | null;
-}
-
 interface IEmprestimo {
   id: number;
   dataRealizacao: string;
@@ -66,8 +52,8 @@ interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuario;
-  aprovador: IUsuario;
+  solicitante: Usuario;
+  aprovador: Usuario;
 }
 
 function AllLoans() {

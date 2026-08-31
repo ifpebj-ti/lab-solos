@@ -1,6 +1,7 @@
 import { NavigateFunction } from 'react-router-dom';
 
 import { clearSession, startSession } from '@/auth/session';
+import type { CreateAcademicUserData } from '@/contracts/userRegistration';
 import { api } from '../services/BaseApi';
 
 interface IAuthParams {
@@ -11,19 +12,6 @@ interface IAuthParams {
 interface IAuth {
   method: string;
   params: IAuthParams;
-}
-
-interface ICreateUserData {
-  nomeCompleto: string;
-  email: string;
-  senha: string;
-  telefone: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  responsavelEmail: string;
 }
 
 interface IPasswordResetRequest {
@@ -90,7 +78,7 @@ export const authenticate = async (
   return response;
 };
 
-export const createMentor = async (data: ICreateUserData) => {
+export const createMentor = async (data: CreateAcademicUserData) => {
   try {
     const response = await api.post('/Usuarios', data);
     return response;

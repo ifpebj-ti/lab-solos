@@ -44,7 +44,7 @@ public static class SeedUsuarios
             Email = adminEmail,
             SenhaHash = string.Empty,
             Telefone = string.Empty,
-            DataIngresso = DateTime.UtcNow,
+            DataIngresso = DateOnly.FromDateTime(DateTime.UtcNow),
             NivelUsuario = NivelUsuario.Administrador,
             TipoUsuario = TipoUsuario.Administrador,
             Status = StatusUsuario.Habilitado,

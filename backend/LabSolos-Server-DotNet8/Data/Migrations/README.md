@@ -4,7 +4,8 @@
 
 Execute `dotnet tool restore` na raiz e gere/revise o SQL idempotente antes da
 aplicação. Um banco vazio deve receber `InitialSchemaBaseline` e
-`CredentialLifecycle` por `Database.Migrate()` ou `dotnet ef database update`.
+`CredentialLifecycle` e `UserDataContracts` por `Database.Migrate()` ou
+`dotnet ef database update`.
 
 ## Banco existente criado por `EnsureCreated`
 
@@ -19,6 +20,19 @@ aplicação. Um banco vazio deve receber `InitialSchemaBaseline` e
    tokens de redefinição existentes.
 5. Valide `__EFMigrationsHistory`, a contagem de usuários e a ausência de valores em
    `TokenRedefinicaoHash`/`TokenExpiracao` antes de liberar tráfego.
+
+## Data civil de ingresso
+
+Antes de aplicar `UserDataContracts`, interrompa escritas e confirme um backup
+restaurável. A migração converte `DataIngresso` de `timestamp with time zone` para
+`date` usando explicitamente a data do instante em UTC. Registre apenas contagens de
+valores nulos/não nulos e valide amostras sem copiar e-mail, cidade ou curso para
+logs. A migração não atualiza nem adiciona restrições a `Cidade` ou `Curso`.
+
+O rollback é semanticamente lossy: o `Down` recria cada timestamp à meia-noite UTC,
+mas não recupera o horário original. Para recuperar instantes anteriores, restaure
+o backup pré-migração; quando compatível, prefira roll-forward mantendo a coluna
+`date`.
 
 Nunca execute o marcador para “corrigir” uma divergência: ajuste ou reconcilie o
 esquema em uma mudança separada e revisada.
