@@ -1,9 +1,6 @@
 import { ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import Cookie from 'js-cookie';
-
-// Função para verificar se o usuário está autenticado
-const isAuthenticated = (): boolean => !!Cookie.get('doorKey');
+import { readSession } from '@/auth/session';
 
 // Tipo para ranks aceitos
 type RankType = string | number;
@@ -16,17 +13,27 @@ interface PrivateRouteProps {
 }
 
 // Função para verificar se o usuário possui o rank necessário
-const hasRequiredRank = (requiredRank: RequiredRank): boolean => {
-  const rankID = Cookie.get('level');
-  if (!rankID) return false;
-  return requiredRank.includes(rankID); // Remove JSON.parse
-};
+const hasRequiredRank = (
+  requiredRank: RequiredRank,
+  role: string
+): boolean => requiredRank.includes(role);
 
 // Componente PrivateRoute
 const PrivateRoute = ({ element, requiredRank }: PrivateRouteProps) => {
   const location = useLocation();
+  const session = readSession();
 
-  return isAuthenticated() && hasRequiredRank(requiredRank) ? (
+  if (session?.requiresPasswordChange) {
+    return (
+      <Navigate
+        to='/change-password-required'
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  return session && hasRequiredRank(requiredRank, session.role) ? (
     element
   ) : (
     <Navigate to='/' state={{ from: location }} replace />

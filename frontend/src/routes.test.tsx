@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { startSession } from './auth/session';
 import AppRoutes from './routes';
 
 vi.mock('./pages/Login', () => ({
@@ -24,6 +25,15 @@ function renderPath(path: string) {
   return { fetchMock, xhrSendMock };
 }
 
+const encodeSegment = (value: object) =>
+  btoa(JSON.stringify(value))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+
+const createToken = (payload: object) =>
+  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+
 describe('AppRoutes', () => {
   it('renders the known login route without requesting an external service', () => {
     const { fetchMock, xhrSendMock } = renderPath('/');
@@ -39,6 +49,24 @@ describe('AppRoutes', () => {
     );
 
     expect(screen.getByRole('main')).toHaveTextContent('Not found route');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(xhrSendMock).not.toHaveBeenCalled();
+  });
+
+  it('renders the required password-change journey only for a pending session', () => {
+    startSession(
+      createToken({
+        sub: '42',
+        role: 'Administrador',
+        password_change_required: true,
+      })
+    );
+
+    const { fetchMock, xhrSendMock } = renderPath('/change-password-required');
+
+    expect(
+      screen.getByRole('heading', { name: 'Defina uma nova senha' })
+    ).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(xhrSendMock).not.toHaveBeenCalled();
   });

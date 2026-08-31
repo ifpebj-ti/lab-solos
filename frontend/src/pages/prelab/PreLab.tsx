@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useEffect } from 'react';
-import Cookie from 'js-cookie';
+import { clearSession } from '@/auth/session';
 import InputText from '@/components/global/inputs/Text';
 import { Info } from 'lucide-react';
 
@@ -53,9 +53,7 @@ function PreLab() {
   };
 
   useEffect(() => {
-    Cookie.remove('rankID');
-    Cookie.remove('doorKey');
-    Cookie.remove('level');
+    clearSession();
   }, []);
 
   return (

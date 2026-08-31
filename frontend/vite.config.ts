@@ -1,6 +1,6 @@
 import path from 'path';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { execSync } from 'child_process';
 
 let gitHash = 'latest';
@@ -53,6 +53,7 @@ export default defineConfig(async () => {
     test: {
       environment: 'jsdom',
       setupFiles: './src/test/setup.ts',
+      exclude: [...configDefaults.exclude, 'e2e/**'],
     },
   };
 });
