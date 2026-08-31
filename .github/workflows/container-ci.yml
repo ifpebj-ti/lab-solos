@@ -63,8 +63,61 @@ jobs:
       - name: Build backend solution
         run: dotnet build backend/backend.sln --no-restore -c Release --nologo --disable-build-servers
 
+      - name: Verify Docker for PostgreSQL integration tests
+        run: docker info
+
+      - name: Test PostgreSQL integration and credential migrations
+        run: >-
+          dotnet test backend/Tests/Tests.csproj --no-build --no-restore -c Release --nologo --disable-build-servers
+          --filter "FullyQualifiedName~Integration|FullyQualifiedName~CredentialLifecycleMigrationTests"
+
       - name: Test backend solution
         run: dotnet test backend/backend.sln --no-build --no-restore -c Release --nologo --disable-build-servers
+
+  auth-e2e:
+    name: Authentication E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies from lockfile
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chromium from the lockfile
+        working-directory: frontend
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Start synthetic E2E stack
+        run: docker compose -f docker-compose-e2e.yml up -d --build --wait
+
+      - name: Run authentication E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Upload E2E artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: auth-e2e-artifacts
+          path: frontend/e2e/infra/artifacts
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove synthetic E2E stack
+        if: always()
+        run: docker compose -f docker-compose-e2e.yml down --volumes --remove-orphans
 
   workflow-quality:
     name: Workflow contracts

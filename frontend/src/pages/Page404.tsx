@@ -2,13 +2,11 @@ import { Link } from 'react-router-dom';
 import img404 from '../../public/images/404.png';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
-import Cookie from 'js-cookie';
+import { clearSession } from '@/auth/session';
 
 function Page404() {
   useEffect(() => {
-    Cookie.remove('rankID');
-    Cookie.remove('doorKey');
-    Cookie.remove('level');
+    clearSession();
   }, []);
   return (
     <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5] min-h-screen pb-9'>

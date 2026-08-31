@@ -1,0 +1,136 @@
+name: lab-solos-auth-e2e
+
+services:
+  smtp-cert:
+    image: alpine/openssl:3.3.1
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+          -keyout /certs/ca.key \
+          -out /certs/ca.crt \
+          -subj '/CN=Lab Solos E2E SMTP CA'
+        openssl req -newkey rsa:2048 -nodes \
+          -keyout /certs/smtp.key \
+          -out /certs/smtp.csr \
+          -subj '/CN=smtp'
+        printf 'subjectAltName=DNS:smtp\nextendedKeyUsage=serverAuth\n' > /tmp/smtp.ext
+        openssl x509 -req -days 1 \
+          -in /certs/smtp.csr \
+          -CA /certs/ca.crt \
+          -CAkey /certs/ca.key \
+          -CAcreateserial \
+          -out /certs/smtp.crt \
+          -extfile /tmp/smtp.ext
+        chmod 644 /certs/ca.crt /certs/smtp.crt /certs/smtp.key
+    volumes:
+      - e2e_smtp_certs:/certs
+    networks:
+      - e2e_private
+
+  smtp:
+    image: axllent/mailpit:v1.28.0
+    environment:
+      MP_SMTP_TLS_CERT: /certs/smtp.crt
+      MP_SMTP_TLS_KEY: /certs/smtp.key
+      MP_SMTP_REQUIRE_STARTTLS: "true"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+    depends_on:
+      smtp-cert:
+        condition: service_completed_successfully
+    ports:
+      - "${E2E_SMTP_PORT:-18025}:8025"
+    volumes:
+      - e2e_smtp_certs:/certs:ro
+    networks:
+      - e2e_private
+      # Docker Desktop does not publish a port from an internal-only network.
+      # The disposable Mailpit HTTP API is exposed solely for E2E token retrieval.
+      - e2e_public
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: lab_solos_e2e
+      POSTGRES_USER: lab_solos_e2e
+      POSTGRES_PASSWORD: synthetic-e2e-database-password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test \"$$(head -n 1 /var/lib/postgresql/data/postmaster.pid)\" = \"1\" && pg_isready -U lab_solos_e2e -d lab_solos_e2e",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - e2e_postgres_data:/var/lib/postgresql/data
+    networks:
+      - e2e_private
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgresConnection: Host=db;Port=5432;Database=lab_solos_e2e;Username=lab_solos_e2e;Password=synthetic-e2e-database-password
+      Seed__AdminEmail: synthetic-e2e-admin@example.invalid
+      Seed__AdminPassword: synthetic-e2e-admin-password
+      Jwt__Key: synthetic-e2e-jwt-signing-key-at-least-32-characters
+      Jwt__Issuer: lab-solos-e2e
+      Jwt__Audience: lab-solos-e2e-frontend
+      Jwt__ExpiresInMinutes: "60"
+      Email__SmtpHost: smtp
+      Email__SmtpPort: "1025"
+      Email__Usuario: synthetic-e2e@example.invalid
+      Email__Senha: synthetic-e2e-smtp-password
+      Email__De: synthetic-e2e@example.invalid
+      SSL_CERT_FILE: /certs/ca.crt
+      AllowedHosts: "*"
+    depends_on:
+      db:
+        condition: service_healthy
+      smtp:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080'"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    ports:
+      - "${E2E_BACKEND_PORT:-18080}:8080"
+    volumes:
+      - e2e_smtp_certs:/certs:ro
+    networks:
+      - e2e_private
+      - e2e_public
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: http://127.0.0.1:${E2E_BACKEND_PORT:-18080}/api/
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1/"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "${E2E_FRONTEND_PORT:-4173}:80"
+    networks:
+      - e2e_public
+
+volumes:
+  e2e_postgres_data:
+  e2e_smtp_certs:
+
+networks:
+  e2e_private:
+    internal: true
+  e2e_public:

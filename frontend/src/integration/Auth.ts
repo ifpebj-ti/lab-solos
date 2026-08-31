@@ -1,9 +1,7 @@
-import { AxiosError } from 'axios';
-import { api } from '../services/BaseApi';
-import Cookie from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 import { NavigateFunction } from 'react-router-dom';
-// login
+
+import { clearSession, startSession } from '@/auth/session';
+import { api } from '../services/BaseApi';
 
 interface IAuthParams {
   email: string;
@@ -28,77 +26,68 @@ interface ICreateUserData {
   responsavelEmail: string;
 }
 
-interface IForgotPasswordParams {
+interface IPasswordResetRequest {
   email: string;
 }
 
-// Interface para decodificação do token
-interface JwtPayload {
-  sub: string; // ID ou nível do usuário
-  role?: string; // Caso tenha uma role específica
+interface IPasswordResetParams {
+  email: string;
+  token: string;
+  newPassword: string;
+  confirmation: string;
 }
+
+type LoginResponse = {
+  token?: unknown;
+  requiresPasswordChange?: unknown;
+};
+
+export const getHomePathForRole = (role: string): string => {
+  switch (role) {
+    case 'Administrador':
+      return '/admin/';
+    case 'Mentor':
+      return '/mentor/';
+    case 'Mentorado':
+      return '/mentee/';
+    default:
+      return '/';
+  }
+};
 
 export const authenticate = async (
   { method, params }: IAuth,
   navigate: NavigateFunction
 ) => {
-  try {
-    const response = await api({
-      method,
-      url: 'Auth/login',
-      data: params,
-    });
+  const response = await api({
+    method,
+    url: 'Auth/login',
+    data: params,
+  });
 
-    const doorKey = response.data.token;
-    const isSecure = location.protocol === 'https:';
-    if (doorKey) {
-      Cookie.set('doorKey', doorKey, {
-        secure: isSecure,
-        sameSite: 'Strict',
-      });
-
-      const decoded = jwtDecode<JwtPayload>(doorKey);
-      if (decoded.sub && decoded.role) {
-        Cookie.set('rankID', decoded.sub, {
-          secure: isSecure,
-          sameSite: 'Strict',
-        });
-
-        Cookie.set('level', decoded.role, {
-          secure: isSecure,
-          sameSite: 'Strict',
-        });
-
-        // Redirecionamento com base no nível do usuário
-        switch (decoded.role) {
-          case 'Administrador':
-            navigate('/admin/');
-            break;
-          case 'Mentor':
-            navigate('/mentor/');
-            break;
-          case 'Mentorado':
-            navigate('/mentee/');
-            break;
-          default:
-            navigate('/');
-            break;
-        }
-      } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Erro: o valor de "sub" está indefinido.');
-        }
-      }
-    }
-    return response;
-  } catch (error: unknown) {
-    // Re-lança o erro original sem modificar, para que o Login.tsx possa tratar adequadamente
-    if (error instanceof AxiosError) {
-      throw error; // Mantém todas as informações do AxiosError
-    } else {
-      throw error; // Mantém o erro original, seja ele qual for
-    }
+  const login = response.data as LoginResponse;
+  if (
+    typeof login.token !== 'string' ||
+    typeof login.requiresPasswordChange !== 'boolean'
+  ) {
+    throw new Error('Resposta de autentica\u00e7\u00e3o inv\u00e1lida.');
   }
+
+  const session = startSession(login.token);
+  if (
+    !session ||
+    session.requiresPasswordChange !== login.requiresPasswordChange
+  ) {
+    clearSession();
+    throw new Error('Sess\u00e3o de autentica\u00e7\u00e3o inv\u00e1lida.');
+  }
+
+  navigate(
+    session.requiresPasswordChange
+      ? '/change-password-required'
+      : getHomePathForRole(session.role)
+  );
+  return response;
 };
 
 export const createMentor = async (data: ICreateUserData) => {
@@ -113,22 +102,8 @@ export const createMentor = async (data: ICreateUserData) => {
   }
 };
 
-export const requestPasswordReset = async (data: IForgotPasswordParams) => {
-  try {
-    const response = await api.post('/Email/solicitar-redefinicao', data);
-    return response;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao solicitar redefinição de senha', error);
-    }
-    throw error;
-  }
-};
+export const requestPasswordReset = (data: IPasswordResetRequest) =>
+  api.post('/Email/request-password-reset', data);
 
-interface IResetPasswordParams {
-  token: string;
-  novaSenha: string;
-}
-
-export const resetPassword = (data: IResetPasswordParams) =>
-  api.post('/Email/redefinir-senha', data);
+export const resetPassword = (data: IPasswordResetParams) =>
+  api.post('/Email/reset-password', data);

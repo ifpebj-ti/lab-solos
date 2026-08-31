@@ -36,8 +36,7 @@ secrets.json
 *.publishsettings
 *.launchSettings.json
 
-# Arquivos gerados pelo Entity Framework
-Migrations/
+# Migrações do Entity Framework são artefatos operacionais versionados.
 
 # Docker e containers
 docker-compose.override.yml

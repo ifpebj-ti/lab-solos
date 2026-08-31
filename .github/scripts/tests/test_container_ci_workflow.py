@@ -78,6 +78,47 @@ class ContainerCiWorkflowTests(unittest.TestCase):
             ".tmp/actionlint/actionlint .github/workflows/container-ci.yml", workflow
         )
 
+    def test_backend_quality_runs_postgresql_integration_and_migration_tests(self) -> None:
+        backend = self.job("backend-quality")
+
+        self.assertIn("docker info", backend)
+        self.assertIn(
+            "dotnet test backend/Tests/Tests.csproj --no-build --no-restore -c Release",
+            backend,
+        )
+        self.assertIn("CredentialLifecycleMigrationTests", backend)
+        self.assertIn("FullyQualifiedName~Integration", backend)
+        self.assertNotIn("InMemory", backend)
+
+    def test_auth_e2e_uses_a_disposable_synthetic_stack(self) -> None:
+        e2e = self.job("auth-e2e")
+
+        self.assertIn("timeout-minutes:", e2e)
+        self.assertIn("npm ci", e2e)
+        self.assertIn("npx --no-install playwright install --with-deps chromium", e2e)
+        self.assertIn(
+            "docker compose -f docker-compose-e2e.yml up -d --build --wait", e2e
+        )
+        self.assertIn("npm run test:e2e", e2e)
+        self.assertIn("if: always()", e2e)
+        self.assertIn(
+            "docker compose -f docker-compose-e2e.yml down --volumes --remove-orphans",
+            e2e,
+        )
+        self.assertIn("if: failure()", e2e)
+        self.assertIn("actions/upload-artifact@", e2e)
+        self.assertIn("frontend/e2e/infra/artifacts", e2e)
+        self.assertNotIn("secrets.", e2e.lower())
+
+        self.assertLess(
+            e2e.index("docker compose -f docker-compose-e2e.yml up -d --build --wait"),
+            e2e.index("npm run test:e2e"),
+        )
+        self.assertLess(
+            e2e.index("npm run test:e2e"),
+            e2e.index("if: always()"),
+        )
+
     def test_build_matrix_is_exactly_two_components_by_two_platforms(self) -> None:
         scan = self.job("container-scan")
         self.assertRegex(scan, r"(?ms)matrix:.*?component:\s*\[frontend, backend\]")

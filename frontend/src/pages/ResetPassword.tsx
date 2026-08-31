@@ -1,36 +1,60 @@
-import InputPassword from '../components/global/inputs/Password';
-import InputText from '../components/global/inputs/Text';
 import { zodResolver } from '@hookform/resolvers/zod';
-import logo from '../../public/images/logo.png';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useEffect, useState } from 'react';
-import Cookie from 'js-cookie';
-import { toast } from '../components/hooks/use-toast';
-import { AxiosError } from 'axios';
-import { resetPassword } from '@/integration/Auth'; // ajuste conforme seu path
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
-const submitResetPasswordSchema = z
-  .object({
-    token: z.string().min(1, 'O token é obrigatório'),
-    senha: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
-    repeat: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.senha !== data.repeat) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['repeat'],
-        message: 'As senhas não coincidem',
-      });
-    }
-  });
+import { passwordChangeSchema } from '@/auth/passwordPolicy';
+import { clearSession } from '@/auth/session';
+import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
+import { resetPassword } from '@/integration/Auth';
+import logo from '../../public/images/logo.png';
+import { toast } from '../components/hooks/use-toast';
+import InputText from '../components/global/inputs/Text';
+
+const submitResetPasswordSchema = z.intersection(
+  z.object({
+    email: z.string().email('Digite um email v\u00e1lido').toLowerCase(),
+    token: z.string().min(1, 'O token \u00e9 obrigat\u00f3rio'),
+  }),
+  passwordChangeSchema
+);
 
 type ResetPasswordFormData = z.infer<typeof submitResetPasswordSchema>;
 
+const isRecord = (value: unknown): value is Record<PropertyKey, unknown> =>
+  Boolean(value) && typeof value === 'object';
+
+const readProblemCode = (error: unknown): string | undefined => {
+  if (!isRecord(error)) return undefined;
+
+  const response = error.response;
+  if (!isRecord(response)) return undefined;
+
+  const data = response.data;
+  if (!isRecord(data)) return undefined;
+
+  const directCode = data.code;
+  if (typeof directCode === 'string') return directCode;
+
+  const errors = data.errors;
+  if (!isRecord(errors)) return undefined;
+
+  for (const values of Object.values(errors)) {
+    if (!Array.isArray(values)) continue;
+    const code = values.find((value) => typeof value === 'string');
+    if (typeof code === 'string') return code;
+  }
+
+  return undefined;
+};
+
+const clearResetSession = () => clearSession();
+
 function ResetPassword() {
   const [loading, setLoading] = useState(false);
+  const [serverErrorCode, setServerErrorCode] = useState<string>();
+  const [submitError, setSubmitError] = useState<string>();
   const {
     register,
     handleSubmit,
@@ -42,38 +66,28 @@ function ResetPassword() {
 
   async function postResetPassword(data: ResetPasswordFormData) {
     setLoading(true);
+    setServerErrorCode(undefined);
+    setSubmitError(undefined);
+
     try {
-      const response = await resetPassword({
+      await resetPassword({
+        email: data.email,
         token: data.token,
-        novaSenha: data.senha,
+        newPassword: data.newPassword,
+        confirmation: data.confirmation,
       });
-
-      console.log('Payload enviado:', response);
-
-      if (response.status === 200) {
-        toast({
-          title: 'Senha atualizada!',
-          description: 'Você será redirecionado para o login.',
-        });
-
-        navigate('/');
+      clearResetSession();
+      toast({
+        title: 'Senha atualizada!',
+        description: 'Fa\u00e7a login com sua nova senha.',
+      });
+      navigate('/', { replace: true });
+    } catch (error) {
+      const code = readProblemCode(error);
+      if (code) {
+        setServerErrorCode(code);
       } else {
-        toast({
-          title: 'Erro ao atualizar senha',
-          description: 'Verifique se o token está correto.',
-        });
-      }
-    } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        toast({
-          title: 'Erro na redefinição',
-          description: error.response?.data?.message || 'Falha na operação.',
-        });
-      } else {
-        toast({
-          title: 'Erro inesperado',
-          description: 'Tente novamente mais tarde.',
-        });
+        setSubmitError('N\u00e3o foi poss\u00edvel redefinir a senha. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -81,9 +95,7 @@ function ResetPassword() {
   }
 
   useEffect(() => {
-    Cookie.remove('rankID');
-    Cookie.remove('doorKey');
-    Cookie.remove('level');
+    clearResetSession();
   }, []);
 
   return (
@@ -94,19 +106,28 @@ function ResetPassword() {
           <div className='text-white gap-y-1'>
             <h1 className='font-rajdhani-semibold text-3xl'>LabOn</h1>
             <p className='font-rajdhani-medium text-base'>
-              Gerenciamento de Laboratórios <br /> Químicos Online
+              {'Gerenciamento de Laborat\u00f3rios '} <br />
+              {' Qu\u00edmicos Online'}
             </p>
           </div>
         </div>
         <div className='w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between'>
           <p className='font-inter-regular text-clt-2'>
-            Digite sua nova senha, repita-a e insira o token que você recebeu
-            por e-mail.
+            {
+              'Digite seu e-mail, a nova senha e o c\u00f3digo que voc\u00ea recebeu por e-mail.'
+            }
           </p>
           <form
             onSubmit={handleSubmit(postResetPassword)}
             className='w-full gap-y-3 flex flex-col mt-2'
           >
+            <InputText
+              label='Email'
+              type='email'
+              register={register}
+              error={errors.email?.message}
+              name='email'
+            />
             <InputText
               label='Token recebido por e-mail'
               type='text'
@@ -114,18 +135,18 @@ function ResetPassword() {
               error={errors.token?.message}
               name='token'
             />
-            <InputPassword
-              label='Nova Senha'
-              register={register}
-              error={errors.senha?.message}
-              name='senha'
+            <PasswordChangeFields
+              newPasswordInputProps={register('newPassword')}
+              confirmationInputProps={register('confirmation')}
+              newPasswordError={errors.newPassword?.message}
+              confirmationError={errors.confirmation?.message}
+              serverErrorCode={serverErrorCode}
             />
-            <InputPassword
-              label='Confirme sua Nova Senha'
-              register={register}
-              error={errors.repeat?.message}
-              name='repeat'
-            />
+            {submitError ? (
+              <p role='alert' className='text-xs text-red-500'>
+                {submitError}
+              </p>
+            ) : null}
             <button
               type='submit'
               disabled={loading}

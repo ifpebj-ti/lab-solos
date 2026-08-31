@@ -1,34 +1,26 @@
 using LabSolos_Server_DotNet8.Data.Context;
-using Microsoft.Extensions.Configuration;
+using LabSolos_Server_DotNet8.Services.Security;
 
-namespace LabSolos_Server_DotNet8.Data.Seeds
+namespace LabSolos_Server_DotNet8.Data.Seeds;
+
+public static partial class DbSeeder
 {
-    public static partial class DbSeeder
+    public static void Seed(
+        AppDbContext context,
+        string environmentName,
+        IConfiguration configuration,
+        IPasswordPolicy passwordPolicy)
     {
-        public static void Seed(AppDbContext context, string environmentName, IConfiguration configuration)
+        if (context.Usuarios.Any())
         {
-            if (environmentName == "Development")
-            {
-                SeedDevelopment(context, configuration);
-            }
-            else if (environmentName == "Production")
-            {
-                SeedProduction(context, configuration);
-            }
-            else
-            {
-                throw new ArgumentException($"Ambiente desconhecido: {environmentName}");
-            }
+            return;
         }
 
-        private static bool IsDatabaseEmpty(AppDbContext context)
+        if (environmentName is not ("Development" or "Production"))
         {
-            // Verificar se todas as tabelas relevantes estão vazias
-            return !context.Usuarios.Any() &&
-                   !context.Produtos.Any() &&
-                   !context.Lotes.Any() &&
-                   !context.Emprestimos.Any() &&
-                   !context.Notificacoes.Any();
+            throw new ArgumentException($"Ambiente desconhecido: {environmentName}");
         }
+
+        SeedUsuarios.Seed(context, configuration, passwordPolicy);
     }
 }

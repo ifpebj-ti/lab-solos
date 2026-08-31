@@ -20,6 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { CaretSortIcon } from '@radix-ui/react-icons';
+import { clearSession } from '@/auth/session';
 
 export function NavUser({
   user,
@@ -34,7 +35,7 @@ export function NavUser({
   const navigate = useNavigate();
 
   function handleLogout() {
-    localStorage.clear();
+    clearSession();
     navigate('/');
   }
 

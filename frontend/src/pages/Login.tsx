@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { authenticate } from '@/integration/Auth';
 import { toast } from '../components/hooks/use-toast';
 import { AxiosError } from 'axios';
-import Cookie from 'js-cookie';
+import { clearSession } from '@/auth/session';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -29,9 +29,7 @@ function Login() {
   });
   const navigate = useNavigate();
   useEffect(() => {
-    Cookie.remove('rankID');
-    Cookie.remove('doorKey');
-    Cookie.remove('level');
+    clearSession();
   }, []);
   async function postLogin(data: LoginFormData) {
     setLoading(true);

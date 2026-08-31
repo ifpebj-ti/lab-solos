@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
-import Cookie from 'js-cookie';
 import { toast } from '@/components/hooks/use-toast';
+import { clearSession } from '@/auth/session';
 
 const baseURL =
   window.env?.VITE_API_URL ||
@@ -20,10 +20,7 @@ api.interceptors.response.use(
       const isLoginPage = currentPath === '/' || currentPath === '/login';
 
       if (!isLoginPage) {
-        // Remove cookies ou tokens armazenados
-        Cookie.remove('doorKey');
-        Cookie.remove('rankID');
-        Cookie.remove('level');
+        clearSession();
 
         // Exibe aviso
         toast({

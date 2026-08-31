@@ -30,6 +30,7 @@ import ProfileMentor from './pages/mentor/Profile';
 import MyClass from './pages/mentor/MyClass';
 import HistoryClass from './pages/mentor/HistoryClass';
 import PrivateRoute from './components/base/PrivateRoutes';
+import PasswordChangeRequiredRoute from './components/base/PasswordChangeRequiredRoute';
 import ViewClassMentor from './pages/ViewClassMentor';
 import AllLoans from './pages/admin/AllLoans';
 import LoansRequest from './pages/admin/LoansRequest';
@@ -46,6 +47,7 @@ import CreateInfo from './pages/admin/CreateInfo';
 import ViewInfo from './pages/admin/ViewInfo';
 import ReturnLoan from './pages/admin/ReturnLoan';
 import Settings from './pages/admin/Settings';
+import ChangePassword from './pages/ChangePassword';
 import Auditoria from './pages/admin/Auditoria';
 import { Layout } from './components/ui/layout';
 
@@ -457,6 +459,14 @@ function AppRoutes() {
 
         {/* Rotas sem autenticação */}
         <Route index path='/' element={<Login />} />
+        <Route
+          path='/change-password-required'
+          element={
+            <PasswordChangeRequiredRoute
+              element={<ChangePassword required />}
+            />
+          }
+        />
         <Route path='/forgot-your-password' element={<ForgotPassword />} />
         <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/create-account' element={<CreateAccount />} />

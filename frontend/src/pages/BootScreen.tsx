@@ -16,8 +16,14 @@ import lab from '../../public/images/analises-quimicas.png';
 import estoque from '../../public/images/estoque-pronto.png';
 import pessoas from '../../public/images/silhueta-de-multiplos-usuarios.png';
 import folha from '../../public/images/contrato.png';
+import { useEffect } from 'react';
+import { clearSession } from '@/auth/session';
 
 function BootScreen() {
+  useEffect(() => {
+    clearSession();
+  }, []);
+
   return (
     <div className='h-screen max-h-screen w-full flex justify-start items-center flex-col bg-backgroundMy'>
       <div className='w-full bg-gradient-to-r from-backgroundMy to-primaryMy bg-slate-500 h-[12%] flex items-center justify-center'>

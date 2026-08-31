@@ -1,5 +1,6 @@
 using LabSolos_Server_DotNet8.Enums;
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LabSolos_Server_DotNet8.Models
 {
@@ -22,8 +23,18 @@ namespace LabSolos_Server_DotNet8.Models
         public Usuario? Responsavel { get; set; }
         public List<Usuario>? Dependentes { get; set; }
 
-        public string? TokenRedefinicao { get; set; }
+        public bool ExigeTrocaSenha { get; set; }
+        public long VersaoSessao { get; set; }
+        public string? TokenRedefinicaoHash { get; set; }
         public DateTime? TokenExpiracao { get; set; }
+
+        [NotMapped]
+        // Alias transitório removido quando o fluxo de recuperação passar a persistir somente hash.
+        public string? TokenRedefinicao
+        {
+            get => TokenRedefinicaoHash;
+            set => TokenRedefinicaoHash = value;
+        }
 
         // Método para definir o hash da senha
         public void DefinirSenha(string senha)
