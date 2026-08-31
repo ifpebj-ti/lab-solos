@@ -9,21 +9,9 @@ import FollowUpCard from '@/components/screens/FollowUp';
 import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 import { getDependentes } from '@/integration/Class';
-import { formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  cidade: string;
-  curso: string;
-  instituicao: string;
-}
+import type { Dependente } from '@/contracts/user';
 
 function Disabled() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +19,7 @@ function Disabled() {
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
+  const [dependentes, setDependentes] = useState<Dependente[]>([]);
 
   useEffect(() => {
     const fetchGetLoansDependentes = async () => {
@@ -126,9 +114,9 @@ function Disabled() {
                       data={[
                         rowData.nomeCompleto,
                         rowData.email,
-                        formatDateTime(rowData.dataIngresso),
-                        rowData.curso,
-                        rowData.instituicao,
+                        formatCivilDate(rowData.dataIngresso),
+                        displayUserValue(rowData.curso),
+                        displayUserValue(rowData.instituicao),
                         rowData.status,
                       ]}
                       rowIndex={index}

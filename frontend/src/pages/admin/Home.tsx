@@ -11,18 +11,7 @@ import { IEmprestimo } from './LoansRequest';
 import { getAllLoans } from '@/integration/Loans';
 import { getAlertProducts } from '@/integration/Product';
 import { PackageSearch, Users, ArrowLeftRight } from 'lucide-react';
-export interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string; // Pode ser convertido para Date se necessário
-  status: string; // Se houver status fixos
-  nivelUsuario: 'Mentor' | 'Mentorado' | 'Administrador'; // Ajuste conforme necessário
-  cidade: string;
-  curso: string;
-  instituicao: string;
-}
+import type { Dependente } from '@/contracts/user';
 
 interface IProduto {
   id: number;
@@ -40,7 +29,7 @@ interface IProduto {
 function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const id = Cookie.get('rankID')!;
-  const [approval, setApproval] = useState<IUsuario[]>([]);
+  const [approval, setApproval] = useState<Dependente[]>([]);
   const [loan, setLoan] = useState<IEmprestimo[]>([]);
   const [alert, setAlert] = useState<IProduto[]>([]);
 

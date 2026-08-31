@@ -11,7 +11,7 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public interface IUsuarioService
     {
-        ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto);
+        UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto);
         PasswordPolicyResult PrepararSenhaCadastro(Usuario usuario, string? senha);
     }
     
@@ -24,37 +24,51 @@ namespace LabSolos_Server_DotNet8.Services
         private readonly IPasswordPolicy _passwordPolicy = passwordPolicy;
         private readonly IPasswordHasher<Usuario> _passwordHasher = passwordHasher;
 
+        private const string InvalidCityMessage = "Informe uma cidade válida.";
+        private const string InvalidCourseMessage = "O curso deve ter entre 2 e 100 caracteres.";
+
         public readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
 
 
-        public ResultadoValidacaoDTO ValidarEstrutura(AddUsuarioDTO usuarioDto)
+        public UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto)
         {
             // Verificar se o nivel e tipo são consistentes
             if (NiveisAcademico.Contains(usuarioDto.NivelUsuario) && usuarioDto.TipoUsuario != "Academico")
             {
-                return new ResultadoValidacaoDTO
-                {
-                    Validado = false, 
-                    Mensagem = $"Se o nível de usuário for '{usuarioDto.NivelUsuario}', o tipo de usuário deve ser 'Academico'."
-                };
+                return UsuarioValidationResult.Invalid(
+                    $"Se o nível de usuário for '{usuarioDto.NivelUsuario}', o tipo de usuário deve ser 'Academico'.");
             }
 
-            // Verificar se os campos obrigatórios para o tipo 'Academico' estão preenchidos
-            if (usuarioDto.TipoUsuario == "Academico" && (!NiveisAcademico.Contains(usuarioDto.NivelUsuario) || string.IsNullOrEmpty(usuarioDto.Instituicao) || string.IsNullOrEmpty(usuarioDto.Curso) || string.IsNullOrEmpty(usuarioDto.Cidade)))
+            if (usuarioDto.TipoUsuario != "Academico")
             {
-                return new ResultadoValidacaoDTO
-                {
-                    Validado = false, 
-                    Mensagem = $"Para o tipo 'Academico', os campos 'Instituicao', 'Cidade' e 'Curso' são obrigatórios, e os níveis permitidos são: {string.Join(", ", NiveisAcademico)}."
-                };
+                return UsuarioValidationResult.Valid();
             }
 
-            // Se todas as validações passarem
-            return new ResultadoValidacaoDTO
+            // Preservar as validações estruturais acadêmicas existentes.
+            if (!NiveisAcademico.Contains(usuarioDto.NivelUsuario) || string.IsNullOrEmpty(usuarioDto.Instituicao))
             {
-                Validado = true, 
-                Mensagem = string.Empty
-            };
+                return UsuarioValidationResult.Invalid(
+                    $"Para o tipo 'Academico', os campos 'Instituicao', 'Cidade' e 'Curso' são obrigatórios, e os níveis permitidos são: {string.Join(", ", NiveisAcademico)}.");
+            }
+
+            usuarioDto.Cidade = usuarioDto.Cidade?.Trim();
+            usuarioDto.Curso = usuarioDto.Curso?.Trim();
+
+            var errors = new Dictionary<string, string[]>();
+            if (string.IsNullOrEmpty(usuarioDto.Cidade) ||
+                string.Equals(usuarioDto.Cidade, "Indefinido", StringComparison.OrdinalIgnoreCase))
+            {
+                errors["cidade"] = [InvalidCityMessage];
+            }
+
+            if (usuarioDto.Curso is null || usuarioDto.Curso.Length is < 2 or > 100)
+            {
+                errors["curso"] = [InvalidCourseMessage];
+            }
+
+            return errors.Count == 0
+                ? UsuarioValidationResult.Valid()
+                : UsuarioValidationResult.Invalid(errors);
         }
 
         public PasswordPolicyResult PrepararSenhaCadastro(Usuario usuario, string? senha)

@@ -12,23 +12,7 @@ import LayersIcon from '../../../public/icons/LayersIcon';
 import Pagination from '@/components/global/table/Pagination';
 import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown[] | null;
-  emprestimosAprovados: unknown[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
-}
+import type { Usuario } from '@/contracts/user';
 
 interface IProduto {
   id: number;
@@ -56,9 +40,9 @@ interface IEmprestimo {
   status: string;
   produtos: IProduto[];
   solicitanteId: number;
-  solicitante: IUsuario;
+  solicitante: Usuario;
   aprovadorId: number;
-  aprovador: IUsuario;
+  aprovador: Usuario;
 }
 
 function LoanHistories() {

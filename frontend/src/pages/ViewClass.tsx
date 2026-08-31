@@ -10,58 +10,10 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { useLocation } from 'react-router-dom';
 import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
-import { formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  cidade: string;
-  curso: string;
-  instituicao: string;
-}
-export interface IResponsible {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário, pois não há exemplo de dados
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Recursivamente permite responsáveis aninhados
-  dependentes: (IResponsible | null)[]; // Array de dependentes, pode conter `null`
-}
-
-// Interface para o usuário principal
-export interface IUser {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Referência ao responsável
-  dependentes: unknown[]; // Pode ser ajustado para incluir uma interface se necessário
-}
+import { academicoSchema } from '@/contracts/user';
+import type { Academico, Dependente } from '@/contracts/user';
 
 // aqui virá a listagem dos integrantes da turma
 function ViewClass() {
@@ -70,8 +22,8 @@ function ViewClass() {
   const itemsPerPage = 7;
   const location = useLocation();
   const id = location.state?.id; // Recupera o ID passado via state
-  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
-  const [user, setUser] = useState<IUser>();
+  const [dependentes, setDependentes] = useState<Dependente[]>([]);
+  const [user, setUser] = useState<Academico>();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
@@ -84,8 +36,9 @@ function ViewClass() {
       try {
         const response = await getDependentesID(id);
         const responseUser = await getUserById({ id });
+        const academicUser = academicoSchema.safeParse(responseUser);
         setDependentes(response);
-        setUser(responseUser);
+        setUser(academicUser.success ? academicUser.data : undefined);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
@@ -121,7 +74,7 @@ function ViewClass() {
         },
         {
           title: 'Instituição',
-          value: user?.instituicao ? user.instituicao : 'Não Corresponde',
+          value: displayUserValue(user.instituicao),
           width: '20%',
         },
       ]
@@ -130,22 +83,35 @@ function ViewClass() {
     ? [{ title: 'Status', value: user?.status, width: '100%' }]
     : [];
   const infoItems3 = user
-    ? [{ title: 'Número para Contato', value: user?.telefone, width: '100%' }]
+    ? [
+        {
+          title: 'Número para Contato',
+          value: displayUserValue(user.telefone),
+          width: '100%',
+        },
+      ]
     : [];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
-      value: formatDateTime(user?.dataIngresso),
+      value: formatCivilDate(user?.dataIngresso),
       width: '100%',
     },
   ];
-  const infoItems2 = [
-    {
-      title: 'Curso',
-      value: user?.curso ? user.curso : 'Não Corresponde',
-      width: '100%',
-    },
-  ];
+  const infoItems2 = user
+    ? [
+        {
+          title: 'Curso',
+          value: displayUserValue(user.curso),
+          width: '50%',
+        },
+        {
+          title: 'Cidade',
+          value: displayUserValue(user.cidade),
+          width: '50%',
+        },
+      ]
+    : [];
   return (
     <>
       {isLoading ? (
@@ -221,8 +187,8 @@ function ViewClass() {
                       data={[
                         rowData.nomeCompleto,
                         rowData.email,
-                        rowData.instituicao,
-                        rowData.curso,
+                        displayUserValue(rowData.instituicao),
+                        displayUserValue(rowData.curso),
                         rowData.status,
                       ]}
                       rowIndex={index}

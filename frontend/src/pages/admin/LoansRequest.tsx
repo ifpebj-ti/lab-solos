@@ -13,24 +13,7 @@ import { approveLoan, getAllLoans, rejectLoan } from '@/integration/Loans';
 import { toast } from '@/components/hooks/use-toast';
 import { formatDateTime } from '@/function/date';
 import ItemTableButtonLink from '@/components/global/table/ItemButtonLink';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  nomeResponsavel: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: IEmprestimo[] | null;
-  emprestimosAprovados: IEmprestimo[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
-}
+import type { Usuario } from '@/contracts/user';
 
 interface IProduto {
   id: number;
@@ -66,9 +49,9 @@ export interface IEmprestimo {
   status: string;
   emprestimoProdutos: (IEmprestimoProduto | null)[]; // Permite null no array
   solicitanteId: number;
-  solicitante: IUsuario | null;
+  solicitante: Usuario | null;
   aprovadorId: number | null;
-  aprovador: IUsuario | null;
+  aprovador: Usuario | null;
 }
 
 function LoansRequest() {

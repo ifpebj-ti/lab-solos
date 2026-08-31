@@ -4,50 +4,14 @@ import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
-import { formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate } from '@/function/date';
 import { FileSpreadsheet, MessageSquare, AlertTriangle } from 'lucide-react';
 import CardFunction from '@/components/screens/CardFunction';
 import { verificarEmprestimosVencidos } from '@/integration/Notifications';
 import { toast } from '@/components/hooks/use-toast';
+import type { Academico, Usuario } from '@/contracts/user';
 
-// Interface para o responsável
-export interface IResponsible {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário, pois não há exemplo de dados
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Recursivamente permite responsáveis aninhados
-  dependentes: (IResponsible | null)[]; // Array de dependentes, pode conter `null`
-}
-
-// Interface para o usuário principal
-export interface IUser {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Referência ao responsável
-  dependentes: unknown[]; // Pode ser ajustado para incluir uma interface se necessário
-}
+export type IUser = Usuario | Academico;
 
 export interface IProduto {
   id: number;
@@ -125,44 +89,48 @@ function Profile() {
   const infoItems = [
     {
       title: 'Nome',
-      value: user?.nomeCompleto ?? 'Não corresponde',
+      value: displayUserValue(user?.nomeCompleto),
       width: '30%',
     },
     {
       title: 'Email',
-      value: user?.email ?? 'Não corresponde',
+      value: displayUserValue(user?.email),
       width: '30%',
     },
     {
       title: 'Nivel de Usuário',
-      value: user?.nivelUsuario ?? 'Não corresponde',
+      value: displayUserValue(user?.nivelUsuario),
       width: '20%',
     },
-    { title: 'Status', value: user?.status ?? 'Não corresponde', width: '20%' },
+    { title: 'Status', value: displayUserValue(user?.status), width: '20%' },
   ];
   const infoItems2 = [
     {
       title: 'Telefone',
-      value: user?.telefone ?? 'Não corresponde',
+      value: displayUserValue(user?.telefone),
       width: '100%',
     },
   ];
   const infoItems3 = [
     {
       title: 'Telefone',
-      value: user?.telefone ?? 'Não corresponde',
+      value: displayUserValue(user?.telefone),
       width: '100%',
     },
   ];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
-      value: formatDateTime(user?.dataIngresso) ?? 'Não corresponde',
+      value: formatCivilDate(user?.dataIngresso),
       width: '100%',
     },
   ];
   const infoItems5 = [
-    { title: 'Curso', value: user?.curso ?? 'Não corresponde', width: '100%' },
+    {
+      title: 'Curso',
+      value: displayUserValue(user && 'curso' in user ? user.curso : null),
+      width: '100%',
+    },
   ];
 
   return (

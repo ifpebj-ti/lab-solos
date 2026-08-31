@@ -1,5 +1,30 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { academicoSchema, usuarioSchema } from '@/contracts/user';
+
+const parseUserResponse = (data: unknown) => {
+  const academicResult = academicoSchema.safeParse(data);
+
+  if (academicResult.success) {
+    return academicResult.data;
+  }
+
+  const user = usuarioSchema.parse(data);
+
+  if (user.tipoUsuario === 'Academico') {
+    throw academicResult.error;
+  }
+
+  return user;
+};
+
+const parseUserListResponse = (data: unknown) => {
+  if (!Array.isArray(data)) {
+    return usuarioSchema.array().parse(data);
+  }
+
+  return data.map(parseUserResponse);
+};
 
 interface IUserById {
   id: string | number;
@@ -24,7 +49,7 @@ export const getRegisteredUsers = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return parseUserListResponse(response.data);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.debug('Error fetching users:', error);
@@ -47,7 +72,7 @@ export const getUserById = async ({ id }: IUserById) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return parseUserResponse(response.data);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.debug('Error fetching user:', error);

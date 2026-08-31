@@ -12,23 +12,7 @@ import TopDown from '@/components/global/table/TopDown';
 import { getLoansById } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown[] | null;
-  emprestimosAprovados: unknown[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
-}
+import type { Usuario } from '@/contracts/user';
 
 interface IProduto {
   id: number;
@@ -62,9 +46,9 @@ interface IEmprestimo {
   status: string;
   emprestimoProdutos: IEmprestimoProduto[];
   solicitanteId: number;
-  solicitante: IUsuario | null;
+  solicitante: Usuario | null;
   aprovadorId: number;
-  aprovador: IUsuario | null;
+  aprovador: Usuario | null;
 }
 
 function LoanHistoryMentee() {

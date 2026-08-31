@@ -8,27 +8,12 @@ import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
-import { formatDate, formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
 import Cookie from 'js-cookie';
 import { getLoansByUserId } from '@/integration/Loans';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import { academicoSchema, type Academico } from '@/contracts/user';
 
-interface IUsuario {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: number;
-  tipoUsuario: number;
-  status: number;
-  emprestimosSolicitados: null;
-  emprestimosAprovados: null;
-}
 export interface IProduto {
   id: number;
   nomeProduto: string;
@@ -62,7 +47,7 @@ export interface IEmprestimo {
 function HistoryMentoring() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<IUsuario>();
+  const [user, setUser] = useState<Academico>();
   const itemsPerPage = 7;
   const id = Cookie.get('rankID')!;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
@@ -76,7 +61,8 @@ function HistoryMentoring() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        setUser(response);
+        const academicResult = academicoSchema.safeParse(response);
+        setUser(academicResult.success ? academicResult.data : undefined);
 
         // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
         try {
@@ -134,7 +120,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Email',
-        value: user.email,
+        value: displayUserValue(user.email),
         width: '100%',
       },
     ]
@@ -143,7 +129,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Instituição',
-        value: user.instituicao,
+        value: displayUserValue(user.instituicao),
         width: '100%'
       },
     ]
@@ -152,7 +138,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Cidade',
-        value: user.cidade,
+        value: displayUserValue(user.cidade),
         width: '100%'
       }]
     : [];
@@ -160,7 +146,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Número para Contato',
-        value: user.telefone,
+        value: displayUserValue(user.telefone),
         width: '100%',
       },
     ]
@@ -169,7 +155,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Data de Ingresso',
-        value: formatDate(user.dataIngresso),
+        value: formatCivilDate(user.dataIngresso),
         width: '100%',
       },
     ]
@@ -178,7 +164,7 @@ function HistoryMentoring() {
     ? [
       {
         title: 'Curso',
-        value: user.curso,
+        value: displayUserValue(user.curso),
         width: '100%'
       }
     ]

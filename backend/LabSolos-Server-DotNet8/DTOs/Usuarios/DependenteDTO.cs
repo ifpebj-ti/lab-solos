@@ -6,7 +6,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Usuarios
         public required string NomeCompleto { get; set; }
         public required string Email { get; set; }
         public string? Telefone { get; set; }
-        public DateTime DataIngresso { get; set; }
+        public DateOnly? DataIngresso { get; set; }
         public string Status { get; set; }
         public string NivelUsuario { get; set; }
         public string? Cidade { get; set; }

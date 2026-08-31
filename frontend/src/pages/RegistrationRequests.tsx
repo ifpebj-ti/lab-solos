@@ -17,27 +17,15 @@ import {
 } from '@/integration/Class';
 import { approveDependente } from '../integration/Class';
 import { toast } from '@/components/hooks/use-toast';
-import { formatDateTime } from '@/function/date';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string; // Pode ser convertido para Date se necessário
-  status: string; // Se houver status fixos
-  nivelUsuario: 'Mentor' | 'Mentorado' | 'Administrador'; // Ajuste conforme necessário
-  cidade: string;
-  curso: string;
-  instituicao: string;
-}
+import { displayUserValue, formatCivilDate } from '@/function/date';
+import type { Dependente } from '@/contracts/user';
 
 function RegistrationRequest() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const id = Cookie.get('rankID')!;
-  const [approval, setApproval] = useState<IUsuario[]>([]);
+  const [approval, setApproval] = useState<Dependente[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
@@ -185,11 +173,10 @@ function RegistrationRequest() {
                         <ItemTableButton
                           key={index}
                           data={[
-                            String(formatDateTime(rowData.dataIngresso)) ||
-                            'Não corresponde',
-                            String(rowData.nomeCompleto) || 'Não corresponde',
-                            String(rowData.email) || 'Não corresponde',
-                            String(rowData.instituicao) || 'Não corresponde',
+                            formatCivilDate(rowData.dataIngresso),
+                            rowData.nomeCompleto,
+                            rowData.email,
+                            displayUserValue(rowData.instituicao),
                           ]}
                           rowIndex={index}
                           columnWidths={columnsApproval22.map(

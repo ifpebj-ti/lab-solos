@@ -6,48 +6,10 @@ import LayersIcon from '../../../public/icons/LayersIcon';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
-import { formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import ButtonLogout from '@/components/global/ButtonLogout';
-
-// Interface para o responsável
-export interface IResponsible {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário, pois não há exemplo de dados
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Recursivamente permite responsáveis aninhados
-  dependentes: (IResponsible | null)[]; // Array de dependentes, pode conter `null`
-}
-
-// Interface para o usuário principal
-export interface IUser {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string; // Formato ISO
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown; // Ajuste se necessário
-  emprestimosAprovados: unknown; // Ajuste se necessário
-  responsavelId: number | null;
-  responsavel: IResponsible | null; // Referência ao responsável
-  dependentes: unknown[]; // Pode ser ajustado para incluir uma interface se necessário
-}
+import { academicoSchema, type Academico } from '@/contracts/user';
 
 export interface IProduto {
   id: number;
@@ -81,7 +43,7 @@ export interface IEmprestimo {
 
 function ProfileMentee() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<IUser>();
+  const [user, setUser] = useState<Academico>();
   const id = Cookie.get('rankID')!;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
 
@@ -89,7 +51,8 @@ function ProfileMentee() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        setUser(response);
+        const academicResult = academicoSchema.safeParse(response);
+        setUser(academicResult.success ? academicResult.data : undefined);
 
         // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
         try {
@@ -121,55 +84,63 @@ function ProfileMentee() {
   const infoItems = [
     {
       title: 'Nome',
-      value: user?.nomeCompleto ?? '',
+      value: displayUserValue(user?.nomeCompleto),
       width: '30%',
     },
     {
       title: 'Email',
-      value: user?.email ?? '',
+      value: displayUserValue(user?.email),
       width: '30%',
     },
-    { title: 'Instituição', value: user?.instituicao ?? '', width: '20%' },
-    { title: 'Status', value: user?.status ?? '', width: '20%' },
+    {
+      title: 'Instituição',
+      value: displayUserValue(user?.instituicao),
+      width: '20%',
+    },
+    { title: 'Status', value: displayUserValue(user?.status), width: '20%' },
   ];
   const infoItems2 = [
-    { title: 'Cidade', value: user?.cidade ?? '', width: '100%' },
+    { title: 'Cidade', value: displayUserValue(user?.cidade), width: '100%' },
   ];
   const infoItems3 = [
     {
       title: 'Telefone',
-      value: user?.telefone ?? '',
+      value: displayUserValue(user?.telefone),
       width: '100%',
     },
   ];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
-      value: formatDateTime(user?.dataIngresso) ?? '',
+      value: formatCivilDate(user?.dataIngresso),
       width: '100%',
     },
   ];
   const infoItems5 = [
-    { title: 'Curso', value: user?.curso ?? '', width: '100%' },
+    { title: 'Curso', value: displayUserValue(user?.curso), width: '100%' },
   ];
 
   const infoItemsProf = [
     {
       title: 'Nome do Responsável',
-      value: user?.responsavel?.nomeCompleto ?? '',
+      value: displayUserValue(user?.responsavel?.nomeCompleto),
       width: '30%',
     },
     {
       title: 'Email',
-      value: user?.responsavel?.email ?? '',
+      value: displayUserValue(user?.responsavel?.email),
       width: '30%',
     },
     {
       title: 'Telefone',
-      value: user?.responsavel?.telefone ?? '',
+      value: displayUserValue(user?.responsavel?.telefone),
       width: '20%',
     },
-    { title: 'Status', value: user?.responsavel?.status ?? '', width: '20%' },
+    {
+      title: 'Status',
+      value: displayUserValue(user?.responsavel?.status),
+      width: '20%',
+    },
   ];
 
   // Função para calcular o número total de itens utilizados

@@ -29,6 +29,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import FileSaver from 'file-saver';
 import ExcelJS from 'exceljs';
 import { LoanDoc } from '@/components/pdf/LoanDoc';
+import type { Usuario } from '@/contracts/user';
 
 export interface ILote {
   codigoLote: string;
@@ -61,21 +62,6 @@ export interface IEmprestimoProduto {
   quantidade: number;
 }
 
-export interface IUsuarioII {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel: IUsuarioII | null;
-}
-
 export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
@@ -83,8 +69,8 @@ export interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuarioII;
-  aprovador: IUsuarioII | null;
+  solicitante: Usuario;
+  aprovador: Usuario | null;
 }
 
 function LoanHistoryMentee() {

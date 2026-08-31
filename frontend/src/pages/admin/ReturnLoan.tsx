@@ -11,6 +11,7 @@ import ItemReturn from '@/components/global/table/ItemReturn';
 import ItemTable from '@/components/global/table/Item';
 import { toast } from '@/components/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
+import type { Usuario } from '@/contracts/user';
 
 export interface ILote {
   codigoLote: string;
@@ -43,21 +44,6 @@ export interface IEmprestimoProduto {
   quantidade: number;
 }
 
-export interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel: IUsuario | null;
-}
-
 export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
@@ -65,8 +51,8 @@ export interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuario;
-  aprovador: IUsuario | null;
+  solicitante: Usuario;
+  aprovador: Usuario | null;
 }
 
 function ReturnLoan() {

@@ -14,6 +14,7 @@ import { loanCreationHeader } from '@/mocks/Unidades';
 import { createLoan } from '@/integration/Loans';
 import { toast } from '@/components/hooks/use-toast';
 import ItemDelete from '@/components/global/table/ItemDelete';
+import type { Dependente } from '@/contracts/user';
 
 interface Produto {
   id: number;
@@ -26,19 +27,6 @@ interface Produto {
   dataFabricacao: string | null;
   dataValidade: string | null;
   status: string;
-}
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  status: string;
-  nivelUsuario: string;
-  cidade: string;
-  curso: string;
-  instituicao: string;
 }
 
 interface IProduto {
@@ -77,7 +65,7 @@ function LoanCreation() {
   const [selectedProducts, setSelectedProducts] = useState<
     { produtoId: number; quantidade: number; um: string }[]
   >([]);
-  const [dependentes, setDependentes] = useState<IUsuario[]>([]);
+  const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [unidadeMedida, setUnidadeMedida] = useState<string>('');
 
   const unidadesMedidaOptions = [
