@@ -24,6 +24,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUsuarioService _usuarioService;
         private readonly IUtilitiesService _utilsService;
         private readonly INotificacaoService _notificacaoService;
+        private readonly TimeProvider _timeProvider;
 
         public UsuariosController(
             ILogger<UsuariosController> logger,
@@ -31,7 +32,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             IUnitOfWork uow,
             IMapper mapper,
             IUsuarioService usuarioService,
-            INotificacaoService notificacaoService)
+            INotificacaoService notificacaoService,
+            TimeProvider? timeProvider = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _utilsService = utilsService ?? throw new ArgumentNullException(nameof(utilsService));
@@ -39,6 +41,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _usuarioService = usuarioService ?? throw new ArgumentNullException(nameof(usuarioService));
             _notificacaoService = notificacaoService ?? throw new ArgumentNullException(nameof(notificacaoService));
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         [HttpGet]
@@ -231,6 +234,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var resultadoValidacao = _usuarioService.ValidarEstrutura(addUsuarioDTO);
                 if (!resultadoValidacao.Validado)
                 {
+                    if (resultadoValidacao.Errors.Count > 0)
+                    {
+                        _logger.LogInformation(
+                            "Cadastro de usuário rejeitado; campos inválidos: {Fields}",
+                            string.Join(",", resultadoValidacao.Errors.Keys));
+                        return RegistrationValidationProblem(resultadoValidacao.Errors);
+                    }
+
                     return BadRequest(new { Message = resultadoValidacao.Mensagem });
                 }
 
@@ -257,7 +268,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                     return PasswordValidationProblem(passwordResult.Code ?? "password_invalid");
                 }
 
-                usuario.DataIngresso = DateTime.UtcNow;
+                usuario.DataIngresso = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
                 usuario.ResponsavelId = responsavelId;
                 usuario.Status = StatusUsuario.Pendente;
 
@@ -301,6 +312,24 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 Type = "https://httpstatuses.com/400",
                 Title = "Não foi possível cadastrar o usuário.",
+                Status = StatusCodes.Status400BadRequest
+            };
+
+            return new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ContentTypes = { "application/problem+json" }
+            };
+        }
+
+        private static ObjectResult RegistrationValidationProblem(
+            IReadOnlyDictionary<string, string[]> errors)
+        {
+            var details = new ValidationProblemDetails(
+                errors.ToDictionary(entry => entry.Key, entry => entry.Value))
+            {
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                Title = "Dados de cadastro inválidos.",
                 Status = StatusCodes.Status400BadRequest
             };
 

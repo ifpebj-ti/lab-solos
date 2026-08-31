@@ -11,12 +11,11 @@ import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import { getRegisteredUsers, getUserById } from '@/integration/Users';
-import { formatDate } from '../function/date';
+import { formatCivilDate } from '../function/date';
 import { ArrowLeft, FileText } from 'lucide-react';
 import TableItemWithActions from '@/components/global/table/TableItemWithActions';
 import UserStatusManager from '@/components/global/UserStatusManager';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
-import { IUsuario } from './admin/Home';
 import { getDependentesForApproval } from '@/integration/Class';
 import Cookie from 'js-cookie';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -28,23 +27,20 @@ import {
 } from '@/components/ui/popover';
 import ExcelJS from 'exceljs';
 import * as FileSaver from 'file-saver';
-interface RegisteredUser {
-  nivelUsuario: string;
-  dataIngresso: string;
-  nomeCompleto: string;
-  tipoUsuario: string;
-  id: string | number;
-  status: string;
-}
+import { statusUsuarioSchema } from '@/contracts/user';
+import type { Dependente, Usuario } from '@/contracts/user';
 
-export interface IUser {
-  instituicao: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-}
+type RegisteredUser = Pick<
+  Usuario,
+  | 'id'
+  | 'nomeCompleto'
+  | 'dataIngresso'
+  | 'nivelUsuario'
+  | 'tipoUsuario'
+  | 'status'
+>;
+
+type ReportSigner = Pick<Usuario, 'nomeCompleto' | 'nivelUsuario'>;
 
 function RegisteredUsers() {
   const [isLoading, setIsLoading] = useState(true);
@@ -55,8 +51,8 @@ function RegisteredUsers() {
   const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>([]);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
-  const [approval, setApproval] = useState<IUsuario[]>([]);
-  const [user, setUser] = useState<IUser>();
+  const [approval, setApproval] = useState<Dependente[]>([]);
+  const [user, setUser] = useState<ReportSigner>();
   const columnsExport = [
     { value: 'Nome', width: '40%' },
     { value: 'Nível', width: '15%' },
@@ -84,7 +80,7 @@ function RegisteredUsers() {
       worksheet.addRow({
         nomeCompleto: user.nomeCompleto,
         nivelUsuario: user.nivelUsuario,
-        dataIngresso: formatDate(user.dataIngresso),
+        dataIngresso: formatCivilDate(user.dataIngresso),
         status: user.status,
         id: user.id,
       });
@@ -272,7 +268,7 @@ function RegisteredUsers() {
                               data={currentData.map((user) => [
                                 String(user.nomeCompleto),
                                 String(user.nivelUsuario),
-                                String(formatDate(user.dataIngresso)),
+                                String(formatCivilDate(user.dataIngresso)),
                                 String(user.status),
                                 String(user.id),
                               ])}
@@ -342,7 +338,7 @@ function RegisteredUsers() {
                         <TableItemWithActions
                           key={index}
                           data={[
-                            formatDate(rowData?.dataIngresso),
+                            formatCivilDate(rowData?.dataIngresso),
                             rowData?.nomeCompleto || 'Nome não disponível',
                             rowData?.nivelUsuario,
                             <UserStatusManager
@@ -351,11 +347,18 @@ function RegisteredUsers() {
                               currentStatus={rowData.status}
                               userName={rowData.nomeCompleto}
                               onStatusUpdate={(newStatus) => {
+                                const parsedStatus =
+                                  statusUsuarioSchema.safeParse(newStatus);
+
+                                if (!parsedStatus.success) {
+                                  return;
+                                }
+
                                 // Atualizar o estado local para refletir a mudança
                                 setRegisteredUsers((prev) =>
                                   prev.map((user) =>
                                     user.id === rowData.id
-                                      ? { ...user, status: newStatus }
+                                      ? { ...user, status: parsedStatus.data }
                                       : user
                                   )
                                 );

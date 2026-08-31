@@ -8,30 +8,12 @@ import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
-import { formatDate, formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import { academicoSchema, type Academico, type Usuario } from '@/contracts/user';
 
-interface IUsuario {
-  instituicao: string;
-  cidade: string;
-  curso: string;
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string; // Alterado para string
-  tipoUsuario: string; // Alterado para string
-  status: string; // Alterado para string
-  emprestimosSolicitados: unknown[] | null; // Pode ser um array ou null (idealmente, criar uma interface para empréstimos)
-  emprestimosAprovados: unknown[] | null; // Pode ser um array ou null
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: (IUsuario | null)[]; // Array de usuários ou null
-}
 export interface ILote {
   codigoLote: string;
   fornecedor: string;
@@ -63,20 +45,6 @@ export interface IEmprestimoProduto {
   quantidade: number;
 }
 
-export interface IUsuarioII {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string | null;
-  dataIngresso: string;
-  status: string | null;
-  nivelUsuario: string | null;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel: IUsuarioII | null;
-}
-
 export interface IEmprestimo {
   id: number;
   dataRealizacao: string;
@@ -84,14 +52,14 @@ export interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuarioII;
-  aprovador: IUsuarioII | null;
+  solicitante: Usuario;
+  aprovador: Usuario | null;
 }
 
 function MentoringHistoryAdm() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<IUsuario>();
+  const [user, setUser] = useState<Academico>();
   const itemsPerPage = 7;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -106,7 +74,8 @@ function MentoringHistoryAdm() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        setUser(response);
+        const academicResult = academicoSchema.safeParse(response);
+        setUser(academicResult.success ? academicResult.data : undefined);
 
         // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
         try {
@@ -154,26 +123,26 @@ function MentoringHistoryAdm() {
     ? [
         {
           title: 'Nome',
-          value: user.nomeCompleto,
+          value: displayUserValue(user.nomeCompleto),
           width: '40%',
         },
         {
           title: 'Email',
-          value: user.email,
+          value: displayUserValue(user.email),
           width: '30%',
         },
-        { title: 'Instituição', value: user.instituicao, width: '15%' },
-        { title: 'Telefone', value: user.telefone, width: '15%' },
+        { title: 'Instituição', value: displayUserValue(user.instituicao), width: '15%' },
+        { title: 'Telefone', value: displayUserValue(user.telefone), width: '15%' },
       ]
     : [];
   const infoItems2 = user
-    ? [{ title: 'Cidade', value: user.cidade, width: '100%' }]
+    ? [{ title: 'Cidade', value: displayUserValue(user.cidade), width: '100%' }]
     : [];
   const infoItems3 = user
     ? [
         {
           title: 'Responsável',
-          value: user.responsavel?.nomeCompleto ?? 'Não Corresponde',
+          value: displayUserValue(user.responsavel?.nomeCompleto),
           width: '100%',
         },
       ]
@@ -182,13 +151,13 @@ function MentoringHistoryAdm() {
     ? [
         {
           title: 'Data de Ingresso',
-          value: formatDate(user.dataIngresso),
+          value: formatCivilDate(user.dataIngresso),
           width: '100%',
         },
       ]
     : [];
   const infoItems5 = user
-    ? [{ title: 'Curso', value: user.curso, width: '100%' }]
+    ? [{ title: 'Curso', value: displayUserValue(user.curso), width: '100%' }]
     : [];
 
   return (

@@ -13,23 +13,7 @@ import { getLoansByClass } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { useLocation } from 'react-router-dom';
-
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  senhaHash: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  emprestimosSolicitados: unknown[] | null;
-  emprestimosAprovados: unknown[] | null;
-  responsavelId: number | null;
-  responsavel: IUsuario | null;
-  dependentes: IUsuario[] | null;
-}
+import type { Usuario } from '@/contracts/user';
 
 interface IProduto {
   id: number;
@@ -63,9 +47,9 @@ interface IEmprestimo {
   status: string;
   emprestimoProdutos: IEmprestimoProduto[];
   solicitanteId: number;
-  solicitante: IUsuario | null;
+  solicitante: Usuario | null;
   aprovadorId: number;
-  aprovador: IUsuario | null;
+  aprovador: Usuario | null;
 }
 
 function ClassLoan() {

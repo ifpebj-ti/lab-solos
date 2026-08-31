@@ -11,7 +11,15 @@ namespace Core.DTOs.Mappings
         {
             // Mapeamento das bases de tipos de Usuario
             CreateMap<Usuario, UsuarioDTO>()
-                .ReverseMap();
+                .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()))
+                .ForMember(dest => dest.TipoUsuario, opt => opt.MapFrom(src => src.TipoUsuario.ToString()))
+                .ReverseMap()
+                .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Enum.Parse<StatusUsuario>(src.Status)))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => Enum.Parse<NivelUsuario>(src.NivelUsuario)))
+                .ForMember(dest => dest.TipoUsuario, opt => opt.MapFrom(src => Enum.Parse<TipoUsuario>(src.TipoUsuario)));
             CreateMap<Academico, AcademicoDTO>()
                 .IncludeBase<Usuario, UsuarioDTO>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
@@ -42,14 +50,21 @@ namespace Core.DTOs.Mappings
             CreateMap<UsuarioDTOPatchRequest, Academico>(MemberList.None)
                 .IncludeBase<UsuarioDTOPatchRequest, Usuario>();
 
-            CreateMap<Usuario, UsuarioDTOPatchResponse>(MemberList.None);
+            CreateMap<Usuario, UsuarioDTOPatchResponse>(MemberList.None)
+                .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()))
+                .ForMember(dest => dest.TipoUsuario, opt => opt.MapFrom(src => src.TipoUsuario.ToString()));
             CreateMap<Administrador, UsuarioDTOPatchResponse>(MemberList.None)
                 .IncludeBase<Usuario, UsuarioDTOPatchResponse>();
             CreateMap<Academico, UsuarioDTOPatchResponse>(MemberList.None)
                 .IncludeBase<Usuario, UsuarioDTOPatchResponse>();
 
             // Mapeamento de Usuarios para ResponsavelDTO
-            CreateMap<Usuario, ResponsavelDTO>(MemberList.None);
+            CreateMap<Usuario, ResponsavelDTO>(MemberList.None)
+                .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()));
             CreateMap<Academico, ResponsavelDTO>()
                 .IncludeBase<Usuario, ResponsavelDTO>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
@@ -57,7 +72,10 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
 
             // Mapeamento de Usuarios para DependenteDTO
-            CreateMap<Usuario, DependenteDTO>(MemberList.None);
+            CreateMap<Usuario, DependenteDTO>(MemberList.None)
+                .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()));
             CreateMap<Academico, DependenteDTO>()
                 .IncludeBase<Usuario, DependenteDTO>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))

@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { dependenteSchema } from '@/contracts/user';
+
+const dependentesResponseSchema = dependenteSchema.array();
 
 export const getLoansByDependentes = async () => {
   try {
@@ -41,7 +44,7 @@ export const getDependentes = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return dependentesResponseSchema.parse(response.data);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.debug('Erro ao buscar produtos', error);
@@ -63,7 +66,7 @@ export const getDependentesID = async (rankID: string) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return dependentesResponseSchema.parse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       console.warn(`Usuário não possui dependentes.`);
@@ -89,7 +92,7 @@ export const getDependentesForApproval = async (rankID: string) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return dependentesResponseSchema.parse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       console.warn(`Usuário não possui dependentes para aprovação.`);
@@ -115,7 +118,7 @@ export const getAllUsersForApproval = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
-    return response.data;
+    return dependentesResponseSchema.parse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       console.warn(`Nenhum usuário encontrado para aprovação.`);

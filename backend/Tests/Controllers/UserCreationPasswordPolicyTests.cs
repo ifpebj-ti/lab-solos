@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Tests.Infrastructure;
 
 namespace Tests.Controllers;
 
@@ -112,7 +113,9 @@ public class UserCreationPasswordPolicyTests
     public async Task Adicionar_AcceptedPasswordPreservesCreatedFlowAndOmitsCredentialsFromResponse()
     {
         const string password = "safe registration password";
-        var fixture = CreateController(password);
+        var clock = new ControlledTimeProvider(
+            new DateTimeOffset(2026, 8, 31, 23, 30, 0, TimeSpan.FromHours(-3)));
+        var fixture = CreateController(password, clock);
 
         var result = await fixture.Controller.Adicionar(fixture.Request);
 
@@ -121,6 +124,7 @@ public class UserCreationPasswordPolicyTests
         Assert.Equal(201, created.StatusCode);
         Assert.False(fixture.User.ExigeTrocaSenha);
         Assert.NotEqual(password, fixture.User.SenhaHash);
+        Assert.Equal(new DateOnly(2026, 9, 1), fixture.User.DataIngresso);
         var serialized = JsonSerializer.Serialize(created.Value);
         Assert.DoesNotContain(password, serialized);
         Assert.DoesNotContain("senha", serialized, StringComparison.OrdinalIgnoreCase);
@@ -129,7 +133,7 @@ public class UserCreationPasswordPolicyTests
         fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Once);
     }
 
-    private static Fixture CreateController(string password)
+    private static Fixture CreateController(string password, TimeProvider? timeProvider = null)
     {
         var request = new AddUsuarioDTO
         {
@@ -178,7 +182,8 @@ public class UserCreationPasswordPolicyTests
             unitOfWork.Object,
             mapper.Object,
             userService,
-            notifications.Object);
+            notifications.Object,
+            timeProvider);
 
         return new Fixture(controller, request, user, repository, unitOfWork);
     }

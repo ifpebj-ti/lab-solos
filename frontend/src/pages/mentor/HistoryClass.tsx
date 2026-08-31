@@ -12,6 +12,7 @@ import Pagination from '@/components/global/table/Pagination';
 import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import type { Usuario } from '@/contracts/user';
 
 // Lote de produto
 interface ILote {
@@ -47,22 +48,6 @@ interface IEmprestimoProduto {
   quantidade: number;
 }
 
-// Usuário (Solicitante ou Aprovador)
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel: IUsuario | null;
-}
-
 // Empréstimo
 interface IEmprestimo {
   id: number;
@@ -71,8 +56,8 @@ interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuario | null;
-  aprovador: IUsuario | null;
+  solicitante: Usuario | null;
+  aprovador: Usuario | null;
 }
 
 function HistoryClass() {

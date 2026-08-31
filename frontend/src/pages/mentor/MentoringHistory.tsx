@@ -8,10 +8,11 @@ import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
-import { formatDate, formatDateTime } from '@/function/date';
+import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import { Link, useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import { academicoSchema, type Academico, type Usuario } from '@/contracts/user';
 
 // Lote de produto
 interface ILote {
@@ -47,22 +48,6 @@ interface IEmprestimoProduto {
   quantidade: number;
 }
 
-// Usuário (Solicitante ou Aprovador)
-interface IUsuario {
-  id: number;
-  nomeCompleto: string;
-  email: string;
-  telefone: string;
-  dataIngresso: string;
-  nivelUsuario: string;
-  tipoUsuario: string;
-  status: string;
-  instituicao?: string;
-  cidade?: string;
-  curso?: string;
-  responsavel: IUsuario | null;
-}
-
 // Empréstimo
 interface IEmprestimo {
   id: number;
@@ -71,14 +56,14 @@ interface IEmprestimo {
   dataAprovacao: string | null;
   status: string;
   produtos: IEmprestimoProduto[];
-  solicitante: IUsuario | null;
-  aprovador: IUsuario | null;
+  solicitante: Usuario | null;
+  aprovador: Usuario | null;
 }
 
 function MentoringHistory() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<IUsuario>();
+  const [user, setUser] = useState<Academico>();
   const itemsPerPage = 7;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +78,8 @@ function MentoringHistory() {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
-        setUser(response);
+        const academicResult = academicoSchema.safeParse(response);
+        setUser(academicResult.success ? academicResult.data : undefined);
 
         // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
         try {
@@ -142,17 +128,17 @@ function MentoringHistory() {
     ? [
       {
         title: 'Nome',
-        value: user.nomeCompleto || 'Não Corresponde',
+        value: displayUserValue(user.nomeCompleto),
         width: '50%',
       },
       {
         title: 'Email',
-        value: user.email || 'Não Corresponde',
+        value: displayUserValue(user.email),
         width: '30%',
       },
       {
         title: 'Instituição',
-        value: user.instituicao || 'Não Corresponde',
+        value: displayUserValue(user.instituicao),
         width: '20%',
       },
     ]
@@ -161,7 +147,7 @@ function MentoringHistory() {
     ? [
       {
         title: 'Cidade',
-        value: user.cidade || 'Não Corresponde',
+        value: displayUserValue(user.cidade),
         width: '100%',
       },
     ]
@@ -170,7 +156,7 @@ function MentoringHistory() {
     ? [
       {
         title: 'Número para Contato',
-        value: user.telefone,
+        value: displayUserValue(user.telefone),
         width: '100%',
       },
     ]
@@ -179,7 +165,7 @@ function MentoringHistory() {
     ? [
       {
         title: 'Data de Ingresso',
-        value: formatDate(user.dataIngresso),
+        value: formatCivilDate(user.dataIngresso),
         width: '100%',
       },
     ]
@@ -188,7 +174,7 @@ function MentoringHistory() {
     ? [
       {
         title: 'Curso',
-        value: user.curso || 'Não Corresponde',
+        value: displayUserValue(user.curso),
         width: '100%',
       },
     ]
