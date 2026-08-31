@@ -1,9 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Globalization;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using LabSolos_Server_DotNet8.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LabSolos_Server_DotNet8.Services
@@ -15,7 +14,7 @@ namespace LabSolos_Server_DotNet8.Services
         private readonly string _audience = config["Jwt:Audience"]!;
         private readonly int _expiresInMinutes = int.Parse(config["Jwt:ExpiresInMinutes"]!);
 
-        public string GenerateToken(string userId, string userEmail, string nivel)
+        public string GenerateToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_secret);
@@ -23,9 +22,15 @@ namespace LabSolos_Server_DotNet8.Services
             {
                 Subject = new ClaimsIdentity(
                 [
-                    new Claim(JwtRegisteredClaimNames.Sub, userId),
-                    new Claim(JwtRegisteredClaimNames.Email, userEmail),
-                    new Claim(ClaimTypes.Role, nivel),
+                    new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString(CultureInfo.InvariantCulture)),
+                    new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
+                    new Claim(ClaimTypes.Role, usuario.NivelUsuario.ToString()),
+                    new Claim(
+                        JwtClaimNames.SessionVersion,
+                        usuario.VersaoSessao.ToString(CultureInfo.InvariantCulture)),
+                    new Claim(
+                        JwtClaimNames.PasswordChangeRequired,
+                        usuario.ExigeTrocaSenha ? "true" : "false"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(_expiresInMinutes),
@@ -38,12 +43,11 @@ namespace LabSolos_Server_DotNet8.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public static string HashPassword(Usuario usuario, string senha)
-        {
-            var hasher = new PasswordHasher<Usuario>();
-            return hasher.HashPassword(usuario, senha);
-        }
+    }
 
-
+    public static class JwtClaimNames
+    {
+        public const string SessionVersion = "session_version";
+        public const string PasswordChangeRequired = "password_change_required";
     }
 }

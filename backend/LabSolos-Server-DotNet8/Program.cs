@@ -5,7 +5,9 @@ using LabSolos_Server_DotNet8.Filters;
 using LabSolos_Server_DotNet8.Middlewares;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,8 +34,10 @@ builder.Services.AddControllers(options =>
 
 // Configuração de algumas dependẽncias
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddPasswordSecurity();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
@@ -57,6 +61,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -88,19 +93,60 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero,
         RoleClaimType = ClaimTypes.Role
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var subject = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+            var sessionVersionClaim = context.Principal?.FindFirstValue(JwtClaimNames.SessionVersion);
+            var passwordChangeClaim = context.Principal?.FindFirstValue(JwtClaimNames.PasswordChangeRequired);
+
+            if (!int.TryParse(subject, out var userId) ||
+                !long.TryParse(sessionVersionClaim, out var sessionVersion) ||
+                !bool.TryParse(passwordChangeClaim, out _))
+            {
+                context.Fail("Token inválido.");
+                return;
+            }
+
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var credentialState = await dbContext.Usuarios
+                .AsNoTracking()
+                .Where(user => user.Id == userId)
+                .Select(user => new { user.Status, user.VersaoSessao })
+                .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+
+            if (credentialState is null ||
+                credentialState.Status != LabSolos_Server_DotNet8.Enums.StatusUsuario.Habilitado ||
+                credentialState.VersaoSessao != sessionVersion)
+            {
+                context.Fail("Token inválido.");
+            }
+        }
+    };
 });
 
 builder.Services.AddAuthorization(options =>
 {
+    var completedPasswordChange = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false")
+        .Build();
+    options.DefaultPolicy = completedPasswordChange;
+
     // Políticas baseadas em roles
     options.AddPolicy("ApenasAdministradores", policy =>
-        policy.RequireRole("Administrador"));
+        policy.RequireRole("Administrador")
+            .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 
     options.AddPolicy("ApenasResponsaveis", policy =>
-        policy.RequireRole("Administrador", "Mentor"));
+        policy.RequireRole("Administrador", "Mentor")
+            .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 
     options.AddPolicy("ApenasDependentes", policy =>
-        policy.RequireRole("Mentorado"));
+        policy.RequireRole("Mentorado")
+            .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 });
 
 // Configurar CORS
@@ -113,6 +159,23 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var startupScope = app.Services.CreateScope())
+{
+    var services = startupScope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+
+    context.Database.Migrate();
+
+    if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+    {
+        DbSeeder.Seed(
+            context,
+            app.Environment.EnvironmentName,
+            app.Configuration,
+            services.GetRequiredService<IPasswordPolicy>());
+    }
+}
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
@@ -132,13 +195,6 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     });
 
     // Executar o seeding de dados apenas em ambiente de desenvolvimento
-    using var scope = app.Services.CreateScope();
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-
-    context.Database.EnsureCreated();
-
-    DbSeeder.Seed(context, app.Environment.EnvironmentName, app.Configuration);
 }
 else
 {
@@ -158,5 +214,8 @@ app.UseAuthentication();
 app.UseMiddleware<AuditoriaMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
+
+public partial class Program;

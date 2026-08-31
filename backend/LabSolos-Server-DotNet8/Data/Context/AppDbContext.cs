@@ -1,6 +1,7 @@
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace LabSolos_Server_DotNet8.Data.Context
 {
@@ -28,6 +29,21 @@ namespace LabSolos_Server_DotNet8.Data.Context
                 .HasValue<Administrador>(TipoUsuario.Administrador)
                 .HasValue<Academico>(TipoUsuario.Academico)
                 .HasValue<Usuario>(TipoUsuario.Comum);
+
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.ExigeTrocaSenha)
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.VersaoSessao)
+                .HasDefaultValue(0L)
+                .IsRequired()
+                .IsConcurrencyToken();
+
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.TokenRedefinicaoHash)
+                .HasColumnName("TokenRedefinicaoHash");
 
             // Relacionamento mentor-mentorandos (Responsável e Dependentes)
             modelBuilder.Entity<Usuario>()
@@ -126,6 +142,18 @@ namespace LabSolos_Server_DotNet8.Data.Context
             // Índice composto para consultas de auditoria mais eficientes
             modelBuilder.Entity<LogAuditoria>()
                 .HasIndex(l => new { l.DataHora, l.UsuarioId, l.TipoAcao });
+        }
+    }
+
+    public sealed class DesignTimeAppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+    {
+        public AppDbContext CreateDbContext(string[] args)
+        {
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseNpgsql("Host=localhost;Database=labsolos_design;Username=postgres")
+                .Options;
+
+            return new AppDbContext(options);
         }
     }
 }

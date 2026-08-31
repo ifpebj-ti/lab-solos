@@ -1,5 +1,6 @@
 import { LogOutIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { clearSession } from '@/auth/session';
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +15,7 @@ function ButtonLogout() {
         <TooltipTrigger>
           <Link
             to={'/'}
+            onClick={clearSession}
             className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150 hover:bg-cl-table-item group'
           >
             <LogOutIcon

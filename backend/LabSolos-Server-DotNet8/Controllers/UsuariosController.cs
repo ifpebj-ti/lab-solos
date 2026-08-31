@@ -5,6 +5,7 @@ using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -250,7 +251,12 @@ namespace LabSolos_Server_DotNet8.Controllers
                     _ => _mapper.Map<Usuario>(addUsuarioDTO)
                 };
 
-                usuario.DefinirSenha(addUsuarioDTO.Senha);
+                var passwordResult = _usuarioService.PrepararSenhaCadastro(usuario, addUsuarioDTO.Senha);
+                if (!passwordResult.IsValid)
+                {
+                    return PasswordValidationProblem(passwordResult.Code ?? "password_invalid");
+                }
+
                 usuario.DataIngresso = DateTime.UtcNow;
                 usuario.ResponsavelId = responsavelId;
                 usuario.Status = StatusUsuario.Pendente;
@@ -276,6 +282,33 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        private static ObjectResult PasswordValidationProblem(string code)
+        {
+            var message = code switch
+            {
+                "password_required" => "A senha é obrigatória.",
+                "password_too_short" => $"A senha deve ter pelo menos {PasswordPolicy.MinimumLength} caracteres.",
+                "password_too_long" => $"A senha deve ter no máximo {PasswordPolicy.MaximumLength} caracteres.",
+                "password_common" => "A senha é muito comum.",
+                _ => "A senha é inválida."
+            };
+            var details = new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["senha"] = [code, message]
+            })
+            {
+                Type = "https://httpstatuses.com/400",
+                Title = "Não foi possível cadastrar o usuário.",
+                Status = StatusCodes.Status400BadRequest
+            };
+
+            return new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ContentTypes = { "application/problem+json" }
+            };
         }
 
         [HttpPatch("{usuarioId}")]

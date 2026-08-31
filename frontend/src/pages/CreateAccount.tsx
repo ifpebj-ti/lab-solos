@@ -16,7 +16,7 @@ import { createMentor } from '@/integration/Auth';
 import { toast } from '@/components/hooks/use-toast';
 import { AxiosError } from 'axios';
 import { useEffect } from 'react';
-import Cookie from 'js-cookie';
+import { clearSession } from '@/auth/session';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Sheet,
@@ -137,9 +137,7 @@ function CreateAccount() {
   };
 
   useEffect(() => {
-    Cookie.remove('rankID');
-    Cookie.remove('doorKey');
-    Cookie.remove('level');
+    clearSession();
   }, []);
 
   return (

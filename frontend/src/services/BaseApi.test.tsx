@@ -1,7 +1,7 @@
 import axios from 'axios';
-import Cookie from 'js-cookie';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { toast } from '@/components/hooks/use-toast';
+import { clearSession } from '@/auth/session';
 
 const responseUse = vi.fn();
 
@@ -17,10 +17,8 @@ vi.mock('axios', () => ({
   },
 }));
 
-vi.mock('js-cookie', () => ({
-  default: {
-    remove: vi.fn(),
-  },
+vi.mock('@/auth/session', () => ({
+  clearSession: vi.fn(),
 }));
 
 vi.mock('@/components/hooks/use-toast', () => ({
@@ -57,10 +55,7 @@ describe('BaseApi', () => {
 
     await expect(rejectResponse(error)).rejects.toBe(error);
 
-    expect(Cookie.remove).toHaveBeenCalledTimes(3);
-    expect(Cookie.remove).toHaveBeenCalledWith('doorKey');
-    expect(Cookie.remove).toHaveBeenCalledWith('rankID');
-    expect(Cookie.remove).toHaveBeenCalledWith('level');
+    expect(clearSession).toHaveBeenCalledOnce();
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({ variant: 'destructive' })
     );
@@ -72,7 +67,7 @@ describe('BaseApi', () => {
 
     await expect(rejectResponse(error)).rejects.toBe(error);
 
-    expect(Cookie.remove).not.toHaveBeenCalled();
+    expect(clearSession).not.toHaveBeenCalled();
     expect(toast).not.toHaveBeenCalled();
     expect(window.location.href).toBe('/products');
   });

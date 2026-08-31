@@ -1,106 +1,188 @@
 using LabSolos_Server_DotNet8.DTOs.Email;
-using LabSolos_Server_DotNet8.DTOs.Usuarios;
-using LabSolos_Server_DotNet8.Enums;
-using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LabSolos_Server_DotNet8.Controllers
+namespace LabSolos_Server_DotNet8.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class EmailController(
+    IEmailService emailService,
+    ICredentialService credentialService,
+    ILogger<EmailController> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class EmailController : ControllerBase
+    private const string NeutralRequestMessage =
+        "Se a conta estiver apta, enviaremos as instruÃ§Ãµes.";
+
+    private readonly IEmailService _emailService = emailService;
+    private readonly ICredentialService _credentialService = credentialService;
+    private readonly ILogger<EmailController> _logger = logger;
+
+    [HttpPost("enviar")]
+    public IActionResult EnviarEmail([FromQuery] string para)
     {
-        private readonly IEmailService _emailService;
-        private readonly IUnitOfWork _uow;
-        private readonly JwtService _jwtService;
-
-
-        public EmailController(IEmailService emailService, IUnitOfWork uow, JwtService jwtService)        
+        try
         {
-            _jwtService = jwtService;
-            _emailService = emailService;
-            _uow = uow;
-        }
+            _emailService.EnviarEmail(
+                para: para,
+                assunto: "Teste de E-mail",
+                corpo: "Este Ã© um e-mail de teste enviado pelo sistema.");
 
-        [HttpPost("enviar")]
-        public IActionResult EnviarEmail([FromQuery] string para)
+            return Ok("E-mail enviado com sucesso!");
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpPost("request-password-reset")]
+    public Task<IActionResult> RequestPasswordReset(
+        [FromBody] PasswordResetRequestDTO? request,
+        CancellationToken cancellationToken) =>
+        RequestPasswordResetCore(request?.Email, cancellationToken);
+
+    [HttpPost("solicitar-redefinicao")]
+    public Task<IActionResult> SolicitarRedefinicao(
+        [FromBody] EmailDTO? request,
+        CancellationToken cancellationToken) =>
+        RequestPasswordResetCore(request?.Email, cancellationToken);
+
+    [HttpPost("reset-password")]
+    public Task<IActionResult> ResetPassword(
+        [FromBody] PasswordResetDTO? request,
+        CancellationToken cancellationToken) =>
+        ResetPasswordCore(
+            request?.Email,
+            request?.Code,
+            request?.NewPassword,
+            request?.Confirmation,
+            false,
+            cancellationToken);
+
+    [HttpPost("redefinir-senha")]
+    public Task<IActionResult> RedefinirSenha(
+        [FromBody] RedefinirSenhaDTO? request,
+        CancellationToken cancellationToken) =>
+        ResetPasswordCore(
+            request?.Email,
+            request?.Token,
+            request?.NovaSenha,
+            request?.Confirmacao ?? request?.NovaSenha,
+            true,
+            cancellationToken);
+
+    private async Task<IActionResult> RequestPasswordResetCore(
+        string? email,
+        CancellationToken cancellationToken)
+    {
+        var request = await _credentialService.RequestPasswordResetAsync(email, cancellationToken);
+        if (request.Token is not null && request.RecipientEmail is not null)
         {
             try
             {
                 _emailService.EnviarEmail(
-                    para: para,
-                    assunto: "Teste de E-mail",
-                    corpo: "Este é um e-mail de teste enviado pelo sistema."
-                );
-
-                return Ok("E-mail enviado com sucesso!");
+                    request.RecipientEmail,
+                    "RedefiniÃ§Ã£o de Senha",
+                    BuildPasswordResetEmail(request.RecipientName ?? "UsuÃ¡rio", request.Token));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, $"Erro ao enviar o e-mail: {ex.Message}");
+                _logger.LogWarning("Password reset email delivery failed.");
             }
         }
 
-        [HttpPost("solicitar-redefinicao")]
-        public async Task<IActionResult> SolicitarRedefinicao([FromBody] EmailDTO emailDto)
-        {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Email == emailDto.Email);
-            if (usuario == null || usuario.Status != StatusUsuario.Habilitado)
-                return NotFound("Usuário não encontrado ou não está habilitado.");
-
-            var random = new Random();
-            var token = random.Next(100000, 999999).ToString(); 
-
-            // Salvar o token e a expiração no banco
-            usuario.TokenRedefinicao = token;
-            usuario.TokenExpiracao = DateTime.UtcNow.AddMinutes(1);
-
-            _uow.UsuarioRepository.Atualizar(usuario);
-            await _uow.CommitAsync();
-
-            var primeiroNome = usuario.NomeCompleto.Split(" ").First();
-
-            var corpoEmail = $@"
-            <html>
-            <body style=""font-family: Arial, sans-serif; color: #333;"">
-                <h2 style=""color: #2c3e50;"">Olá, {primeiroNome}!</h2>
-                <p>Use o código abaixo para redefinir sua senha:</p>
-                <div style=""font-size: 24px; font-weight: bold; margin: 20px 0; color: #2c3e50;"">
-                {token}
-                </div>
-                <p style=""font-size: 14px; color: #777;"">
-                Caso você não tenha solicitado essa redefinição, ignore este e-mail.
-                </p>
-            </body>
-            </html>";
-
-            _emailService.EnviarEmail(
-                para: emailDto.Email,
-                assunto: "Redefinição de Senha",
-                corpo: corpoEmail
-            );
-
-            return Ok("Instruções enviadas para seu e-mail.");
-        }
-
-        [HttpPost("redefinir-senha")]
-        public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDTO dto)
-        {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.TokenRedefinicao == dto.Token);
-            if (usuario == null || usuario.TokenExpiracao < DateTime.UtcNow)
-                return BadRequest("Token inválido ou expirado.");
-
-            usuario.SenhaHash = JwtService.HashPassword(usuario, dto.NovaSenha);
-            usuario.TokenRedefinicao = null;
-            usuario.TokenExpiracao = null;
-
-            _uow.UsuarioRepository.Atualizar(usuario);
-            await _uow.CommitAsync();
-
-            return Ok("Senha redefinida com sucesso.");
-        }
-
-
+        return Accepted(new { message = NeutralRequestMessage });
     }
+
+    private async Task<IActionResult> ResetPasswordCore(
+        string? email,
+        string? token,
+        string? newPassword,
+        string? confirmation,
+        bool allowLegacyTokenOnly,
+        CancellationToken cancellationToken)
+    {
+        var result = await _credentialService.ResetPasswordAsync(
+            email,
+            token,
+            newPassword,
+            confirmation,
+            allowLegacyTokenOnly,
+            cancellationToken);
+
+        return result.Status switch
+        {
+            CredentialChangeStatus.Success => NoContent(),
+            CredentialChangeStatus.Conflict => ConflictProblem(),
+            _ => ValidationProblem(result.Code ?? CredentialErrorCodes.PasswordResetInvalid)
+        };
+    }
+
+    private static ObjectResult ValidationProblem(string code)
+    {
+        var field = code switch
+        {
+            CredentialErrorCodes.ConfirmationMismatch => "confirmation",
+            CredentialErrorCodes.PasswordResetInvalid => "code",
+            _ => "newPassword"
+        };
+        var message = code switch
+        {
+            CredentialErrorCodes.ConfirmationMismatch => "A confirmaÃ§Ã£o da nova senha nÃ£o confere.",
+            CredentialErrorCodes.PasswordResetInvalid => "O cÃ³digo de redefiniÃ§Ã£o Ã© invÃ¡lido ou expirou.",
+            "password_required" => "A nova senha Ã© obrigatÃ³ria.",
+            "password_too_short" => "A nova senha deve ter pelo menos 15 caracteres.",
+            "password_too_long" => "A nova senha deve ter no mÃ¡ximo 128 caracteres.",
+            "password_common" => "A nova senha Ã© muito comum.",
+            _ => "A nova senha Ã© invÃ¡lida."
+        };
+        var details = new ValidationProblemDetails(new Dictionary<string, string[]>
+        {
+            [field] = [code, message]
+        })
+        {
+            Type = "https://httpstatuses.com/400",
+            Title = "NÃ£o foi possÃ­vel redefinir a senha.",
+            Status = StatusCodes.Status400BadRequest
+        };
+
+        return new ObjectResult(details)
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            ContentTypes = { "application/problem+json" }
+        };
+    }
+
+    private static ObjectResult ConflictProblem()
+    {
+        var details = new ProblemDetails
+        {
+            Type = "https://httpstatuses.com/409",
+            Title = "A credencial foi alterada por outra solicitaÃ§Ã£o.",
+            Status = StatusCodes.Status409Conflict
+        };
+        details.Extensions["code"] = CredentialErrorCodes.ConcurrencyConflict;
+
+        return new ObjectResult(details)
+        {
+            StatusCode = StatusCodes.Status409Conflict,
+            ContentTypes = { "application/problem+json" }
+        };
+    }
+
+    private static string BuildPasswordResetEmail(string firstName, string token) => $@"
+        <html>
+        <body style=""font-family: Arial, sans-serif; color: #333;"">
+            <h2 style=""color: #2c3e50;"">OlÃ¡, {firstName}!</h2>
+            <p>Use o cÃ³digo abaixo para redefinir sua senha:</p>
+            <div style=""font-size: 24px; font-weight: bold; margin: 20px 0; color: #2c3e50;"">
+            {token}
+            </div>
+            <p style=""font-size: 14px; color: #777;"">
+            Caso vocÃª nÃ£o tenha solicitado essa redefiniÃ§Ã£o, ignore este e-mail.
+            </p>
+        </body>
+        </html>";
 }

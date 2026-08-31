@@ -1,3 +1,5 @@
+import ChangePassword from '../ChangePassword';
+
 function Settings() {
   return (
     <div className='flex flex-col items-center justify-center h-full w-full p-8'>
@@ -5,6 +7,7 @@ function Settings() {
       <p className='text-lg text-gray-600'>
         Página de configurações do sistema. Adicione aqui as opções desejadas.
       </p>
+      <ChangePassword />
     </div>
   );
 }

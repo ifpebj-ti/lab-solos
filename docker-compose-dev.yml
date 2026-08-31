@@ -36,6 +36,8 @@ services:
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
       - Jwt__ExpiresInMinutes=${JWT_EXPIRES_IN_MINUTES}
+      - Seed__AdminEmail=${SEED_ADMIN_EMAIL}
+      - Seed__AdminPassword=${SEED_ADMIN_PASSWORD}
       - AllowedHosts=${ALLOWED_HOSTS}
     depends_on:
       db:
