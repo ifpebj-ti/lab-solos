@@ -1,18 +1,15 @@
-type Column = {
-  value: string;
-  width: string;
-};
+import { requireResponsiveColumns, useResponsiveColumns } from './responsiveContext';
 
-type HeaderTableProps = {
-  columns: Column[];
-};
-
-function HeaderTable({ columns }: HeaderTableProps) {
+function HeaderTable() {
+  const responsiveColumns = requireResponsiveColumns(useResponsiveColumns());
   return (
-    <div className='flex items-center border-b border-borderMy w-full text-sm font-inter-regular text-clt-2 mb-1 pb-2 px-3 mt-4'>
-      {columns.map((column, index) => (
-        <p key={index} style={{ width: column.width }} className='text-start'>
-          {column.value}
+    <div
+      aria-hidden='true'
+      className='hidden w-full min-w-0 grid-cols-[var(--responsive-columns)] gap-2 border-b border-borderMy px-3 pb-2 mb-1 mt-4 text-sm font-inter-regular text-clt-2 md:grid'
+    >
+      {responsiveColumns.map((column) => (
+        <p className='min-w-0 [overflow-wrap:anywhere]' key={column.key}>
+          {column.label}
         </p>
       ))}
     </div>

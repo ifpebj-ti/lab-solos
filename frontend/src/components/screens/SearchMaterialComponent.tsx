@@ -7,7 +7,11 @@ import TopDown from '../global/table/TopDown';
 import SelectInput from '../global/inputs/SelectInput';
 import Pagination from '../global/table/Pagination';
 import LayersIcon from '../../../public/icons/LayersIcon';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '../global/table/ResponsiveTable';
 import { getAllProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
 import ClickableItemTable from '../global/table/ItemClickable';
@@ -57,14 +61,19 @@ interface SearchMaterialComponentProps {
   destinationRoute: string;
 }
 
+const columns: readonly ResponsiveColumn[] = [
+  { key: 'id', label: 'ID', weight: 12 },
+  { key: 'name', label: 'Nome', weight: 28 },
+  { key: 'type', label: 'Tipo', weight: 18 },
+  { key: 'quantity', label: 'Quantidade', weight: 12 },
+  { key: 'unit', label: 'Unidade', weight: 15 },
+  { key: 'status', label: 'Status', weight: 15 },
+];
+
 function SearchMaterialComponent({
   userType,
   destinationRoute,
 }: SearchMaterialComponentProps) {
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<IAllProducts[]>([]);
   const [system, setSystem] = useState<DashboardData>();
@@ -87,38 +96,11 @@ function SearchMaterialComponent({
     fetchAllProducts();
   }, []);
 
-  const startDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));
-    setScrollLeft(scrollContainerRef.current?.scrollLeft || 0);
-  };
-
-  const stopDrag = () => {
-    setIsDragging(false);
-  };
-
-  const onDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
   // Colunas adaptáveis baseadas no tipo de usuário
-  const columns = [
-    { value: 'ID', width: '12%' },
-    { value: 'Nome', width: '28%' },
-    { value: 'Tipo', width: '18%' },
-    { value: 'Quantidade', width: '12%' },
-    { value: 'Unidade', width: '15%' },
-    { value: 'Status', width: '15%' },
-  ];
-
   const options = [
     { value: 'todos', label: 'Todos' },
     { value: 'Vidraria', label: 'Vidrarias' },
@@ -168,30 +150,26 @@ function SearchMaterialComponent({
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div
+          role='status'
+          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        >
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen '>
-          <div className='w-11/12 flex items-center justify-between mt-5 lg:mt-10'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+        <div className='w-full min-w-0 flex justify-start items-center flex-col bg-backgroundMy min-h-screen '>
+          <div className='w-11/12 min-w-0 flex flex-wrap gap-3 items-center justify-between mt-5 lg:mt-10'>
+            <h1 className='min-w-0 [overflow-wrap:anywhere] uppercase font-rajdhani-medium text-3xl text-clt-2'>
               {getTitle()}
             </h1>
             <div className='flex items-center justify-between'>
               <OpenSearch />
             </div>
           </div>
-          <div
-            ref={scrollContainerRef}
-            onMouseDown={startDrag}
-            onMouseLeave={stopDrag}
-            onMouseUp={stopDrag}
-            onMouseMove={onDrag}
-            className='w-11/12 flex items-center justify-center gap-4 mt-10 lg:mt-5 flex-wrap'
-          >
+          <div className='w-11/12 flex items-center justify-center gap-4 mt-10 lg:mt-5 flex-wrap'>
             <FollowUpCard
               title='Tipos de Vidrarias'
               number={String(
@@ -220,16 +198,16 @@ function SearchMaterialComponent({
               icon={<LayersIcon />}
             />
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
             <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2  flex justify-start items-start gap-2'>
+              <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-                <div className='w-full flex items-center justify-evenly'>
+                <div className='w-full min-w-0 flex items-center justify-evenly'>
                   <SearchInput
                     name='search'
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -248,20 +226,22 @@ function SearchMaterialComponent({
               </div>
             </div>
 
-            {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={columns} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Produtos' columns={columns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
-                      <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
+                      <div
+                        role='status'
+                        className='w-full h-40 flex items-center justify-center font-inter-regular'
+                      >
                         Nenhum dado disponível para exibição.
                       </div>
                     ) : (
                       currentData.map((rowData, index) => (
                         <ClickableItemTable
-                          key={index}
+                          key={rowData.id}
                           data={[
                             String(rowData.id),
                             String(rowData.nomeProduto),
@@ -271,7 +251,6 @@ function SearchMaterialComponent({
                             String(rowData.status),
                           ]}
                           rowIndex={index}
-                          columnWidths={columns.map((column) => column.width)}
                           destinationRoute={destinationRoute}
                           id={rowData.id}
                         />
@@ -279,7 +258,7 @@ function SearchMaterialComponent({
                     )}
                   </div>
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
 
             <Pagination

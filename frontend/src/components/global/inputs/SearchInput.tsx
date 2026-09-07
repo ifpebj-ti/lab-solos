@@ -8,17 +8,21 @@ interface IInputSearch {
 
 function SearchInput({ name, onChange, value }: IInputSearch) {
   return (
-    <div className='w-full flex border h-9 border-borderMy rounded-sm hover:border-gray-400 focus:border-gray-400 bg-slate-400'>
+    <div className='w-full min-w-0 flex border min-h-11 border-stone-500 rounded-sm bg-white focus-within:outline focus-within:outline-2 focus-within:outline-green-800 md:min-h-9 [@media(pointer:coarse)]:min-h-11'>
       <input
         type='text'
         name={name}
-        className='w-full px-3 bg-white h-full text-sm shadow-sm focus:outline-none'
+        aria-label='Pesquisar'
+        className='w-full min-w-0 px-3 bg-white text-sm focus:outline-none'
         value={value} // Exibe o valor atual
         onChange={onChange} // Chama o manipulador quando o valor muda
       />
-      <button type='button' className='px-4 bg-backgroundMy h-full shadow-sm'>
+      <span
+        aria-hidden='true'
+        className='px-3 bg-backgroundMy flex items-center'
+      >
         <SearchIcon fill='#232323' />
-      </button>
+      </span>
     </div>
   );
 }

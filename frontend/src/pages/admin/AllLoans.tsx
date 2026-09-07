@@ -14,6 +14,15 @@ import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import type { Usuario } from '@/contracts/user';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+
+const allLoanColumns: readonly ResponsiveColumn[] = [
+  { key: 'date', label: 'Data de Solicitação', weight: 20 },
+  { key: 'requester', label: 'Solicitante', weight: 25 },
+  { key: 'owner', label: 'Responsável', weight: 25 },
+  { key: 'items', label: 'Itens Utilizados', weight: 15 },
+  { key: 'status', label: 'Status', weight: 15 },
+];
 interface ILote {
   codigoLote: string;
   fornecedor: string;
@@ -88,13 +97,6 @@ function AllLoans() {
     fetchAllLoans();
   }, []);
 
-  const headerTable = [
-    { value: 'Data de Solicitação', width: '20%' },
-    { value: 'Solicitante', width: '25%' },
-    { value: 'Responsável', width: '25%' },
-    { value: 'Itens Utilizados', width: '15%' },
-    { value: 'Status', width: '15%' },
-  ];
 
   const options = [
     { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
@@ -134,8 +136,8 @@ function AllLoans() {
           Carregando...
         </div>
       ) : currentData.length != 0 ? (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
             <div>
               <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
                 Histórico de Empréstimos
@@ -152,7 +154,7 @@ function AllLoans() {
             </div>
           </div>
 
-          <div className='w-11/12 mt-7 flex items-center justify-center flex-wrap gap-4'>
+          <div className='w-11/12 min-w-0 mt-7 flex items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Aprovados'
               number={getUserCountText('Aprovado')}
@@ -170,9 +172,9 @@ function AllLoans() {
             />
           </div>
 
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -187,8 +189,8 @@ function AllLoans() {
                   />
                 </div>
               </div>
-              <div className='w-full lg:w-2/4 flex justify-end items-center'>
-                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
+              <div className='w-full min-w-0 lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full min-w-0 lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
@@ -202,11 +204,11 @@ function AllLoans() {
             </div>
 
             {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={headerTable} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Todos os empréstimos' columns={allLoanColumns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-center min-h-72'>
-                  <div className='w-full'>
+                  <div className='w-full min-w-0'>
                     {currentData.length === 0 ? (
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                         <div className='text-6xl text-gray-300'>📦</div>
@@ -239,7 +241,6 @@ function AllLoans() {
                             rowData?.status || 'Status não disponível',
                           ]}
                           rowIndex={index}
-                          columnWidths={headerTable.map((column) => column.width)}
                           destinationRoute={'/admin/history/loan'}
                           id={rowData.id}
                         />
@@ -247,7 +248,7 @@ function AllLoans() {
                     )}
                   </div>
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
             {currentData.length > 0 && loan.length > 0 && (

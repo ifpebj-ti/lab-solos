@@ -1,10 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
-import { columnsVer, getUnidadePlural } from '@/mocks/Unidades';
+import { getUnidadePlural } from '@/mocks/Unidades';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import SearchInput from '@/components/global/inputs/SearchInput';
-import InfoContainer from '@/components/screens/InfoContainer';
 import HeaderTable from '@/components/global/table/Header';
+import ItemOnly from '@/components/global/table/ItemOnly';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
 import LoadingIcon from '@/components/icons/LoadingIcon';
 import OpenSearch from '@/components/global/OpenSearch';
 import ItemTable from '@/components/global/table/Item';
@@ -25,6 +29,15 @@ import {
 } from '@/components/ui/chart';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit } from 'lucide-react';
+
+const verificationHistoryColumns: readonly ResponsiveColumn[] = [
+  { key: 'date', label: 'Data', weight: 15 },
+  { key: 'user', label: 'Utilizador', weight: 25 },
+  { key: 'identifier', label: 'Identificador', weight: 20 },
+  { key: 'batch', label: 'Lote', weight: 15 },
+  { key: 'quantity', label: 'Quantidade', weight: 12 },
+  { key: 'unit', label: 'Unidade', weight: 13 },
+];
 
 // Interfaces
 interface UsuarioEmprestimo {
@@ -96,6 +109,13 @@ interface VerificationProps {
   userType: UserType;
 }
 
+type ProductInfo = {
+  key: string;
+  title: string;
+  value: string;
+  width: string;
+};
+
 // Configuração do gráfico
 const chartConfig = {
   desktop: {
@@ -152,7 +172,7 @@ function VerificationPage({ userType }: VerificationProps) {
   const needsHistoricoForChart = userType === 'admin';
 
   // Determina quais informações do produto mostrar baseado no tipo de usuário
-  const getProductInfo = () => {
+  const getProductInfo = (): ProductInfo[] => {
     if (!productsById) return [];
 
     // Verifica se deve mostrar fórmula (apenas para produtos químicos com valor)
@@ -166,6 +186,7 @@ function VerificationPage({ userType }: VerificationProps) {
         // Admin vê todas as informações
         const adminInfo = [
           {
+            key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
             width: shouldShowFormula ? '25%' : '30%',
@@ -174,6 +195,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
         if (shouldShowFormula) {
           adminInfo.push({
+            key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
             width: '20%',
@@ -182,16 +204,19 @@ function VerificationPage({ userType }: VerificationProps) {
 
         adminInfo.push(
           {
+            key: 'supplier',
             title: 'Fornecedor',
             value: productsById.fornecedor,
             width: shouldShowFormula ? '20%' : '25%',
           },
           {
+            key: 'group',
             title: 'Grupo',
             value: productsById.grupo?.toString() || 'N/A',
             width: '15%',
           },
           {
+            key: 'status',
             title: 'Situação',
             value: productsById.status?.toString() || 'N/A',
             width: shouldShowFormula ? '20%' : '30%',
@@ -205,6 +230,7 @@ function VerificationPage({ userType }: VerificationProps) {
         // Mentor vê informações básicas (sem fornecedor)
         const mentorInfo = [
           {
+            key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
             width: shouldShowFormula ? '30%' : '40%',
@@ -213,6 +239,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
         if (shouldShowFormula) {
           mentorInfo.push({
+            key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
             width: '25%',
@@ -221,11 +248,13 @@ function VerificationPage({ userType }: VerificationProps) {
 
         mentorInfo.push(
           {
+            key: 'group',
             title: 'Grupo',
             value: productsById.grupo?.toString() || 'N/A',
             width: shouldShowFormula ? '25%' : '30%',
           },
           {
+            key: 'status',
             title: 'Situação',
             value: productsById.status?.toString() || 'N/A',
             width: shouldShowFormula ? '20%' : '30%',
@@ -239,6 +268,7 @@ function VerificationPage({ userType }: VerificationProps) {
         // Mentee vê apenas informações essenciais
         const menteeInfo = [
           {
+            key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
             width: shouldShowFormula ? '40%' : '50%',
@@ -247,6 +277,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
         if (shouldShowFormula) {
           menteeInfo.push({
+            key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
             width: '30%',
@@ -254,6 +285,7 @@ function VerificationPage({ userType }: VerificationProps) {
         }
 
         menteeInfo.push({
+          key: 'group',
           title: 'Grupo',
           value: productsById.grupo?.toString() || 'N/A',
           width: shouldShowFormula ? '30%' : '50%',
@@ -395,10 +427,18 @@ function VerificationPage({ userType }: VerificationProps) {
   };
 
   const chartData = generateChartData();
+  const productInfo = getProductInfo();
+  const productInfoColumns: readonly ResponsiveColumn[] = productInfo.map(
+    ({ key, title, width }) => ({
+      key,
+      label: title,
+      weight: Math.max(Number.parseFloat(width), 1),
+    })
+  );
 
   return (
-    <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
-      <div className='w-11/12 flex items-center justify-between mt-7'>
+    <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
+      <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
         <div className='flex items-center gap-4'>
           <Link
             to={getBackRoute()}
@@ -414,8 +454,8 @@ function VerificationPage({ userType }: VerificationProps) {
       </div>
 
       {/* Informações do Produto */}
-      <div className='w-11/12 mt-7'>
-        <div className='flex items-center justify-between mb-4'>
+      <div className='w-11/12 min-w-0 mt-7'>
+        <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
           <h2 className='text-xl font-rajdhani-medium text-clt-2'>
             Informações do Produto
           </h2>
@@ -431,30 +471,33 @@ function VerificationPage({ userType }: VerificationProps) {
             </Button>
           )}
         </div>
-        <InfoContainer items={getProductInfo()} />
+        <ResponsiveTable label='Informações do Produto' columns={productInfoColumns}>
+          <HeaderTable />
+          <ItemOnly data={productInfo.map((item) => item.value)} />
+        </ResponsiveTable>
       </div>
 
       {/* Seção de Histórico - apenas para admin */}
       {showHistoricoDetalhado && historicoData && (
         <>
           {/* Cards de Estatísticas */}
-          <div className='w-11/12 mt-7 grid grid-cols-1 md:grid-cols-3 gap-4'>
-            <Card>
+          <div className='w-11/12 min-w-0 mt-7 grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='text-lg'>Total de Empréstimos</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>Total de Empréstimos</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='min-w-0'>
                 <p className='text-2xl font-bold text-primaryMy'>
                   {historicoData.totalEmprestimos}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='text-lg'>Quantidade Emprestada</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>Quantidade Emprestada</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='min-w-0'>
                 <p className='text-2xl font-bold text-primaryMy'>
                   {historicoData.totalQuantidadeEmprestada}{' '}
                   {getUnidadePlural(
@@ -465,11 +508,11 @@ function VerificationPage({ userType }: VerificationProps) {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='text-lg'>Status Atual</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>Status Atual</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='min-w-0'>
                 <p className='text-lg font-medium text-clt-2'>
                   {productsById.status}
                 </p>
@@ -478,12 +521,12 @@ function VerificationPage({ userType }: VerificationProps) {
           </div>
 
           {/* Gráfico de Uso - apenas para admin */}
-          <div className='w-11/12 mt-7'>
-            <Card>
+          <div className='w-11/12 min-w-0 mt-7'>
+            <Card className='min-w-0'>
               <CardHeader>
                 <CardTitle>Gráfico de Uso</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='min-w-0'>
                 {chartData.length === 0 ? (
                   <div className='flex flex-col items-center justify-center h-40 gap-3'>
                     <div className='text-6xl text-gray-300'>📈</div>
@@ -533,8 +576,8 @@ function VerificationPage({ userType }: VerificationProps) {
           </div>
 
           {/* Filtros do Histórico */}
-          <div className='w-11/12 mt-7 flex gap-4 items-end'>
-            <div className='flex-1'>
+          <div className='w-11/12 min-w-0 mt-7 flex flex-wrap gap-4 items-end'>
+            <div className='flex-1 min-w-0'>
               <label className='block text-sm font-medium text-clt-2 mb-2'>
                 Buscar
               </label>
@@ -544,7 +587,7 @@ function VerificationPage({ userType }: VerificationProps) {
                 value={searchTerm}
               />
             </div>
-            <div className='w-48'>
+            <div className='w-full min-w-0 md:w-48'>
               <label className='block text-sm font-medium text-clt-2 mb-2'>
                 Status
               </label>
@@ -557,7 +600,7 @@ function VerificationPage({ userType }: VerificationProps) {
           </div>
 
           {/* Tabela de Histórico */}
-          <div className='w-11/12 mt-7 border border-borderMy rounded-md min-h-96 p-4 flex flex-col'>
+          <div className='w-11/12 min-w-0 mt-7 border border-borderMy rounded-md min-h-96 p-4 flex flex-col'>
             <h3 className='text-xl font-rajdhani-medium text-clt-2 mb-4'>
               Histórico de Movimentações
             </h3>
@@ -575,28 +618,32 @@ function VerificationPage({ userType }: VerificationProps) {
               </div>
             ) : (
               <>
-                <HeaderTable columns={columnsVer} />
-                <div className='mt-4'>
-                  {filteredHistorico.map((item, index) => (
-                    <ItemTable
-                      key={index}
-                      data={[
-                        format(new Date(item.dataEmprestimo), 'dd/MM/yyyy', {
-                          locale: ptBR,
-                        }),
-                        item.solicitante.nome,
-                        item.identificador,
-                        item.lote || 'N/A',
-                        item.quantidadeEmprestada.toString(),
-                        historicoData?.unidadeMedida
-                          ? historicoData.unidadeMedida
-                          : 'N/A',
-                      ]}
-                      rowIndex={index}
-                      columnWidths={columnsVer.map((col) => col.width)}
-                    />
-                  ))}
-                </div>
+                <ResponsiveTable
+                  label='Histórico de Movimentações'
+                  columns={verificationHistoryColumns}
+                >
+                  <HeaderTable />
+                  <div className='mt-4 min-w-0'>
+                    {filteredHistorico.map((item, index) => (
+                      <ItemTable
+                        key={item.emprestimoId}
+                        data={[
+                          format(new Date(item.dataEmprestimo), 'dd/MM/yyyy', {
+                            locale: ptBR,
+                          }),
+                          item.solicitante.nome,
+                          item.identificador,
+                          item.lote || 'N/A',
+                          item.quantidadeEmprestada.toString(),
+                          historicoData?.unidadeMedida
+                            ? historicoData.unidadeMedida
+                            : 'N/A',
+                        ]}
+                        rowIndex={index}
+                      />
+                    ))}
+                  </div>
+                </ResponsiveTable>
               </>
             )}
           </div>

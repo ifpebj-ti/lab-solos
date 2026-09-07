@@ -33,6 +33,8 @@ describe('InputText', () => {
     expect(input).toHaveAttribute('id', 'cidade');
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute('aria-describedby', error.id);
+    expect(input).toBeRequired();
+    expect(input).toHaveAccessibleDescription('Informe uma cidade válida.');
   });
 
   it('nao anuncia erro quando o campo e valido', () => {
