@@ -1,8 +1,11 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsHistories } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -44,6 +47,14 @@ interface IEmprestimo {
   aprovadorId: number;
   aprovador: Usuario;
 }
+
+const historyColumns: readonly ResponsiveColumn[] = [
+  { key: 'id', label: 'Id', weight: 1 },
+  { key: 'borrower', label: 'Mentorado Vinculado', weight: 3 },
+  { key: 'date', label: 'Data', weight: 2 },
+  { key: 'items', label: 'Itens Utilizados', weight: 2 },
+  { key: 'status', label: 'Status', weight: 2 },
+];
 
 function LoanHistories() {
   const [isLoading, setIsLoading] = useState(false);
@@ -124,8 +135,8 @@ function LoanHistories() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Histórico de Empréstimos
             </h1>
@@ -133,7 +144,7 @@ function LoanHistories() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+          <div className='w-11/12 min-w-0 h-32 mt-7 flex flex-wrap items-center gap-4'>
             <FollowUpCard
               title='Devolvidos'
               number={getLoanCountText('devolvido')}
@@ -145,10 +156,10 @@ function LoanHistories() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='w-11/12 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
-            <div className='flex flex-col items-center justify-center w-full px-4'>
-              <div className='flex items-center justify-start gap-x-7 mt-6 w-full'>
-                <div className='w-[40%]'>
+          <div className='w-11/12 min-w-0 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
+            <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+              <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
+                <div className='w-full min-w-0 md:w-[40%]'>
                   <SearchInput
                     name='search'
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -159,7 +170,7 @@ function LoanHistories() {
                   onClick={() => toggleSortOrder(!isAscending)}
                   top={isAscending}
                 />
-                <div className='w-[30%] -mt-4'>
+                <div className='w-full min-w-0 md:w-[30%] md:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
@@ -170,31 +181,30 @@ function LoanHistories() {
                   />
                 </div>
               </div>
-              <HeaderTable columns={columnsHistories} />
-              <div className='w-full items-center flex flex-col min-h-72'>
-                {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
-                  </div>
-                ) : (
-                  currentData.map((loan, index) => (
-                    <ItemTable
-                      key={index}
-                      data={[
-                        String(loan.id),
-                        String(loan.solicitante.nomeCompleto),
-                        formatDateTime(loan.dataRealizacao),
-                        String(loan.produtos.length),
-                        loan.status,
-                      ]}
-                      rowIndex={index}
-                      columnWidths={columnsHistories.map(
-                        (column) => column.width
-                      )}
-                    />
-                  ))
-                )}
-              </div>
+              <ResponsiveTable label='Histórico de Empréstimos' columns={historyColumns}>
+                <HeaderTable />
+                <div className='w-full min-w-0 items-center flex flex-col min-h-72'>
+                  {currentData.length === 0 ? (
+                    <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
+                      Nenhum dado disponível para exibição.
+                    </div>
+                  ) : (
+                    currentData.map((loan, index) => (
+                      <ItemTable
+                        key={loan.id}
+                        data={[
+                          String(loan.id),
+                          String(loan.solicitante.nomeCompleto),
+                          formatDateTime(loan.dataRealizacao),
+                          String(loan.produtos.length),
+                          loan.status,
+                        ]}
+                        rowIndex={index}
+                      />
+                    ))
+                  )}
+                </div>
+              </ResponsiveTable>
               <div className='mb-4'>
                 <Pagination
                   totalItems={filteredLoans.length}

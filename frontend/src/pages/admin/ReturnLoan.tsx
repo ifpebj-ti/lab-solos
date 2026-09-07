@@ -1,6 +1,5 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
-import { returnLoanCol, returnLoanColTx } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
@@ -9,9 +8,33 @@ import { getLoansById, returnLoan } from '@/integration/Loans';
 import { useLocation } from 'react-router-dom';
 import ItemReturn from '@/components/global/table/ItemReturn';
 import ItemTable from '@/components/global/table/Item';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
 import { toast } from '@/components/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
 import type { Usuario } from '@/contracts/user';
+
+const readOnlyColumns: readonly ResponsiveColumn[] = [
+  { key: 'item', label: 'Item', weight: 4 },
+  { key: 'quantity', label: 'Quantidade', weight: 2 },
+  { key: 'unit', label: 'Unidade de Medida', weight: 2 },
+  { key: 'batch', label: 'Lote ID', weight: 2 },
+];
+
+const glasswareColumns: readonly ResponsiveColumn[] = [
+  { key: 'item', label: 'Item', weight: 4 },
+  { key: 'quantity', label: 'Quantidade', weight: 2 },
+  { key: 'return', label: 'Devolução', weight: 2 },
+  { key: 'reason', label: 'Justificativa', weight: 4 },
+];
+
+const otherReturnColumns: readonly ResponsiveColumn[] = [
+  ...readOnlyColumns,
+  { key: 'return', label: 'Devolução', weight: 2 },
+  { key: 'reason', label: 'Justificativa', weight: 4 },
+];
 
 export interface ILote {
   codigoLote: string;
@@ -149,7 +172,10 @@ function ReturnLoan() {
   return (
     <>
       {loading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div
+          role='status'
+          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        >
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
@@ -157,13 +183,14 @@ function ReturnLoan() {
         </div>
       ) : (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Devolução de Empréstimo
             </h1>
-            <div className='flex items-center justify-between gap-x-6'>
+            <div className='flex min-w-0 flex-wrap items-center justify-between gap-4'>
               {loans?.status === 'Aprovado' && !loans?.dataDevolucao && (
                 <button
+                  type='button'
                   onClick={handleReturn}
                   className='font-rajdhani-semibold text-white bg-green-600 text-base h-10 px-4 rounded-md hover:bg-green-700 flex gap-x-2 items-center justify-center transition-all ease-in-out duration-150'
                 >
@@ -180,90 +207,94 @@ function ReturnLoan() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
+          <div className='w-11/12 min-w-0 mt-7'>
             <InfoContainer items={infoItems} />
-            <div className='w-full flex gap-x-8 mt-5'>
+            <div className='w-full min-w-0 flex flex-col md:flex-row gap-5 mt-5'>
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
             </div>
           </div>
           {produtosQuimicos.length > 0 && (
-            <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
+            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
               <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Químicos
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={returnLoanColTx} />
-                <div className='w-full items-center flex flex-col min-h-14'>
-                  {produtosQuimicos.map((row, rowIndex) => (
-                    <ItemTable
-                      data={[
-                        row.produto.nomeProduto,
-                        row.produto.quantidade.toString(),
-                        row.produto.unidadeMedida,
-                        row.produto.lote.codigoLote,
-                      ]}
-                      rowIndex={rowIndex}
-                      columnWidths={returnLoanColTx.map(
-                        (column) => column.width
-                      )}
-                    />
-                  ))}
-                </div>
+              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+                <ResponsiveTable label='Químicos' columns={readOnlyColumns}>
+                  <HeaderTable />
+                  <div className='w-full items-center flex flex-col min-h-14'>
+                    {produtosQuimicos.map((row, rowIndex) => (
+                      <ItemTable
+                        key={`${row.emprestimoId}-${row.produto.id}`}
+                        data={[
+                          row.produto.nomeProduto,
+                          row.produto.quantidade.toString(),
+                          row.produto.unidadeMedida,
+                          row.produto.lote.codigoLote,
+                        ]}
+                        rowIndex={rowIndex}
+                      />
+                    ))}
+                  </div>
+                </ResponsiveTable>
               </div>
             </div>
           )}
           {produtosVidraria.length > 0 && (
-            <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
+            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
               <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Vidrarias
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={returnLoanCol} />
-                <div className='w-full items-center flex flex-col min-h-14'>
-                  {produtosVidraria.map((row, rowIndex) => (
-                    <ItemReturn
-                      data={[
-                        row.produto.nomeProduto,
-                        row.produto.quantidade.toString(),
-                      ]}
-                      rowIndex={rowIndex}
-                      columnWidths={returnLoanCol.map((column) => column.width)}
-                    />
-                  ))}
-                </div>
+              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+                <ResponsiveTable label='Vidrarias' columns={glasswareColumns}>
+                  <HeaderTable />
+                  <div className='w-full items-center flex flex-col min-h-14'>
+                    {produtosVidraria.map((row, rowIndex) => (
+                      <ItemReturn
+                        key={`${row.emprestimoId}-${row.produto.id}`}
+                        data={[
+                          row.produto.nomeProduto,
+                          row.produto.quantidade.toString(),
+                        ]}
+                        rowIndex={rowIndex}
+                        rowId={`${row.emprestimoId}-${row.produto.id}`}
+                      />
+                    ))}
+                  </div>
+                </ResponsiveTable>
               </div>
             </div>
           )}
           {produtosOutros.length > 0 && (
-            <div className='w-11/12 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
+            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
               <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Outros
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full px-4'>
-                <HeaderTable columns={returnLoanColTx} />
-                <div className='w-full items-center flex flex-col min-h-14'>
-                  {produtosOutros.map((row, rowIndex) => (
-                    <ItemReturn
-                      data={[
-                        row.produto.nomeProduto,
-                        row.produto.quantidade.toString(),
-                        row.produto.unidadeMedida,
-                        row.produto.lote.codigoLote,
-                      ]}
-                      rowIndex={rowIndex}
-                      columnWidths={returnLoanColTx.map(
-                        (column) => column.width
-                      )}
-                    />
-                  ))}
-                </div>
+              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+                <ResponsiveTable label='Outros' columns={otherReturnColumns}>
+                  <HeaderTable />
+                  <div className='w-full items-center flex flex-col min-h-14'>
+                    {produtosOutros.map((row, rowIndex) => (
+                      <ItemReturn
+                        key={`${row.emprestimoId}-${row.produto.id}`}
+                        data={[
+                          row.produto.nomeProduto,
+                          row.produto.quantidade.toString(),
+                          row.produto.unidadeMedida,
+                          row.produto.lote.codigoLote,
+                        ]}
+                        rowIndex={rowIndex}
+                        rowId={`${row.emprestimoId}-${row.produto.id}`}
+                      />
+                    ))}
+                  </div>
+                </ResponsiveTable>
               </div>
             </div>
           )}

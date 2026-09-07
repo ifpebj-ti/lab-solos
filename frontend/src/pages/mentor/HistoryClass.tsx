@@ -1,7 +1,6 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsHistories } from '@/mocks/Unidades';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -13,6 +12,15 @@ import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import type { Usuario } from '@/contracts/user';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+
+const historyClassColumns: readonly ResponsiveColumn[] = [
+  { key: 'id', label: 'Id', weight: 1.5 },
+  { key: 'borrower', label: 'Mentorado Vinculado', weight: 3 },
+  { key: 'date', label: 'Data', weight: 2 },
+  { key: 'items', label: 'Itens Utilizados', weight: 2 },
+  { key: 'status', label: 'Status', weight: 2 },
+];
 
 // Lote de produto
 interface ILote {
@@ -154,8 +162,8 @@ function HistoryClass() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Histórico de Empréstimos
             </h1>
@@ -164,7 +172,7 @@ function HistoryClass() {
             </div>
           </div>
 
-          <div className='w-11/12 h-32 mt-7 flex items-center justify-center gap-x-8'>
+          <div className='w-11/12 min-w-0 min-h-32 mt-7 flex flex-wrap items-center justify-center gap-4'>
             <FollowUpCard
               title='Devolvidos'
               number={getLoanCountText('devolvido')}
@@ -177,9 +185,9 @@ function HistoryClass() {
             />
           </div>
 
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -194,8 +202,8 @@ function HistoryClass() {
                   />
                 </div>
               </div>
-              <div className='w-full lg:w-2/4 flex justify-end items-center'>
-                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
+              <div className='w-full min-w-0 lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full min-w-0 lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => {
@@ -208,9 +216,9 @@ function HistoryClass() {
               </div>
             </div>
             {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={columnsHistories} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Histórico da turma' columns={historyClassColumns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col min-h-72'>
                   {currentData.length === 0 ? (
                     <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
@@ -235,18 +243,14 @@ function HistoryClass() {
                           loan?.status,
                         ]}
                         rowIndex={index}
-                        columnWidths={columnsHistories.map(
-                          (column) => column.width
-                        )}
                         id={loan.id}
                         destinationRoute='/mentor/history/loan'
                       />
                     ))
                   )}
                 </div>
-
+              </ResponsiveTable>
               </div>
-            </div>
             <div className='mb-4'>
               <Pagination
                 totalItems={filteredLoans.length}

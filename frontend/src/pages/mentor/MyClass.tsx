@@ -1,7 +1,6 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../..//public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { columnsClass } from '@/mocks/Unidades';
 import { useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
@@ -13,6 +12,16 @@ import { displayUserValue, formatCivilDate } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { Link } from 'react-router-dom';
 import type { Dependente } from '@/contracts/user';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+
+const myClassColumns: readonly ResponsiveColumn[] = [
+  { key: 'name', label: 'Nome', weight: 22 },
+  { key: 'email', label: 'Email', weight: 22 },
+  { key: 'date', label: 'Data Ingresso', weight: 15 },
+  { key: 'course', label: 'Curso', weight: 16 },
+  { key: 'institution', label: 'Instituição', weight: 15 },
+  { key: 'status', label: 'Status', weight: 10 },
+];
 
 function MyClass() {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +80,8 @@ function MyClass() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Minha Turma
             </h1>
@@ -86,17 +95,17 @@ function MyClass() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 h-32 mt-7 flex items-center gap-x-8'>
+          <div className='w-11/12 min-w-0 min-h-32 mt-7 flex flex-wrap items-center gap-4'>
             <FollowUpCard
               title='Mentorados'
               number={String(dependentes?.length)}
               icon={<LayersIcon />}
             />
           </div>
-          <div className='w-11/12 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
-            <div className='flex flex-col items-center justify-center w-full px-4'>
-              <div className='flex items-center justify-start gap-x-7 mt-6 w-full'>
-                <div className='w-[40%]'>
+          <div className='w-11/12 min-w-0 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
+            <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+              <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
+                <div className='w-full min-w-0 md:w-[40%]'>
                   <SearchInput
                     name='search'
                     onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
@@ -108,8 +117,9 @@ function MyClass() {
                   top={isAscending}
                 />
               </div>
-              <HeaderTable columns={columnsClass} />
-              <div className='w-full items-center flex flex-col min-h-72'>
+              <ResponsiveTable label='Minha turma' columns={myClassColumns}>
+                <HeaderTable />
+              <div className='w-full min-w-0 items-center flex flex-col min-h-72'>
                 {currentData.length === 0 ? (
                   <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
                     Nenhum dado disponível para exibição.
@@ -127,13 +137,13 @@ function MyClass() {
                         rowData.status,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsClass.map((column) => column.width)}
                       destinationRoute='/mentor/history/mentoring' // Ajuste conforme necessário
                       id={rowData.id}
                     />
                   ))
                 )}
               </div>
+              </ResponsiveTable>
               <div className='mb-4'>
                 <Pagination
                   totalItems={currentData.length}

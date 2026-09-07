@@ -10,9 +10,13 @@ import CalendarIcon from '../../public/icons/CalendarIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useEffect, useState } from 'react';
-import { columns, getUnidadePlural } from '@/mocks/Unidades';
+import { getUnidadePlural } from '@/mocks/Unidades';
 import { getAlertProducts } from '@/integration/Product';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
 
 interface IProduto {
   id: number;
@@ -27,6 +31,14 @@ interface IProduto {
   status: string;
   unidadeMedida: string;
 }
+
+const alertColumns: readonly ResponsiveColumn[] = [
+  { key: 'name', label: 'Nome', weight: 3 },
+  { key: 'current-quantity', label: 'Quantidade Atual', weight: 1.75 },
+  { key: 'minimum-quantity', label: 'Quantidade Mínima', weight: 1.75 },
+  { key: 'expiration', label: 'Data de Validade', weight: 1.75 },
+  { key: 'status', label: 'Status', weight: 1.75 },
+];
 
 function FollowUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -96,8 +108,8 @@ function FollowUp() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Acompanhamento
             </h1>
@@ -105,7 +117,7 @@ function FollowUp() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7 flex  items-center justify-center flex-wrap gap-4'>
+          <div className='w-11/12 min-w-0 mt-7 flex items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Produtos com Alertas'
               number={alert.length}
@@ -128,9 +140,9 @@ function FollowUp() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -145,8 +157,8 @@ function FollowUp() {
                   />
                 </div>
               </div>
-              <div className='w-full lg:w-2/4 flex justify-end items-center'>
-                <div className='w-full lg:w-1/2 -mt-2 lg:-mt-4'>
+              <div className='w-full min-w-0 lg:w-2/4 flex justify-end items-center'>
+                <div className='w-full min-w-0 lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
                     onValueChange={(value) => setValue(value)}
@@ -157,11 +169,11 @@ function FollowUp() {
             </div>
 
             {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={columns} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Produtos em alerta' columns={alertColumns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
-                  <div className='w-full'>
+                  <div className='w-full min-w-0'>
                     {currentData.length === 0 ? (
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                         <div className='text-6xl text-gray-300'>⚠️</div>
@@ -199,7 +211,6 @@ function FollowUp() {
                             rowData.status || 'Não corresponde',
                           ]}
                           rowIndex={index}
-                          columnWidths={columns.map((column) => column.width)}
                           id={rowData.id}
                           destinationRoute='/admin/verification'
                         />
@@ -208,7 +219,7 @@ function FollowUp() {
                   </div>
 
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
             {currentData.length > 0 && alert.length > 0 && (

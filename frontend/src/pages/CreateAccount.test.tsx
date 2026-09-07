@@ -108,6 +108,21 @@ describe('CreateAccount', () => {
     vi.clearAllMocks();
   });
 
+  it('abre termos sem submeter cadastro válido e devolve foco ao fechar', async () => {
+    renderCreateAccount();
+    fillValidForm();
+    const trigger = screen.getByRole('button', { name: /termos e condições/i });
+    expect(trigger).toHaveAttribute('type', 'button');
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName(
+      'TERMOS E CONDIÇÕES DE USO'
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(createMentor).not.toHaveBeenCalled();
+  });
+
   it('exibe um campo Cidade obrigatorio', () => {
     renderCreateAccount();
 
@@ -166,7 +181,9 @@ describe('CreateAccount', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
-    const cityError = await screen.findByText('Cidade rejeitada pelo servidor.');
+    const cityError = await screen.findByText(
+      'Cidade rejeitada pelo servidor.'
+    );
     const courseError = screen.getByText('Curso rejeitado pelo servidor.');
     expect(screen.getByRole('textbox', { name: /cidade/i })).toHaveAttribute(
       'aria-describedby',

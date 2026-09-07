@@ -28,13 +28,13 @@ function InputText<T extends FieldValues>({
   const errorId = `${inputId}-error`;
 
   return (
-    <div className='w-full flex flex-col gap-1 relative mt-3'>
+    <div className='w-full min-w-0 flex flex-col gap-1 mt-3'>
       <label
         htmlFor={inputId}
         className='font-inter-regular text-sm text-clt-2'
       >
         {label}
-        {required && <span className='text-red-500 ml-1'>*</span>}
+        {required && <span className='text-red-700 ml-1'>*</span>}
       </label>
       <input
         id={inputId}
@@ -44,11 +44,11 @@ function InputText<T extends FieldValues>({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         {...register(name)}
-        className='px-3 bg-white h-9 text-sm border shadow-sm border-borderMy rounded-sm hover:border-gray-400 focus:outline-none focus:border-gray-400'
+        className='w-full min-w-0 px-3 bg-white min-h-11 text-base md:text-sm border shadow-sm border-stone-500 rounded-sm hover:border-stone-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
       />
       <p
         id={errorId}
-        className={`text-red-500 text-xs mt-[60px] absolute ${error ? 'visible' : 'invisible'}`}
+        className={`text-red-700 text-sm [overflow-wrap:anywhere] ${error ? '' : 'hidden'}`}
       >
         {typeof error === 'string' ? error : error?.message}
       </p>
