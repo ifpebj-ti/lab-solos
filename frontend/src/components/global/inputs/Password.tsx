@@ -22,30 +22,42 @@ function InputPassword<T extends FieldValues>({
   name,
 }: IInputPassword<T>) {
   const [showPassword, setShowPassword] = useState(false);
+  const inputId = String(name);
+  const errorId = `${inputId}-error`;
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
   return (
-    <div className='w-full flex flex-col gap-1 relative mt-3'>
-      <label className='font-inter-regular text-sm text-clt-2'>{label}</label>
-      <div className='w-full flex border border-borderMy rounded-sm hover:border-gray-400 focus:border-gray-400'>
+    <div className='w-full min-w-0 flex flex-col gap-1 mt-3'>
+      <label
+        htmlFor={inputId}
+        className='font-inter-regular text-sm text-clt-2'
+      >
+        {label}
+      </label>
+      <div className='w-full min-w-0 flex border border-stone-500 rounded-sm hover:border-stone-600'>
         <input
+          id={inputId}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? errorId : undefined}
           type={showPassword ? 'text' : 'password'}
           {...register(name)}
-          className='w-full px-3 bg-backgroundMy h-9 text-sm shadow-sm focus:outline-none'
+          className='w-full min-w-0 px-3 bg-white min-h-11 text-base md:text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
         />
         <button
           type='button'
+          aria-label={`${showPassword ? 'Ocultar' : 'Mostrar'} ${label}`}
           onClick={togglePasswordVisibility}
-          className='px-4 bg-backgroundMy h-9 shadow-sm'
+          className='min-w-11 min-h-11 shrink-0 flex items-center justify-center bg-backgroundMy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
         >
           {showPassword ? <EyeIcon2 /> : <EyeIcon />}
         </button>
       </div>
       <p
-        className={`text-red-500 text-xs mt-[60px] absolute ${error ? 'visible' : 'invisible'}`}
+        id={errorId}
+        className={`text-red-700 text-sm [overflow-wrap:anywhere] ${error ? '' : 'hidden'}`}
       >
         {typeof error === 'string' ? error : error?.message}
       </p>

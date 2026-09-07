@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { ResponsiveCell, ResponsiveRecord } from './ResponsiveTable';
+import { requireResponsiveColumns, useResponsiveColumns } from './responsiveContext';
 
 interface ITableItem {
   data: string[]; // Array de valores para cada coluna da linha
   rowIndex: number;
-  columnWidths: string[]; // Array com as larguras de cada coluna
   destinationRoute: string; // Rota de destino
   id: number | string; // ID do item para navegação
 }
@@ -11,32 +12,51 @@ interface ITableItem {
 function ClickableItemTable({
   data,
   rowIndex,
-  columnWidths,
   destinationRoute,
   id,
 }: ITableItem) {
   const navigate = useNavigate();
+  const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
   const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
 
   const handleClick = () => {
     navigate(destinationRoute, { state: { id } });
   };
+  if (columns.length !== data.length)
+    throw new Error('Cada valor deve corresponder a uma coluna responsiva.');
   return (
-    <div
-      className={`w-full h-9 flex items-center ${backgroundColor} mb-1 px-3 rounded-sm hover:scale-customScale cursor-pointer ${isOdd ? 'hover:bg-cl-table' : 'hover:bg-opacity-60'}`}
-      onClick={handleClick}
-    >
-      {data.map((value, index) => (
-        <p
-          key={index}
-          style={{ width: columnWidths[index] }}
-          className='text-start font-inter-regular text-sm text-clt-2 text-ellipsis text-nowrap overflow-hidden whitespace-nowrap'
-        >
-          {value}
-        </p>
-      ))}
-    </div>
+      <ResponsiveRecord
+        className={`${backgroundColor} hover:bg-cl-table cursor-pointer`}
+        onClick={(event) => {
+          if (
+            (event.target as HTMLElement).closest(
+              'a, button, input, select, textarea, [role="switch"], [role="checkbox"], [role="combobox"]'
+            )
+          )
+            return;
+          handleClick();
+        }}
+      >
+        {data.map((value, index) => (
+          <ResponsiveCell
+            key={columns[index].key}
+            columnKey={columns[index].key}
+          >
+            {index === 0 ? (
+              <Link
+                to={destinationRoute}
+                state={{ id }}
+                className='inline-flex min-h-11 min-w-11 max-w-full items-center underline underline-offset-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 [@media(pointer:coarse)]:min-h-11'
+              >
+                {value}
+              </Link>
+            ) : (
+              value
+            )}
+          </ResponsiveCell>
+        ))}
+      </ResponsiveRecord>
   );
 }
 

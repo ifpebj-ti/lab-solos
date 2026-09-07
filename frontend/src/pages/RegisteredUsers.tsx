@@ -29,6 +29,17 @@ import ExcelJS from 'exceljs';
 import * as FileSaver from 'file-saver';
 import { statusUsuarioSchema } from '@/contracts/user';
 import type { Dependente, Usuario } from '@/contracts/user';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
+
+const registeredUserColumns: readonly ResponsiveColumn[] = [
+  { key: 'joinedAt', label: 'Data de ingresso', weight: 2.5 },
+  { key: 'name', label: 'Nome', weight: 3.5 },
+  { key: 'role', label: 'Tipo de usuário', weight: 2 },
+  { key: 'status', label: 'Status', weight: 2 },
+];
 
 type RegisteredUser = Pick<
   Usuario,
@@ -119,13 +130,6 @@ function RegisteredUsers() {
     fetchRegisteredUsers();
   }, [id]);
 
-  const headerTable = [
-    { value: 'Data de Ingresso', width: '25%' },
-    { value: 'Nome', width: '35%' },
-    { value: 'Tipo de Usuário', width: '20%' },
-    { value: 'Status', width: '20%' },
-  ];
-
   const options = [
     { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
     { value: 'Administrador', label: 'Administradores' },
@@ -188,7 +192,7 @@ function RegisteredUsers() {
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div role='status' className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
@@ -196,11 +200,11 @@ function RegisteredUsers() {
         </div>
       ) : registeredUsers.length != 0 ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+          <div className='w-11/12 min-w-0 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
+            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Usuários Cadastrados
             </h1>
-            <div className='flex items-center justify-between gap-x-4'>
+            <div className='flex min-w-0 flex-wrap items-center justify-center gap-4'>
               <ButtonLinkNotify
                 text='Solicitações de Cadastro'
                 notify={approval.length != 0 ? true : false}
@@ -227,10 +231,10 @@ function RegisteredUsers() {
               icon={<UsersIcon />}
             />
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-2/5 h-9 flex justify-start items-start gap-2'>
-                <div className='w-full flex items-center justify-evenly gap-2'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 lg:w-2/5 flex justify-start items-start gap-2'>
+                <div className='w-full min-w-0 flex items-center justify-evenly gap-2'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
@@ -242,10 +246,10 @@ function RegisteredUsers() {
                   />
                 </div>
               </div>
-              <div className='w-full lg:w-2/5 flex items-center justify-evenly gap-2'>
+              <div className='w-full min-w-0 lg:w-2/5 flex flex-wrap items-center justify-evenly gap-2'>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className='border border-borderMy rounded-sm h-9 w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'>
+                    <button type='button' aria-label='Opções de exportação' className='border border-borderMy rounded-sm min-h-11 min-w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-9 md:min-w-9 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'>
                       <FileText stroke='#232323' width={21} strokeWidth={1.5} />
                     </button>
                   </PopoverTrigger>
@@ -294,17 +298,21 @@ function RegisteredUsers() {
                           PDF
                         </PDFDownloadLink>
                       </li>
-                      <li
-                        className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center cursor-pointer'
-                        onClick={exportToExcel}
-                      >
-                        <FileText
-                          stroke='#232323'
-                          width={18}
-                          strokeWidth={1.5}
-                          className='mr-1 mt-[2px]'
-                        />
-                        Excel
+                      <li className='w-full'>
+                        <button
+                          type='button'
+                          aria-label='Exportar Excel'
+                          className='w-full min-h-11 hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800'
+                          onClick={exportToExcel}
+                        >
+                          <FileText
+                            stroke='#232323'
+                            width={18}
+                            strokeWidth={1.5}
+                            className='mr-1 mt-[2px]'
+                          />
+                          Excel
+                        </button>
                       </li>
                     </ul>
                   </PopoverContent>
@@ -323,10 +331,9 @@ function RegisteredUsers() {
 
             </div>
 
-            {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={headerTable} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Usuários cadastrados' columns={registeredUserColumns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-between min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
@@ -336,7 +343,7 @@ function RegisteredUsers() {
                     ) : (
                       currentData.map((rowData, index) => (
                         <TableItemWithActions
-                          key={index}
+                          key={rowData.id}
                           data={[
                             formatCivilDate(rowData?.dataIngresso),
                             rowData?.nomeCompleto || 'Nome não disponível',
@@ -366,18 +373,18 @@ function RegisteredUsers() {
                             />,
                           ]}
                           rowIndex={index}
-                          columnWidths={headerTable.map((column) => column.width)}
                           destinationRoute={getDestinationRoute(
                             rowData?.nivelUsuario
                           )}
                           id={rowData.id}
+                          itemLabel={rowData.nomeCompleto}
                         />
                       ))
                     )}
                   </div>
 
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
             <Pagination
               totalItems={registeredUsers.length}

@@ -2,7 +2,6 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsLoan } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -13,6 +12,14 @@ import Cookie from 'js-cookie';
 import { getLoansByUserId } from '@/integration/Loans';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { academicoSchema, type Academico } from '@/contracts/user';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+
+const historyMentoringColumns: readonly ResponsiveColumn[] = [
+  { key: 'id', label: 'Id', weight: 1.5 },
+  { key: 'date', label: 'Data', weight: 2 },
+  { key: 'items', label: 'Itens Utilizados', weight: 2 },
+  { key: 'status', label: 'Status', weight: 2 },
+];
 
 export interface IProduto {
   id: number;
@@ -179,8 +186,8 @@ function HistoryMentoring() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Histórico de Mentorados
             </h1>
@@ -188,8 +195,8 @@ function HistoryMentoring() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 flex flex-wrap mt-7 gap-y-3'>
-            <div className='w-full flex flex-wrap gap-y-3 lg:flex lg:flex-wrap lg:gap-y-3 justify-between lg:gap-x-4'>
+          <div className='w-11/12 min-w-0 flex flex-wrap mt-7 gap-y-3'>
+            <div className='w-full min-w-0 flex flex-wrap gap-y-3 lg:flex lg:flex-wrap lg:gap-y-3 justify-between lg:gap-x-4'>
               <InfoContainer items={infoItems} />
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
@@ -199,9 +206,9 @@ function HistoryMentoring() {
               <InfoContainer items={infoItems7} />
             </div>
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-wrap justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 md:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -216,18 +223,17 @@ function HistoryMentoring() {
                   />
                 </div>
               </div>
-              <div className='w-full lg:w-2/4 flex justify-end items-center'>
-                <div className='w-1/2 h-9 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
+              <div className='w-full min-w-0 md:w-2/4 flex justify-end items-center'>
+                <div className='w-full md:w-1/2 h-9 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
                   <p>{searchTerm ? sortedUsers.length : loans.length}</p>
                 </div>
               </div>
             </div>
 
-            {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={columnsLoan} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable label='Histórico de mentorados' columns={historyMentoringColumns}>
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
@@ -258,7 +264,6 @@ function HistoryMentoring() {
                             rowData.status,
                           ]}
                           rowIndex={index}
-                          columnWidths={columnsLoan.map((column) => column.width)}
                           destinationRoute='/mentee/history/loan'
                           id={rowData.id}
                         />
@@ -266,7 +271,7 @@ function HistoryMentoring() {
                     )}
                   </div>
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
             {currentData.length > 0 && loans.length > 0 && (

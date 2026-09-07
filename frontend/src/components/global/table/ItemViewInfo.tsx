@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { MailIcon, PhoneIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { ResponsiveCell, ResponsiveRecord } from './ResponsiveTable';
 
 interface IItemViewInfo {
   nomeLaboratorio: string;
@@ -56,78 +57,20 @@ function ItemViewInfo({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <div className='w-full min-h-9 border border-borderMy rounded-md shadow-md flex flex-col items-center justify-center px-3 pt-2 text-sm  mb-5 hover:scale-customScale hover:bg-cl-table-item cursor-pointer'>
-          <div className='flex flex-col items-center justify-center w-full'>
-            <div className='w-full min-h-9 flex items-center justify-between'>
-              <div className='w-1/2 h-full border-b border-borderMy flex'>
-                <div className='w-44 h-full flex items-center font-inter-medium pb-2'>
-                  Laboratório:
-                </div>
-                <div className='w-full h-full font-inter-regular truncate'>
-                  {nomeLaboratorio}
-                </div>
-              </div>
-              <div className='flex items-center justify-between w-1/2 h-full gap-x-4'>
-                <div className='w-full h-full flex items-center justify-center border-b border-borderMy'>
-                  <div className='w-44 font-inter-medium pb-2'>Data:</div>
-                  <div className='w-full font-inter-regular truncate pl-1 pb-2'>
-                    {data}
-                  </div>
-                </div>
-                <div
-                  className={`h-8 -mt-1 px-6 flex items-center justify-center rounded-md shadow-md font-inter-medium text-white
-                    ${ativo ? 'bg-primaryMy' : 'bg-danger'}`}
-                >
-                  {ativo ? 'Oferta' : 'Pedido'}
-                </div>
-              </div>
-            </div>
-            <div className='w-full min-h-9 flex items-center justify-between'>
-              <div className='w-1/2 h-full border-b border-borderMy flex'>
-                <div className='w-44 h-full flex items-center font-inter-medium pb-2'>
-                  Localização:
-                </div>
-                <div className='w-full h-full font-inter-regular truncate'>
-                  {localizacao}
-                </div>
-              </div>
-              <div className='flex items-center justify-between w-1/2 h-full gap-x-4'>
-                <div className='w-full h-full flex items-center justify-center border-b border-borderMy'>
-                  <div className='w-44 font-inter-medium pb-2'>
-                    Responsável:
-                  </div>
-                  <div className='w-full font-inter-regular truncate pb-2 -ml-1'>
-                    {responsavel}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className='w-full min-h-9 flex items-center justify-between'>
-              <div className='w-1/2 h-full flex -mt-1'>
-                <div className='w-44 h-full flex items-center font-inter-medium'>
-                  Produto:
-                </div>
-                <div className='w-full h-full font-inter-regular truncate'>
-                  {produto}
-                </div>
-              </div>
-              <div className='flex items-center justify-between w-1/2 h-full gap-x-4'>
-                <div className='w-full h-full flex items-center justify-between'>
-                  <div className='w-1/2 h-full flex'>
-                    <div className='w-44 font-inter-medium'>Quantidade:</div>
-                    <div className='w-full font-inter-regular truncate ml-9'>
-                      {quantidade}
-                    </div>
-                  </div>
-                  <div className='w-1/2 h-full flex items-end justify-end gap-x-7'>
-                    <div className='font-inter-medium'>Motivo:</div>
-                    <div className='font-inter-regular truncate'>{motivo}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ResponsiveRecord className='border border-borderMy shadow-md cursor-pointer hover:bg-cl-table-item'>
+          <ResponsiveCell columnKey='laboratory'>{nomeLaboratorio}</ResponsiveCell>
+          <ResponsiveCell columnKey='date'>{data}</ResponsiveCell>
+          <ResponsiveCell columnKey='type'>
+            <span className={`inline-flex min-h-8 w-full min-w-0 max-w-full items-center justify-center rounded-md px-0 font-inter-medium text-white [overflow-wrap:anywhere] lg:px-4 ${ativo ? 'bg-primaryMy' : 'bg-danger'}`}>
+              {ativo ? 'Oferta' : 'Pedido'}
+            </span>
+          </ResponsiveCell>
+          <ResponsiveCell columnKey='location'>{localizacao}</ResponsiveCell>
+          <ResponsiveCell columnKey='responsible'>{responsavel}</ResponsiveCell>
+          <ResponsiveCell columnKey='product'>{produto}</ResponsiveCell>
+          <ResponsiveCell columnKey='quantity'>{quantidade}</ResponsiveCell>
+          <ResponsiveCell columnKey='reason'>{motivo}</ResponsiveCell>
+        </ResponsiveRecord>
       </AlertDialogTrigger>
       <AlertDialogContent
         ref={dialogRef}

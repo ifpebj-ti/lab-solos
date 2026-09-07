@@ -2,7 +2,6 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsButtons } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -14,6 +13,17 @@ import { displayUserValue, formatCivilDate } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { academicoSchema } from '@/contracts/user';
 import type { Academico, Dependente } from '@/contracts/user';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
+
+const mentorClassColumns: readonly ResponsiveColumn[] = [
+  { key: 'name', label: 'Nome', weight: 30 },
+  { key: 'email', label: 'Email', weight: 30 },
+  { key: 'institution', label: 'Instituição', weight: 22 },
+  { key: 'course', label: 'Curso', weight: 18 },
+];
 
 // aqui virá a listagem dos integrantes da turma
 function ViewClassMentor() {
@@ -127,8 +137,8 @@ function ViewClassMentor() {
           Carregando...
         </div>
       ) : user && dependentes ? (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Visualização de Turmas
             </h1>
@@ -142,25 +152,25 @@ function ViewClassMentor() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
+          <div className='w-11/12 min-w-0 mt-7'>
             <InfoContainer items={infoItems} />
-            <div className='w-full flex gap-x-8 mt-5'>
+            <div className='w-full min-w-0 flex flex-wrap gap-3 mt-5'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
               <InfoContainer items={infoItems5} />
             </div>
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
+          <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-wrap justify-between items-center gap-3 mt-2'>
+              <div className='w-full min-w-0 md:w-2/4'>
                 <SearchInput
                   name='search'
                   onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
                   value={searchTerm}
                 />
               </div>
-              <div className='w-2/4 flex justify-between'>
+              <div className='w-full min-w-0 md:w-2/4 flex justify-between'>
                 <div className='w-1/2 flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -173,9 +183,10 @@ function ViewClassMentor() {
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsButtons} />
+            <ResponsiveTable label='Mentorados da turma' columns={mentorClassColumns}>
+              <HeaderTable />
             <div className='w-full items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full'>
+              <div className='w-full min-w-0'>
                 {currentData.length === 0 ? (
                   <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                     <div className='text-6xl text-gray-300'>👨‍🎓</div>
@@ -202,9 +213,6 @@ function ViewClassMentor() {
                         displayUserValue(rowData.curso),
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsButtons.map(
-                        (column) => column.width
-                      )}
                       id={rowData.id}
                       destinationRoute='/admin/history/mentoring'
                     />
@@ -223,6 +231,7 @@ function ViewClassMentor() {
                 </div>
               )}
             </div>
+            </ResponsiveTable>
           </div>
         </div>
       ) : (

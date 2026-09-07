@@ -4,7 +4,6 @@ import FollowUpCard from '@/components/screens/FollowUp';
 import UserIcon from '../../../public/icons/UserIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsApproval } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -14,6 +13,17 @@ import { toast } from '@/components/hooks/use-toast';
 import { formatDateTime } from '@/function/date';
 import ItemTableButtonLink from '@/components/global/table/ItemButtonLink';
 import type { Usuario } from '@/contracts/user';
+import {
+  ResponsiveTable,
+  type ResponsiveColumn,
+} from '@/components/global/table/ResponsiveTable';
+
+const loanRequestColumns: readonly ResponsiveColumn[] = [
+  { key: 'requestedAt', label: 'Data de solicitação', weight: 2 },
+  { key: 'name', label: 'Nome', weight: 3 },
+  { key: 'email', label: 'Email', weight: 4 },
+  { key: 'actions', label: 'Ações', weight: 2 },
+];
 
 interface IProduto {
   id: number;
@@ -150,7 +160,7 @@ function LoansRequest() {
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div role='status' className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
@@ -158,8 +168,8 @@ function LoansRequest() {
         </div>
       ) : (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Solicitações de Empréstimos
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
@@ -174,8 +184,8 @@ function LoansRequest() {
             />
           </div>
           <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full lg:w-1/2 h-9 flex justify-start items-start gap-2'>
+            <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
+              <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -191,10 +201,12 @@ function LoansRequest() {
                 </div>
               </div>
             </div>
-            {/* 🔹 Container com scroll horizontal */}
-            <div className="w-full overflow-x-auto mt-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none]">
-              <div className='min-w-[800px]'>
-                <HeaderTable columns={columnsApproval} />
+            <div className='w-full min-w-0 mt-4'>
+              <ResponsiveTable
+                label='Solicitações de empréstimo'
+                columns={loanRequestColumns}
+              >
+                <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
@@ -215,18 +227,14 @@ function LoansRequest() {
                     ) : (
                       currentData.map((rowData, index) => (
                         <ItemTableButtonLink
-                          key={index}
+                          key={rowData.id}
                           data={[
                             formatDateTime(String(rowData.dataRealizacao)) ||
                             'Não corresponde',
-                            String(rowData.solicitante?.nomeCompleto) ||
-                            'Não corresponde',
-                            String(rowData.solicitante?.email) || 'Não corresponde',
+                            rowData.solicitante?.nomeCompleto || 'Não corresponde',
+                            rowData.solicitante?.email || 'Não corresponde',
                           ]}
                           rowIndex={index}
-                          columnWidths={columnsApproval.map(
-                            (column) => column.width
-                          )}
                           onClick1={() => handleReject(rowData.id)}
                           onClick2={() => handleApprove(rowData.id)}
                           icon1={
@@ -237,12 +245,16 @@ function LoansRequest() {
                           }
                           id={rowData.id}
                           destinationRoute='/admin/history/loan'
+                          itemLabel={
+                            rowData.solicitante?.nomeCompleto || 'Não corresponde'
+                          }
+                          actionLabels={['Recusar', 'Aprovar']}
                         />
                       ))
                     )}
                   </div>
                 </div>
-              </div>
+              </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
             {currentData.length > 0 && loan.length > 0 && (

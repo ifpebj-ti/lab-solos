@@ -2,7 +2,6 @@ import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
-import { columnsLoan } from '@/mocks/Unidades';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useEffect, useState } from 'react';
@@ -13,6 +12,14 @@ import { getLoansByUserId } from '@/integration/Loans';
 import { Link, useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { academicoSchema, type Academico, type Usuario } from '@/contracts/user';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+
+const mentoringHistoryColumns: readonly ResponsiveColumn[] = [
+  { key: 'id', label: 'Id', weight: 1.5 },
+  { key: 'date', label: 'Data', weight: 2 },
+  { key: 'items', label: 'Itens Utilizados', weight: 2 },
+  { key: 'status', label: 'Status', weight: 2 },
+];
 
 // Lote de produto
 interface ILote {
@@ -189,8 +196,8 @@ function MentoringHistory() {
           Carregando...
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
+        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Histórico de Mentorados
             </h1>
@@ -204,39 +211,40 @@ function MentoringHistory() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
+          <div className='w-11/12 min-w-0 mt-7'>
             <InfoContainer items={infoItems} />
-            <div className='w-full flex gap-x-8 mt-5'>
+            <div className='w-full min-w-0 flex flex-wrap gap-4 mt-5'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
               <InfoContainer items={infoItems5} />
             </div>
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex justify-between items-center mt-2'>
-              <div className='w-2/4'>
+          <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+            <div className='w-full min-w-0 flex flex-wrap justify-between items-center mt-2 gap-3'>
+              <div className='w-full min-w-0 md:w-2/4'>
                 <SearchInput
                   name='search'
                   onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
                   value={searchTerm}
                 />
               </div>
-              <div className='w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
+              <div className='w-full min-w-0 md:w-2/4 flex flex-wrap justify-between gap-3'>
+                <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
+                <div className='w-full min-w-0 md:w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
                   <p>TOTAL:</p>
                   <p>{searchTerm ? sortedUsers.length : loans.length}</p>
                 </div>
               </div>
             </div>
-            <HeaderTable columns={columnsLoan} />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
+            <ResponsiveTable label='Histórico de mentorados' columns={mentoringHistoryColumns}>
+              <HeaderTable />
+              <div className='w-full min-w-0 items-center flex flex-col justify-center min-h-72'>
               <div className='w-full'>
                 {currentData.length === 0 ? (
                   <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
@@ -264,7 +272,6 @@ function MentoringHistory() {
                         rowData.status,
                       ]}
                       rowIndex={index}
-                      columnWidths={columnsLoan.map((column) => column.width)}
                       id={rowData.id}
                       destinationRoute='/mentor/history/loan'
                     />
@@ -282,7 +289,8 @@ function MentoringHistory() {
                   />
                 </div>
               )}
-            </div>
+              </div>
+            </ResponsiveTable>
           </div>
         </div>
       )}
