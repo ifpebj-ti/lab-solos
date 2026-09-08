@@ -26,9 +26,10 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border bg-background text-foreground',
+        default:
+          'border border-[#D4D4D8] bg-[#FFFFFF] text-[#18181B] [color-scheme:light]',
         destructive:
-          'destructive group border-destructive bg-destructive text-destructive-foreground',
+          'destructive group border-[#FCA5A5] bg-[#FEF2F2] text-[#7F1D1D] [color-scheme:light]',
       },
     },
     defaultVariants: {
@@ -47,8 +48,8 @@ const Toast = React.forwardRef<
       ref={ref}
       className={cn(
         toastVariants({ variant }),
-        className,
-        'bg-backgroundMy rounded-md border border-borderMy'
+        'rounded-md shadow-lg',
+        className
       )}
       {...props}
     />
@@ -78,7 +79,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      'absolute right-1 top-1 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600',
+      'absolute right-1 top-1 rounded-md p-1 text-[#52525B] opacity-0 transition-opacity hover:text-[#18181B] focus:opacity-100 focus:outline-none focus:ring-1 focus:ring-[#52525B] group-hover:opacity-100 group-[.destructive]:text-[#991B1B] group-[.destructive]:hover:text-[#7F1D1D] group-[.destructive]:focus:ring-[#991B1B]',
       className
     )}
     toast-close=''
@@ -118,7 +119,9 @@ ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 
-type ToastActionElement = React.ReactElement<typeof ToastAction>;
+type ToastActionElement = React.ReactElement<
+  React.ComponentPropsWithoutRef<typeof ToastAction>
+>;
 
 export {
   type ToastProps,

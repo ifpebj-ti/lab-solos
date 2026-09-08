@@ -1,6 +1,9 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 interface IGetProductById {
   id: number;
 }
@@ -21,10 +24,7 @@ export const getProductById = async ({ id }: IGetProductById) => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar produtos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.productById);
   }
 };
 
@@ -44,8 +44,7 @@ export const getAllProducts = async () => {
     });
     return response.data;
   } catch (error) {
-    console.debug('Error fetching products:', error);
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.products);
   }
 };
 
@@ -65,8 +64,7 @@ export const getAlertProducts = async () => {
     });
     return response.data;
   } catch (error) {
-    console.debug('Error fetching products:', error);
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.alertProducts);
   }
 };
 interface IProduto {
@@ -111,10 +109,7 @@ export const createProduct = async (dados: IProduto) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao criar produto:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.createProduct);
   }
 };
 
@@ -172,10 +167,7 @@ export const getProductHistoricoSaida = async ({
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar histórico de saída do produto:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.productHistory);
   }
 };
 
@@ -207,9 +199,6 @@ export const updateProduct = async ({ id, operations }: IUpdateProduct) => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao atualizar produto', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.updateProduct);
   }
 };

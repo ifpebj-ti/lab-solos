@@ -97,7 +97,7 @@ describe('solicitacoes de emprestimo responsivas', () => {
     expect(loansApi.getAllLoans).toHaveBeenCalledTimes(3);
   });
 
-  it('mantem carregamento acessivel e vazio apos falha da consulta', async () => {
+  it('mantem carregamento acessivel e apresenta erro apos falha da consulta', async () => {
     let rejectRequest!: (reason: Error) => void;
     loansApi.getAllLoans.mockImplementationOnce(
       () => new Promise((_, reject) => { rejectRequest = reject; })
@@ -107,9 +107,12 @@ describe('solicitacoes de emprestimo responsivas', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Carregando...');
     rejectRequest(new Error('Falha sintetica'));
 
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível carregar os empréstimos'
+    );
     expect(
-      await screen.findByText('Nenhuma solicitação de empréstimo pendente.')
-    ).toBeInTheDocument();
+      screen.queryByText('Nenhuma solicitação de empréstimo pendente.')
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 });

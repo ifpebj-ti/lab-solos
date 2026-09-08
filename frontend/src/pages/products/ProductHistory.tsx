@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Calendar } from 'lucide-react';
 import { getProductHistoricoSaida } from '@/integration/Product';
@@ -6,6 +6,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import LoadingIcon from '@/components/icons/LoadingIcon';
 import { getUnidadePlural } from '@/mocks/Unidades';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { createApplicationError } from '@/errors/applicationError';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 interface UsuarioEmprestimo {
   id: number;
@@ -42,30 +45,44 @@ export default function ProductHistoryPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<HistoricoSaidaProdutoResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown | null>(null);
   const [filteredData, setFilteredData] = useState<HistoricoSaidaItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
+  const fetchData = useCallback(async () => {
+    const productId = id ? Number(id) : NaN;
 
-      try {
-        setLoading(true);
-        const response = await getProductHistoricoSaida({ id: parseInt(id) });
-        setData(response);
-        setFilteredData(response.historico);
-      } catch (err) {
-        setError('Erro ao carregar histórico do produto');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!Number.isInteger(productId)) {
+      setData(null);
+      setError(
+        createApplicationError({
+          category: 'not_found',
+          message: 'Identificador de produto ausente.',
+          retryable: false,
+        })
+      );
+      setLoading(false);
+      return;
+    }
 
-    fetchData();
+    setLoading(true);
+
+    try {
+      const response = await getProductHistoricoSaida({ id: productId });
+      setData(response);
+      setFilteredData(response.historico);
+      setError(null);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (!data) return;
@@ -91,34 +108,44 @@ export default function ProductHistoryPage() {
     return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
   };
 
-  if (loading) {
+  if (loading && !data) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
+      <div
+        role='status'
+        className='flex items-center justify-center min-h-screen'
+      >
         <LoadingIcon />
       </div>
     );
   }
 
-  if (error || !data) {
+  if (error && !data) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <p className='text-red-500 mb-4'>
-            {error || 'Produto não encontrado'}
-          </p>
-          <button
-            onClick={() => navigate(-1)}
-            className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600'
-          >
-            Voltar
-          </button>
-        </div>
+      <div className='flex items-center justify-center min-h-screen p-6'>
+        <ErrorFeedback
+          error={error}
+          operationId={OPERATION_IDS.productHistory}
+          onRetry={fetchData}
+          onNavigate={() => navigate(-1)}
+        />
       </div>
     );
   }
 
+  if (!data) return null;
+
   return (
     <div className='flex flex-col w-full min-h-screen bg-gray-50 p-6'>
+      {error !== null && (
+        <div className='mb-6'>
+          <ErrorFeedback
+            error={error}
+            operationId={OPERATION_IDS.productHistory}
+            onRetry={fetchData}
+            onNavigate={() => navigate(-1)}
+          />
+        </div>
+      )}
       {/* Header */}
       <div className='flex items-center mb-6'>
         <button

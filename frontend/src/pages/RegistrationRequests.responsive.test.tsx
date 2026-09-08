@@ -91,7 +91,7 @@ describe('solicitacoes de cadastro: contratos existentes', () => {
     ).toBeInTheDocument();
   });
 
-  it('mantem carregamento acessivel e vazio apos falha da consulta', async () => {
+  it('mantem carregamento acessivel e anuncia falha sem confundir com vazio', async () => {
     let rejectRequest!: (reason: Error) => void;
     classApi.getDependentesForApproval.mockImplementationOnce(
       () =>
@@ -104,9 +104,9 @@ describe('solicitacoes de cadastro: contratos existentes', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Carregando...');
     rejectRequest(new Error('Falha sintetica'));
 
-    expect(
-      await screen.findByText('Nenhuma solicitação de cadastro pendente.')
-    ).toBeInTheDocument();
+    const feedback = await screen.findByRole('alert');
+    expect(feedback).toHaveTextContent('carregar os cadastros para');
+    expect(screen.queryByText(/Nenhuma solicita.*pendente/)).not.toBeInTheDocument();
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 });

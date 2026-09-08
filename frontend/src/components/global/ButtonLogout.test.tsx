@@ -23,7 +23,7 @@ describe('ButtonLogout', () => {
 
     fireEvent.click(screen.getByRole('link'));
 
-    expect(clearSession).toHaveBeenCalledOnce();
+    expect(clearSession).toHaveBeenCalledWith({ discardAuthContext: true });
     expect(screen.getByLabelText('rota atual')).toHaveTextContent('/');
   });
 });

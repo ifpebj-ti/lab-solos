@@ -1,6 +1,11 @@
 import Cookie from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
+import {
+  discardAuthNotice,
+  discardIntendedRoute,
+} from './intendedRoute';
+
 const AUTH_COOKIE_KEYS = ['doorKey', 'rankID', 'level'] as const;
 type CookieOptions = NonNullable<Parameters<typeof Cookie.set>[2]>;
 
@@ -16,6 +21,10 @@ export type Session = {
   role: string;
   requiresPasswordChange: boolean;
 };
+
+export type ClearSessionOptions = Readonly<{
+  discardAuthContext?: boolean;
+}>;
 
 const cookieOptions = (): CookieOptions => ({
   path: '/',
@@ -84,7 +93,35 @@ export const readSession = (): Session | null => {
   return session;
 };
 
-export const clearSession = (): void => {
-  const options = cookieOptions();
-  for (const key of AUTH_COOKIE_KEYS) Cookie.remove(key, options);
+export const clearSession = (
+  options: ClearSessionOptions = {}
+): void => {
+  let cookieAttributes: CookieOptions;
+  try {
+    cookieAttributes = cookieOptions();
+  } catch {
+    cookieAttributes = { path: '/' };
+  }
+
+  for (const key of AUTH_COOKIE_KEYS) {
+    try {
+      Cookie.remove(key, cookieAttributes);
+    } catch {
+      // One unavailable cookie must not prevent the remaining cleanup.
+    }
+  }
+
+  if (options.discardAuthContext) {
+    try {
+      discardIntendedRoute();
+    } catch {
+      // Auth cleanup remains best effort when sessionStorage is unavailable.
+    }
+
+    try {
+      discardAuthNotice();
+    } catch {
+      // Auth cleanup remains best effort when sessionStorage is unavailable.
+    }
+  }
 };

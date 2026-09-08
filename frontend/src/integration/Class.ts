@@ -1,9 +1,21 @@
-import axios from 'axios';
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 import { dependenteSchema } from '@/contracts/user';
 
+import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 const dependentesResponseSchema = dependenteSchema.array();
+
+const emptyOnNotFound = (error: unknown, operation: OperationId): [] => {
+  const normalized = reportAppError(error, operation);
+
+  if (normalized.category === 'not_found' && normalized.status === 404) {
+    return [];
+  }
+
+  throw normalized;
+};
 
 export const getLoansByDependentes = async () => {
   try {
@@ -22,10 +34,7 @@ export const getLoansByDependentes = async () => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar produtos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.loansByDependents);
   }
 };
 
@@ -46,13 +55,11 @@ export const getDependentes = async () => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar produtos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.dependents);
   }
 };
 
+/** 404 nesta operação representa uma coleção de dependentes vazia. */
 export const getDependentesID = async (rankID: string) => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -68,17 +75,11 @@ export const getDependentesID = async (rankID: string) => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      console.warn(`Usuário não possui dependentes.`);
-      return []; // Retorna um array vazio se não houver dependentes
-    }
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar produtos', error);
-    }
-    throw error;
+    return emptyOnNotFound(error, OPERATION_IDS.dependentsById);
   }
 };
 
+/** 404 nesta operação representa uma coleção de cadastros vazia para aprovação. */
 export const getDependentesForApproval = async (rankID: string) => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -94,17 +95,11 @@ export const getDependentesForApproval = async (rankID: string) => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      console.warn(`Usuário não possui dependentes para aprovação.`);
-      return []; // Retorna um array vazio se não houver dependentes
-    }
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar dependentes para aprovação', error);
-    }
-    throw error;
+    return emptyOnNotFound(error, OPERATION_IDS.dependentsForApproval);
   }
 };
 
+/** 404 nesta operação representa uma coleção de usuários vazia para aprovação. */
 export const getAllUsersForApproval = async () => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -120,14 +115,7 @@ export const getAllUsersForApproval = async () => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      console.warn(`Nenhum usuário encontrado para aprovação.`);
-      return []; // Retorna um array vazio se não houver dependentes
-    }
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar usuários para aprovação', error);
-    }
-    throw error;
+    return emptyOnNotFound(error, OPERATION_IDS.usersForApproval);
   }
 };
 
@@ -153,10 +141,7 @@ export const approveDependente = async (solicitanteId: string | number) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao aprovar dependente:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.approveDependent);
   }
 };
 
@@ -182,10 +167,7 @@ export const rejectDependente = async (solicitanteId: string | number) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao rejeitar dependente:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.rejectDependent);
   }
 };
 
@@ -209,9 +191,6 @@ export const getLoansByClass = async ({ id }: IIdMentorClass) => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar produtos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.loansByClass);
   }
 };

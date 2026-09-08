@@ -3,7 +3,7 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
 import { getUnidadePlural } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import {
@@ -12,12 +12,15 @@ import {
   rejectLoan,
   returnLoan,
 } from '@/integration/Loans';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ItemOnly from '@/components/global/table/ItemOnly';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
 } from '@/components/global/table/ResponsiveTable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
 import { toast } from '@/components/hooks/use-toast';
 import { FileText, RefreshCw } from 'lucide-react';
 import {
@@ -88,11 +91,16 @@ export interface IEmprestimo {
 }
 
 function LoanHistoryMentee() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
-  const [loan, setLoan] = useState<IEmprestimo>();
+  const [isAscending, setIsAscending] = useState(true);
+  const [loan, setLoan] = useState<IEmprestimo | null>(null);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    'approve' | 'reject' | 'return' | null
+  >(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const id = location.state?.id;
   const columnsExport = [
     { value: 'ID', width: '10%' },
@@ -103,79 +111,69 @@ function LoanHistoryMentee() {
   ];
   const columnWidthsExport = ['10%', '45%', '15%', '15%', '15%'];
 
-  useEffect(() => {
-    const fetchGetLoan = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getLoansById({ id });
-        setLoan(response);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-        }
-        setLoan(undefined);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetLoan();
-  }, [id]);
-
-  const handleApprove = async (loanId: number) => {
+  const fetchGetLoan = useCallback(async (): Promise<boolean> => {
+    setIsLoading(true);
     try {
-      await approveLoan(loanId);
-      toast({
-        title: 'Solicitação aceita',
-        description: 'Empréstimo autorizado para uso...',
-      });
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao aprovar empréstimo:', error);
-      }
-      toast({
-        title: 'Erro durante requisição',
-        description: 'Tente novamente mais tarde...',
-      });
-    }
-  };
-  const handleReject = async (loanId: number) => {
-    try {
-      await rejectLoan(loanId);
-      toast({
-        title: 'Solicitação rejeitada',
-        description: 'Empréstimo não autorizado para uso...',
-      });
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao reprovar empréstimo:', error);
-      }
-      toast({
-        title: 'Erro durante requisição',
-        description: 'Tente novamente mais tarde...',
-      });
-    }
-  };
-
-  const handleReturn = async (loanId: number) => {
-    try {
-      await returnLoan(loanId);
-      toast({
-        title: 'Devolução registrada',
-        description: 'A devolução do empréstimo foi registrada com sucesso!',
-      });
-      // Recarregar os dados do empréstimo
       const response = await getLoansById({ id });
       setLoan(response);
+      setLoadError(null);
+      return true;
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao registrar devolução:', error);
-      }
-      toast({
-        title: 'Erro durante devolução',
-        description: 'Tente novamente mais tarde...',
-      });
+      setLoadError(error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void fetchGetLoan();
+  }, [fetchGetLoan]);
+
+  const runAction = async (
+    action: 'approve' | 'reject' | 'return',
+    mutation: (loanId: number) => Promise<unknown>,
+    operation: typeof OPERATION_IDS.approveLoan | typeof OPERATION_IDS.rejectLoan | typeof OPERATION_IDS.returnLoan,
+    successToast: { title: string; description: string },
+    refreshAfterSuccess = false
+  ) => {
+    if (!loan || pendingAction !== null) return;
+
+    setPendingAction(action);
+    try {
+      await mutation(loan.id);
+      if (refreshAfterSuccess && !(await fetchGetLoan())) return;
+      toast(successToast);
+    } catch (error) {
+      notifyError(error, operation);
+    } finally {
+      setPendingAction(null);
     }
   };
+
+  const handleApprove = () =>
+    runAction('approve', approveLoan, OPERATION_IDS.approveLoan, {
+      title: 'Solicitação aceita',
+      description: 'Empréstimo autorizado para uso...',
+    });
+
+  const handleReject = () =>
+    runAction('reject', rejectLoan, OPERATION_IDS.rejectLoan, {
+      title: 'Solicitação rejeitada',
+      description: 'Empréstimo não autorizado para uso...',
+    });
+
+  const handleReturn = () =>
+    runAction(
+      'return',
+      returnLoan,
+      OPERATION_IDS.returnLoan,
+      {
+        title: 'Devolução registrada',
+        description: 'A devolução do empréstimo foi registrada com sucesso!',
+      },
+      true
+    );
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
@@ -221,20 +219,48 @@ function LoanHistoryMentee() {
     FileSaver.saveAs(blob, 'emprestimo.xlsx');
   };
 
+  if (isLoading && loan === null) {
+    return (
+      <div
+        role='status'
+        className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+      >
+        <div className='animate-spin'>
+          <LoadingIcon />
+        </div>
+        Carregando...
+      </div>
+    );
+  }
+
+  if (loan === null) {
+    return (
+      <div className='flex min-h-screen items-center justify-center bg-backgroundMy p-6'>
+        {loadError !== null && (
+          <ErrorFeedback
+            error={loadError}
+            operationId={OPERATION_IDS.loanById}
+            onRetry={fetchGetLoan}
+            onNavigate={() => navigate(-1)}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
-      {isLoading ? (
-        <div
-          role='status'
-          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
-        >
-          <div className='animate-spin'>
-            <LoadingIcon />
+      <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+        {loadError !== null && (
+          <div className='w-11/12 mt-6'>
+            <ErrorFeedback
+              error={loadError}
+              operationId={OPERATION_IDS.loanById}
+              onRetry={fetchGetLoan}
+              onNavigate={() => navigate(-1)}
+            />
           </div>
-          Carregando...
-        </div>
-      ) : (
-        <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+        )}
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
               Histórico de Empréstimo - {loan?.status}
@@ -271,9 +297,9 @@ function LoanHistoryMentee() {
               </p>
               {loan?.status === 'Aprovado' && !loan?.dataDevolucao && (
                 <button
-                  onClick={() =>
-                    loan?.id !== undefined && handleReturn(loan.id)
-                  }
+                  type='button'
+                  onClick={handleReturn}
+                  disabled={pendingAction === 'return'}
                   className='font-rajdhani-semibold text-green-600 text-xl h-10 border border-green-600 px-4 rounded-md hover:bg-green-50 flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
                 >
                   Registrar Devolução
@@ -415,13 +441,17 @@ function LoanHistoryMentee() {
           {loan?.status != 'Aprovado' ? (
             <div className='w-11/12 min-w-0 gap-3 h-10 mt-6 flex flex-wrap items-center justify-end'>
               <button
-                onClick={() => loan?.id !== undefined && handleReject(loan.id)}
+                type='button'
+                onClick={handleReject}
+                disabled={pendingAction === 'reject'}
                 className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
               >
                 Rejeitar
               </button>
               <button
-                onClick={() => loan?.id !== undefined && handleApprove(loan.id)}
+                type='button'
+                onClick={handleApprove}
+                disabled={pendingAction === 'approve'}
                 className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
               >
                 Aceitar
@@ -429,7 +459,6 @@ function LoanHistoryMentee() {
             </div>
           ) : null}
         </div>
-      )}
     </>
   );
 }
