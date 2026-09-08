@@ -1,10 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormSetError } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { clearSession } from '@/auth/session';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import type { ApplicationError } from '@/errors/applicationError';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { normalizeError } from '@/errors/normalizeError';
+import {
+  presentError,
+  type ErrorPresentation,
+} from '@/errors/presentError';
 import { requestPasswordReset } from '@/integration/Auth';
 import logo from '../../public/images/logo.png';
 import { toast } from '../components/hooks/use-toast';
@@ -16,15 +24,39 @@ const submitForgotPasswordSchema = z.object({
 
 type ForgotPasswordFormData = z.infer<typeof submitForgotPasswordSchema>;
 
+const FORGOT_PASSWORD_FIELDS = new Set<string>(['email']);
+
+const applyForgotPasswordFieldErrors = (
+  fieldErrors: ApplicationError['fieldErrors'],
+  setError: UseFormSetError<ForgotPasswordFormData>
+) => {
+  for (const [field, messages] of Object.entries(fieldErrors ?? {})) {
+    if (!FORGOT_PASSWORD_FIELDS.has(field)) continue;
+
+    const message = messages[0];
+    if (message) {
+      setError(field as keyof ForgotPasswordFormData, {
+        type: 'server',
+        message,
+      });
+    }
+  }
+};
+
 const NEUTRAL_RESET_REQUEST_MESSAGE =
   'Se a conta estiver apta, enviaremos as instru\u00e7\u00f5es.';
 
 function ForgotPassword() {
   const [loading, setLoading] = useState(false);
+  const [errorPresentation, setErrorPresentation] =
+    useState<ErrorPresentation>();
+  const [retryData, setRetryData] = useState<ForgotPasswordFormData>();
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
+    clearErrors,
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(submitForgotPasswordSchema),
   });
@@ -32,6 +64,9 @@ function ForgotPassword() {
 
   async function postForgotPassword(data: ForgotPasswordFormData) {
     setLoading(true);
+    setErrorPresentation(undefined);
+    setRetryData(data);
+    clearErrors();
     try {
       await requestPasswordReset(data);
       toast({
@@ -39,11 +74,12 @@ function ForgotPassword() {
         description: NEUTRAL_RESET_REQUEST_MESSAGE,
       });
       navigate('/reset-password');
-    } catch {
-      toast({
-        title: 'N\u00e3o foi poss\u00edvel enviar as instru\u00e7\u00f5es',
-        description: 'Tente novamente mais tarde.',
-      });
+    } catch (error: unknown) {
+      const normalizedError = normalizeError(error);
+      applyForgotPasswordFieldErrors(normalizedError.fieldErrors, setError);
+      setErrorPresentation(
+        presentError(normalizedError, OPERATION_IDS.requestPasswordReset)
+      );
     } finally {
       setLoading(false);
     }
@@ -72,6 +108,17 @@ function ForgotPassword() {
               'Forne\u00e7a seu e-mail cadastrado para receber as instru\u00e7\u00f5es de redefini\u00e7\u00e3o de senha.'
             }
           </p>
+          {errorPresentation ? (
+            <ErrorFeedback
+              className='mt-3'
+              presentation={errorPresentation}
+              onRetry={
+                retryData
+                  ? () => void postForgotPassword(retryData)
+                  : undefined
+              }
+            />
+          ) : null}
           <form
             onSubmit={handleSubmit(postForgotPassword)}
             className='w-full gap-y-3 flex flex-col'

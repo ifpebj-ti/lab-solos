@@ -2,6 +2,9 @@ import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 import { academicoSchema, usuarioSchema } from '@/contracts/user';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 const parseUserResponse = (data: unknown) => {
   const academicResult = academicoSchema.safeParse(data);
 
@@ -51,10 +54,7 @@ export const getRegisteredUsers = async () => {
     });
     return parseUserListResponse(response.data);
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Error fetching users:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.registeredUsers);
   }
 };
 
@@ -74,10 +74,7 @@ export const getUserById = async ({ id }: IUserById) => {
     });
     return parseUserResponse(response.data);
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Error fetching user:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.userById);
   }
 };
 
@@ -109,21 +106,22 @@ export const updateUserStatus = async ({
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Error updating user status:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.updateUserStatus);
   }
 };
 
 export const getCurrentUser = async () => {
+  const doorKey = Cookie.get('doorKey');
+
+  if (!doorKey) {
+    throw reportAppError(
+      new Error('Usuário não autenticado.'),
+      OPERATION_IDS.currentUser
+    );
+  }
+
+  let userId: string | number;
   try {
-    const doorKey = Cookie.get('doorKey');
-
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-
     // Decodificar o token para obter o ID do usuário
     const base64Url = doorKey.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -133,15 +131,12 @@ export const getCurrentUser = async () => {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    const payload = JSON.parse(jsonPayload);
-    const userId = payload.sub;
-
-    // Buscar dados completos do usuário
-    return await getUserById({ id: userId });
+    const payload = JSON.parse(jsonPayload) as { sub: string | number };
+    userId = payload.sub;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Error getting current user:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.currentUser);
   }
+
+  // Buscar dados completos do usuário; o adaptador delegado já normaliza sua resposta.
+  return getUserById({ id: userId });
 };

@@ -4,9 +4,9 @@ import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
 import { displayUserValue, formatCivilDate } from '@/function/date';
@@ -17,6 +17,8 @@ import {
 } from '@/components/global/table/ResponsiveTable';
 import { academicoSchema } from '@/contracts/user';
 import type { Academico, Dependente } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 const classColumns: readonly ResponsiveColumn[] = [
   { key: 'name', label: 'Nome', weight: 25 },
@@ -28,39 +30,61 @@ const classColumns: readonly ResponsiveColumn[] = [
 
 // aqui virá a listagem dos integrantes da turma
 function ViewClass() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDependentsLoading, setIsDependentsLoading] = useState(true);
+  const [isUserLoading, setIsUserLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const location = useLocation();
+  const navigate = useNavigate();
   const id = location.state?.id; // Recupera o ID passado via state
   const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [user, setUser] = useState<Academico>();
+  const [dependentsError, setDependentsError] = useState<unknown>();
+  const [userError, setUserError] = useState<unknown>();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
 
-  useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getDependentesID(id);
-        const responseUser = await getUserById({ id });
-        const academicUser = academicoSchema.safeParse(responseUser);
-        setDependentes(response);
-        setUser(academicUser.success ? academicUser.data : undefined);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-        }
-        setDependentes([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetLoansDependentes();
+  const loadDependents = useCallback(async () => {
+    setIsDependentsLoading(true);
+    setDependentsError(undefined);
+
+    try {
+      const response = await getDependentesID(id);
+      setDependentes(response);
+    } catch (error) {
+      setDependentsError(error);
+    } finally {
+      setIsDependentsLoading(false);
+    }
   }, [id]);
+
+  const loadUser = useCallback(async () => {
+    setIsUserLoading(true);
+    setUserError(undefined);
+
+    try {
+      const responseUser = await getUserById({ id });
+      const academicUser = academicoSchema.safeParse(responseUser);
+      if (!academicUser.success) {
+        throw new Error('Dados inválidos para a turma.');
+      }
+      setUser(academicUser.data);
+    } catch (error) {
+      setUserError(error);
+    } finally {
+      setIsUserLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void loadDependents();
+    void loadUser();
+  }, [loadDependents, loadUser]);
+
+  const isLoading = isDependentsLoading || isUserLoading;
 
   const filteredUsers = dependentes.filter((user) =>
     user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
@@ -132,7 +156,25 @@ function ViewClass() {
           </div>
           Carregando...
         </div>
-      ) : user && dependentes ? (
+      ) : dependentsError ? (
+        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+          <ErrorFeedback
+            error={dependentsError}
+            operationId={OPERATION_IDS.dependentsById}
+            onRetry={() => void loadDependents()}
+            onNavigate={() => navigate('/')}
+          />
+        </div>
+      ) : userError ? (
+        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+          <ErrorFeedback
+            error={userError}
+            operationId={OPERATION_IDS.userById}
+            onRetry={() => void loadUser()}
+            onNavigate={() => navigate('/')}
+          />
+        </div>
+      ) : user ? (
         <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
@@ -226,7 +268,14 @@ function ViewClass() {
           </div>
         </div>
       ) : (
-        <div>Error</div>
+        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+          <ErrorFeedback
+            error={new Error('Usuário da turma indisponível.')}
+            operationId={OPERATION_IDS.userById}
+            onRetry={() => void loadUser()}
+            onNavigate={() => navigate('/')}
+          />
+        </div>
       )}
     </>
   );

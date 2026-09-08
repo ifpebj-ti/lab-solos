@@ -1,16 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormSetError } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { passwordChangeSchema } from '@/auth/passwordPolicy';
 import { clearSession } from '@/auth/session';
 import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import type { ApplicationError } from '@/errors/applicationError';
 import { resetPassword } from '@/integration/Auth';
 import logo from '../../public/images/logo.png';
-import { toast } from '../components/hooks/use-toast';
 import InputText from '../components/global/inputs/Text';
+import { toast } from '../components/hooks/use-toast';
+import { OPERATION_IDS, getFieldErrorMessage } from '@/errors/errorCatalog';
+import { normalizeError } from '@/errors/normalizeError';
+import {
+  presentError,
+  type ErrorPresentation,
+} from '@/errors/presentError';
 
 const submitResetPasswordSchema = z.intersection(
   z.object({
@@ -22,43 +30,53 @@ const submitResetPasswordSchema = z.intersection(
 
 type ResetPasswordFormData = z.infer<typeof submitResetPasswordSchema>;
 
-const isRecord = (value: unknown): value is Record<PropertyKey, unknown> =>
-  Boolean(value) && typeof value === 'object';
+const RESET_PASSWORD_FIELDS = new Set<string>([
+  'email',
+  'token',
+  'newPassword',
+  'confirmation',
+]);
 
-const readProblemCode = (error: unknown): string | undefined => {
-  if (!isRecord(error)) return undefined;
+const applyResetPasswordFieldErrors = (
+  error: ApplicationError,
+  setError: UseFormSetError<ResetPasswordFormData>
+) => {
+  for (const [field, messages] of Object.entries(error.fieldErrors ?? {})) {
+    if (!RESET_PASSWORD_FIELDS.has(field)) continue;
 
-  const response = error.response;
-  if (!isRecord(response)) return undefined;
-
-  const data = response.data;
-  if (!isRecord(data)) return undefined;
-
-  const directCode = data.code;
-  if (typeof directCode === 'string') return directCode;
-
-  const errors = data.errors;
-  if (!isRecord(errors)) return undefined;
-
-  for (const values of Object.values(errors)) {
-    if (!Array.isArray(values)) continue;
-    const code = values.find((value) => typeof value === 'string');
-    if (typeof code === 'string') return code;
+    const message = messages[0];
+    if (message) {
+      setError(field as keyof ResetPasswordFormData, {
+        type: 'server',
+        message,
+      });
+    }
   }
 
-  return undefined;
+  if (
+    error.code === 'password_reset_invalid' &&
+    error.fieldErrors?.token === undefined
+  ) {
+    const tokenMessage = getFieldErrorMessage('token', error.code);
+    if (tokenMessage) {
+      setError('token', { type: 'server', message: tokenMessage });
+    }
+  }
 };
 
 const clearResetSession = () => clearSession();
 
 function ResetPassword() {
   const [loading, setLoading] = useState(false);
-  const [serverErrorCode, setServerErrorCode] = useState<string>();
-  const [submitError, setSubmitError] = useState<string>();
+  const [errorPresentation, setErrorPresentation] =
+    useState<ErrorPresentation>();
+  const [retryData, setRetryData] = useState<ResetPasswordFormData>();
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
+    clearErrors,
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(submitResetPasswordSchema),
   });
@@ -66,8 +84,9 @@ function ResetPassword() {
 
   async function postResetPassword(data: ResetPasswordFormData) {
     setLoading(true);
-    setServerErrorCode(undefined);
-    setSubmitError(undefined);
+    setErrorPresentation(undefined);
+    setRetryData(data);
+    clearErrors();
 
     try {
       await resetPassword({
@@ -82,13 +101,13 @@ function ResetPassword() {
         description: 'Fa\u00e7a login com sua nova senha.',
       });
       navigate('/', { replace: true });
-    } catch (error) {
-      const code = readProblemCode(error);
-      if (code) {
-        setServerErrorCode(code);
-      } else {
-        setSubmitError('N\u00e3o foi poss\u00edvel redefinir a senha. Tente novamente.');
-      }
+    } catch (error: unknown) {
+      const normalizedError = normalizeError(error);
+      applyResetPasswordFieldErrors(normalizedError, setError);
+
+      setErrorPresentation(
+        presentError(normalizedError, OPERATION_IDS.resetPassword)
+      );
     } finally {
       setLoading(false);
     }
@@ -117,6 +136,17 @@ function ResetPassword() {
               'Digite seu e-mail, a nova senha e o c\u00f3digo que voc\u00ea recebeu por e-mail.'
             }
           </p>
+          {errorPresentation ? (
+            <ErrorFeedback
+              className='mt-3'
+              presentation={errorPresentation}
+              onRetry={
+                retryData
+                  ? () => void postResetPassword(retryData)
+                  : undefined
+              }
+            />
+          ) : null}
           <form
             onSubmit={handleSubmit(postResetPassword)}
             className='w-full gap-y-3 flex flex-col mt-2'
@@ -140,13 +170,7 @@ function ResetPassword() {
               confirmationInputProps={register('confirmation')}
               newPasswordError={errors.newPassword?.message}
               confirmationError={errors.confirmation?.message}
-              serverErrorCode={serverErrorCode}
             />
-            {submitError ? (
-              <p role='alert' className='text-xs text-red-500'>
-                {submitError}
-              </p>
-            ) : null}
             <button
               type='submit'
               disabled={loading}

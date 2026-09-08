@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { AxiosError } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { createApplicationError } from '@/errors/applicationError';
 import { createMentor } from '@/integration/Auth';
 import CreateAccount from './CreateAccount';
 
@@ -164,16 +164,14 @@ describe('CreateAccount', () => {
   });
 
   it('associa erros do backend aos campos cidade e curso', async () => {
-    const backendError = Object.assign(new AxiosError('Cadastro inválido'), {
-      response: {
-        status: 400,
-        data: {
-          errors: {
-            cidade: ['Cidade rejeitada pelo servidor.'],
-            curso: ['Curso rejeitado pelo servidor.'],
-          },
-        },
+    const backendError = createApplicationError({
+      category: 'validation',
+      message: 'SENTINELA_REMOTA',
+      fieldErrors: {
+        cidade: ['Verifique este campo.'],
+        curso: ['Verifique este campo.'],
       },
+      retryable: false,
     });
     vi.mocked(createMentor).mockRejectedValue(backendError);
     renderCreateAccount();
@@ -181,17 +179,70 @@ describe('CreateAccount', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
-    const cityError = await screen.findByText(
-      'Cidade rejeitada pelo servidor.'
+    const summary = await screen.findByRole('alert', {
+      name: /N.o foi poss.vel cadastrar o usu.rio/i,
+    });
+    expect(summary).toHaveTextContent('Verifique este campo.');
+    expect(summary).not.toHaveTextContent('SENTINELA_REMOTA');
+
+    const cityError = screen.getByText('Verifique este campo.', {
+      selector: '#cidade-error',
+    });
+    const courseError = screen.getByText('Verifique este campo.', {
+      selector: '#curso-error',
+    });
+    expect(screen.getByRole('textbox', { name: /cidade/i })).toHaveAttribute(
+      'aria-invalid',
+      'true'
     );
-    const courseError = screen.getByText('Curso rejeitado pelo servidor.');
     expect(screen.getByRole('textbox', { name: /cidade/i })).toHaveAttribute(
       'aria-describedby',
       cityError.id
     );
     expect(screen.getByRole('textbox', { name: /curso/i })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+    expect(screen.getByRole('textbox', { name: /curso/i })).toHaveAttribute(
       'aria-describedby',
       courseError.id
     );
+  });
+
+  it('mantém valores, oferece nova tentativa e reabilita o envio após falha do servidor', async () => {
+    let rejectRequest: (reason: unknown) => void = () => undefined;
+    const pendingRequest = new Promise<never>((_, reject) => {
+      rejectRequest = reject;
+    });
+    vi.mocked(createMentor)
+      .mockReturnValueOnce(pendingRequest as never)
+      .mockResolvedValueOnce({ status: 201 } as never);
+    renderCreateAccount();
+    fillValidForm();
+
+    const submitButton = screen.getByRole('button', { name: /criar conta/i });
+    fireEvent.click(submitButton);
+    await waitFor(() => expect(submitButton).toBeDisabled());
+
+    rejectRequest(
+      createApplicationError({
+        category: 'server',
+        message: 'SENTINELA_TOKEN_SENHA_STACK',
+        retryable: true,
+      })
+    );
+
+    const summary = await screen.findByRole('alert', {
+      name: /N.o foi poss.vel cadastrar o usu.rio/i,
+    });
+    expect(summary).toHaveTextContent('Tentar novamente mais tarde.');
+    expect(summary).not.toHaveTextContent('SENTINELA_TOKEN_SENHA_STACK');
+    expect(submitButton).toBeEnabled();
+    expect(screen.getByRole('textbox', { name: /cidade/i })).toHaveValue(
+      '  Belo Jardim  '
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await waitFor(() => expect(createMentor).toHaveBeenCalledTimes(2));
   });
 });

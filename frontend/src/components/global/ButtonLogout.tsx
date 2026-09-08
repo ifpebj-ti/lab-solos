@@ -15,7 +15,7 @@ function ButtonLogout() {
         <TooltipTrigger>
           <Link
             to={'/'}
-            onClick={clearSession}
+            onClick={() => clearSession({ discardAuthContext: true })}
             className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150 hover:bg-cl-table-item group'
           >
             <LogOutIcon

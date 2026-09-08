@@ -5,6 +5,9 @@ import InputText from '../../inputs/Text';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
 import DateInputOutros from '../../inputs/DateInputOutros';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+import { applyRecognizedFieldErrors } from './formErrors';
 
 const submitCreateOutrosSchema = z.object({
   nome: z
@@ -42,18 +45,31 @@ const submitCreateOutrosSchema = z.object({
 
 export type CreateOutrosFormData = z.infer<typeof submitCreateOutrosSchema>;
 
+const OUTROS_ERROR_FIELDS = new Set<keyof CreateOutrosFormData>([
+  'nome',
+  'marca',
+  'quantidade',
+  'minimo',
+  'localizacao',
+  'dataFabricacao',
+  'dataValidade',
+]);
+
 function FormOutros() {
   const {
     register,
     handleSubmit,
     setValue,
     reset,
-    formState: { errors },
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
   } = useForm<CreateOutrosFormData>({
     resolver: zodResolver(submitCreateOutrosSchema),
   });
 
   async function onSubmit(data: CreateOutrosFormData) {
+    clearErrors();
     try {
       const dataPost = {
         nomeProduto: data.nome,
@@ -94,13 +110,12 @@ function FormOutros() {
       });
       reset();
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao buscar dados de empréstimos:', error);
-      }
-      toast({
-        title: 'Erro ao criar produto',
-        description: 'Verifique os dados e tente novamente...',
-      });
+      const presentation = notifyError(error, OPERATION_IDS.createProduct);
+      applyRecognizedFieldErrors(
+        presentation.fieldErrors,
+        OUTROS_ERROR_FIELDS,
+        setError
+      );
     }
   }
 
@@ -110,6 +125,8 @@ function FormOutros() {
       className='w-full gap-y-3 flex flex-col'
     >
       <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
+        <input type='hidden' {...register('dataFabricacao')} />
+        <input type='hidden' {...register('dataValidade')} />
         <InputText
           label='Nome'
           register={register}
@@ -177,6 +194,7 @@ function FormOutros() {
         </button>
         <button
           type='submit'
+          disabled={isSubmitting}
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
           Adicionar

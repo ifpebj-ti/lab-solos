@@ -1,17 +1,20 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { formatDate } from '@/function/date';
 import { getLoansById, returnLoan } from '@/integration/Loans';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ItemReturn from '@/components/global/table/ItemReturn';
 import ItemTable from '@/components/global/table/Item';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
 } from '@/components/global/table/ResponsiveTable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
 import { toast } from '@/components/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
 import type { Usuario } from '@/contracts/user';
@@ -80,46 +83,47 @@ export interface IEmprestimo {
 
 function ReturnLoan() {
   const [loading, setLoading] = useState(true);
-  const [loans, setLoans] = useState<IEmprestimo>();
+  const [loans, setLoans] = useState<IEmprestimo | null>(null);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
+  const [isReturning, setIsReturning] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const id = location.state?.id; // Recupera o ID passado via state
 
-  useEffect(() => {
-    const fetchGetUserById = async () => {
-      try {
-        const loansResponse = await getLoansById({ id });
-        setLoans(loansResponse);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados usuários', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGetUserById();
+  const fetchLoan = useCallback(async (): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const loansResponse = await getLoansById({ id });
+      setLoans(loansResponse);
+      setLoadError(null);
+      return true;
+    } catch (error) {
+      setLoadError(error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  const handleReturn = async () => {
-    if (!loans?.id) return;
+  useEffect(() => {
+    void fetchLoan();
+  }, [fetchLoan]);
 
+  const handleReturn = async () => {
+    if (!loans?.id || isReturning) return;
+
+    setIsReturning(true);
     try {
       await returnLoan(loans.id);
+      if (!(await fetchLoan())) return;
       toast({
         title: 'Devolução registrada',
         description: 'A devolução do empréstimo foi registrada com sucesso!',
       });
-      // Recarregar os dados do empréstimo
-      const loansResponse = await getLoansById({ id });
-      setLoans(loansResponse);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao registrar devolução:', error);
-      }
-      toast({
-        title: 'Erro durante devolução',
-        description: 'Tente novamente mais tarde...',
-      });
+      notifyError(error, OPERATION_IDS.returnLoan);
+    } finally {
+      setIsReturning(false);
     }
   };
 
@@ -169,20 +173,48 @@ function ReturnLoan() {
       (p) => !['Quimico', 'Vidraria'].includes(p.produto.tipoProduto)
     ) || [];
 
+  if (loading && loans === null) {
+    return (
+      <div
+        role='status'
+        className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+      >
+        <div className='animate-spin'>
+          <LoadingIcon />
+        </div>
+        Carregando...
+      </div>
+    );
+  }
+
+  if (loans === null) {
+    return (
+      <div className='flex min-h-screen items-center justify-center bg-backgroundMy p-6'>
+        {loadError !== null && (
+          <ErrorFeedback
+            error={loadError}
+            operationId={OPERATION_IDS.loanById}
+            onRetry={fetchLoan}
+            onNavigate={() => navigate(-1)}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
-      {loading ? (
-        <div
-          role='status'
-          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
-        >
-          <div className='animate-spin'>
-            <LoadingIcon />
+      <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+        {loadError !== null && (
+          <div className='w-11/12 mt-6'>
+            <ErrorFeedback
+              error={loadError}
+              operationId={OPERATION_IDS.loanById}
+              onRetry={fetchLoan}
+              onNavigate={() => navigate(-1)}
+            />
           </div>
-          Carregando...
-        </div>
-      ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+        )}
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Devolução de Empréstimo
@@ -192,6 +224,7 @@ function ReturnLoan() {
                 <button
                   type='button'
                   onClick={handleReturn}
+                  disabled={isReturning}
                   className='font-rajdhani-semibold text-white bg-green-600 text-base h-10 px-4 rounded-md hover:bg-green-700 flex gap-x-2 items-center justify-center transition-all ease-in-out duration-150'
                 >
                   <RefreshCw width={18} />
@@ -299,7 +332,6 @@ function ReturnLoan() {
             </div>
           )}
         </div>
-      )}
     </>
   );
 }

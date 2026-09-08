@@ -1,6 +1,10 @@
 import Cookie from 'js-cookie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearSession, readSession, startSession } from './session';
+import {
+  AUTH_NOTICE_STORAGE_KEY,
+  INTENDED_ROUTE_STORAGE_KEY,
+} from './intendedRoute';
 
 const encodeSegment = (value: object) =>
   btoa(JSON.stringify(value))
@@ -106,5 +110,22 @@ describe('session', () => {
       expect(options).toMatchObject({ path: '/', sameSite: 'Strict' });
       expect(options?.secure).toBe(window.location.protocol === 'https:');
     }
+  });
+
+  it('descarta rota e aviso somente no encerramento explicito', () => {
+    sessionStorage.setItem(INTENDED_ROUTE_STORAGE_KEY, '/admin');
+    sessionStorage.setItem(AUTH_NOTICE_STORAGE_KEY, 'session-expired');
+
+    clearSession();
+
+    expect(sessionStorage.getItem(INTENDED_ROUTE_STORAGE_KEY)).toBe('/admin');
+    expect(sessionStorage.getItem(AUTH_NOTICE_STORAGE_KEY)).toBe(
+      'session-expired'
+    );
+
+    clearSession({ discardAuthContext: true });
+
+    expect(sessionStorage.getItem(INTENDED_ROUTE_STORAGE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(AUTH_NOTICE_STORAGE_KEY)).toBeNull();
   });
 });

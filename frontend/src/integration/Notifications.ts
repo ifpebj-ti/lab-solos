@@ -1,6 +1,9 @@
 import Cookie from 'js-cookie';
 import { api } from '../services/BaseApi';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 export interface Notificacao {
   id: number;
   titulo: string;
@@ -44,10 +47,7 @@ export const getMinhasNotificacoes = async (
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar notificações:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.notifications);
   }
 };
 
@@ -70,10 +70,7 @@ export const getCountNotificacoesNaoLidas = async (): Promise<{
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao contar notificações não lidas:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.unreadNotifications);
   }
 };
 
@@ -94,10 +91,7 @@ export const marcarNotificacaoComoLida = async (
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao marcar notificação como lida:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.markNotificationRead);
   }
 };
 
@@ -122,10 +116,7 @@ export const marcarVariasNotificacoesComoLidas = async (
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao marcar notificações como lidas:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.markNotificationsRead);
   }
 };
 
@@ -150,10 +141,7 @@ export const criarNotificacao = async (
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao criar notificação:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.createNotification);
   }
 };
 
@@ -172,10 +160,7 @@ export const gerarNotificacoesAutomaticas = async (): Promise<void> => {
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao gerar notificações automáticas:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.generateNotifications);
   }
 };
 
@@ -199,9 +184,6 @@ export const verificarEmprestimosVencidos = async (): Promise<{
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao verificar empréstimos vencidos:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.checkOverdueLoans);
   }
 };

@@ -9,6 +9,9 @@ import DateInput from '../../inputs/DateInput';
 import { categoriasQuimicas, unidadesMedida } from '@/mocks/Unidades';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+import { applyRecognizedFieldErrors } from './formErrors';
 
 const submitCreateQuimicoSchema = z.object({
   nome: z
@@ -43,6 +46,18 @@ const submitCreateQuimicoSchema = z.object({
 
 export type CreateQuimicoFormData = z.infer<typeof submitCreateQuimicoSchema>;
 
+const QUIMICO_ERROR_FIELDS = new Set<keyof CreateQuimicoFormData>([
+  'nome',
+  'formula',
+  'catmat',
+  'marca',
+  'quantidade',
+  'minimo',
+  'localizacao',
+  'dataFabricacao',
+  'dataValidade',
+]);
+
 function FormQuimicos() {
   const [medida, setMedida] = useState('');
   const {
@@ -50,12 +65,15 @@ function FormQuimicos() {
     handleSubmit,
     setValue,
     reset,
-    formState: { errors },
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
   } = useForm<CreateQuimicoFormData>({
     resolver: zodResolver(submitCreateQuimicoSchema),
   });
 
   async function onSubmit(data: CreateQuimicoFormData) {
+    clearErrors();
     try {
       type DataPost = {
         nomeProduto: string;
@@ -109,10 +127,6 @@ function FormQuimicos() {
         graduada: false,
       };
 
-      // Garantir que fornecedor é sempre string
-      (dataPost as { fornecedor: string }).fornecedor =
-        dataPost.fornecedor ?? '';
-
       // Remove campos não obrigatórios se estiverem vazios ou undefined
       Object.keys(dataPost).forEach(
         (key) =>
@@ -127,13 +141,12 @@ function FormQuimicos() {
       });
       reset();
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao buscar dados de empréstimos:', error);
-      }
-      toast({
-        title: 'Erro ao criar produto',
-        description: 'Verifique os dados e tente novamente...',
-      });
+      const presentation = notifyError(error, OPERATION_IDS.createProduct);
+      applyRecognizedFieldErrors(
+        presentation.fieldErrors,
+        QUIMICO_ERROR_FIELDS,
+        setError
+      );
     }
   }
 
@@ -143,6 +156,10 @@ function FormQuimicos() {
       className='w-full gap-y-3 flex flex-col'
     >
       <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
+        <input type='hidden' {...register('grupo')} />
+        <input type='hidden' {...register('medida')} />
+        <input type='hidden' {...register('dataFabricacao')} />
+        <input type='hidden' {...register('dataValidade')} />
         <InputText
           label='Nome'
           register={register}
@@ -240,6 +257,7 @@ function FormQuimicos() {
         </button>
         <button
           type='submit'
+          disabled={isSubmitting}
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
           Adicionar
