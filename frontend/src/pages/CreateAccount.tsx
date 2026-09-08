@@ -9,7 +9,7 @@ import InputPassword from '../components/global/inputs/Password';
 import InputText from '../components/global/inputs/Text';
 import logo from '../../public/images/logo.png';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormSetError } from 'react-hook-form';
 import { createMentor } from '@/integration/Auth';
 import {
   userRegistrationResolver,
@@ -17,9 +17,16 @@ import {
   type UserRegistrationFormData,
 } from '@/contracts/userRegistration';
 import { toast } from '@/components/hooks/use-toast';
-import { isAxiosError } from 'axios';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { clearSession } from '@/auth/session';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import type { ApplicationError } from '@/errors/applicationError';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { normalizeError } from '@/errors/normalizeError';
+import {
+  presentError,
+  type ErrorPresentation,
+} from '@/errors/presentError';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Sheet,
@@ -32,19 +39,59 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
+const CREATE_ACCOUNT_FIELDS = new Set<string>([
+  'nome',
+  'email',
+  'senha',
+  'repeat',
+  'tipoUsuario',
+  'telefone',
+  'instituicao',
+  'cidade',
+  'curso',
+  'emailMentor',
+]);
+
+const applyCreateAccountFieldErrors = (
+  fieldErrors: ApplicationError['fieldErrors'],
+  setError: UseFormSetError<UserRegistrationFormData>
+) => {
+  for (const [field, messages] of Object.entries(fieldErrors ?? {})) {
+    if (!CREATE_ACCOUNT_FIELDS.has(field)) continue;
+
+    const message = messages[0];
+    if (message) {
+      setError(field as keyof UserRegistrationFormData, {
+        type: 'server',
+        message,
+      });
+    }
+  }
+};
+
 function CreateAccount() {
+  const [loading, setLoading] = useState(false);
+  const [errorPresentation, setErrorPresentation] =
+    useState<ErrorPresentation>();
+  const [retryData, setRetryData] = useState<UserRegistrationFormData>();
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     setError,
+    clearErrors,
   } = useForm<UserRegistrationFormData>({
     resolver: userRegistrationResolver,
   });
   const navigate = useNavigate();
 
   const postCreateAccount = async (data: UserRegistrationFormData) => {
+    setLoading(true);
+    setErrorPresentation(undefined);
+    setRetryData(data);
+    clearErrors();
+
     const payload: CreateAcademicUserData = {
       nomeCompleto: data.nome,
       email: data.email,
@@ -68,33 +115,13 @@ function CreateAccount() {
       }
       navigate('/');
     } catch (error: unknown) {
-      if (isAxiosError<{ errors?: Record<string, string[]> }>(error)) {
-        const fieldErrors = error.response?.data.errors;
-
-        (['cidade', 'curso'] as const).forEach((field) => {
-          const message = fieldErrors?.[field]?.[0];
-          if (message) {
-            setError(field, { type: 'server', message });
-          }
-        });
-
-        if (error.response?.status === 401) {
-          toast({
-            title: 'Erro durante cadastro',
-            description: 'Dados inválidos.',
-          });
-        } else {
-          toast({
-            title: 'Erro nos dados fornecidos',
-            description: 'Tente novamente com outras credenciais.',
-          });
-        }
-      } else {
-        toast({
-          title: 'Erro durante cadastro',
-          description: 'Dados inválidos.',
-        });
-      }
+      const normalizedError = normalizeError(error);
+      applyCreateAccountFieldErrors(normalizedError.fieldErrors, setError);
+      setErrorPresentation(
+        presentError(normalizedError, OPERATION_IDS.createMentor)
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -156,6 +183,15 @@ function CreateAccount() {
               )}
             </div>
           </div>
+          {errorPresentation ? (
+            <ErrorFeedback
+              className='mt-3'
+              presentation={errorPresentation}
+              onRetry={
+                retryData ? () => void postCreateAccount(retryData) : undefined
+              }
+            />
+          ) : null}
           <form
             onSubmit={handleSubmit(postCreateAccount)}
             className='w-full gap-y-3 flex flex-col mt-1'
@@ -442,9 +478,10 @@ function CreateAccount() {
             </div>
             <button
               type='submit'
+              disabled={loading}
               className='font-rajdhani-semibold text-white text-base bg-green-800 min-h-11 mt-2 w-full min-w-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
             >
-              Criar Conta
+              {loading ? 'Enviando...' : 'Criar Conta'}
             </button>
           </form>
         </div>

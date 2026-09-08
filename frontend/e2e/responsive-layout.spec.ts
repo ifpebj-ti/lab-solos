@@ -722,13 +722,15 @@ for (const viewport of [...responsiveViewports, { width: 812, height: 375 }]) {
     await expect.poll(() => submissions.length).toBe(1);
     await expectAccountFits(page);
     release();
-    await expect(page.getByText(longError, { exact: true })).toBeVisible();
+    const safeError = 'Verifique este campo.';
+    const cityError = page.locator('#cidade-error');
+    await expect(cityError).toHaveText(safeError);
     await expect(page.getByLabel('Cidade')).toHaveAccessibleDescription(
-      longError
+      safeError
     );
     await expectAccountFits(page);
     const errorBox = (await page
-      .getByText(longError, { exact: true })
+      .locator('#cidade-error')
       .boundingBox())!;
     const nextBox = (await page
       .getByLabel('Email do Mentor Responsável')

@@ -1,15 +1,19 @@
-import InputText from '../components/global/inputs/Text';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
-import logo from '../../public/images/logo.png';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import InputPassword from '../components/global/inputs/Password';
 import { useEffect, useState } from 'react';
-import { authenticate } from '@/integration/Auth';
-import { toast } from '../components/hooks/use-toast';
-import { AxiosError } from 'axios';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+
+import { consumeAuthNotice, SESSION_EXPIRED_NOTICE } from '@/auth/intendedRoute';
 import { clearSession } from '@/auth/session';
+import { createApplicationError } from '@/errors/applicationError';
+import { ERROR_CATALOG, OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+import { authenticate } from '@/integration/Auth';
+import InputText from '@/components/global/inputs/Text';
+import InputPassword from '@/components/global/inputs/Password';
+import { toast } from '@/components/hooks/use-toast';
+import logo from '../../public/images/logo.png';
 
 const submitLoginSchema = z.object({
   email: z.string().email('Digite um email válido').toLowerCase(),
@@ -28,66 +32,33 @@ function Login() {
     resolver: zodResolver(submitLoginSchema),
   });
   const navigate = useNavigate();
+
   useEffect(() => {
     clearSession();
+    if (consumeAuthNotice() === SESSION_EXPIRED_NOTICE) {
+      notifyError(
+        createApplicationError({
+          category: 'authentication',
+          message: ERROR_CATALOG.authentication.message,
+          retryable: false,
+        }),
+        OPERATION_IDS.login
+      );
+    }
   }, []);
+
   async function postLogin(data: LoginFormData) {
     setLoading(true);
     try {
       await authenticate({ method: 'POST', params: data }, navigate);
-      // Se chegou até aqui, o login foi bem-sucedido e o navigate já foi chamado
       toast({
         title: '✅ Acesso autorizado',
         description: 'Bem-vindo de volta!',
       });
     } catch (error: unknown) {
-      // Garante que não vai navegar quando há erro e mostra a mensagem
-      if (error instanceof AxiosError) {
-        // Servidor desligado/indisponível (sem resposta)
-        if (!error.response) {
-          toast({
-            title: '⚠️ Problema de conexão',
-            description:
-              'Nosso sistema está temporariamente indisponível. Tente novamente em alguns instantes.',
-          });
-        }
-        // Erro de autenticação (401)
-        else if (error.response.status === 401) {
-          toast({
-            title: '🔐 Falha na autenticação',
-            description:
-              'E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.',
-          });
-        }
-        // Erro interno do servidor (500+)
-        else if (error.response.status >= 500) {
-          toast({
-            title: '⚠️ Problema no servidor',
-            description:
-              'Nosso sistema está temporariamente indisponível. Tente novamente em alguns instantes.',
-          });
-        }
-        // Outros erros HTTP (403, 400, etc.)
-        else {
-          toast({
-            title: '🔐 Acesso negado',
-            description:
-              'Credenciais incorretas ou sua conta ainda está aguardando aprovação do administrador.',
-          });
-        }
-      } else {
-        // Erro não relacionado ao Axios (inesperado)
-        toast({
-          title: '⚠️ Erro inesperado',
-          description:
-            'Ocorreu um problema inesperado. Tente novamente em alguns instantes.',
-        });
-      }
+      notifyError(error, OPERATION_IDS.login);
     } finally {
-      // Pequeno delay para garantir que o toast seja visível
-      setTimeout(() => {
-        setLoading(false);
-      }, 100);
+      setLoading(false);
     }
   }
 
@@ -141,7 +112,7 @@ function Login() {
             <button
               type='submit'
               disabled={loading}
-              className={`mt-3 mb-3 rounded text-center h-9 w-full font-rajdhani-semibold text-white bg-primaryMy hover:bg-opacity-90`}
+              className='mt-3 mb-3 rounded text-center h-9 w-full font-rajdhani-semibold text-white bg-primaryMy hover:bg-opacity-90'
             >
               {loading ? 'Carregando...' : 'Submeter Login'}
             </button>

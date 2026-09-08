@@ -7,6 +7,9 @@ import PopoverInput from '../../inputs/PopoverInput';
 import { useState } from 'react';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+import { applyRecognizedFieldErrors } from './formErrors';
 
 const submitCreateVidrariaSchema = z.object({
   nome: z
@@ -61,6 +64,21 @@ const submitCreateVidrariaSchema = z.object({
 
 export type CreateVidrariaFormData = z.infer<typeof submitCreateVidrariaSchema>;
 
+const VIDRARIA_ERROR_FIELDS = new Set<keyof CreateVidrariaFormData>([
+  'nome',
+  'marca',
+  'dataFabricacao',
+  'dataValidade',
+  'quantidade',
+  'minimo',
+  'capacidade',
+  'localizacao',
+  'formato',
+  'material',
+  'altura',
+  'graduada',
+]);
+
 function FormVidrarias() {
   const [formato, setFormato] = useState('');
   const [material, setMaterial] = useState('');
@@ -72,12 +90,15 @@ function FormVidrarias() {
     handleSubmit,
     setValue,
     reset,
-    formState: { errors },
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
   } = useForm<CreateVidrariaFormData>({
     resolver: zodResolver(submitCreateVidrariaSchema),
   });
 
   async function onSubmit(data: CreateVidrariaFormData) {
+    clearErrors();
     try {
       const dataPost = {
         nomeProduto: data.nome,
@@ -105,11 +126,6 @@ function FormVidrarias() {
         graduada: data.graduada,
       };
 
-      const dataPostTyped: Record<string, unknown> = { ...dataPost };
-      Object.keys(dataPostTyped).forEach(
-        (key) => dataPostTyped[key] === '' && delete dataPostTyped[key]
-      );
-
       await createProduct(dataPost);
       toast({
         title: 'Produto criado',
@@ -117,13 +133,12 @@ function FormVidrarias() {
       });
       reset();
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('Erro ao buscar dados de empréstimos:', error);
-      }
-      toast({
-        title: 'Erro ao criar produto',
-        description: 'Verifique os dados e tente novamente...',
-      });
+      const presentation = notifyError(error, OPERATION_IDS.createProduct);
+      applyRecognizedFieldErrors(
+        presentation.fieldErrors,
+        VIDRARIA_ERROR_FIELDS,
+        setError
+      );
     }
   }
 
@@ -133,6 +148,9 @@ function FormVidrarias() {
       className='w-full gap-y-3 flex flex-col'
     >
       <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
+        <input type='hidden' {...register('formato')} />
+        <input type='hidden' {...register('material')} />
+        <input type='hidden' {...register('altura')} />
         <InputText
           label='Nome'
           register={register}
@@ -230,6 +248,7 @@ function FormVidrarias() {
         </button>
         <button
           type='submit'
+          disabled={isSubmitting}
           className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
         >
           Adicionar

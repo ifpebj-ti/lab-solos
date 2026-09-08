@@ -1,6 +1,9 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 export const getSystemQuantities = async () => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -17,9 +20,6 @@ export const getSystemQuantities = async () => {
     });
     return response;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Error fetching products:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.systemQuantities);
   }
 };

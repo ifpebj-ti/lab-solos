@@ -1,6 +1,9 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 interface ILoansByUserId {
   id: number | string;
 }
@@ -21,10 +24,7 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar emprestimos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.loansByUser);
   }
 };
 
@@ -43,10 +43,7 @@ export const getLoansById = async ({ id }: ILoansByUserId) => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar emprestimos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.loanById);
   }
 };
 
@@ -77,10 +74,7 @@ export const createLoan = async (data: ICreateLoan) => {
     });
     return response;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao criar empréstimo', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.createLoan);
   }
 };
 
@@ -99,10 +93,7 @@ export const getAllLoans = async () => {
     });
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar emprestimos', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.allLoans);
   }
 };
 
@@ -128,10 +119,7 @@ export const approveLoan = async (EmprestimoId: string | number) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao aprovar empréstimo:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.approveLoan);
   }
 };
 
@@ -157,10 +145,7 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao aprovar empréstimo:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.rejectLoan);
   }
 };
 
@@ -182,9 +167,6 @@ export const returnLoan = async (EmprestimoId: string | number) => {
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao devolver empréstimo:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.returnLoan);
   }
 };

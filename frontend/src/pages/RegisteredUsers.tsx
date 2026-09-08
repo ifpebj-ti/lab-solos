@@ -1,6 +1,5 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
-import { Link } from 'react-router-dom';
 import FollowUpCard from '@/components/screens/FollowUp';
 import UsersIcon from '../../public/icons/UsersIcon';
 import UserIcon from '../../public/icons/UserIcon';
@@ -9,10 +8,11 @@ import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getRegisteredUsers, getUserById } from '@/integration/Users';
 import { formatCivilDate } from '../function/date';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import TableItemWithActions from '@/components/global/table/TableItemWithActions';
 import UserStatusManager from '@/components/global/UserStatusManager';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
@@ -29,6 +29,8 @@ import ExcelJS from 'exceljs';
 import * as FileSaver from 'file-saver';
 import { statusUsuarioSchema } from '@/contracts/user';
 import type { Dependente, Usuario } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
@@ -55,6 +57,7 @@ type ReportSigner = Pick<Usuario, 'nomeCompleto' | 'nivelUsuario'>;
 
 function RegisteredUsers() {
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   const id = Cookie.get('rankID')!;
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,6 +67,9 @@ function RegisteredUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [approval, setApproval] = useState<Dependente[]>([]);
   const [user, setUser] = useState<ReportSigner>();
+  const [registeredUsersError, setRegisteredUsersError] = useState<unknown>();
+  const [approvalError, setApprovalError] = useState<unknown>();
+  const [userError, setUserError] = useState<unknown>();
   const columnsExport = [
     { value: 'Nome', width: '40%' },
     { value: 'Nível', width: '15%' },
@@ -107,28 +113,47 @@ function RegisteredUsers() {
     FileSaver.saveAs(blob, 'usuarios.xlsx');
   };
 
-  useEffect(() => {
-    const fetchRegisteredUsers = async () => {
-      try {
-        const response = await getDependentesForApproval(id);
-        const processedRegisteredUsers = await getRegisteredUsers();
-        const responseID = await getUserById({ id });
-        // Remover o filtro de apenas "Habilitados" para mostrar todos os usuários
-        setUser(responseID);
-        setRegisteredUsers(processedRegisteredUsers);
-        setApproval(response);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
-        }
-        setRegisteredUsers([]);
-        setUser(undefined);
-      } finally {
-        setIsLoading(false); // Stop loading after fetch (success or failure)
-      }
-    };
-    fetchRegisteredUsers();
+  const loadRegisteredUsers = useCallback(async () => {
+    setIsLoading(true);
+    setRegisteredUsersError(undefined);
+
+    try {
+      const processedRegisteredUsers = await getRegisteredUsers();
+      setRegisteredUsers(processedRegisteredUsers);
+    } catch (error) {
+      setRegisteredUsersError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const loadApproval = useCallback(async () => {
+    setApprovalError(undefined);
+
+    try {
+      const response = await getDependentesForApproval(id);
+      setApproval(response);
+    } catch (error) {
+      setApprovalError(error);
+    }
   }, [id]);
+
+  const loadUser = useCallback(async () => {
+    setUserError(undefined);
+
+    try {
+      const responseID = await getUserById({ id });
+      setUser(responseID);
+    } catch (error) {
+      setUserError(error);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void loadRegisteredUsers();
+    void loadApproval();
+    void loadUser();
+  }, [loadApproval, loadRegisteredUsers, loadUser]);
 
   const options = [
     { value: 'todos', label: 'Todos' }, // Para exibir todos os usuários por padrão
@@ -189,6 +214,29 @@ function RegisteredUsers() {
     }
   };
 
+  const auxiliaryErrors = (
+    <>
+      {approvalError ? (
+        <ErrorFeedback
+          className='mt-4'
+          error={approvalError}
+          operationId={OPERATION_IDS.dependentsForApproval}
+          onRetry={() => void loadApproval()}
+          onNavigate={() => navigate('/')}
+        />
+      ) : null}
+      {userError ? (
+        <ErrorFeedback
+          className='mt-4'
+          error={userError}
+          operationId={OPERATION_IDS.userById}
+          onRetry={() => void loadUser()}
+          onNavigate={() => navigate('/')}
+        />
+      ) : null}
+    </>
+  );
+
   return (
     <>
       {isLoading ? (
@@ -198,7 +246,16 @@ function RegisteredUsers() {
           </div>
           Carregando...
         </div>
-      ) : registeredUsers.length != 0 ? (
+      ) : registeredUsersError ? (
+        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+          <ErrorFeedback
+            error={registeredUsersError}
+            operationId={OPERATION_IDS.registeredUsers}
+            onRetry={() => void loadRegisteredUsers()}
+            onNavigate={() => navigate('/')}
+          />
+        </div>
+      ) : registeredUsers.length !== 0 ? (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
           <div className='w-11/12 min-w-0 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
@@ -214,6 +271,7 @@ function RegisteredUsers() {
               <OpenSearch />
             </div>
           </div>
+          {auxiliaryErrors}
           <div className='w-11/12 mt-7 flex  items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Administradores'
@@ -395,15 +453,12 @@ function RegisteredUsers() {
           </div>
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
-          <p>Erro durante requisição.</p>
-          <Link
-            to={'/'}
-            className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
-          >
-            <ArrowLeft className='mt-[2px]' />
-            Voltar
-          </Link>
+        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg gap-4 px-4'>
+          {auxiliaryErrors}
+          <h1 className='uppercase font-rajdhani-medium text-2xl text-clt-2'>
+            Usuários Cadastrados
+          </h1>
+          <p>Nenhum usuário cadastrado.</p>
         </div>
       )}
     </>

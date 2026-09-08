@@ -1,20 +1,22 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import FollowUpCard from '@/components/screens/FollowUp';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatDate } from '../../function/date';
-import { ArrowLeft, Check, ShieldAlert, Timer } from 'lucide-react';
+import { Check, ShieldAlert, Timer } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import type { Usuario } from '@/contracts/user';
 import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 const allLoanColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data de Solicitação', weight: 20 },
@@ -66,36 +68,39 @@ interface IEmprestimo {
 }
 
 function AllLoans() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const [loan, setLoan] = useState<IEmprestimo[]>([]);
+  const [loan, setLoan] = useState<IEmprestimo[] | null>(null);
   const [loanNotify, setLoanNotify] = useState<IEmprestimo[]>([]);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchAllLoans = async () => {
-      try {
-        const response = await getAllLoans();
-        const filteredLoans = response.filter(
-          (loan: { status: string }) => loan.status === 'Pendente'
-        );
+  const fetchAllLoans = useCallback(async () => {
+    setIsLoading(true);
 
-        setLoan(response);
-        setLoanNotify(filteredLoans);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
-        }
-        setLoan([]);
-      } finally {
-        setIsLoading(false); // Stop loading after fetch (success or failure)
-      }
-    };
-    fetchAllLoans();
+    try {
+      const response = await getAllLoans();
+      const filteredLoans = response.filter(
+        (loan: { status: string }) => loan.status === 'Pendente'
+      );
+
+      setLoan(response);
+      setLoanNotify(filteredLoans);
+      setLoadError(null);
+    } catch (error) {
+      setLoadError(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchAllLoans();
+  }, [fetchAllLoans]);
 
 
   const options = [
@@ -105,7 +110,8 @@ function AllLoans() {
     { value: 'Rejeitado', label: 'Rejeitado' },
   ];
 
-  const filteredUsers = loan.filter(
+  const loans = loan ?? [];
+  const filteredUsers = loans.filter(
     (user) =>
       (value === 'todos' || user.status.toString() === value) &&
       user.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -123,20 +129,42 @@ function AllLoans() {
     setIsAscending(ascending);
   };
   const getUserCountText = (statusLoan: string) => {
-    const count = loan.filter((user) => user.status == statusLoan).length;
+    const count = loans.filter((user) => user.status == statusLoan).length;
     return `${count}`;
   };
   return (
     <>
-      {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+      {isLoading && loan === null ? (
+        <div
+          role='status'
+          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        >
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
-      ) : currentData.length != 0 ? (
+      ) : loan === null ? (
+        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy p-6'>
+          <ErrorFeedback
+            error={loadError}
+            operationId={OPERATION_IDS.allLoans}
+            onRetry={fetchAllLoans}
+            onNavigate={() => navigate('/')}
+          />
+        </div>
+      ) : (
         <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+          {loadError !== null && (
+            <div className='w-11/12 mt-6'>
+              <ErrorFeedback
+                error={loadError}
+                operationId={OPERATION_IDS.allLoans}
+                onRetry={fetchAllLoans}
+                onNavigate={() => navigate('/')}
+              />
+            </div>
+          )}
           <div className='w-11/12 min-w-0 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
             <div>
               <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
@@ -213,11 +241,11 @@ function AllLoans() {
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                         <div className='text-6xl text-gray-300'>📦</div>
                         <p className='text-lg text-center'>
-                          {loan.length === 0
+                          {loans.length === 0
                             ? 'Nenhum empréstimo registrado no sistema.'
                             : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
                         </p>
-                        {loan.length === 0 && (
+                        {loans.length === 0 && (
                           <p className='text-sm text-gray-500 text-center'>
                             Os empréstimos aparecerão aqui quando usuários
                             realizarem solicitações.
@@ -251,7 +279,7 @@ function AllLoans() {
               </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
-            {currentData.length > 0 && loan.length > 0 && (
+            {currentData.length > 0 && loans.length > 0 && (
               <div className='mt-auto'>
                 <Pagination
                   totalItems={sortedUsers.length}
@@ -262,17 +290,6 @@ function AllLoans() {
               </div>
             )}
           </div>
-        </div>
-      ) : (
-        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
-          <p>Erro durante requisição.</p>
-          <Link
-            to={'/'}
-            className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
-          >
-            <ArrowLeft className='mt-[2px]' />
-            Voltar
-          </Link>
         </div>
       )}
     </>

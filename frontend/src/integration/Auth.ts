@@ -1,7 +1,9 @@
 import { NavigateFunction } from 'react-router-dom';
 
+import { consumeIntendedRoute } from '@/auth/intendedRoute';
 import { clearSession, startSession } from '@/auth/session';
 import type { CreateAcademicUserData } from '@/contracts/userRegistration';
+import { normalizeError } from '@/errors/normalizeError';
 import { api } from '../services/BaseApi';
 
 interface IAuthParams {
@@ -47,51 +49,65 @@ export const authenticate = async (
   { method, params }: IAuth,
   navigate: NavigateFunction
 ) => {
-  const response = await api({
-    method,
-    url: 'Auth/login',
-    data: params,
-  });
+  try {
+    const response = await api({
+      method,
+      url: 'Auth/login',
+      data: params,
+    });
 
-  const login = response.data as LoginResponse;
-  if (
-    typeof login.token !== 'string' ||
-    typeof login.requiresPasswordChange !== 'boolean'
-  ) {
-    throw new Error('Resposta de autentica\u00e7\u00e3o inv\u00e1lida.');
+    const login = response.data as LoginResponse;
+    if (
+      typeof login.token !== 'string' ||
+      typeof login.requiresPasswordChange !== 'boolean'
+    ) {
+      throw new Error('Resposta de autenticacao invalida.');
+    }
+
+    const session = startSession(login.token);
+    if (
+      !session ||
+      session.requiresPasswordChange !== login.requiresPasswordChange
+    ) {
+      clearSession();
+      throw new Error('Sessao de autenticacao invalida.');
+    }
+
+    const intendedRoute = session.requiresPasswordChange
+      ? null
+      : consumeIntendedRoute(session.role);
+    navigate(
+      session.requiresPasswordChange
+        ? '/change-password-required'
+        : intendedRoute ?? getHomePathForRole(session.role)
+    );
+    return response;
+  } catch (error: unknown) {
+    throw normalizeError(error);
   }
-
-  const session = startSession(login.token);
-  if (
-    !session ||
-    session.requiresPasswordChange !== login.requiresPasswordChange
-  ) {
-    clearSession();
-    throw new Error('Sess\u00e3o de autentica\u00e7\u00e3o inv\u00e1lida.');
-  }
-
-  navigate(
-    session.requiresPasswordChange
-      ? '/change-password-required'
-      : getHomePathForRole(session.role)
-  );
-  return response;
 };
 
 export const createMentor = async (data: CreateAcademicUserData) => {
   try {
     const response = await api.post('/Usuarios', data);
     return response;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Erro ao criar mentor', error);
-    }
-    throw error;
+  } catch (error: unknown) {
+    throw normalizeError(error);
   }
 };
 
-export const requestPasswordReset = (data: IPasswordResetRequest) =>
-  api.post('/Email/request-password-reset', data);
+export const requestPasswordReset = async (data: IPasswordResetRequest) => {
+  try {
+    return await api.post('/Email/request-password-reset', data);
+  } catch (error: unknown) {
+    throw normalizeError(error);
+  }
+};
 
-export const resetPassword = (data: IPasswordResetParams) =>
-  api.post('/Email/reset-password', data);
+export const resetPassword = async (data: IPasswordResetParams) => {
+  try {
+    return await api.post('/Email/reset-password', data);
+  } catch (error: unknown) {
+    throw normalizeError(error);
+  }
+};

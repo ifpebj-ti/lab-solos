@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   post: vi.fn(),
   readSession: vi.fn(),
+  notifyError: vi.fn(),
 }));
 
 vi.mock('@/auth/session', () => ({
@@ -17,6 +18,10 @@ vi.mock('@/auth/session', () => ({
 
 vi.mock('@/services/BaseApi', () => ({
   api: { post: mocks.post },
+}));
+
+vi.mock('@/errors/presentError', () => ({
+  notifyError: mocks.notifyError,
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -48,6 +53,7 @@ describe('ChangePassword', () => {
     mocks.navigate.mockReset();
     mocks.post.mockReset();
     mocks.readSession.mockReset();
+    mocks.notifyError.mockReset();
     mocks.readSession.mockReturnValue({
       token: 'door-key',
       userId: 'user-1',
@@ -129,5 +135,31 @@ describe('ChangePassword', () => {
       expect(mocks.clearSession).toHaveBeenCalledOnce();
       expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
     });
+  });
+
+  it('caracteriza conflito 409 de credencial sem encerrar a sessao', async () => {
+    mocks.post.mockRejectedValue({
+      response: {
+        status: 409,
+        data: { code: 'credential_concurrency_conflict' },
+      },
+    });
+    render(<ChangePassword />);
+
+    fillValidForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
+
+    await waitFor(() => {
+      expect(mocks.notifyError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'ApplicationError',
+          category: 'conflict',
+          code: 'credential_concurrency_conflict',
+        }),
+        'auth.changePassword'
+      );
+    });
+    expect(mocks.clearSession).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 });

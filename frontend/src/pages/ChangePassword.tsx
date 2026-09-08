@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -8,6 +7,10 @@ import { clearSession, readSession } from '@/auth/session';
 import { passwordChangeSchema } from '@/auth/passwordPolicy';
 import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
 import { Input } from '@/components/ui/input';
+import { isApplicationError } from '@/errors/applicationError';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { normalizeError } from '@/errors/normalizeError';
+import { notifyError } from '@/errors/presentError';
 import { api } from '@/services/BaseApi';
 
 const changePasswordSchema = z.intersection(
@@ -19,50 +22,18 @@ const changePasswordSchema = z.intersection(
 
 type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
+const CHANGE_PASSWORD_FIELDS = new Set<keyof ChangePasswordForm>([
+  'currentPassword',
+  'newPassword',
+  'confirmation',
+]);
+
 type ChangePasswordProps = {
   required?: boolean;
 };
 
-const readErrorResponse = (error: unknown): object | undefined => {
-  if (!error || typeof error !== 'object') return undefined;
-
-  const response = Reflect.get(error, 'response');
-  return response && typeof response === 'object' ? response : undefined;
-};
-
-const readProblemCode = (error: unknown): string | undefined => {
-  const response = readErrorResponse(error);
-  if (!response) return undefined;
-
-  const data = Reflect.get(response, 'data');
-  if (!data || typeof data !== 'object') return undefined;
-
-  const directCode = Reflect.get(data, 'code');
-  if (typeof directCode === 'string') return directCode;
-
-  const errors = Reflect.get(data, 'errors');
-  if (!errors || typeof errors !== 'object') return undefined;
-
-  for (const values of Object.values(errors)) {
-    if (!Array.isArray(values)) continue;
-    const code = values.find((value) => typeof value === 'string');
-    if (typeof code === 'string') return code;
-  }
-
-  return undefined;
-};
-
-const readResponseStatus = (error: unknown): number | undefined => {
-  const response = readErrorResponse(error);
-  if (!response) return undefined;
-  const status = Reflect.get(response, 'status');
-  return typeof status === 'number' ? status : undefined;
-};
-
 function ChangePassword({ required = false }: ChangePasswordProps) {
   const navigate = useNavigate();
-  const [serverErrorCode, setServerErrorCode] = useState<string>();
-  const [submitError, setSubmitError] = useState<string>();
   const endSession = () => {
     clearSession();
     navigate('/', { replace: true });
@@ -71,14 +42,12 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<ChangePasswordForm>({
     resolver: zodResolver(changePasswordSchema),
   });
 
   const submit = async (data: ChangePasswordForm) => {
-    setServerErrorCode(undefined);
-    setSubmitError(undefined);
-
     try {
       const session = readSession();
       if (!session) {
@@ -92,20 +61,30 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
         },
       });
       endSession();
-    } catch (error) {
-      const status = readResponseStatus(error);
-      if (status === 401 || status === 409) {
-        endSession();
+    } catch (error: unknown) {
+      const normalizedError = normalizeError(error);
+      if (normalizedError.category === 'authentication') {
+        if (!isApplicationError(error)) endSession();
         return;
       }
 
-      const code = readProblemCode(error);
-      if (code) {
-        setServerErrorCode(code);
-        return;
+      for (const [field, messages] of Object.entries(
+        normalizedError.fieldErrors ?? {}
+      )) {
+        if (!CHANGE_PASSWORD_FIELDS.has(field as keyof ChangePasswordForm)) {
+          continue;
+        }
+
+        const message = messages[0];
+        if (message) {
+          setError(field as keyof ChangePasswordForm, {
+            type: 'server',
+            message,
+          });
+        }
       }
 
-      setSubmitError('Não foi possível alterar a senha. Tente novamente.');
+      notifyError(normalizedError, OPERATION_IDS.changePassword);
     }
   };
 
@@ -144,14 +123,7 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
           confirmationInputProps={register('confirmation')}
           newPasswordError={errors.newPassword?.message}
           confirmationError={errors.confirmation?.message}
-          serverErrorCode={serverErrorCode}
         />
-
-        {submitError ? (
-          <p role='alert' className='text-xs text-red-500'>
-            {submitError}
-          </p>
-        ) : null}
 
         <button
           type='submit'

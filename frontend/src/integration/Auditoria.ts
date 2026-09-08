@@ -1,6 +1,9 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { reportAppError } from '@/errors/reportAppError';
+
 export interface LogAuditoria {
   id: number;
   dataHora: string;
@@ -82,10 +85,7 @@ export const obterLogsAuditoria = async (
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao buscar logs de auditoria:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.auditLogs);
   }
 };
 
@@ -113,10 +113,7 @@ export const gerarRelatorioAuditoria = async (
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao gerar relatório de auditoria:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.auditReport);
   }
 };
 
@@ -140,10 +137,7 @@ export const marcarLogComoSuspeito = async (
       data: JSON.stringify(motivo),
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao marcar log como suspeito:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.markAuditLogSuspicious);
   }
 };
 
@@ -164,10 +158,7 @@ export const marcarLogComoNaoSuspeito = async (
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao marcar log como não suspeito:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.markAuditLogNotSuspicious);
   }
 };
 
@@ -190,9 +181,6 @@ export const verificarAtividadeSuspeita = async (
 
     return response.data;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('Erro ao verificar atividade suspeita:', error);
-    }
-    throw error;
+    throw reportAppError(error, OPERATION_IDS.checkSuspiciousActivity);
   }
 };
