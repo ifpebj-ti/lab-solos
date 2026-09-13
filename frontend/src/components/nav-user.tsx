@@ -1,6 +1,6 @@
 'use client';
 
-import { BadgeCheck, LogOut, Sparkles } from 'lucide-react';
+import { BadgeCheck, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,6 +22,19 @@ import {
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import { clearSession } from '@/auth/session';
 
+function getProfileRoute(nivelUsuario?: string) {
+  switch (nivelUsuario) {
+    case 'Mentor':
+      return '/mentor/profile';
+    case 'Mentorado':
+      return '/mentee/profile';
+    case 'Comum':
+      return undefined;
+    default:
+      return '/admin/profile';
+  }
+}
+
 export function NavUser({
   user,
 }: {
@@ -40,10 +53,7 @@ export function NavUser({
   }
 
   // Defina a rota do profile conforme o tipo de usuário
-  let profileRoute = '/admin/profile';
-  if (user.nivelUsuario === 'Mentor') profileRoute = '/mentor/profile';
-  else if (user.nivelUsuario === 'Mentorado') profileRoute = '/mentee/profile';
-  else if (user.nivelUsuario === 'Comum') profileRoute = '/comum/profile';
+  const profileRoute = getProfileRoute(user.nivelUsuario);
 
   return (
     <SidebarMenu>
@@ -96,26 +106,17 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                disabled
-                className='opacity-60 cursor-not-allowed'
-              >
-                <Sparkles />
-                Labon Pro{' '}
-                <span className='ml-2 text-xs text-muted-foreground'>
-                  (em breve)
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => navigate(profileRoute)}>
-                <BadgeCheck />
-                Conta
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            {profileRoute && (
+              <>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onSelect={() => navigate(profileRoute)}>
+                    <BadgeCheck />
+                    Conta
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onSelect={handleLogout}>
               <LogOut />
               Sair

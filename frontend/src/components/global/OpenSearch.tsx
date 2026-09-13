@@ -64,7 +64,7 @@ const routesAdmin = [
   {
     value: 'Solicitações de Cadastros',
     label: 'Solicitações de Cadastros',
-    route: '/admin/registered-mentors',
+    route: '/admin/register-request',
   },
 ];
 const routesMentee = [

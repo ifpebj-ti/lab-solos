@@ -421,28 +421,17 @@ for (const viewport of responsiveViewports) {
 }
 
 for (const viewport of responsiveViewports) {
-  test(`T014 pedidos e ofertas ${viewport.width}`, async ({ page }, testInfo) => {
+  test(`T014 rotas administrativas removidas ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await mockResponsiveSession(page, 'Administrador');
-    await page.goto('/admin/view-info');
-    await page.locator('div.fixed.inset-0').evaluate((element) => element.remove());
-    const list = page.getByRole('list', { name: 'Pedidos e ofertas' });
-    await expect(list).toBeVisible();
-    const records = list.getByRole('listitem');
-    await expect(records).not.toHaveCount(0);
-    const first = records.first();
-    await expect(first.locator('dt')).toHaveCount(8);
-    await expect(first).toContainText('Oferta');
-    await expectPageFits(page, 'Pedidos e ofertas');
-    await first.click();
-    const dialog = page.getByRole('alertdialog');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('Contato com o Laboratório');
-    await expect(dialog.getByText(/produto/i)).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(dialog).not.toBeVisible();
-    if ([320, 1440].includes(viewport.width))
-      await page.screenshot({ path: testInfo.outputPath(`pedidos-ofertas-${viewport.width}.png`), fullPage: true });
+    for (const route of [
+      '/admin/view-info',
+      '/admin/create-info',
+      '/admin/insert/launch',
+    ]) {
+      await page.goto(`${route}?legacy=true`);
+      await expect(page.getByText(/página não encontrada/i)).toBeVisible();
+    }
   });
 }
 

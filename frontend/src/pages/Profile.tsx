@@ -5,7 +5,7 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
 import Cookie from 'js-cookie';
 import { displayUserValue, formatCivilDate } from '@/function/date';
-import { FileSpreadsheet, MessageSquare, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import CardFunction from '@/components/screens/CardFunction';
 import { verificarEmprestimosVencidos } from '@/integration/Notifications';
 import { toast } from '@/components/hooks/use-toast';
@@ -168,20 +168,6 @@ function Profile() {
               Funcionalidades
             </p>
             <div className='w-full min-h-6 flex flex-wrap items-start justify-start gap-10 mt-7'>
-              <CardFunction
-                link='/admin/view-info'
-                text='Comunicação InterLab'
-                icon={<MessageSquare stroke='#16a34a' width={35} height={35} />}
-                notify={true}
-              />
-              <CardFunction
-                link='/admin/view-info'
-                text='Importar Planilha de Cadastro de Bens'
-                icon={
-                  <FileSpreadsheet stroke='#16a34a' width={35} height={35} />
-                }
-                notify={false}
-              />
               <div
                 onClick={handleVerificarEmprestimosVencidos}
                 className='cursor-pointer'

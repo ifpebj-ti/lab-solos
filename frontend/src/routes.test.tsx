@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { startSession } from './auth/session';
+import { clearSession, startSession } from './auth/session';
 import AppRoutes from './routes';
 
 vi.mock('./pages/Login', () => ({
@@ -10,6 +10,12 @@ vi.mock('./pages/Login', () => ({
 
 vi.mock('./pages/Page404', () => ({
   default: () => <main>Not found route</main>,
+}));
+
+vi.mock('./components/ui/layout', () => ({
+  Layout: ({ children }: { children: import('react').ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 function renderPath(path: string) {
@@ -33,6 +39,22 @@ const encodeSegment = (value: object) =>
 
 const createToken = (payload: object) =>
   `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+
+const removedPrototypeRoutes = [
+  '/admin/view-info',
+  '/admin/create-info',
+  '/admin/insert/launch',
+  '/boot',
+  '/pre',
+];
+
+const removedPrototypePaths = removedPrototypeRoutes.flatMap(
+  (route) => [route, `${route}?legacy=true`]
+);
+
+afterEach(() => {
+  clearSession();
+});
 
 describe('AppRoutes', () => {
   it('renders the known login route without requesting an external service', () => {
@@ -70,4 +92,34 @@ describe('AppRoutes', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(xhrSendMock).not.toHaveBeenCalled();
   });
+
+  it.each(removedPrototypePaths)(
+    'falls back for a visitor at the removed route %s',
+    (path) => {
+      const { fetchMock, xhrSendMock } = renderPath(path);
+
+      expect(screen.getByRole('main')).toHaveTextContent('Not found route');
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(xhrSendMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(removedPrototypePaths)(
+    'falls back for an authorized synthetic session at the removed route %s',
+    (path) => {
+      startSession(
+        createToken({
+          sub: '42',
+          role: 'Administrador',
+          password_change_required: false,
+        })
+      );
+
+      const { fetchMock, xhrSendMock } = renderPath(path);
+
+      expect(screen.getByRole('main')).toHaveTextContent('Not found route');
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(xhrSendMock).not.toHaveBeenCalled();
+    }
+  );
 });

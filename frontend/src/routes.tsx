@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import CreateAccount from './pages/CreateAccount';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Launch from './pages/insert/Launch';
 import FollowUp from './pages/FollowUp';
 import SearchMaterial from './pages/search/SearchMaterial';
 import Verification from './pages/Verification';
@@ -40,11 +39,7 @@ import SearchMaterialMentor from './pages/search/SearchMaterialMentor';
 import SearchMaterialMentee from './pages/search/SearchMaterialMentee';
 import ProductHistory from './pages/products/ProductHistory';
 import MentoringHistoryAdm from './pages/admin/MentoringHistoryAdm';
-import BootScreen from './pages/BootScreen';
-import PreLab from './pages/prelab/PreLab';
 import Disabled from './pages/mentor/Disabled';
-import CreateInfo from './pages/admin/CreateInfo';
-import ViewInfo from './pages/admin/ViewInfo';
 import ReturnLoan from './pages/admin/ReturnLoan';
 import Settings from './pages/admin/Settings';
 import ChangePassword from './pages/ChangePassword';
@@ -181,15 +176,6 @@ function AppRoutes() {
             }
           />
           <Route
-            path='insert/launch'
-            element={
-              <PrivateRoute
-                element={<Launch />}
-                requiredRank={['Administrador']}
-              />
-            }
-          />
-          <Route
             path='history/loan'
             element={
               <PrivateRoute
@@ -221,24 +207,6 @@ function AppRoutes() {
             element={
               <PrivateRoute
                 element={<LoansRequest />}
-                requiredRank={['Administrador']}
-              />
-            }
-          />
-          <Route
-            path='view-info'
-            element={
-              <PrivateRoute
-                element={<ViewInfo />}
-                requiredRank={['Administrador']}
-              />
-            }
-          />
-          <Route
-            path='create-info'
-            element={
-              <PrivateRoute
-                element={<CreateInfo />}
                 requiredRank={['Administrador']}
               />
             }
@@ -452,10 +420,6 @@ function AppRoutes() {
             }
           />
         </Route>
-
-        {/* prelab */}
-        <Route index path='/boot' element={<BootScreen />} />
-        <Route index path='/pre' element={<PreLab />} />
 
         {/* Rotas sem autenticação */}
         <Route index path='/' element={<Login />} />
