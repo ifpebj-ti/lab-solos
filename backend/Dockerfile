@@ -20,6 +20,10 @@ RUN dotnet publish -c Release -o /app/out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install --only-upgrade --yes libpcre2-8-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Mudar para o usuário não-root
 USER app
 
