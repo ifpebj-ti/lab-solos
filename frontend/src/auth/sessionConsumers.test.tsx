@@ -6,8 +6,6 @@ import loginSource from '../pages/Login.tsx?raw';
 import forgotPasswordSource from '../pages/ForgotPassword.tsx?raw';
 import resetPasswordSource from '../pages/ResetPassword.tsx?raw';
 import createAccountSource from '../pages/CreateAccount.tsx?raw';
-import bootScreenSource from '../pages/BootScreen.tsx?raw';
-import preLabSource from '../pages/prelab/PreLab.tsx?raw';
 import page404Source from '../pages/Page404.tsx?raw';
 
 const consumers = {
@@ -18,8 +16,6 @@ const consumers = {
   ForgotPassword: forgotPasswordSource,
   ResetPassword: resetPasswordSource,
   CreateAccount: createAccountSource,
-  BootScreen: bootScreenSource,
-  PreLab: preLabSource,
   Page404: page404Source,
 };
 

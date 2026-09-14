@@ -35,6 +35,17 @@ class BackendContainerContractTests(unittest.TestCase):
             r"(?m)^ENV\s+ASPNETCORE_URLS=http://\*:8080\s*$",
         )
 
+    def test_updates_runtime_pcre2_security_package(self) -> None:
+        runtime = self.dockerfile.split(
+            "FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime", 1
+        )[1]
+        self.assertIn("apt-get update", runtime)
+        self.assertIn(
+            "apt-get install --no-install-recommends --yes libpcre2-8-0",
+            runtime,
+        )
+        self.assertIn("rm -rf /var/lib/apt/lists/*", runtime)
+
     def test_preserves_backend_entrypoint(self) -> None:
         entrypoint = re.compile(
             r'(?m)^ENTRYPOINT\s+\["dotnet",\s*"LabSolos-Server-DotNet8\.dll"\]\s*$'

@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   Users,
   Send,
-  Share2,
   House,
   Shield,
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import Cookie from 'js-cookie';
 
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
-import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
@@ -104,13 +102,6 @@ const menus = {
         icon: Shield,
       },
     ],
-    projects: [
-      {
-        name: 'Comunicação InterLab',
-        url: '/admin/view-info',
-        icon: Share2,
-      },
-    ],
   },
   Mentor: {
     navMain: [
@@ -141,7 +132,6 @@ const menus = {
         icon: PackageSearch,
       },
     ],
-    projects: [],
   },
   Mentorado: {
     navMain: [
@@ -162,23 +152,9 @@ const menus = {
         icon: ArrowLeftRight,
       },
     ],
-    projects: [],
   },
   Comum: {
-    navMain: [
-      {
-        title: 'Início',
-        url: '/comum/',
-        icon: House,
-        isActive: true,
-      },
-      {
-        title: 'Pesquisar Material',
-        url: '/comum/search-material',
-        icon: PackageSearch,
-      },
-    ],
-    projects: [],
+    navMain: [],
   },
 };
 
@@ -237,8 +213,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           }))
           : undefined,
     })),
-    projects: menus[userType].projects,
   };
+
+  const sidebarIdentity = (
+    <div className='flex items-center gap-3 w-full'>
+      <div className='w-12 h-12 flex items-center justify-center'>
+        <img
+          src={logo}
+          className='object-contain w-12 h-full transition-opacity hover:opacity-0'
+          alt='Logo'
+        />
+        <img
+          src={logoBlack}
+          className='object-contain w-full h-full transition-opacity absolute opacity-0 hover:opacity-100'
+          alt='Logo Alternativo'
+        />
+      </div>
+      <div className='grid flex-1 text-left text-sm leading-tight'>
+        <span className='truncate font-semibold'>
+          {user?.nivelUsuario}
+        </span>
+        <span className='truncate text-xs'>
+          Solos e Sustentabilidade Ambiental
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     <Sidebar
@@ -250,33 +250,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className='flex items-center justify-between gap-2'>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton size='lg' asChild>
-                <Link
-                  to={data.navMain[0].url}
-                  className='flex items-center gap-3 w-full'
-                >
-                  <div className='w-12 h-12 flex items-center justify-center'>
-                    <img
-                      src={logo}
-                      className='object-contain w-12 h-full transition-opacity hover:opacity-0'
-                      alt='Logo'
-                    />
-                    <img
-                      src={logoBlack}
-                      className='object-contain w-full h-full transition-opacity absolute opacity-0 hover:opacity-100'
-                      alt='Logo Alternativo'
-                    />
-                  </div>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-semibold'>
-                      {user?.nivelUsuario}
-                    </span>
-                    <span className='truncate text-xs'>
-                      Solos e Sustentabilidade Ambiental
-                    </span>
-                  </div>
-                </Link>
-              </SidebarMenuButton>
+              {data.navMain[0] ? (
+                <SidebarMenuButton size='lg' asChild>
+                  <Link
+                    to={data.navMain[0].url}
+                    className='flex items-center gap-3 w-full'
+                  >
+                    {sidebarIdentity}
+                  </Link>
+                </SidebarMenuButton>
+              ) : (
+                sidebarIdentity
+              )}
             </SidebarMenuItem>
           </SidebarMenu>
 
@@ -294,7 +279,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Conteúdo principal com navegação */}
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {data.projects.length > 0 && <NavProjects projects={data.projects} />}
         <NavSecondary items={[]} className='mt-auto' />
       </SidebarContent>
 
