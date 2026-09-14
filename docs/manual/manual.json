@@ -1,0 +1,264 @@
+{
+  "versaoEsquema": 1,
+  "versaoManual": "2026-09-14.2",
+  "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+  "atualizadoEm": "2026-09-14",
+  "responsavelRevisao": "nathannmvr",
+  "paginas": [
+    {
+      "origem": "README.md",
+      "destinoWiki": "Manual-do-Usuario.md",
+      "titulo": "Manual de uso do LabOn"
+    },
+    {
+      "origem": "perfis-e-permissoes.md",
+      "destinoWiki": "Manual-do-Usuario-perfis-e-permissoes.md",
+      "titulo": "Perfis e permissões"
+    },
+    {
+      "origem": "acesso-e-conta.md",
+      "destinoWiki": "Manual-do-Usuario-acesso-e-conta.md",
+      "titulo": "Acesso e conta"
+    },
+    {
+      "origem": "administrador.md",
+      "destinoWiki": "Manual-do-Usuario-administrador.md",
+      "titulo": "Manual do Administrador"
+    },
+    {
+      "origem": "mentor.md",
+      "destinoWiki": "Manual-do-Usuario-mentor.md",
+      "titulo": "Manual do Mentor"
+    },
+    {
+      "origem": "mentorado.md",
+      "destinoWiki": "Manual-do-Usuario-mentorado.md",
+      "titulo": "Manual do Mentorado"
+    },
+    {
+      "origem": "solucao-de-problemas.md",
+      "destinoWiki": "Manual-do-Usuario-solucao-de-problemas.md",
+      "titulo": "Solução de problemas"
+    }
+  ],
+  "jornadas": [
+    {
+      "id": "J01",
+      "pagina": "README.md",
+      "ancora": "j01-acesso",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J01",
+        "README.md#j01-acesso",
+        "imagens/j01-acesso-login.png"
+      ]
+    },
+    {
+      "id": "J02",
+      "pagina": "acesso-e-conta.md",
+      "ancora": "j02-cadastro",
+      "perfis": ["Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J02",
+        "acesso-e-conta.md#j02-cadastro"
+      ]
+    },
+    {
+      "id": "J03",
+      "pagina": "perfis-e-permissoes.md",
+      "ancora": "j03-aprovacao",
+      "perfis": ["Administrador", "Mentor"],
+      "evidencias": [
+        "inventario:J03",
+        "administrador.md#j03-aprovacao-admin",
+        "mentor.md#j03-aprovacao-mentor",
+        "imagens/j03-administrador-solicitacoes.png"
+      ]
+    },
+    {
+      "id": "J04",
+      "pagina": "acesso-e-conta.md",
+      "ancora": "j04-primeiro-acesso",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J04",
+        "acesso-e-conta.md#j04-primeiro-acesso"
+      ]
+    },
+    {
+      "id": "J05",
+      "pagina": "acesso-e-conta.md",
+      "ancora": "j05-senha-saida",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J05",
+        "acesso-e-conta.md#j05-senha-saida"
+      ]
+    },
+    {
+      "id": "J06",
+      "pagina": "administrador.md",
+      "ancora": "j06-preparar-operacao",
+      "perfis": ["Administrador"],
+      "evidencias": [
+        "inventario:J06",
+        "administrador.md#j06-preparar-operacao",
+        "imagens/j06-administrador-home.png",
+        "imagens/j06-administrador-adicionar-bens.png"
+      ]
+    },
+    {
+      "id": "J07",
+      "pagina": "administrador.md",
+      "ancora": "j07-materiais-admin",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J07",
+        "administrador.md#j07-materiais-admin",
+        "mentor.md#j07-consulta-materiais-mentor",
+        "mentorado.md#j07-consulta-materiais-mentorado",
+        "imagens/j06-administrador-adicionar-bens.png",
+        "imagens/j07-mentor-home.png"
+      ]
+    },
+    {
+      "id": "J08",
+      "pagina": "mentor.md",
+      "ancora": "j08-emprestimos-mentor",
+      "perfis": ["Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J08",
+        "mentor.md#j08-emprestimos-mentor",
+        "mentorado.md#j08-acompanhamento-mentorado",
+        "imagens/j08-mentor-criacao-emprestimo.png",
+        "imagens/j08-mentorado-historico.png"
+      ]
+    },
+    {
+      "id": "J09",
+      "pagina": "administrador.md",
+      "ancora": "j09-emprestimos-admin",
+      "perfis": ["Administrador"],
+      "evidencias": [
+        "inventario:J09",
+        "administrador.md#j09-emprestimos-admin"
+      ]
+    },
+    {
+      "id": "J10",
+      "pagina": "perfis-e-permissoes.md",
+      "ancora": "j10-perfis",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J10",
+        "administrador.md#j10-usuarios-admin",
+        "mentor.md#j10-turma-mentor",
+        "mentorado.md#j10-perfil-mentorado",
+        "imagens/j10-mentorado-perfil.png"
+      ]
+    },
+    {
+      "id": "J11",
+      "pagina": "solucao-de-problemas.md",
+      "ancora": "j11-falhas",
+      "perfis": ["Administrador", "Mentor", "Mentorado"],
+      "evidencias": [
+        "inventario:J11",
+        "solucao-de-problemas.md#j11-falhas",
+        "imagens/j11-mentor-acesso-negado.png"
+      ]
+    }
+  ],
+  "imagens": [
+    {
+      "arquivo": "imagens/j01-acesso-login.png",
+      "jornada": "J01",
+      "descricao": "Tela inicial de login com os campos de email e senha vazios.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j03-administrador-solicitacoes.png",
+      "jornada": "J03",
+      "descricao": "Solicitações de cadastro administrativas com registro de demonstração e ações de aprovar ou recusar.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j06-administrador-adicionar-bens.png",
+      "jornada": "J06",
+      "descricao": "Formulário de Adicionar Bens com os campos vazios no ambiente administrativo.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j06-administrador-home.png",
+      "jornada": "J06",
+      "descricao": "Área inicial do Administrador com atalhos de usuários, produtos e empréstimos.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j07-mentor-home.png",
+      "jornada": "J07",
+      "descricao": "Área inicial do Mentor com atalhos de turma, empréstimo e pesquisa de material.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j08-mentor-criacao-emprestimo.png",
+      "jornada": "J08",
+      "descricao": "Tela de criação de empréstimo do Mentor com seleções vazias e envio desabilitado sem itens.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j08-mentorado-historico.png",
+      "jornada": "J08",
+      "descricao": "Histórico pessoal do Mentorado com dados sintéticos e nenhum empréstimo registrado.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j10-mentorado-perfil.png",
+      "jornada": "J10",
+      "descricao": "Perfil do Mentorado com vínculo habilitado e dados de demonstração.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    },
+    {
+      "arquivo": "imagens/j11-mentor-acesso-negado.png",
+      "jornada": "J11",
+      "descricao": "Mensagem de acesso negado para uma sessão de Mentor ao tentar abrir uma área administrativa.",
+      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "revisaoPrivacidade": {
+        "responsavel": "nathannmvr",
+        "data": "2026-09-14"
+      }
+    }
+  ]
+}
