@@ -208,7 +208,11 @@ for (const profile of profiles.filter(
       await expect(main.getByRole('heading', { name: 'Home' })).toBeVisible();
       await expect(main.getByText(/Bem-vindo\(a\) ao Laborat/)).toBeVisible();
       await expect(main.locator('img')).toHaveCount(0);
-      await expect(main.getByText(/Solicita/)).toHaveCount(0);
+      if (profile.role === 'Mentor') {
+        await expect(main.getByRole('link', { name: /Solicita/ })).toBeVisible();
+      } else {
+        await expect(main.getByText(/Solicita/)).toHaveCount(0);
+      }
       await expect(page.getByText(removedSurfaceText)).toHaveCount(0);
 
       const searchButton = main.getByRole('button');
@@ -253,10 +257,7 @@ for (const viewport of viewports) {
       'href',
       '/admin/users'
     );
-    await expect(main.getByRole('link', { name: /^Empr/ })).toHaveAttribute(
-      'href',
-      '/admin/all-loans'
-    );
+    await expect(main.locator('a[href="/admin/all-loans"]')).toBeVisible();
 
     await page.goto('/admin/profile');
     main = page.getByRole('main');

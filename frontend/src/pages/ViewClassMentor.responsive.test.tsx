@@ -58,7 +58,7 @@ describe('visualização de mentorados responsiva', () => {
     ]);
     expect(within(record).getByRole('link')).toHaveAttribute(
       'href',
-      '/admin/history/mentoring'
+      '/admin/history/mentoring?id=81'
     );
     expect(record).toHaveTextContent('Engenharia de Software');
   });

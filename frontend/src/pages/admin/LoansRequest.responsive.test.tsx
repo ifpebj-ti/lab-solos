@@ -78,7 +78,10 @@ describe('solicitacoes de emprestimo responsivas', () => {
     ).toEqual(['Data de solicitação', 'Nome', 'Email', 'Ações']);
     expect(records[0]).toHaveTextContent('Ana Silva');
     expect(records[0]).toHaveTextContent('ana@example.invalid');
-    expect(screen.getByRole('link', { name: /01\/09\/2026/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /01\/09\/2026/ })).toHaveAttribute(
+      'href',
+      '/admin/history/loan?id=71'
+    );
     expect(screen.getByRole('button', { name: 'Recusar Ana Silva' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aprovar Ana Silva' })).toBeInTheDocument();
   });

@@ -19,6 +19,11 @@ import { academicoSchema } from '@/contracts/user';
 import type { Academico, Dependente } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import BackLink from '@/components/global/BackLink';
+import {
+  buildDetailUrl,
+  readIdFromLocation,
+} from '@/navigation/profileNavigation';
 
 const classColumns: readonly ResponsiveColumn[] = [
   { key: 'name', label: 'Nome', weight: 25 },
@@ -30,13 +35,17 @@ const classColumns: readonly ResponsiveColumn[] = [
 
 // aqui virá a listagem dos integrantes da turma
 function ViewClass() {
-  const [isDependentsLoading, setIsDependentsLoading] = useState(true);
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isDependentsLoading, setIsDependentsLoading] = useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const location = useLocation();
   const navigate = useNavigate();
-  const id = location.state?.id; // Recupera o ID passado via state
+  const idResolution = readIdFromLocation(location);
+  const hasValidQueryId =
+    idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId =
+    idResolution.source === 'state' && idResolution.id !== null;
   const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [user, setUser] = useState<Academico>();
   const [dependentsError, setDependentsError] = useState<unknown>();
@@ -47,26 +56,47 @@ function ViewClass() {
     setIsAscending(ascending);
   };
 
+  useEffect(() => {
+    if (!hasLegacyId || idResolution.id === null) return;
+
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
   const loadDependents = useCallback(async () => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsDependentsLoading(false);
+      setDependentsError(undefined);
+      return;
+    }
+
     setIsDependentsLoading(true);
     setDependentsError(undefined);
 
     try {
-      const response = await getDependentesID(id);
+      const response = await getDependentesID(String(idResolution.id));
       setDependentes(response);
     } catch (error) {
       setDependentsError(error);
     } finally {
       setIsDependentsLoading(false);
     }
-  }, [id]);
+  }, [hasValidQueryId, idResolution.id]);
 
   const loadUser = useCallback(async () => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsUserLoading(false);
+      setUserError(undefined);
+      return;
+    }
+
     setIsUserLoading(true);
     setUserError(undefined);
 
     try {
-      const responseUser = await getUserById({ id });
+      const responseUser = await getUserById({ id: idResolution.id });
       const academicUser = academicoSchema.safeParse(responseUser);
       if (!academicUser.success) {
         throw new Error('Dados inválidos para a turma.');
@@ -77,7 +107,7 @@ function ViewClass() {
     } finally {
       setIsUserLoading(false);
     }
-  }, [id]);
+  }, [hasValidQueryId, idResolution.id]);
 
   useEffect(() => {
     void loadDependents();
@@ -149,7 +179,20 @@ function ViewClass() {
     : [];
   return (
     <>
-      {isLoading ? (
+      {hasLegacyId ? (
+        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+          <div className='animate-spin'>
+            <LoadingIcon />
+          </div>
+          Carregando...
+          <BackLink pathname='/admin/view-class' />
+        </div>
+      ) : !hasValidQueryId ? (
+        <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+          <p>Selecione um registro para consultar</p>
+          <BackLink pathname='/admin/view-class' />
+        </div>
+      ) : isLoading ? (
         <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
@@ -162,7 +205,7 @@ function ViewClass() {
             error={dependentsError}
             operationId={OPERATION_IDS.dependentsById}
             onRetry={() => void loadDependents()}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin/users')}
           />
         </div>
       ) : userError ? (
@@ -171,7 +214,7 @@ function ViewClass() {
             error={userError}
             operationId={OPERATION_IDS.userById}
             onRetry={() => void loadUser()}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin/users')}
           />
         </div>
       ) : user ? (
@@ -273,7 +316,7 @@ function ViewClass() {
             error={new Error('Usuário da turma indisponível.')}
             operationId={OPERATION_IDS.userById}
             onRetry={() => void loadUser()}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin/users')}
           />
         </div>
       )}

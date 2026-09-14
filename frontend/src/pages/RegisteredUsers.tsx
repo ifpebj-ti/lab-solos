@@ -222,7 +222,7 @@ function RegisteredUsers() {
           error={approvalError}
           operationId={OPERATION_IDS.dependentsForApproval}
           onRetry={() => void loadApproval()}
-          onNavigate={() => navigate('/')}
+          onNavigate={() => navigate('/admin')}
         />
       ) : null}
       {userError ? (
@@ -231,7 +231,7 @@ function RegisteredUsers() {
           error={userError}
           operationId={OPERATION_IDS.userById}
           onRetry={() => void loadUser()}
-          onNavigate={() => navigate('/')}
+          onNavigate={() => navigate('/admin')}
         />
       ) : null}
     </>
@@ -252,7 +252,7 @@ function RegisteredUsers() {
             error={registeredUsersError}
             operationId={OPERATION_IDS.registeredUsers}
             onRetry={() => void loadRegisteredUsers()}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin')}
           />
         </div>
       ) : registeredUsers.length !== 0 ? (

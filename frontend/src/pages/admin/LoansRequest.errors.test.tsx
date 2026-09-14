@@ -1,7 +1,7 @@
 import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
@@ -22,26 +22,36 @@ const sessionToken = 'session-token';
 const pendingLoan = {
   id: 71,
   dataRealizacao: '2026-09-01T10:00:00',
-  dataDevolucao: '',
+  dataDevolucao: null,
   dataAprovacao: null,
   status: 'Pendente',
-  emprestimoProdutos: [],
-  solicitanteId: 501,
+  produtos: [],
   solicitante: {
     id: 501,
     nomeCompleto: 'Ana Silva',
     email: 'ana@example.invalid',
+    telefone: null,
+    dataIngresso: '2026-09-01',
+    status: 'Habilitado',
+    nivelUsuario: 'Mentorado',
+    tipoUsuario: 'Academico',
+    responsavel: null,
   },
-  aprovadorId: null,
   aprovador: null,
 };
 
 const renderPage = () =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/admin/loans-request']}>
       <LoansRequest />
+      <LocationProbe />
     </MemoryRouter>
   );
+
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid='location'>{location.pathname}{location.search}</output>;
+}
 
 describe('LoansRequest: erros de consulta e mutação', () => {
   beforeEach(() => {
@@ -195,5 +205,20 @@ describe('LoansRequest: erros de consulta e mutação', () => {
       expect(screen.getByText('Nenhuma solicitação de empréstimo pendente.')).toBeInTheDocument()
     );
     expect(attempts).toBe(2);
+  });
+
+  it('retorna explicitamente para a lista global de empréstimos', async () => {
+    server.use(
+      http.get(loansUrl, () =>
+        HttpResponse.json({ traceId: 'loans-ref-403' }, { status: 403 })
+      )
+    );
+
+    renderPage();
+
+    await screen.findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/admin/all-loans');
   });
 });

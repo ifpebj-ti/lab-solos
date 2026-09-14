@@ -1,7 +1,7 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import SelectInput from '@/components/global/inputs/SelectInput';
@@ -11,9 +11,14 @@ import Pagination from '@/components/global/table/Pagination';
 import { getLoansByClass } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-import { useLocation } from 'react-router-dom';
-import type { Usuario } from '@/contracts/user';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { Emprestimo } from '@/contracts/loan';
+import type { Dependente } from '@/contracts/user';
 import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import BackLink from '@/components/global/BackLink';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
 
 const classLoanColumns: readonly ResponsiveColumn[] = [
   { key: 'id', label: 'Id', weight: 1.5 },
@@ -23,42 +28,9 @@ const classLoanColumns: readonly ResponsiveColumn[] = [
   { key: 'status', label: 'Status', weight: 2 },
 ];
 
-interface IProduto {
-  id: number;
-  nomeProduto: string;
-  fornecedor: string;
-  tipo: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  localizacaoProduto: string;
-  status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
-}
-
-interface IEmprestimoProduto {
-  id: number;
-  emprestimoId: number;
-  produtoId: number;
-  produto: IProduto;
-  quantidade: number;
-}
-
-interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string;
-  status: string;
-  emprestimoProdutos: IEmprestimoProduto[];
-  solicitanteId: number;
-  solicitante: Usuario | null;
-  aprovadorId: number;
-  aprovador: Usuario | null;
-}
+const getRequesterName = (
+  requester: Pick<Dependente, 'nomeCompleto'> | null | undefined
+) => requester?.nomeCompleto ?? 'Não informado';
 
 function ClassLoan() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,38 +38,72 @@ function ClassLoan() {
   const [isAscending, setIsAscending] = useState(true);
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  const [loans, setLoans] = useState<Emprestimo[] | null>(null);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
   const location = useLocation();
-  const id = location.state?.id;
+  const navigate = useNavigate();
+  const idResolution = readIdFromLocation(location);
+  const hasValidQueryId =
+    idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId =
+    idResolution.source === 'state' && idResolution.id !== null;
+  const requestSequence = useRef(0);
   const itemsPerPage = 7;
 
   useEffect(() => {
+    if (!hasLegacyId || idResolution.id === null) return;
+
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
+  useEffect(() => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsLoading(false);
+      setLoans(null);
+      setLoadError(null);
+      return;
+    }
+
+    const classId = idResolution.id;
+    const sequence = ++requestSequence.current;
+    setLoans(null);
+    setLoadError(null);
     const fetchGetLoansDependentes = async () => {
       setIsLoading(true);
       try {
-        const response = await getLoansByClass({ id });
+        const response = await getLoansByClass({ id: classId });
+        if (sequence !== requestSequence.current) return;
         setLoans(response);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
         }
-        setLoans([]);
+        if (sequence === requestSequence.current) {
+          setLoadError(error);
+        }
       } finally {
-        setIsLoading(false);
+        if (sequence === requestSequence.current) setIsLoading(false);
       }
     };
     fetchGetLoansDependentes();
-  }, [id]);
+    return () => {
+      requestSequence.current += 1;
+    };
+  }, [hasValidQueryId, idResolution.id, retryToken]);
 
   const toggleSortOrder = (ascending: boolean) => {
     setIsAscending(ascending);
   };
 
   // Filtragem baseada no termo de busca e status
-  const filteredLoans = loans.filter((loan) => {
+  const filteredLoans = (loans ?? []).filter((loan) => {
     const matchesText =
       loan.id.toString().includes(searchTerm) ||
-      loan.solicitante?.nomeCompleto
+       getRequesterName(loan.solicitante)
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -122,7 +128,7 @@ function ClassLoan() {
 
   // Contagem de empréstimos por status
   const getLoanCountText = (type: string) => {
-    if (!loans || !Array.isArray(loans)) return 0;
+    if (!loans) return 0;
 
     if (type === 'devolvido') {
       return loans.filter(
@@ -145,6 +151,39 @@ function ClassLoan() {
     { value: 'devolvido', label: 'Devolvido' },
     { value: 'não devolvido', label: 'Não devolvido' },
   ];
+
+  if (hasLegacyId || (hasValidQueryId && isLoading && loans === null && loadError === null)) {
+    return (
+      <div role='status' className='flex min-h-screen flex-col justify-center items-center gap-4 bg-backgroundMy'>
+        <LoadingIcon />
+        Carregando...
+        <BackLink pathname='/admin/view-class-mentor' />
+      </div>
+    );
+  }
+
+  if (!hasValidQueryId) {
+    return (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <p>Selecione um registro para consultar</p>
+        <BackLink pathname='/admin/view-class-mentor' />
+      </div>
+    );
+  }
+
+  if (loadError !== null) {
+    return (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <ErrorFeedback
+          error={loadError}
+          operationId={OPERATION_IDS.loansByClass}
+          onRetry={() => setRetryToken((token) => token + 1)}
+          onNavigate={() => navigate('/admin/users')}
+        />
+        <BackLink pathname='/admin/view-class-mentor' />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -215,9 +254,9 @@ function ClassLoan() {
                       key={index}
                       data={[
                         String(loan?.id),
-                        String(loan.solicitante?.nomeCompleto),
+                         getRequesterName(loan.solicitante),
                         formatDateTime(loan?.dataRealizacao),
-                        String(loan.emprestimoProdutos.length),
+                         String(loan.produtos.length),
                         loan?.status,
                       ]}
                       rowIndex={index}

@@ -9,10 +9,13 @@ import Pagination from '../components/global/table/Pagination'; // Importa o com
 import CalendarIcon from '../../public/icons/CalendarIcon';
 import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getUnidadePlural } from '@/mocks/Unidades';
 import { getAlertProducts } from '@/integration/Product';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import BackLink from '@/components/global/BackLink';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
@@ -44,10 +47,24 @@ function FollowUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [value, setValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [alert, setAlert] = useState<IProduto[]>([]);
+  const [alert, setAlert] = useState<IProduto[] | null>(null);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true);
   const itemsPerPage = 7;
+
+  const fetchAlerts = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      setAlert(await getAlertProducts());
+    } catch (error) {
+      setAlert(null);
+      setLoadError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchGetLoansDependentes = async () => {
@@ -59,7 +76,8 @@ function FollowUp() {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
         }
-        setAlert([]);
+        setAlert(null);
+        setLoadError(error);
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +91,7 @@ function FollowUp() {
     { value: 'estoque', label: 'Estoque' },
   ];
 
-  const filteredAlerts = alert.filter((item) => {
+  const filteredAlerts = (alert ?? []).filter((item) => {
     const searchName = item.nomeProduto
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -109,6 +127,16 @@ function FollowUp() {
         </div>
       ) : (
         <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
+          <div className='w-11/12 mt-5 flex items-center justify-between'>
+            <BackLink pathname='/admin/follow-up' />
+            {loadError !== null ? (
+              <ErrorFeedback
+                error={loadError}
+                operationId={OPERATION_IDS.alertProducts}
+                onRetry={fetchAlerts}
+              />
+            ) : null}
+          </div>
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Acompanhamento
@@ -120,13 +148,13 @@ function FollowUp() {
           <div className='w-11/12 min-w-0 mt-7 flex items-center justify-center flex-wrap gap-4'>
             <FollowUpCard
               title='Produtos com Alertas'
-              number={alert.length}
+              number={(alert ?? []).length}
               icon={<AlertIcon fill='#A9A9A9' size={19} />}
             />
             <FollowUpCard
               title='Produtos com Alerta de Validade'
               number={
-                alert.filter((item) => item.quantidade >= item.quantidadeMinima)
+                (alert ?? []).filter((item) => item.quantidade >= item.quantidadeMinima)
                   .length
               }
               icon={<CalendarIcon />}
@@ -134,7 +162,7 @@ function FollowUp() {
             <FollowUpCard
               title='Produtos com Alerta de Estoque'
               number={
-                alert.filter((item) => item.quantidade < item.quantidadeMinima)
+                (alert ?? []).filter((item) => item.quantidade < item.quantidadeMinima)
                   .length
               }
               icon={<LayersIcon />}
@@ -178,11 +206,11 @@ function FollowUp() {
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                         <div className='text-6xl text-gray-300'>⚠️</div>
                         <p className='text-lg text-center'>
-                          {alert.length === 0
+                          {(alert ?? []).length === 0
                             ? 'Nenhum alerta de produto encontrado.'
                             : 'Nenhum produto encontrado para os filtros aplicados.'}
                         </p>
-                        {alert.length === 0 && (
+                        {(alert ?? []).length === 0 && (
                           <p className='text-sm text-gray-500 text-center'>
                             Os alertas aparecerão aqui quando produtos estiverem com
                             estoque baixo ou próximos do vencimento.
@@ -222,7 +250,7 @@ function FollowUp() {
               </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
-            {currentData.length > 0 && alert.length > 0 && (
+            {currentData.length > 0 && (alert ?? []).length > 0 && (
               <div className='mt-auto'>
                 <Pagination
                   totalItems={sortedUsers.length}

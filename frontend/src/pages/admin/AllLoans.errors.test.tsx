@@ -1,11 +1,12 @@
 import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
+import { loanFixture } from '@/test/fixtures/loan';
 
 import AllLoans from './AllLoans';
 
@@ -15,22 +16,39 @@ const sessionToken =
   'eyJhbGciOiJub25lIn0.eyJzdWIiOiIxIiwicm9sZSI6IkFkbWluaXN0cmFkb3IifQ.signature';
 
 const loan = {
+  ...loanFixture,
   id: 3001,
   dataRealizacao: '2026-09-01T10:00:00',
   dataDevolucao: '',
   dataAprovacao: null,
   status: 'Pendente',
-  produtos: [{ id: 1 }],
-  solicitante: { id: 1, nomeCompleto: 'Solicitante', email: 'a@test.invalid' },
-  aprovador: { id: 2, nomeCompleto: 'Responsável', email: 'b@test.invalid' },
+  produtos: loanFixture.produtos,
+  solicitante: {
+    ...loanFixture.solicitante,
+    id: 1,
+    nomeCompleto: 'Solicitante',
+    email: 'a@test.invalid',
+  },
+  aprovador: {
+    ...loanFixture.solicitante,
+    id: 2,
+    nomeCompleto: 'Responsável',
+    email: 'b@test.invalid',
+  },
 };
 
 const renderPage = () =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/admin/all-loans']}>
       <AllLoans />
+      <LocationProbe />
     </MemoryRouter>
   );
+
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid='location'>{location.pathname}{location.search}</output>;
+}
 
 describe('AllLoans: estados de consulta', () => {
   beforeEach(() => {
@@ -158,5 +176,20 @@ describe('AllLoans: estados de consulta', () => {
     expect(feedback).toHaveTextContent(ERROR_CATALOG.network.suggestedAction);
     expect(feedback).not.toHaveTextContent('TypeError');
     expect(feedback).not.toHaveTextContent('Failed to fetch');
+  });
+
+  it('retorna explicitamente para a home administrativa', async () => {
+    server.use(
+      http.get(loansUrl, () =>
+        HttpResponse.json({ traceId: 'loans-ref-403' }, { status: 403 })
+      )
+    );
+
+    renderPage();
+
+    await screen.findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/admin');
   });
 });

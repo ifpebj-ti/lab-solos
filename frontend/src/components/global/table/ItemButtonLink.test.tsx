@@ -10,7 +10,7 @@ function LocationState() {
 }
 
 describe('ItemButtonLink: contratos existentes', () => {
-  it.each([71, 'loan-71'])('preserva destino e tipo do state.id %s', (id) => {
+  it('transporta o ID no href e no clique da linha, preservando queries', () => {
     render(
       <MemoryRouter>
         <ResponsiveTable label='Solicitações' columns={[
@@ -26,8 +26,8 @@ describe('ItemButtonLink: contratos existentes', () => {
             onClick2={vi.fn()}
             icon1={<span>recusar</span>}
             icon2={<span>aprovar</span>}
-            destinationRoute='/admin/history/loan'
-            id={id}
+            destinationRoute='/admin/history/loan?status=pending'
+            id={71}
             itemLabel='Ana Silva'
             actionLabels={['Recusar', 'Aprovar']}
           />
@@ -36,9 +36,49 @@ describe('ItemButtonLink: contratos existentes', () => {
       </MemoryRouter>
     );
 
+    expect(screen.getByRole('link', { name: '01/09/2026' })).toHaveAttribute(
+      'href',
+      '/admin/history/loan?status=pending&id=71'
+    );
     fireEvent.click(screen.getByText('Ana Silva'));
 
-    expect(screen.getByRole('status')).toHaveTextContent(JSON.stringify({ id }));
+    expect(screen.getByRole('status')).toHaveTextContent(JSON.stringify({ id: 71 }));
+  });
+
+  it('mantÃ©m destinos comuns sem query e preserva o state.id legado', () => {
+    render(
+      <MemoryRouter>
+        <ResponsiveTable label='SolicitaÃ§Ãµes' columns={[
+          { key: 'date', label: 'Data', weight: 2 },
+          { key: 'name', label: 'Nome', weight: 3 },
+          { key: 'email', label: 'Email', weight: 4 },
+          { key: 'actions', label: 'AÃ§Ãµes', weight: 1 },
+        ]}>
+          <ItemButtonLink
+            data={['01/09/2026', 'Ana Silva', 'ana@example.invalid']}
+            rowIndex={0}
+            onClick1={vi.fn()}
+            onClick2={vi.fn()}
+            icon1={<span>recusar</span>}
+            icon2={<span>aprovar</span>}
+            destinationRoute='/requests'
+            id='loan-71'
+            itemLabel='Ana Silva'
+            actionLabels={['Recusar', 'Aprovar']}
+          />
+        </ResponsiveTable>
+        <LocationState />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: '01/09/2026' })).toHaveAttribute(
+      'href',
+      '/requests'
+    );
+    fireEvent.click(screen.getByRole('link', { name: '01/09/2026' }));
+    expect(screen.getByRole('status')).toHaveTextContent(
+      JSON.stringify({ id: 'loan-71' })
+    );
   });
 
   it('executa cada callback uma unica vez para o registro acionado', () => {

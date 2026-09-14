@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { getLoansByUserId } from './Loans';
 import { server } from '@/test/msw/server';
+import { loanListFixture } from '@/test/fixtures/loan';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 
@@ -13,15 +14,14 @@ describe('Loans: erros de integração', () => {
   });
 
   it('preserva uma lista de empréstimos bem-sucedida', async () => {
-    const loans = [{ id: 1, status: 'Aprovado' }];
     Cookie.set('doorKey', 'session-token');
     server.use(
       http.get(`${API_ORIGIN}/Emprestimos/usuario/42`, () =>
-        HttpResponse.json(loans)
+        HttpResponse.json(loanListFixture)
       )
     );
 
-    await expect(getLoansByUserId({ id: 42 })).resolves.toEqual(loans);
+    await expect(getLoansByUserId({ id: 42 })).resolves.toEqual(loanListFixture);
   });
 
   it('propaga validação HTTP sem expor payload remoto', async () => {

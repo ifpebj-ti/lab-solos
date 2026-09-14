@@ -13,6 +13,6 @@ describe('minha turma responsiva', () => {
     const list = await screen.findByRole('list', { name: 'Minha turma' });
     const record = within(list).getByRole('listitem');
     expect(Array.from(record.querySelectorAll('dt')).map((node) => node.textContent)).toEqual(['Nome', 'Email', 'Data Ingresso', 'Curso', 'Instituição', 'Status']);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/mentoring');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/mentoring?id=4101');
   });
 });

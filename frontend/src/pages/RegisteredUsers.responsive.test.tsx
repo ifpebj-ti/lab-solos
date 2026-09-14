@@ -97,9 +97,9 @@ describe('usuarios cadastrados responsivos', () => {
     expect(records[0]).toHaveTextContent('Administrador');
     expect(records[1]).toHaveTextContent('Mentor');
     expect(records[2]).toHaveTextContent('Mentorado');
-    expect(screen.getByRole('link', { name: 'Abrir Ana Silva' })).toHaveAttribute('href', '/admin/view-class');
-    expect(screen.getByRole('link', { name: 'Abrir Bruno Souza' })).toHaveAttribute('href', '/admin/view-class-mentor');
-    expect(screen.getByRole('link', { name: 'Abrir Carla Lima' })).toHaveAttribute('href', '/admin/history/mentoring');
+    expect(screen.getByRole('link', { name: 'Abrir Ana Silva' })).toHaveAttribute('href', '/admin/view-class?id=11');
+    expect(screen.getByRole('link', { name: 'Abrir Bruno Souza' })).toHaveAttribute('href', '/admin/view-class-mentor?id=22');
+    expect(screen.getByRole('link', { name: 'Abrir Carla Lima' })).toHaveAttribute('href', '/admin/history/mentoring?id=33');
   });
 
   it('preserva a alteração local de status sem consultar novamente', async () => {

@@ -1,8 +1,36 @@
 import { type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { buildDetailUrl, normalizePathname } from '@/navigation/profileNavigation';
 
 import { ResponsiveCell, ResponsiveRecord } from './ResponsiveTable';
 import { requireResponsiveColumns, useResponsiveColumns } from './responsiveContext';
+
+const DETAIL_ROUTES = new Set([
+  '/admin/history/loan',
+  '/mentor/history/loan',
+  '/mentee/history/loan',
+  '/admin/history/mentoring',
+  '/mentor/history/mentoring',
+  '/admin/view-class',
+  '/admin/view-class-mentor',
+  '/admin/view-history-class-by-id',
+  '/admin/return',
+  '/admin/verification',
+  '/mentor/verification',
+  '/mentee/verification',
+]);
+
+const getRecordDestination = (destinationRoute: string, id: number | string) => {
+  try {
+    if (DETAIL_ROUTES.has(normalizePathname(destinationRoute))) {
+      return buildDetailUrl(destinationRoute, id);
+    }
+  } catch {
+    return destinationRoute;
+  }
+
+  return destinationRoute;
+};
 
 interface ITableItemWithActions {
   data: ReactNode[];
@@ -28,10 +56,13 @@ function TableItemWithActions({
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
   const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const recordDestination = onRowClick
+    ? destinationRoute
+    : getRecordDestination(destinationRoute, id);
 
   const openRecord = () => {
     if (onRowClick) onRowClick();
-    else navigate(destinationRoute, { state: { id } });
+    else navigate(recordDestination, { state: { id } });
   };
 
   const handleRecordClick = (event: React.MouseEvent) => {
@@ -66,7 +97,7 @@ function TableItemWithActions({
                 </button>
               ) : (
                 <Link
-                  to={destinationRoute}
+                  to={recordDestination}
                   state={{ id }}
                   aria-label={`Abrir ${itemLabel}`}
                   className='inline-flex min-w-11 max-w-full break-all items-center rounded-sm underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-w-0'
