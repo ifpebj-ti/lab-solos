@@ -43,6 +43,7 @@ Para a contribuição do projeto foi adotado o fluxo de trabalho Trunk Based.
 Visualizar o passo a passo em: [Fluxo de Contribuição](https://github.com/ifpebj-ti/lab-solos/blob/main/CONTRIBUTING.md)
 
 ## Wiki
+Indice versionado do manual de uso: [Manual de uso do LabOn](docs/manual/README.md).
 Para mais informações e documentação do projeto, acesse nossa [Wiki](https://github.com/ifpebj-ti/lab-solos/wiki).
 
 ## Gestão do Projeto
