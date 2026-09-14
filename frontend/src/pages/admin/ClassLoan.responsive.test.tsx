@@ -13,7 +13,7 @@ const loan = {
   dataDevolucao: null,
   dataAprovacao: '2026-09-01T11:00:00',
   status: 'devolvido',
-  emprestimoProdutos: [{ id: 1 }],
+  produtos: [],
   solicitanteId: 1,
   solicitante: { id: 1, nomeCompleto: 'Mentorado ' + 'B'.repeat(60), email: 'b@test.invalid' },
   aprovadorId: 2,
@@ -27,12 +27,12 @@ describe('empréstimos da turma responsivo', () => {
   });
 
   it('mantém rótulos, filtro e navegação do empréstimo', async () => {
-    render(<MemoryRouter initialEntries={['/admin/class-loan']}><ClassLoan /></MemoryRouter>);
+    render(<MemoryRouter initialEntries={['/admin/view-history-class-by-id?id=7']}><ClassLoan /></MemoryRouter>);
     const list = await screen.findByRole('list', { name: 'Histórico de empréstimos da turma' });
     const record = within(list).getByRole('listitem');
     expect(Array.from(record.querySelectorAll('dt')).map((node) => node.textContent)).toEqual([
       'Id', 'Mentorado Vinculado', 'Data', 'Itens Utilizados', 'Status',
     ]);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/admin/history/loan');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/admin/history/loan?id=3101');
   });
 });

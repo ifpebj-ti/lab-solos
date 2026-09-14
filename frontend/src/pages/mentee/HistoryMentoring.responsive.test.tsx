@@ -63,6 +63,6 @@ describe('histórico de mentorias do mentorado responsivo', () => {
       'Itens Utilizados',
       'Status',
     ]);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentee/history/loan');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentee/history/loan?id=4401');
   });
 });

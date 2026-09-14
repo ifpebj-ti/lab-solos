@@ -1,17 +1,23 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
-import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
-import { getUserById } from '@/integration/Users';
-import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
-import { getLoansByUserId } from '@/integration/Loans';
-import { Link, useLocation } from 'react-router-dom';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
-import { academicoSchema, type Academico, type Usuario } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import BackLink from '@/components/global/BackLink';
+import { getUserById } from '@/integration/Users';
+import { getLoansByUserId } from '@/integration/Loans';
+import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
+import { academicoSchema, type Academico } from '@/contracts/user';
+import type { Emprestimo } from '@/contracts/loan';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
 import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
 
 const mentoringHistoryColumns: readonly ResponsiveColumn[] = [
@@ -21,256 +27,171 @@ const mentoringHistoryColumns: readonly ResponsiveColumn[] = [
   { key: 'status', label: 'Status', weight: 2 },
 ];
 
-// Lote de produto
-interface ILote {
-  codigoLote: string;
-  fornecedor: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  dataEntrada: string;
-  produtos: IProduto[];
-}
-
-// Produto
-interface IProduto {
-  id: number;
-  catmat: string;
-  nomeProduto: string;
-  fornecedor: string;
-  tipoProduto: string;
-  unidadeMedida: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  localizacaoProduto: string;
-  status: string;
-  lote: ILote | null;
-}
-
-// Produto vinculado ao empréstimo
-interface IEmprestimoProduto {
-  emprestimoId: number;
-  produto: IProduto;
-  quantidade: number;
-}
-
-// Empréstimo
-interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string | null;
-  status: string;
-  produtos: IEmprestimoProduto[];
-  solicitante: Usuario | null;
-  aprovador: Usuario | null;
-}
-
 function MentoringHistory() {
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<Academico>();
-  const itemsPerPage = 7;
-  const [loans, setLoans] = useState<IEmprestimo[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
-  const toggleSortOrder = (ascending: boolean) => {
-    setIsAscending(ascending);
-  };
   const location = useLocation();
-  const id = location.state?.id; // Recupera o ID passado via state
+  const navigate = useNavigate();
+  const idResolution = readIdFromLocation(location);
+  const requestSequence = useRef(0);
+  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState<Academico | null>(null);
+  const [loans, setLoans] = useState<Emprestimo[] | null>(null);
+  const [userError, setUserError] = useState<unknown | null>(null);
+  const [loansError, setLoansError] = useState<unknown | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAscending, setIsAscending] = useState(true);
+  const itemsPerPage = 7;
 
   useEffect(() => {
-    const fetchGetUserById = async () => {
+    if (!hasLegacyId || idResolution.id === null) return;
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
+  const loadData = useCallback(async () => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setLoading(false);
+      setUser(null);
+      setLoans(null);
+      setUserError(null);
+      setLoansError(null);
+      return;
+    }
+
+    const sequence = ++requestSequence.current;
+    setLoading(true);
+    setUser(null);
+    setLoans(null);
+    setUserError(null);
+    setLoansError(null);
+    try {
+      const response = await getUserById({ id: idResolution.id });
+      const academicResult = academicoSchema.safeParse(response);
+      if (!academicResult.success) throw new Error('Resposta de usuário inválida.');
+      if (sequence !== requestSequence.current) return;
+      setUser(academicResult.data);
       try {
-        const response = await getUserById({ id });
-        const academicResult = academicoSchema.safeParse(response);
-        setUser(academicResult.success ? academicResult.data : undefined);
-
-        // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
-        try {
-          const loansResponse = await getLoansByUserId({ id });
-          setLoans(loansResponse);
-        } catch (loansError: unknown) {
-          // Se for 404, significa que o usuário não tem empréstimos (caso normal)
-          const error = loansError as { response?: { status?: number } };
-          if (error?.response?.status === 404) {
-            setLoans([]); // Define array vazio para usuário sem empréstimos
-          } else {
-            // Para outros erros, re-lança a exceção
-            throw loansError;
-          }
-        }
+        const loansResponse = await getLoansByUserId({ id: idResolution.id });
+        if (sequence !== requestSequence.current) return;
+        setLoans(loansResponse);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados usuários', error);
-        }
-        setUser(undefined);
-        setLoans([]);
-      } finally {
-        setLoading(false);
+        if (sequence === requestSequence.current) setLoansError(error);
       }
+    } catch (error) {
+      if (sequence === requestSequence.current) setUserError(error);
+    } finally {
+      if (sequence === requestSequence.current) setLoading(false);
+    }
+  }, [hasValidQueryId, idResolution.id]);
+
+  useEffect(() => {
+    void loadData();
+    return () => {
+      requestSequence.current += 1;
     };
-    fetchGetUserById();
-  }, [id]);
+  }, [loadData]);
 
-  const filteredUsers = loans.filter((item) => {
-    const searchName = item.dataRealizacao
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return searchName;
-  });
-  const sortedUsers = isAscending
-    ? [...filteredUsers]
-    : [...filteredUsers].reverse();
-
-  // Cálculo das páginas
-  const currentData = sortedUsers.slice(
+  const sortedLoans = [...(loans ?? [])]
+    .filter((loan) => loan.dataRealizacao.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((left, right) => {
+      const comparison = left.dataRealizacao.localeCompare(right.dataRealizacao);
+      return isAscending ? comparison : -comparison;
+    });
+  const currentData = sortedLoans.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   const infoItems = user
     ? [
-      {
-        title: 'Nome',
-        value: displayUserValue(user.nomeCompleto),
-        width: '50%',
-      },
-      {
-        title: 'Email',
-        value: displayUserValue(user.email),
-        width: '30%',
-      },
-      {
-        title: 'Instituição',
-        value: displayUserValue(user.instituicao),
-        width: '20%',
-      },
-    ]
+        { title: 'Nome', value: displayUserValue(user.nomeCompleto), width: '50%' },
+        { title: 'Email', value: displayUserValue(user.email), width: '30%' },
+        { title: 'Instituição', value: displayUserValue(user.instituicao), width: '20%' },
+      ]
     : [];
   const infoItems2 = user
-    ? [
-      {
-        title: 'Cidade',
-        value: displayUserValue(user.cidade),
-        width: '100%',
-      },
-    ]
+    ? [{ title: 'Cidade', value: displayUserValue(user.cidade), width: '100%' }]
     : [];
   const infoItems3 = user
-    ? [
-      {
-        title: 'Número para Contato',
-        value: displayUserValue(user.telefone),
-        width: '100%',
-      },
-    ]
+    ? [{ title: 'Número para Contato', value: displayUserValue(user.telefone), width: '100%' }]
     : [];
   const infoItems4 = user
-    ? [
-      {
-        title: 'Data de Ingresso',
-        value: formatCivilDate(user.dataIngresso),
-        width: '100%',
-      },
-    ]
+    ? [{ title: 'Data de Ingresso', value: formatCivilDate(user.dataIngresso), width: '100%' }]
     : [];
   const infoItems5 = user
-    ? [
-      {
-        title: 'Curso',
-        value: displayUserValue(user.curso),
-        width: '100%',
-      },
-    ]
+    ? [{ title: 'Curso', value: displayUserValue(user.curso), width: '100%' }]
     : [];
+
+  if (hasLegacyId || (hasValidQueryId && loading && user === null)) {
+    return (
+      <div role='status' className='flex min-h-screen flex-col justify-center items-center gap-4 bg-backgroundMy'>
+        <LoadingIcon />
+        Carregando...
+        <BackLink />
+      </div>
+    );
+  }
+  if (!hasValidQueryId || (user === null && userError === null)) {
+    return (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <p>Selecione um registro para consultar</p>
+        <BackLink />
+      </div>
+    );
+  }
+  if (userError !== null) {
+    return (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <ErrorFeedback error={userError} operationId={OPERATION_IDS.userById} onRetry={loadData} />
+        <BackLink />
+      </div>
+    );
+  }
+
   return (
-    <>
-      {loading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
-            <LoadingIcon />
-          </div>
-          Carregando...
+    <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen flex-col items-center overflow-y-auto bg-backgroundMy pb-9'>
+      <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+        <BackLink />
+        <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>Histórico de Mentorados</h1>
+        <div className='flex items-center gap-4'><Link to='/mentor/my-class'>Desativar Mentorado</Link><OpenSearch /></div>
+      </div>
+      <div className='w-11/12 min-w-0 mt-7'>
+        <InfoContainer items={infoItems} />
+        <div className='w-full min-w-0 flex flex-wrap gap-4 mt-5'>
+          <InfoContainer items={infoItems2} />
+          <InfoContainer items={infoItems3} />
+          <InfoContainer items={infoItems4} />
+          <InfoContainer items={infoItems5} />
         </div>
-      ) : (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico de Mentorados
-            </h1>
-            <div className='flex items-center justify-between gap-x-6'>
-              <Link
-                to={'/login'}
-                className='px-5 h-11 flex items-center justify-center rounded-md border border-danger font-inter-regular text-danger hover:bg-slate-200 transition-all ease-in-out duration-150'
-              >
-                Desativar Mentorado
-              </Link>
-              <OpenSearch />
-            </div>
-          </div>
-          <div className='w-11/12 min-w-0 mt-7'>
-            <InfoContainer items={infoItems} />
-            <div className='w-full min-w-0 flex flex-wrap gap-4 mt-5'>
-              <InfoContainer items={infoItems2} />
-              <InfoContainer items={infoItems3} />
-              <InfoContainer items={infoItems4} />
-              <InfoContainer items={infoItems5} />
-            </div>
-          </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+      </div>
+      <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+        {loansError !== null ? (
+          <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
+        ) : (
+          <>
             <div className='w-full min-w-0 flex flex-wrap justify-between items-center mt-2 gap-3'>
-              <div className='w-full min-w-0 md:w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
-              </div>
-              <div className='w-full min-w-0 md:w-2/4 flex flex-wrap justify-between gap-3'>
-                <div className='w-auto flex items-center justify-evenly'>
-                  <TopDown
-                    onClick={() => toggleSortOrder(!isAscending)}
-                    top={isAscending}
-                  />
-                </div>
-                <div className='w-full min-w-0 md:w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
-                  <p>TOTAL:</p>
-                  <p>{searchTerm ? sortedUsers.length : loans.length}</p>
-                </div>
-              </div>
+              <SearchInput name='search' onChange={(event) => setSearchTerm(event.target.value)} value={searchTerm} />
+              <TopDown onClick={() => setIsAscending((value) => !value)} top={isAscending} />
             </div>
             <ResponsiveTable label='Histórico de mentorados' columns={mentoringHistoryColumns}>
               <HeaderTable />
-              <div className='w-full min-w-0 items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='w-full h-40 flex flex-col items-center justify-center font-inter-regular text-clt-1 gap-3'>
-                    <div className='text-6xl text-gray-300'>📋</div>
-                    <p className='text-lg text-center'>
-                      {loans.length === 0
-                        ? 'Este mentorado ainda não possui empréstimos registrados.'
-                        : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
-                    </p>
-                    {loans.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        Os empréstimos aparecerão aqui quando o mentorado
-                        realizar solicitações.
-                      </p>
-                    )}
+              <div className='w-full min-w-0 flex flex-col justify-start min-h-72'>
+                {loans?.length === 0 ? (
+                  <div className='w-full h-40 flex flex-col items-center justify-center'>
+                    <p>Este mentorado ainda não possui empréstimos registrados.</p>
+                    <p>Os empréstimos aparecerão aqui quando o mentorado realizar solicitações.</p>
                   </div>
+                ) : currentData.length === 0 ? (
+                  <p className='p-8 text-center'>Nenhum empréstimo encontrado para os filtros aplicados.</p>
                 ) : (
                   currentData.map((rowData, index) => (
                     <ClickableItemTable
-                      key={index}
-                      data={[
-                        String(rowData.id),
-                        formatDateTime(rowData.dataRealizacao),
-                        String(rowData.produtos.length),
-                        rowData.status,
-                      ]}
+                      key={rowData.id}
+                      data={[String(rowData.id), formatDateTime(rowData.dataRealizacao), String(rowData.produtos.length), rowData.status]}
                       rowIndex={index}
                       id={rowData.id}
                       destinationRoute='/mentor/history/loan'
@@ -278,23 +199,12 @@ function MentoringHistory() {
                   ))
                 )}
               </div>
-              {/* Componente de Paginação - só aparece quando há dados */}
-              {currentData.length > 0 && loans.length > 0 && (
-                <div className='mt-auto'>
-                  <Pagination
-                    totalItems={sortedUsers.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
-              </div>
             </ResponsiveTable>
-          </div>
-        </div>
-      )}
-    </>
+            {currentData.length > 0 ? <Pagination totalItems={sortedLoans.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} /> : null}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -13,10 +13,11 @@ import { Check, ShieldAlert, Timer } from 'lucide-react';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { getAllLoans } from '@/integration/Loans';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
-import type { Usuario } from '@/contracts/user';
 import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import type { Emprestimo } from '@/contracts/loan';
+import type { Usuario } from '@/contracts/user';
 
 const allLoanColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data de Solicitação', weight: 20 },
@@ -25,47 +26,9 @@ const allLoanColumns: readonly ResponsiveColumn[] = [
   { key: 'items', label: 'Itens Utilizados', weight: 15 },
   { key: 'status', label: 'Status', weight: 15 },
 ];
-interface ILote {
-  codigoLote: string;
-  fornecedor: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  dataEntrada: string;
-  produtos: IProduto[];
-}
 
-interface IProduto {
-  id: number;
-  catmat: string;
-  nomeProduto: string;
-  fornecedor: string;
-  tipoProduto: string;
-  unidadeMedida: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string;
-  dataValidade: string;
-  localizacaoProduto: string;
-  status: string;
-  lote: ILote | null;
-}
-
-interface IEmprestimoProduto {
-  emprestimoId: number;
-  produto: IProduto;
-  quantidade: number;
-}
-
-interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string | null;
-  status: string;
-  produtos: IEmprestimoProduto[];
-  solicitante: Usuario;
-  aprovador: Usuario;
-}
+const userName = (user: Usuario | null | undefined) =>
+  user?.nomeCompleto || 'Nome não disponível';
 
 function AllLoans() {
   const navigate = useNavigate();
@@ -73,8 +36,8 @@ function AllLoans() {
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const [loan, setLoan] = useState<IEmprestimo[] | null>(null);
-  const [loanNotify, setLoanNotify] = useState<IEmprestimo[]>([]);
+  const [loan, setLoan] = useState<Emprestimo[] | null>(null);
+  const [loanNotify, setLoanNotify] = useState<Emprestimo[]>([]);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,7 +113,7 @@ function AllLoans() {
             error={loadError}
             operationId={OPERATION_IDS.allLoans}
             onRetry={fetchAllLoans}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin')}
           />
         </div>
       ) : (
@@ -161,7 +124,7 @@ function AllLoans() {
                 error={loadError}
                 operationId={OPERATION_IDS.allLoans}
                 onRetry={fetchAllLoans}
-                onNavigate={() => navigate('/')}
+                onNavigate={() => navigate('/admin')}
               />
             </div>
           )}
@@ -258,10 +221,8 @@ function AllLoans() {
                           key={index}
                           data={[
                             formatDate(rowData?.dataRealizacao),
-                            rowData?.solicitante?.nomeCompleto ||
-                            'Nome não disponível',
-                            rowData?.aprovador?.nomeCompleto ||
-                            'Nome não disponível',
+                            userName(rowData?.solicitante),
+                            userName(rowData?.aprovador),
                             String(
                               rowData?.produtos.length ||
                               'Quantidade não disponível'

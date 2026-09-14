@@ -16,7 +16,6 @@ const consumers = {
   ForgotPassword: forgotPasswordSource,
   ResetPassword: resetPasswordSource,
   CreateAccount: createAccountSource,
-  Page404: page404Source,
 };
 
 describe('consumidores de encerramento de sessao', () => {
@@ -35,4 +34,14 @@ describe('consumidores de encerramento de sessao', () => {
       expect(source).not.toMatch(/\blocalStorage\.clear\s*\(/);
     }
   );
+
+  it('Page404 não limpa a sessão automaticamente ao montar', () => {
+    expect(page404Source).not.toContain('useEffect');
+    expect(page404Source).toContain("from '@/auth/session'");
+  });
+
+  it('mantém o logout explícito disponível para o nível não suportado', () => {
+    expect(page404Source).toContain('clearSession');
+    expect(page404Source).toContain('Sair');
+  });
 });

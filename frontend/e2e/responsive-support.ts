@@ -38,25 +38,85 @@ export const registrationRequestFixtures = Array.from(
     instituicao: index === 1 ? null : 'IFPE Campus Belo Jardim',
   })
 );
-export const loanRequestFixtures = Array.from({ length: 8 }, (_, index) => ({
-  id: index + 701,
-  dataRealizacao: `2026-09-${String(index + 1).padStart(2, '0')}T10:00:00`,
-  dataDevolucao: `2026-09-${String(index + 8).padStart(2, '0')}T10:00:00`,
+const makeLoanBatch = (codigoLote: string) => ({
+  codigoLote,
+  fornecedor: null,
+  dataFabricacao: null,
+  dataValidade: null,
+  dataEntrada: null,
+  produtos: [],
+});
+
+const makeLoanUser = (
+  id: number,
+  overrides: Record<string, unknown> = {}
+) => ({
+  id,
+  nomeCompleto: `Pessoa sintética ${id}`,
+  email: `emprestimo-${id}@example.invalid`,
+  telefone: null,
+  dataIngresso: '2026-09-01',
+  status: 'Habilitado',
+  nivelUsuario: 'Mentorado',
+  tipoUsuario: 'Academico',
+  responsavel: null,
+  ...overrides,
+});
+
+const makeLoanProduct = (
+  id: number,
+  overrides: Record<string, unknown> = {}
+) => ({
+  id,
+  catmat: `CAT-${id}`,
+  nomeProduto: `Produto ${id}`,
+  tipoProduto: 'Quimico',
+  fornecedor: null,
+  unidadeMedida: 'Unidade',
+  quantidade: 10,
+  quantidadeMinima: 1,
+  localizacaoProduto: 'Armário sintético',
+  dataFabricacao: null,
+  dataValidade: null,
+  ultimaModificacao: '2026-09-01T10:00:00Z',
+  status: 'Disponivel',
+  lote: null,
+  ...overrides,
+});
+
+const makeLoan = (
+  id: number,
+  overrides: Record<string, unknown> = {}
+) => ({
+  id,
+  dataRealizacao: '2026-09-01T10:00:00Z',
+  dataDevolucao: null,
   dataAprovacao: null,
   status: 'Pendente',
-  emprestimoProdutos: [],
-  solicitanteId: index + 501,
-  solicitante: {
-    id: index + 501,
-    nomeCompleto:
-      index === 0
-        ? 'Pessoa ' + 'A'.repeat(200)
-        : `Pessoa sintetica ${index + 1}`,
-    email: index === 1 ? null : `emprestimo-${index + 1}@example.invalid`,
-  },
-  aprovadorId: null,
+  produtos: [
+    {
+      emprestimoId: id,
+      produto: makeLoanProduct(id),
+      quantidade: 1,
+    },
+  ],
+  solicitante: makeLoanUser(id + 500),
   aprovador: null,
-}));
+  ...overrides,
+});
+
+export const loanRequestFixtures = Array.from({ length: 8 }, (_, index) =>
+  makeLoan(index + 701, {
+    dataRealizacao: `2026-09-${String(index + 1).padStart(2, '0')}T10:00:00Z`,
+    solicitante: makeLoanUser(index + 501, {
+      nomeCompleto:
+        index === 0
+          ? 'Pessoa ' + 'A'.repeat(200)
+          : `Pessoa sintetica ${index + 1}`,
+      email: `emprestimo-${index + 1}@example.invalid`,
+    }),
+  })
+);
 export const registeredUserFixtures = Array.from({ length: 8 }, (_, index) => ({
   id: index + 801,
   nomeCompleto:
@@ -95,7 +155,149 @@ export const loanCreationDependents = [
     responsavel: null,
   },
 ];
-export const returnLoanFixtures = {
+const normalizeLoanFixture = (value: Record<string, unknown>) => {
+  const rawProducts = Array.isArray(value.produtos)
+    ? value.produtos
+    : Array.isArray(value.emprestimoProdutos)
+      ? value.emprestimoProdutos
+      : [];
+
+  const produtos = rawProducts.map((rawProduct, index) => {
+    const item =
+      rawProduct && typeof rawProduct === 'object'
+        ? (rawProduct as Record<string, unknown>)
+        : {};
+    const rawProductValue =
+      item.produto && typeof item.produto === 'object'
+        ? (item.produto as Record<string, unknown>)
+        : item;
+    const productId = Number(
+      rawProductValue.id ?? item.produtoId ?? Number(value.id) * 100 + index + 1
+    );
+    const rawBatch = rawProductValue.lote;
+    const lote =
+      rawBatch === null || rawBatch === undefined
+        ? null
+        : makeLoanBatch(
+            typeof rawBatch === 'object'
+              ? String(
+                  (rawBatch as Record<string, unknown>).codigoLote ??
+                    `L-${productId}`
+                )
+              : String(rawBatch)
+          );
+
+    return {
+      emprestimoId: Number(value.id),
+      quantidade:
+        typeof item.quantidade === 'number' ? item.quantidade : 1,
+      produto: {
+        id: productId,
+        catmat:
+          typeof rawProductValue.catmat === 'string'
+            ? rawProductValue.catmat
+            : `CAT-${productId}`,
+        nomeProduto:
+          typeof rawProductValue.nomeProduto === 'string'
+            ? rawProductValue.nomeProduto
+            : `Produto ${productId}`,
+        tipoProduto:
+          typeof rawProductValue.tipoProduto === 'string'
+            ? rawProductValue.tipoProduto
+            : typeof rawProductValue.tipo === 'string'
+              ? rawProductValue.tipo
+              : 'Quimico',
+        fornecedor:
+          typeof rawProductValue.fornecedor === 'string'
+            ? rawProductValue.fornecedor
+            : null,
+        unidadeMedida:
+          typeof rawProductValue.unidadeMedida === 'string'
+            ? rawProductValue.unidadeMedida
+            : 'Unidade',
+        quantidade:
+          typeof rawProductValue.quantidade === 'number'
+            ? rawProductValue.quantidade
+            : 1,
+        quantidadeMinima:
+          typeof rawProductValue.quantidadeMinima === 'number'
+            ? rawProductValue.quantidadeMinima
+            : 1,
+        localizacaoProduto:
+          typeof rawProductValue.localizacaoProduto === 'string'
+            ? rawProductValue.localizacaoProduto
+            : null,
+        dataFabricacao:
+          typeof rawProductValue.dataFabricacao === 'string'
+            ? rawProductValue.dataFabricacao
+            : null,
+        dataValidade:
+          typeof rawProductValue.dataValidade === 'string'
+            ? rawProductValue.dataValidade
+            : null,
+        ultimaModificacao:
+          typeof rawProductValue.ultimaModificacao === 'string'
+            ? rawProductValue.ultimaModificacao
+            : '2026-09-01T10:00:00Z',
+        status:
+          typeof rawProductValue.status === 'string'
+            ? rawProductValue.status
+            : 'Disponivel',
+        lote,
+      },
+    };
+  });
+
+  const normalizedBase = Object.fromEntries(
+    Object.entries(value).filter(
+      ([key]) =>
+        !['emprestimoProdutos', 'solicitanteId', 'aprovadorId'].includes(key)
+    )
+  );
+  const requester = value.solicitante;
+  const approver = value.aprovador;
+
+  return {
+    ...normalizedBase,
+    dataRealizacao:
+      typeof value.dataRealizacao === 'string'
+        ? value.dataRealizacao
+        : '2026-09-01T10:00:00Z',
+    dataDevolucao:
+      typeof value.dataDevolucao === 'string' && value.dataDevolucao.length > 0
+        ? value.dataDevolucao
+        : null,
+    dataAprovacao:
+      typeof value.dataAprovacao === 'string' && value.dataAprovacao.length > 0
+        ? value.dataAprovacao
+        : null,
+    produtos,
+    solicitante:
+      requester === null
+        ? null
+        : makeLoanUser(
+            typeof requester === 'object' && requester !== null && 'id' in requester
+              ? Number((requester as { id: unknown }).id)
+              : 4242,
+            requester && typeof requester === 'object'
+              ? (requester as Record<string, unknown>)
+              : {}
+          ),
+    aprovador:
+      approver === null || approver === undefined
+        ? null
+        : makeLoanUser(
+            typeof approver === 'object' && 'id' in approver
+              ? Number((approver as { id: unknown }).id)
+              : 4242,
+            approver && typeof approver === 'object'
+              ? (approver as Record<string, unknown>)
+              : {}
+          ),
+  };
+};
+
+export const returnLoanFixtures = normalizeLoanFixture({
   id: 999,
   dataRealizacao: '2026-09-01T10:00:00',
   dataDevolucao: null,
@@ -159,8 +361,8 @@ export const returnLoanFixtures = {
       },
     },
   ],
-};
-export const loanHistoryAdminFixture = {
+});
+export const loanHistoryAdminFixture = normalizeLoanFixture({
   id: 1100,
   dataRealizacao: '2026-09-01T10:00:00',
   dataDevolucao: null,
@@ -200,8 +402,8 @@ export const loanHistoryAdminFixture = {
       },
     },
   ],
-};
-export const loanHistoryMenteeFixture = {
+});
+export const loanHistoryMenteeFixture = normalizeLoanFixture({
   id: 1200,
   dataRealizacao: '2026-09-01T10:00:00',
   dataDevolucao: null,
@@ -229,7 +431,7 @@ export const loanHistoryMenteeFixture = {
       },
     },
   ],
-};
+});
 export const verificationProductFixture = {
   id: 101,
   catmat: 'CAT-101',
@@ -320,7 +522,7 @@ export const loanHistoriesFixtures = Array.from({ length: 8 }, (_, index) => ({
   },
   aprovadorId: 4242,
   aprovador: null,
-}));
+})).map(normalizeLoanFixture);
 
 export const alertFixtures = [
   {
@@ -373,7 +575,7 @@ export const adminLoansFixtures = [
     solicitante: { id: 1, nomeCompleto: 'Solicitante ' + 'D'.repeat(120), email: 'solicitante@example.invalid' },
     aprovador: { id: 2, nomeCompleto: 'Responsável', email: 'responsavel@example.invalid' },
   },
-];
+].map(normalizeLoanFixture);
 
 export const classLoansFixtures = [
   {
@@ -388,7 +590,7 @@ export const classLoansFixtures = [
     aprovadorId: 4242,
     aprovador: null,
   },
-];
+].map(normalizeLoanFixture);
 
 export const mentoringLoansFixtures = [
   {
@@ -401,7 +603,7 @@ export const mentoringLoansFixtures = [
     solicitante: classFixture,
     aprovador: null,
   },
-];
+].map(normalizeLoanFixture);
 
 export const mentorDependentsFixtures = [
   {
@@ -423,7 +625,7 @@ export const mentorHistoryFixtures = [
     solicitante: mentorDependentsFixtures[0],
     aprovador: null,
   },
-];
+].map(normalizeLoanFixture);
 
 export const mentorMentoringHistoryFixtures = [
   {
@@ -436,7 +638,7 @@ export const mentorMentoringHistoryFixtures = [
     solicitante: mentorDependentsFixtures[0],
     aprovador: null,
   },
-];
+].map(normalizeLoanFixture);
 
 export const menteeMentoringHistoryFixtures = [
   {
@@ -451,7 +653,7 @@ export const menteeMentoringHistoryFixtures = [
     aprovadorId: 4242,
     aprovador: null,
   },
-];
+].map(normalizeLoanFixture);
 export async function mockResponsiveSession(page: Page, role: string) {
   const payload = Buffer.from(
     JSON.stringify({ sub: '4242', role, password_change_required: false })

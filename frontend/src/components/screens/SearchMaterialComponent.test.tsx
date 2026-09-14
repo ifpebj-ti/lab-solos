@@ -33,7 +33,11 @@ function Location() {
   const location = useLocation();
   return (
     <output data-testid='location'>
-      {JSON.stringify({ path: location.pathname, state: location.state })}
+      {JSON.stringify({
+        path: location.pathname,
+        search: location.search,
+        state: location.state,
+      })}
     </output>
   );
 }
@@ -81,7 +85,11 @@ describe('produtos: contratos existentes', () => {
       expect(screen.queryByText('Produto 2')).not.toBeInTheDocument();
       fireEvent.click(screen.getByText('Produto 1'));
       expect(screen.getByTestId('location')).toHaveTextContent(
-        JSON.stringify({ path: `/${profile}/verification`, state: { id: 101 } })
+        JSON.stringify({
+          path: `/${profile}/verification`,
+          search: '?id=101',
+          state: { id: 101 },
+        })
       );
       expect(getAllProducts).toHaveBeenCalledTimes(1);
     }
@@ -102,7 +110,7 @@ describe('produtos responsivos', () => {
     ).toEqual(['101', 'Produto 1', 'Vidraria', '3', 'ml', 'Disponivel']);
     expect(within(first).getByRole('link', { name: '101' })).toHaveAttribute(
       'href',
-      '/admin/verification'
+      '/admin/verification?id=101'
     );
     fireEvent.click(screen.getByRole('button', { name: 'Inverter ordem' }));
     expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent(

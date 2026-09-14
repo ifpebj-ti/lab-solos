@@ -105,15 +105,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            if (usuario.Dependentes == null || usuario.Dependentes.Count == 0)
-            {
-                return NotFound("Este usuário não possui dependentes.");
-            }
-
             // Obter todos os empréstimos dos dependentes
             var emprestimosDependentesDTO = new List<EmprestimoDTO>();
 
-            foreach (var dependente in usuario.Dependentes)
+            foreach (var dependente in usuario.Dependentes ?? Enumerable.Empty<Usuario>())
             {
                 var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id,
                     query => query
@@ -126,11 +121,6 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 var emprestimosDTO = _mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos);
                 emprestimosDependentesDTO.AddRange(emprestimosDTO);
-            }
-
-            if (emprestimosDependentesDTO.Count == 0)
-            {
-                return NotFound("Nenhum empréstimo encontrado para os dependentes.");
             }
 
             return Ok(emprestimosDependentesDTO);

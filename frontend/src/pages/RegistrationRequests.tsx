@@ -7,6 +7,11 @@ import TopDown from '@/components/global/table/TopDown';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useCallback, useEffect, useState } from 'react';
+import {
+  useInRouterContext,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
 import {
@@ -20,6 +25,7 @@ import type { Dependente } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
+import { resolveParentPath } from '@/navigation/profileNavigation';
 import {
   ResponsiveCell,
   ResponsiveRecord,
@@ -65,6 +71,36 @@ type RegistrationRequestRowProps = {
   onReject: () => void;
   onApprove: () => void;
 };
+
+function RegistrationBackButtonInRouter() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  return (
+    <button
+      type='button'
+      onClick={() => navigate(resolveParentPath(location.pathname))}
+      className='mt-3 inline-flex items-center justify-center rounded-md border border-borderMy px-4 py-2'
+    >
+      Voltar
+    </button>
+  );
+}
+
+function RegistrationBackButton() {
+  const hasRouter = useInRouterContext();
+
+  if (hasRouter) return <RegistrationBackButtonInRouter />;
+
+  return (
+    <button
+      type='button'
+      className='mt-3 inline-flex items-center justify-center rounded-md border border-borderMy px-4 py-2'
+    >
+      Voltar
+    </button>
+  );
+}
 
 function RegistrationRequestRow({
   request,
@@ -203,8 +239,8 @@ function RegistrationRequest() {
             error={loadError}
             operationId={OPERATION_IDS.dependentsForApproval}
             onRetry={() => void loadApproval()}
-            onNavigate={() => window.history.back()}
           />
+          <RegistrationBackButton />
         </div>
       ) : (
         <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>

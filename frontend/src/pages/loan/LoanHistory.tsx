@@ -3,7 +3,7 @@ import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
 import { getUnidadePlural } from '@/mocks/Unidades';
 import ItemTable from '@/components/global/table/Item';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import TopDown from '@/components/global/table/TopDown';
 import {
@@ -32,7 +32,14 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import FileSaver from 'file-saver';
 import ExcelJS from 'exceljs';
 import { LoanDoc } from '@/components/pdf/LoanDoc';
+import BackLink from '@/components/global/BackLink';
+import type { Emprestimo } from '@/contracts/loan';
 import type { Usuario } from '@/contracts/user';
+import {
+  buildDetailUrl,
+  readIdFromLocation,
+  resolveParentPath,
+} from '@/navigation/profileNavigation';
 
 const studentColumns: readonly ResponsiveColumn[] = [
   { key: 'name', label: 'Nome', weight: 3 },
@@ -48,60 +55,34 @@ const productColumns: readonly ResponsiveColumn[] = [
   { key: 'batch', label: 'Lote ID', weight: 2 },
 ];
 
-export interface ILote {
-  codigoLote: string;
-  fornecedor: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  dataEntrada: string;
-  produtos: IProduto[]; // normalmente vazio aqui
-}
+const userName = (user: Usuario | null) => user?.nomeCompleto ?? 'Não informado';
 
-export interface IProduto {
-  id: number;
-  catmat: string;
-  nomeProduto: string;
-  tipoProduto: string;
-  fornecedor: string;
-  unidadeMedida: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  status: string;
-  lote: ILote;
-}
-
-export interface IEmprestimoProduto {
-  emprestimoId: number;
-  produto: IProduto;
-  quantidade: number;
-}
-
-export interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string | null;
-  status: string;
-  produtos: IEmprestimoProduto[];
-  solicitante: Usuario;
-  aprovador: Usuario | null;
-}
+export type {
+  Emprestimo as IEmprestimo,
+  Lote as ILote,
+  Produto as IProduto,
+  ProdutoEmprestado as IEmprestimoProduto,
+} from '@/contracts/loan';
 
 function LoanHistoryMentee() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true);
-  const [loan, setLoan] = useState<IEmprestimo | null>(null);
+  const [loan, setLoan] = useState<Emprestimo | null>(null);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [pendingAction, setPendingAction] = useState<
     'approve' | 'reject' | 'return' | null
   >(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const id = location.state?.id;
+  const idResolution = readIdFromLocation(location);
+  const requestSequence = useRef(0);
+  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+  const navigateToParent = useCallback(
+    () => navigate(resolveParentPath(location.pathname)),
+    [location.pathname, navigate]
+  );
   const columnsExport = [
     { value: 'ID', width: '10%' },
     { value: 'Item', width: '45%' },
@@ -111,23 +92,47 @@ function LoanHistoryMentee() {
   ];
   const columnWidthsExport = ['10%', '45%', '15%', '15%', '15%'];
 
+  useEffect(() => {
+    if (!hasLegacyId || idResolution.id === null) return;
+
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
   const fetchGetLoan = useCallback(async (): Promise<boolean> => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsLoading(false);
+      setLoan(null);
+      setLoadError(null);
+      return false;
+    }
+
+    const sequence = ++requestSequence.current;
     setIsLoading(true);
+    setLoan(null);
+    setLoadError(null);
     try {
-      const response = await getLoansById({ id });
+      const response = await getLoansById({ id: idResolution.id });
+      if (sequence !== requestSequence.current) return false;
       setLoan(response);
       setLoadError(null);
       return true;
     } catch (error) {
+      if (sequence !== requestSequence.current) return false;
       setLoadError(error);
       return false;
     } finally {
-      setIsLoading(false);
+      if (sequence === requestSequence.current) setIsLoading(false);
     }
-  }, [id]);
+  }, [hasValidQueryId, idResolution.id]);
 
   useEffect(() => {
     void fetchGetLoan();
+    return () => {
+      requestSequence.current += 1;
+    };
   }, [fetchGetLoan]);
 
   const runAction = async (
@@ -204,7 +209,7 @@ function LoanHistoryMentee() {
         id: loan.produto.id,
         item: loan.produto.nomeProduto,
         quant: loan.produto.quantidade,
-        lote: loan.produto.lote.codigoLote,
+        lote: loan.produto.lote?.codigoLote ?? 'Sem lote',
         tipo: loan.produto.tipoProduto,
       });
     });
@@ -219,31 +224,40 @@ function LoanHistoryMentee() {
     FileSaver.saveAs(blob, 'emprestimo.xlsx');
   };
 
-  if (isLoading && loan === null) {
+  const showLoading =
+    hasLegacyId ||
+    (hasValidQueryId && loan === null && loadError === null) ||
+    (isLoading && loan === null);
+
+  if (showLoading) {
     return (
       <div
         role='status'
-        className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        className='flex min-h-screen flex-col justify-center items-center gap-4 font-inter-medium text-clt-2 bg-backgroundMy'
       >
         <div className='animate-spin'>
           <LoadingIcon />
         </div>
         Carregando...
+        <BackLink />
       </div>
     );
   }
 
-  if (loan === null) {
+  if (!hasValidQueryId || loan === null) {
     return (
-      <div className='flex min-h-screen items-center justify-center bg-backgroundMy p-6'>
-        {loadError !== null && (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        {loadError !== null ? (
           <ErrorFeedback
             error={loadError}
             operationId={OPERATION_IDS.loanById}
             onRetry={fetchGetLoan}
-            onNavigate={() => navigate(-1)}
+            onNavigate={navigateToParent}
           />
+        ) : (
+          <p>Selecione um registro para consultar</p>
         )}
+        <BackLink />
       </div>
     );
   }
@@ -257,10 +271,13 @@ function LoanHistoryMentee() {
               error={loadError}
               operationId={OPERATION_IDS.loanById}
               onRetry={fetchGetLoan}
-              onNavigate={() => navigate(-1)}
+              onNavigate={navigateToParent}
             />
           </div>
         )}
+          <div className='w-11/12 mt-5'>
+            <BackLink />
+          </div>
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
               Histórico de Empréstimo - {loan?.status}
@@ -281,7 +298,7 @@ function LoanHistoryMentee() {
                 <div className='w-full min-w-0 items-center flex flex-col min-h-14'>
                   <ItemOnly
                     data={[
-                      loan?.solicitante?.nomeCompleto ?? 'Não informado',
+                      userName(loan?.solicitante ?? null),
                       loan?.solicitante?.email ?? 'Não informado',
                       loan?.solicitante?.telefone ?? 'Não informado',
                     ]}
@@ -346,12 +363,12 @@ function LoanHistoryMentee() {
                             <LoanDoc
                               name={
                                 loan?.solicitante?.nomeCompleto
-                                  ? loan?.solicitante?.nomeCompleto
+                                  ? userName(loan.solicitante)
                                   : 'Não encontrado'
                               }
                               nivel={
                                 loan?.solicitante?.nivelUsuario
-                                  ? loan?.solicitante?.nivelUsuario
+                                  ? loan.solicitante.nivelUsuario
                                   : 'Não encontrado'
                               }
                               data={
@@ -369,8 +386,8 @@ function LoanHistoryMentee() {
                               columnWidths={columnWidthsExport}
                               columns={columnsExport}
                               signer={
-                                loan?.solicitante.nomeCompleto
-                                  ? loan?.solicitante.nomeCompleto
+                                loan?.solicitante?.nomeCompleto
+                                  ? userName(loan.solicitante)
                                   : 'Não encontrado'
                               }
                             />

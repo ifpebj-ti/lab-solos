@@ -21,18 +21,28 @@ const loan = {
     telefone: null,
   },
   aprovador: null,
-  emprestimoProdutos: [
+  produtos: [
     {
       id: 1,
       emprestimoId: 100,
-      produtoId: 301,
+
       quantidade: 4,
       produto: {
         id: 301,
+        catmat: 'CAT-301',
         nomeProduto: 'Reagente sem lote',
         tipo: 'Químico',
+        tipoProduto: 'QuÃ­mico',
+        fornecedor: null,
+        unidadeMedida: null,
         quantidade: 4,
-        loteId: null,
+        quantidadeMinima: 1,
+        localizacaoProduto: null,
+        dataFabricacao: null,
+        dataValidade: null,
+        ultimaModificacao: '2026-09-01T10:00:00Z',
+        status: 'Disponivel',
+        lote: null,
       },
     },
   ],

@@ -1,6 +1,7 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
 
+import { emprestimoSchema, emprestimosSchema } from '@/contracts/loan';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
 
@@ -22,6 +23,7 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
+    emprestimosSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.loansByUser);
@@ -41,6 +43,7 @@ export const getLoansById = async ({ id }: ILoansByUserId) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
+    emprestimoSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.loanById);
@@ -91,6 +94,7 @@ export const getAllLoans = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
+    emprestimosSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.allLoans);

@@ -13,6 +13,7 @@ import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { Link } from 'react-router-dom';
 import type { Dependente } from '@/contracts/user';
 import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
+import BackLink from '@/components/global/BackLink';
 
 const myClassColumns: readonly ResponsiveColumn[] = [
   { key: 'name', label: 'Nome', weight: 22 },
@@ -82,6 +83,7 @@ function MyClass() {
       ) : (
         <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+            <BackLink />
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Minha Turma
             </h1>

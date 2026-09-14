@@ -49,11 +49,6 @@ namespace LabSolos_Server_DotNet8.Controllers
                         .Include(e => e.Solicitante)
                         .Include(e => e.Aprovador)
                 );
-            if (!emprestimos.Any())
-            {
-                return NotFound("Nenhum empréstimo encontrado para este usuário.");
-            }
-
             return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
@@ -132,7 +127,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterTodosEmprestimosAsync()
         {
             var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true,
@@ -143,11 +138,6 @@ namespace LabSolos_Server_DotNet8.Controllers
                         .Include(e => e.Solicitante)
                         .Include(e => e.Aprovador)
                 );
-
-            if (!emprestimos.Any())
-            {
-                return NotFound("Nenhum empréstimo encontrado");
-            }
 
             return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }

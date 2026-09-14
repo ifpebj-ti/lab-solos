@@ -1,6 +1,34 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { buildDetailUrl, normalizePathname } from '@/navigation/profileNavigation';
 import { ResponsiveCell, ResponsiveRecord } from './ResponsiveTable';
 import { requireResponsiveColumns, useResponsiveColumns } from './responsiveContext';
+
+const DETAIL_ROUTES = new Set([
+  '/admin/history/loan',
+  '/mentor/history/loan',
+  '/mentee/history/loan',
+  '/admin/history/mentoring',
+  '/mentor/history/mentoring',
+  '/admin/view-class',
+  '/admin/view-class-mentor',
+  '/admin/view-history-class-by-id',
+  '/admin/return',
+  '/admin/verification',
+  '/mentor/verification',
+  '/mentee/verification',
+]);
+
+const getRecordDestination = (destinationRoute: string, id: number | string) => {
+  try {
+    if (DETAIL_ROUTES.has(normalizePathname(destinationRoute))) {
+      return buildDetailUrl(destinationRoute, id);
+    }
+  } catch {
+    return destinationRoute;
+  }
+
+  return destinationRoute;
+};
 
 interface ITableItem {
   data: string[]; // Array de valores para cada coluna da linha
@@ -19,9 +47,10 @@ function ClickableItemTable({
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
   const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const recordDestination = getRecordDestination(destinationRoute, id);
 
   const handleClick = () => {
-    navigate(destinationRoute, { state: { id } });
+    navigate(recordDestination, { state: { id } });
   };
   if (columns.length !== data.length)
     throw new Error('Cada valor deve corresponder a uma coluna responsiva.');
@@ -45,7 +74,7 @@ function ClickableItemTable({
           >
             {index === 0 ? (
               <Link
-                to={destinationRoute}
+                to={recordDestination}
                 state={{ id }}
                 className='inline-flex min-h-11 min-w-11 max-w-full items-center underline underline-offset-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 [@media(pointer:coarse)]:min-h-11'
               >

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { clearSession, startSession } from './auth/session';
 import AppRoutes from './routes';
+import routesSource from './routes.tsx?raw';
 
 vi.mock('./pages/Login', () => ({
   default: () => <main>Login route</main>,
@@ -10,6 +11,14 @@ vi.mock('./pages/Login', () => ({
 
 vi.mock('./pages/Page404', () => ({
   default: () => <main>Not found route</main>,
+}));
+
+vi.mock('./pages/mentor/HistoryClass', () => ({
+  default: () => <main>Histórico da turma</main>,
+}));
+
+vi.mock('./pages/mentor/LoanCreation', () => ({
+  default: () => <main>Criação de empréstimo</main>,
 }));
 
 vi.mock('./components/ui/layout', () => ({
@@ -122,4 +131,24 @@ describe('AppRoutes', () => {
       expect(xhrSendMock).not.toHaveBeenCalled();
     }
   );
+
+  it('redireciona o alias protegido de histórico para a tela coletiva', () => {
+    startSession(
+      createToken({
+        sub: '42',
+        role: 'Mentor',
+        password_change_required: false,
+      })
+    );
+
+    renderPath('/mentor/history/mentee');
+
+    expect(screen.getByRole('main')).toHaveTextContent('Histórico da turma');
+    expect(screen.queryByText('Criação de empréstimo')).not.toBeInTheDocument();
+    expect(window.location.pathname).toBe('/mentor/history/class');
+  });
+
+  it('mantém uma única declaração do layout pai de administrador', () => {
+    expect(routesSource.match(/path='\/admin'/g)).toHaveLength(1);
+  });
 });

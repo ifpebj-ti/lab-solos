@@ -13,6 +13,6 @@ describe('mentorados desativados responsivo', () => {
     const list = await screen.findByRole('list', { name: 'Mentorados desativados' });
     const record = within(list).getByRole('listitem');
     expect(Array.from(record.querySelectorAll('dt')).map((node) => node.textContent)).toEqual(['Nome', 'Email', 'Data Desativação', 'Curso', 'Instituição', 'Ação']);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/mentoring');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/mentoring?id=4201');
   });
 });

@@ -13,6 +13,13 @@ import { displayUserValue, formatCivilDate } from '@/function/date';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import { academicoSchema } from '@/contracts/user';
 import type { Academico, Dependente } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import BackLink from '@/components/global/BackLink';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import {
+  buildDetailUrl,
+  readIdFromLocation,
+} from '@/navigation/profileNavigation';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
@@ -28,11 +35,17 @@ const mentorClassColumns: readonly ResponsiveColumn[] = [
 // aqui virá a listagem dos integrantes da turma
 function ViewClassMentor() {
   const [isLoading, setIsLoading] = useState(false);
+  const [dependentsError, setDependentsError] = useState<unknown>();
+  const [retryToken, setRetryToken] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const itemsPerPage = 7;
   const location = useLocation();
-  const id = location.state?.id; // Recupera o ID passado via state
+  const idResolution = readIdFromLocation(location);
+  const hasValidQueryId =
+    idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId =
+    idResolution.source === 'state' && idResolution.id !== null;
   const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [user, setUser] = useState<Academico>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,11 +55,27 @@ function ViewClassMentor() {
   };
 
   useEffect(() => {
+    if (!hasLegacyId || idResolution.id === null) return;
+
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
+  useEffect(() => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsLoading(false);
+      return;
+    }
+
+    const classId = idResolution.id;
+    setDependentsError(undefined);
     const fetchGetLoansDependentes = async () => {
       setIsLoading(true);
       try {
-        const response = await getDependentesID(id);
-        const responseUser = await getUserById({ id });
+        const response = await getDependentesID(String(classId));
+        const responseUser = await getUserById({ id: classId });
         const academicUser = academicoSchema.safeParse(responseUser);
         setDependentes(response);
         setUser(academicUser.success ? academicUser.data : undefined);
@@ -54,6 +83,7 @@ function ViewClassMentor() {
         if (process.env.NODE_ENV === 'development') {
           console.debug('Erro ao buscar dados de empréstimos:', error);
         }
+        setDependentsError(error);
         setDependentes([]);
         setUser(undefined);
       } finally {
@@ -61,7 +91,7 @@ function ViewClassMentor() {
       }
     };
     fetchGetLoansDependentes();
-  }, [id]);
+  }, [hasValidQueryId, idResolution.id, retryToken]);
 
   const filteredUsers = dependentes.filter((user) =>
     user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
@@ -125,16 +155,40 @@ function ViewClassMentor() {
       ]
     : [];
   const handleClick = () => {
-    navigate('/admin/view-history-class-by-id', { state: { id } });
+    if (idResolution.id === null) return;
+    navigate(buildDetailUrl('/admin/view-history-class-by-id', idResolution.id));
   };
   return (
     <>
-      {isLoading ? (
+      {hasLegacyId ? (
         <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
+          <BackLink pathname='/admin/view-class-mentor' />
+        </div>
+      ) : !hasValidQueryId ? (
+        <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+          <p>Selecione um registro para consultar</p>
+          <BackLink pathname='/admin/view-class-mentor' />
+        </div>
+      ) : isLoading ? (
+        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+          <div className='animate-spin'>
+            <LoadingIcon />
+          </div>
+          Carregando...
+        </div>
+      ) : dependentsError ? (
+        <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+          <ErrorFeedback
+            error={dependentsError}
+            operationId={OPERATION_IDS.dependentsById}
+            onRetry={() => setRetryToken((token) => token + 1)}
+            onNavigate={() => navigate('/admin/users')}
+          />
+          <BackLink pathname='/admin/view-class-mentor' />
         </div>
       ) : user && dependentes ? (
         <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
