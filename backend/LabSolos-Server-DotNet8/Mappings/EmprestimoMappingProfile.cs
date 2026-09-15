@@ -10,6 +10,10 @@ namespace Core.DTOs.Mappings
         public EmprestimoMappingProfile()
         {
             CreateMap<Emprestimo, EmprestimoDTO>()
+                .ForMember(dest => dest.DataPrevistaDevolucao,
+                    opt => opt.MapFrom(src => src.DataPrevistaDevolucao))
+                .ForMember(dest => dest.DataDevolucao,
+                    opt => opt.MapFrom(src => src.DataDevolucao))
                 .ForMember(dest => dest.Produtos, opt => opt.MapFrom(src => src.Produtos)) 
                 .ReverseMap();
 

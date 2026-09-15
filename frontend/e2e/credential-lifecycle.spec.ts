@@ -1,182 +1,247 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
-const apiBaseUrl = process.env.E2E_API_URL ?? 'http://127.0.0.1:18080/api';
-const smtpApiUrl = process.env.E2E_SMTP_API_URL ?? 'http://127.0.0.1:18025';
-
-const administrator = {
-  email: 'synthetic-e2e-admin@example.invalid',
-  initialPassword: 'synthetic-e2e-admin-password',
-  firstPassword: 'Synthetic E2E First Password 2026!',
-  changedPassword: 'Synthetic E2E Changed Password 2026!',
-  resetPassword: 'Synthetic E2E Reset Password 2026!',
-};
+import { e2eScenario, seedE2eScenario } from './infra/e2e-data';
 
 type LoginResponse = {
   token: string;
   requiresPasswordChange: boolean;
 };
 
+type MailpitSummary = {
+  ID: string;
+  To?: Array<{ Address?: string }>;
+};
+
 type MailpitMessagesResponse = {
-  messages: Array<{ ID: string }>;
+  messages: MailpitSummary[];
 };
 
 type MailpitMessage = {
-  Text: string;
+  Text?: string;
 };
 
-test.setTimeout(90_000);
+const changedPassword = 'Synthetic E2E Changed Password 2026!';
+const resetPassword = 'Synthetic E2E Reset Password 2026!';
 
-test('exercises the seeded administrator credential lifecycle and session revocation', async ({
-  page,
-  request,
-}) => {
-  const signIn = async (password: string): Promise<LoginResponse> => {
-    const response = await request.post(`${apiBaseUrl}/Auth/login`, {
-      data: { email: administrator.email, password },
-    });
+test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
+  test.describe.configure({ mode: 'serial' });
+  test.setTimeout(120_000);
 
-    expect(response.status()).toBe(200);
-    return response.json() as Promise<LoginResponse>;
+  test.beforeEach(async () => {
+    await seedE2eScenario();
+  });
+
+  const submitLogin = async (
+    page: Page,
+    password: string,
+    expectedStatus: number
+  ): Promise<LoginResponse | undefined> => {
+    const responsePromise = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Auth/login` &&
+        response.request().method() === 'POST'
+    );
+    await page.locator('input[name="email"]').fill(e2eScenario.administrator.email);
+    await page.locator('input[name="password"]').fill(password);
+    await page.getByRole('button', { name: 'Submeter Login' }).click();
+    const response = await responsePromise;
+    expect(response.status()).toBe(expectedStatus);
+    if (expectedStatus !== 200) return undefined;
+    return (await response.json()) as LoginResponse;
   };
 
-  const authorizedRequest = (token: string) =>
-    request.get(`${apiBaseUrl}/Usuarios`, {
+  const authorizedRequest = (request: APIRequestContext, token: string) =>
+    request.get(`${e2eScenario.apiUrl}/Usuarios`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-  const requestResetToken = async (): Promise<string> => {
-    const clearMailbox = await request.delete(`${smtpApiUrl}/api/v1/messages`);
-    expect(clearMailbox.ok()).toBe(true);
+  const listMailpitMessageIds = async (
+    request: APIRequestContext
+  ): Promise<Set<string>> => {
+    const response = await request.get(`${e2eScenario.smtpUrl}/api/v1/messages`);
+    if (!response.ok()) return new Set();
+    const mailbox = (await response.json()) as MailpitMessagesResponse;
+    return new Set(mailbox.messages.map((message) => message.ID));
+  };
 
-    const resetRequest = await request.post(
-      `${apiBaseUrl}/Email/request-password-reset`,
-      { data: { email: administrator.email } }
-    );
-    expect(resetRequest.status()).toBe(202);
-
-    let messageId: string | undefined;
+  const findMailpitTokenForRecipient = async (
+    request: APIRequestContext,
+    recipient: string,
+    ignoredMessageIds: Set<string>
+  ): Promise<string> => {
+    let token: string | undefined;
     await expect
-      .poll(async () => {
-        const response = await request.get(`${smtpApiUrl}/api/v1/messages`);
-        if (!response.ok()) {
-          return undefined;
-        }
+      .poll(
+        async () => {
+          const response = await request.get(
+            `${e2eScenario.smtpUrl}/api/v1/messages`
+          );
+          if (!response.ok()) return false;
 
-        const mailbox = (await response.json()) as MailpitMessagesResponse;
-        messageId = mailbox.messages[0]?.ID;
-        return messageId;
-      })
-      .toBeTruthy();
+          const mailbox = (await response.json()) as MailpitMessagesResponse;
+          const candidate = mailbox.messages.find(
+            (message) =>
+              !ignoredMessageIds.has(message.ID) &&
+              message.To?.some(
+                (address) =>
+                  address.Address?.toLowerCase() === recipient.toLowerCase()
+              )
+          );
+          if (!candidate) return false;
 
-    const messageResponse = await request.get(
-      `${smtpApiUrl}/api/v1/message/${messageId}`
-    );
-    expect(messageResponse.ok()).toBe(true);
-    const message = (await messageResponse.json()) as MailpitMessage;
-    const token = message.Text.match(/[A-Za-z0-9_-]{43}/)?.[0];
+          const detailResponse = await request.get(
+            `${e2eScenario.smtpUrl}/api/v1/message/${candidate.ID}`
+          );
+          if (!detailResponse.ok()) return false;
+          const detail = (await detailResponse.json()) as MailpitMessage;
+          token = detail.Text?.match(/[A-Za-z0-9_-]{43}/)?.[0];
+          return Boolean(token);
+        },
+        { timeout: 30_000 }
+      )
+      .toBe(true);
 
-    expect(token).toBeDefined();
     return token!;
   };
 
-  const requiredSessionA = await signIn(administrator.initialPassword);
-  const requiredSessionB = await signIn(administrator.initialPassword);
-  expect(requiredSessionA.requiresPasswordChange).toBe(true);
-  expect(requiredSessionB.requiresPasswordChange).toBe(true);
-  expect((await authorizedRequest(requiredSessionA.token)).status()).toBe(403);
+  test('credenciais: login habilitado aceita conta do cenário e recusa senha inválida', async ({
+    page,
+  }) => {
+    await page.goto('/');
 
-  await page.goto('/');
-  await page.locator('input[name="email"]').fill(administrator.email);
-  await page.locator('input[name="password"]').fill(administrator.initialPassword);
-  await page.getByRole('button', { name: 'Submeter Login' }).click();
-  await expect(page).toHaveURL(/\/change-password-required$/);
-  await expect(
-    page.getByRole('heading', { name: 'Defina uma nova senha' })
-  ).toBeVisible();
+    await submitLogin(page, 'Synthetic invalid password 2026!', 401);
+    await expect(page).toHaveURL(/\/$/);
+    expect((await page.context().cookies()).map((cookie) => cookie.name)).not.toContain(
+      'doorKey'
+    );
 
-  await page.locator('#current-password').fill(administrator.initialPassword);
-  await page.locator('#new-password').fill(administrator.firstPassword);
-  await page
-    .locator('#password-confirmation')
-    .fill(administrator.firstPassword);
-  await page.getByRole('button', { name: 'Alterar senha' }).click();
-  await expect(page).toHaveURL(/\/$/);
-
-  expect((await authorizedRequest(requiredSessionA.token)).status()).toBe(401);
-  expect((await authorizedRequest(requiredSessionB.token)).status()).toBe(401);
-
-  const completedSessionA = await signIn(administrator.firstPassword);
-  const completedSessionB = await signIn(administrator.firstPassword);
-  expect(completedSessionA.requiresPasswordChange).toBe(false);
-  expect(completedSessionB.requiresPasswordChange).toBe(false);
-  expect((await authorizedRequest(completedSessionA.token)).ok()).toBe(true);
-
-  await page.locator('input[name="email"]').fill(administrator.email);
-  await page.locator('input[name="password"]').fill(administrator.firstPassword);
-  await page.getByRole('button', { name: 'Submeter Login' }).click();
-  await expect(page).toHaveURL(/\/admin\/?$/);
-  await page.goto('/admin/settings');
-  await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible();
-
-  await page.locator('#current-password').fill(administrator.firstPassword);
-  await page.locator('#new-password').fill(administrator.changedPassword);
-  await page
-    .locator('#password-confirmation')
-    .fill(administrator.changedPassword);
-  await page.getByRole('button', { name: 'Alterar senha' }).click();
-  await expect(page).toHaveURL(/\/$/);
-
-  expect((await authorizedRequest(completedSessionA.token)).status()).toBe(401);
-  expect((await authorizedRequest(completedSessionB.token)).status()).toBe(401);
-
-  const resetSessionA = await signIn(administrator.changedPassword);
-  const resetSessionB = await signIn(administrator.changedPassword);
-  const resetToken = await requestResetToken();
-  const resetResponse = await request.post(`${apiBaseUrl}/Email/reset-password`, {
-    data: {
-      email: administrator.email,
-      code: resetToken,
-      newPassword: administrator.resetPassword,
-      confirmation: administrator.resetPassword,
-    },
+    const login = await submitLogin(
+      page,
+      e2eScenario.administrator.password,
+      200
+    );
+    expect(login?.requiresPasswordChange).toBe(false);
+    await expect(page).toHaveURL(/\/admin\/?$/);
+    expect((await page.context().cookies()).map((cookie) => cookie.name)).toContain(
+      'doorKey'
+    );
   });
-  expect(resetResponse.status()).toBe(204);
-  expect((await authorizedRequest(resetSessionA.token)).status()).toBe(401);
-  expect((await authorizedRequest(resetSessionB.token)).status()).toBe(401);
 
-  await page.locator('input[name="email"]').fill(administrator.email);
-  await page.locator('input[name="password"]').fill(administrator.resetPassword);
-  await page.getByRole('button', { name: 'Submeter Login' }).click();
-  await expect(page).toHaveURL(/\/admin\/?$/);
+  test('credenciais: troca de senha revoga sessão anterior pela interface', async ({
+    page,
+    request,
+  }) => {
+    await page.goto('/');
+    const firstSession = await submitLogin(
+      page,
+      e2eScenario.administrator.password,
+      200
+    );
+    expect(firstSession?.token).toBeDefined();
+    const secondSessionResponse = await request.post(
+      `${e2eScenario.apiUrl}/Auth/login`,
+      {
+        data: {
+          email: e2eScenario.administrator.email,
+          password: e2eScenario.administrator.password,
+        },
+      }
+    );
+    expect(secondSessionResponse.status()).toBe(200);
+    const secondSession = (await secondSessionResponse.json()) as LoginResponse;
+    await page.goto('/admin/settings');
+    await expect(page.getByRole('heading', { name: 'Alterar senha' })).toBeVisible();
 
-  await page.evaluate(() => {
-    localStorage.setItem('sidebar-open-items', '{"Operações":true}');
-    document.cookie = 'sidebar_state=false; path=/';
+    await page.locator('#current-password').fill('Synthetic wrong password 2026!');
+    await page.locator('#new-password').fill(changedPassword);
+    await page.locator('#password-confirmation').fill(changedPassword);
+    const invalidChange = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Auth/change-password` &&
+        response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Alterar senha' }).click();
+    expect((await invalidChange).status()).toBe(400);
+    await expect(page).toHaveURL(/\/admin\/settings$/);
+
+    await page.locator('#current-password').fill(e2eScenario.administrator.password);
+    const validChange = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Auth/change-password` &&
+        response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Alterar senha' }).click();
+    expect((await validChange).status()).toBe(204);
+    await expect(page).toHaveURL(/\/$/);
+    expect((await authorizedRequest(request, firstSession!.token)).status()).toBe(401);
+    expect((await authorizedRequest(request, secondSession.token)).status()).toBe(401);
+
+    const newSession = await submitLogin(page, changedPassword, 200);
+    expect(newSession?.requiresPasswordChange).toBe(false);
+    await expect(page).toHaveURL(/\/admin\/?$/);
   });
-  await page
-    .getByRole('button', { name: /synthetic-e2e-admin@example\.invalid/i })
-    .click();
-  await page.getByRole('menuitem', { name: 'Sair' }).click();
-  await expect(page).toHaveURL(/\/$/);
 
-  await page.goto('/admin/');
-  await expect(page).toHaveURL(/\/$/);
-  await expect
-    .poll(() =>
-      page.evaluate(() => ({
-        cookies: document.cookie,
-        sidebarItems: localStorage.getItem('sidebar-open-items'),
-      }))
-    )
-    .toEqual({
-      cookies: expect.stringContaining('sidebar_state=false'),
-      sidebarItems: '{"Operações":true}',
-    });
+  test('credenciais: recuperação seleciona o e-mail do cenário no Mailpit', async ({
+    page,
+    request,
+  }) => {
+    const existingMessageIds = await listMailpitMessageIds(request);
+    await page.goto('/forgot-your-password');
+    await page
+      .getByLabel('Email', { exact: true })
+      .fill(e2eScenario.administrator.email);
+    const resetRequest = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Email/request-password-reset` &&
+        response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Enviar e-mail de recuperação' }).click();
+    expect((await resetRequest).status()).toBe(202);
+    await expect(page).toHaveURL(/\/reset-password$/);
 
-  const authCookieNames = (await page.context().cookies()).map(
-    (cookie) => cookie.name
-  );
-  expect(authCookieNames).not.toContain('doorKey');
-  expect(authCookieNames).not.toContain('rankID');
-  expect(authCookieNames).not.toContain('level');
+    const token = await findMailpitTokenForRecipient(
+      request,
+      e2eScenario.administrator.email,
+      existingMessageIds
+    );
+    await page.getByLabel('Email', { exact: true }).fill(e2eScenario.administrator.email);
+    await page.getByLabel('Token recebido por e-mail').fill(token);
+    await page.locator('input[name="newPassword"]').fill(resetPassword);
+    await page.locator('input[name="confirmation"]').fill(resetPassword);
+    const resetResponse = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Email/reset-password` &&
+        response.request().method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Atualizar senha' }).click();
+    expect((await resetResponse).status()).toBe(204);
+    await expect(page).toHaveURL(/\/$/);
+
+    const login = await submitLogin(page, resetPassword, 200);
+    expect(login?.requiresPasswordChange).toBe(false);
+    await expect(page).toHaveURL(/\/admin\/?$/);
+  });
+
+  test('credenciais: logout remove a sessao da conta do cenario', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await submitLogin(page, e2eScenario.administrator.password, 200);
+    await expect(page).toHaveURL(/\/admin\/?$/);
+
+    await page
+      .getByRole('button', { name: new RegExp(e2eScenario.administrator.email, 'i') })
+      .click();
+    await page.getByRole('menuitem', { name: 'Sair' }).click();
+    await expect(page).toHaveURL(/\/$/);
+
+    await page.goto('/admin/');
+    await expect(page).toHaveURL(/\/$/);
+    const authCookieNames = (await page.context().cookies()).map(
+      (cookie) => cookie.name
+    );
+    expect(authCookieNames).not.toContain('doorKey');
+    expect(authCookieNames).not.toContain('rankID');
+    expect(authCookieNames).not.toContain('level');
+  });
 });

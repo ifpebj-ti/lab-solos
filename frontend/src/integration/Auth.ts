@@ -106,7 +106,12 @@ export const requestPasswordReset = async (data: IPasswordResetRequest) => {
 
 export const resetPassword = async (data: IPasswordResetParams) => {
   try {
-    return await api.post('/Email/reset-password', data);
+    return await api.post('/Email/reset-password', {
+      email: data.email,
+      code: data.token,
+      newPassword: data.newPassword,
+      confirmation: data.confirmation,
+    });
   } catch (error: unknown) {
     throw normalizeError(error);
   }

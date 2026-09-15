@@ -3,7 +3,8 @@ name: Container CI
 on:
   pull_request:
     branches: [develop]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -55,7 +56,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "8.0.419"
 
       - name: Restore backend solution
         run: dotnet restore backend/backend.sln
@@ -80,6 +81,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    env:
+      E2E_COMPOSE_PROJECT: lab-solos-quality-e2e
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,6 +101,17 @@ jobs:
       - name: Install Chromium from the lockfile
         working-directory: frontend
         run: npx --no-install playwright install --with-deps chromium
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        with:
+          version: "29.7.2"
+          set-host: true
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        with:
+          version: "v5.3.1"
 
       - name: Start synthetic E2E stack
         run: docker compose -f docker-compose-e2e.yml up -d --build --wait
@@ -130,10 +144,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Install test dependency
         run: python -m pip install PyYAML==6.0.3
+
+      - name: Set up Node.js for contract fixtures
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20.20.2"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up .NET for contract fixtures
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.419"
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: frontend
+        run: npm ci
+
+      - name: Prepare temporary test workspace
+        run: mkdir --parents .tmp
 
       - name: Run workflow contract tests
         run: python -m unittest discover -s .github/scripts/tests -p "test_*.py" -v
@@ -148,6 +181,122 @@ jobs:
 
       - name: Lint container CI workflow
         run: .tmp/actionlint/actionlint .github/workflows/container-ci.yml
+
+  quality-baseline:
+    name: Code quality baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository with base history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20.20.2"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.419"
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        with:
+          version: "29.7.2"
+          set-host: true
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        with:
+          version: "v5.3.1"
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install quality dependencies from lockfile
+        run: python -m pip install --requirement .github/quality/requirements.txt
+
+      - name: Collect quality baseline
+        env:
+          QUALITY_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+        run: python -B .github/scripts/quality_baseline.py collect --output .tmp/quality/current.json
+
+      - name: Check quality baseline against trusted base
+        id: quality-check
+        continue-on-error: true
+        env:
+          QUALITY_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+        run: python -B .github/scripts/quality_baseline.py check --current .tmp/quality/current.json --base-ref "$QUALITY_BASE_REF"
+
+      - name: Render quality inventory
+        if: always()
+        run: python -B .github/scripts/quality_baseline.py render --current .tmp/quality/current.json --output .codex/docs/specs/fundacao-qualidade-testes/inventario.md
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-baseline-${{ github.run_id }}
+          path: |
+            .tmp/quality/**
+            .codex/docs/specs/fundacao-qualidade-testes/inventario.md
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce quality check result
+        if: always()
+        run: test "${{ steps.quality-check.outcome }}" = "success"
+
+  quality-gate:
+    name: Quality gate
+    if: always()
+    needs:
+      - frontend-quality
+      - backend-quality
+      - auth-e2e
+      - workflow-quality
+      - quality-baseline
+      - container-scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Evaluate required jobs
+        env:
+          FRONTEND_RESULT: ${{ needs.frontend-quality.result }}
+          BACKEND_RESULT: ${{ needs.backend-quality.result }}
+          E2E_RESULT: ${{ needs.auth-e2e.result }}
+          WORKFLOW_RESULT: ${{ needs.workflow-quality.result }}
+          QUALITY_RESULT: ${{ needs.quality-baseline.result }}
+          CONTAINER_RESULT: ${{ needs.container-scan.result }}
+        run: >-
+          python -B .github/scripts/check_quality_gate.py
+          --required frontend-quality backend-quality auth-e2e workflow-quality
+          quality-baseline container-scan
+          --job "frontend-quality=$FRONTEND_RESULT"
+          --job "backend-quality=$BACKEND_RESULT"
+          --job "auth-e2e=$E2E_RESULT"
+          --job "workflow-quality=$WORKFLOW_RESULT"
+          --job "quality-baseline=$QUALITY_RESULT"
+          --job "container-scan=$CONTAINER_RESULT"
 
   container-scan:
     name: Scan ${{ matrix.component }} on ${{ matrix.platform }}

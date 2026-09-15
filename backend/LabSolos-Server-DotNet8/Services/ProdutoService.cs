@@ -90,6 +90,7 @@ namespace LabSolos_Server_DotNet8.Services
                 {
                     EmprestimoId = pe.EmprestimoId,
                     DataEmprestimo = pe.Emprestimo.DataRealizacao,
+                    DataPrevistaDevolucao = pe.Emprestimo.DataPrevistaDevolucao,
                     DataDevolucao = pe.Emprestimo.DataDevolucao,
                     QuantidadeEmprestada = pe.Quantidade,
                     StatusEmprestimo = pe.Emprestimo.Status.ToString(),

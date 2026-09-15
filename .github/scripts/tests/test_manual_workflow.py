@@ -87,7 +87,10 @@ class ManualWorkflowTests(unittest.TestCase):
 
         self.assertIn("pull_request:", trigger)
         self.assertIn("branches: [develop]", trigger)
-        self.assertIn("types: [opened, synchronize, reopened]", trigger)
+        self.assertIn(
+            "types: [opened, synchronize, reopened, edited, ready_for_review]", trigger
+        )
+        self.assertIn("merge_group:", trigger)
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotRegex(trigger, r"(?m)^\s+paths(?:-ignore)?:")
         self.assertRegex(self.workflow, r"(?m)^permissions:\n  contents: read$")

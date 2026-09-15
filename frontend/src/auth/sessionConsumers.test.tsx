@@ -6,7 +6,9 @@ import loginSource from '../pages/Login.tsx?raw';
 import forgotPasswordSource from '../pages/ForgotPassword.tsx?raw';
 import resetPasswordSource from '../pages/ResetPassword.tsx?raw';
 import createAccountSource from '../pages/CreateAccount.tsx?raw';
+import changePasswordSource from '../pages/ChangePassword.tsx?raw';
 import page404Source from '../pages/Page404.tsx?raw';
+import setupSource from '../test/setup.ts?raw';
 
 const consumers = {
   BaseApi: baseApiSource,
@@ -16,6 +18,7 @@ const consumers = {
   ForgotPassword: forgotPasswordSource,
   ResetPassword: resetPasswordSource,
   CreateAccount: createAccountSource,
+  ChangePassword: changePasswordSource,
 };
 
 describe('consumidores de encerramento de sessao', () => {
@@ -43,5 +46,13 @@ describe('consumidores de encerramento de sessao', () => {
   it('mantém o logout explícito disponível para o nível não suportado', () => {
     expect(page404Source).toContain('clearSession');
     expect(page404Source).toContain('Sair');
+  });
+
+  it('configura isolamento de temporizadores, storage e cookies entre casos', () => {
+    expect(setupSource).toContain('server.resetHandlers()');
+    expect(setupSource).toContain('vi.useRealTimers()');
+    expect(setupSource).toContain('window.localStorage.clear()');
+    expect(setupSource).toContain('window.sessionStorage.clear()');
+    expect(setupSource).toContain('Cookie.remove');
   });
 });

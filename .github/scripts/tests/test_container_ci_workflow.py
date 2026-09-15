@@ -28,7 +28,10 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         trigger = self.workflow.split("permissions:", 1)[0]
         self.assertIn("pull_request:", trigger)
         self.assertIn("branches: [develop]", trigger)
-        self.assertIn("types: [opened, synchronize, reopened]", trigger)
+        self.assertIn(
+            "types: [opened, synchronize, reopened, edited, ready_for_review]", trigger
+        )
+        self.assertIn("merge_group:", trigger)
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotRegex(
             trigger,
@@ -45,7 +48,13 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn("concurrency:", self.workflow)
         self.assertIn("cancel-in-progress: true", self.workflow)
 
-        for job_name in ("frontend-quality", "backend-quality", "workflow-quality"):
+        for job_name in (
+            "frontend-quality",
+            "backend-quality",
+            "workflow-quality",
+            "quality-baseline",
+            "quality-gate",
+        ):
             job = self.job(job_name)
             self.assertIn("timeout-minutes:", job)
             self.assertNotIn("security-events: write", job)
@@ -77,6 +86,31 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn(
             ".tmp/actionlint/actionlint .github/workflows/container-ci.yml", workflow
         )
+
+        quality = self.job("quality-baseline")
+        for command in (
+            "npm ci",
+            "python -m pip install --requirement .github/quality/requirements.txt",
+            "quality_baseline.py collect",
+            "quality_baseline.py check",
+            "quality_baseline.py render",
+        ):
+            self.assertIn(command, quality)
+        self.assertIn("pull_request.base.sha", quality)
+
+    def test_quality_gate_requires_every_upstream_job_to_succeed(self) -> None:
+        gate = self.job("quality-gate")
+        self.assertIn("if: always()", gate)
+        self.assertIn("check_quality_gate.py", gate)
+        for job_name in (
+            "frontend-quality",
+            "backend-quality",
+            "auth-e2e",
+            "workflow-quality",
+            "quality-baseline",
+            "container-scan",
+        ):
+            self.assertIn(f"- {job_name}", gate)
 
     def test_backend_quality_runs_postgresql_integration_and_migration_tests(self) -> None:
         backend = self.job("backend-quality")

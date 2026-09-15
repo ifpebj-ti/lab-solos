@@ -1,0 +1,17 @@
+[
+  {
+    "filePath": "/repo/frontend/src/auth/login.ts",
+    "messages": [
+      {
+        "ruleId": "complexity",
+        "severity": 1,
+        "message": "Complexity is too high.",
+        "line": 10,
+        "column": 3,
+        "source": "if (token) { return token; }"
+      }
+    ],
+    "errorCount": 0,
+    "warningCount": 1
+  }
+]

@@ -132,4 +132,36 @@ describe('ForgotPassword', () => {
       expect(mocks.navigate).toHaveBeenCalledWith('/reset-password');
     });
   });
+
+  it('impede solicitacoes duplicadas enquanto a recuperacao esta pendente', async () => {
+    let resolveRequest: (value: { status: number }) => void = () => undefined;
+    const pendingRequest = new Promise<{ status: number }>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mocks.post.mockReturnValue(pendingRequest);
+    render(<ForgotPassword />);
+
+    expect(mocks.clearSession).toHaveBeenCalledOnce();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+      target: { value: 'usuario@example.org' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: /Enviar e-mail de recupera/ })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Enviando...' })
+      ).toBeDisabled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviando...' }));
+    expect(mocks.post).toHaveBeenCalledOnce();
+
+    resolveRequest({ status: 202 });
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /Enviar e-mail de recupera/ })
+      ).toBeEnabled();
+    });
+  });
 });

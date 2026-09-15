@@ -1,8 +1,8 @@
-name: lab-solos-auth-e2e
+name: lab-solos-quality-e2e
 
 services:
   smtp-cert:
-    image: alpine/openssl:3.3.1
+    image: alpine/openssl:3.3.1@sha256:d428569834003946999b6eb12e902c3c03de740fa61ddb0147233bb1bd16affe
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -29,7 +29,7 @@ services:
       - e2e_private
 
   smtp:
-    image: axllent/mailpit:v1.28.0
+    image: axllent/mailpit:v1.28.0@sha256:c076638db1e15662150be4fb62b8a6e96ef6ba5bde90c838a0239225854830f7
     environment:
       MP_SMTP_TLS_CERT: /certs/smtp.crt
       MP_SMTP_TLS_KEY: /certs/smtp.key
@@ -39,7 +39,7 @@ services:
       smtp-cert:
         condition: service_completed_successfully
     ports:
-      - "${E2E_SMTP_PORT:-18025}:8025"
+      - "127.0.0.1:${E2E_SMTP_PORT:-18025}:8025"
     volumes:
       - e2e_smtp_certs:/certs:ro
     networks:
@@ -49,7 +49,7 @@ services:
       - e2e_public
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b
     environment:
       POSTGRES_DB: lab_solos_e2e
       POSTGRES_USER: lab_solos_e2e
@@ -100,7 +100,7 @@ services:
       retries: 30
       start_period: 10s
     ports:
-      - "${E2E_BACKEND_PORT:-18080}:8080"
+      - "127.0.0.1:${E2E_BACKEND_PORT:-18080}:8080"
     volumes:
       - e2e_smtp_certs:/certs:ro
     networks:
@@ -122,9 +122,33 @@ services:
       timeout: 3s
       retries: 20
     ports:
-      - "${E2E_FRONTEND_PORT:-4173}:80"
+      - "127.0.0.1:${E2E_FRONTEND_PORT:-4173}:80"
     networks:
       - e2e_public
+
+  e2e-seed:
+    profiles:
+      - seed
+    build:
+      context: ./backend
+      dockerfile: TestSupport/E2ESeed/Dockerfile
+    command: ["--scenario", "${E2E_SEED_SCENARIO:-default}"]
+    environment:
+      E2E_SEED_ENVIRONMENT: E2E
+      E2E_SEED_CONNECTION_STRING: Host=db;Port=5432;Database=lab_solos_e2e;Username=lab_solos_e2e;Password=synthetic-e2e-database-password
+      E2E_SEED_ADMIN_EMAIL: ${E2E_SEED_ADMIN_EMAIL:-synthetic-admin-${E2E_SEED_SCENARIO:-default}@example.invalid}
+      E2E_SEED_ADMIN_PASSWORD: ${E2E_SEED_ADMIN_PASSWORD:-synthetic-admin-${E2E_SEED_SCENARIO:-default}-password}
+      E2E_SEED_MENTOR_EMAIL: ${E2E_SEED_MENTOR_EMAIL:-synthetic-mentor-${E2E_SEED_SCENARIO:-default}@example.invalid}
+      E2E_SEED_MENTOR_PASSWORD: ${E2E_SEED_MENTOR_PASSWORD:-synthetic-mentor-${E2E_SEED_SCENARIO:-default}-password}
+      E2E_SEED_BORROWER_EMAIL: ${E2E_SEED_BORROWER_EMAIL:-synthetic-borrower-${E2E_SEED_SCENARIO:-default}@example.invalid}
+      E2E_SEED_BORROWER_PASSWORD: ${E2E_SEED_BORROWER_PASSWORD:-synthetic-borrower-${E2E_SEED_SCENARIO:-default}-password}
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - e2e_private
 
 volumes:
   e2e_postgres_data:

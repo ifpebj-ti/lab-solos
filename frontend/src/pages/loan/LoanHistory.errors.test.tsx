@@ -23,6 +23,7 @@ const sessionToken = 'session-token';
 const loan = {
   id: 99,
   dataRealizacao: '2026-09-01T10:00:00',
+  dataPrevistaDevolucao: '2026-09-08T10:00:00',
   dataDevolucao: null,
   dataAprovacao: '2026-09-01T11:00:00',
   status: 'Aprovado',

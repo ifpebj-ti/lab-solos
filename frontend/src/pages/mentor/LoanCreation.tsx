@@ -43,7 +43,6 @@ interface IProduto {
 
 interface ICreateLoan {
   diasParaDevolucao: number | string;
-  solicitanteId: number | string;
   produtos: IProduto[];
 }
 
@@ -167,7 +166,6 @@ function LoanCreation() {
 
     const loanData: ICreateLoan = {
       diasParaDevolucao: 5,
-      solicitanteId: Number(userSelected),
       produtos: selectedProducts.map((produto) => ({
         produtoId: produto.produtoId,
         quantidade: produto.quantidade,

@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <QualitySarifEnabled Condition="'$(QualitySarifEnabled)' == ''">true</QualitySarifEnabled>
+    <QualitySarifDirectory Condition="'$(QualitySarifDirectory)' == ''">$(IntermediateOutputPath)quality/</QualitySarifDirectory>
+    <QualitySarifFile Condition="'$(QualitySarifFile)' == ''">$(QualitySarifDirectory)$(MSBuildProjectName).sarif</QualitySarifFile>
+    <QualitySarifVersion Condition="'$(QualitySarifVersion)' == ''">2.1</QualitySarifVersion>
+    <ErrorLog Condition="'$(QualitySarifEnabled)' == 'true' and '$(ErrorLog)' == ''">$(QualitySarifFile),version=$(QualitySarifVersion)</ErrorLog>
+  </PropertyGroup>
+
+  <Target
+    Name="PrepareQualitySarif"
+    BeforeTargets="CoreCompile"
+    Condition="'$(QualitySarifEnabled)' == 'true'">
+    <MakeDir Directories="$(QualitySarifDirectory)" />
+    <Delete Files="$(QualitySarifFile)" />
+  </Target>
+</Project>

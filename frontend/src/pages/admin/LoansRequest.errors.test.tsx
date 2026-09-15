@@ -22,6 +22,7 @@ const sessionToken = 'session-token';
 const pendingLoan = {
   id: 71,
   dataRealizacao: '2026-09-01T10:00:00',
+  dataPrevistaDevolucao: '2026-09-08T10:00:00',
   dataDevolucao: null,
   dataAprovacao: null,
   status: 'Pendente',

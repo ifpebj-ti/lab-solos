@@ -141,7 +141,6 @@ export const approveDependente = async (solicitanteId: string | number) => {
       },
     });
 
-    emprestimosSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.approveDependent);

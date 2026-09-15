@@ -90,6 +90,7 @@ const makeLoan = (
 ) => ({
   id,
   dataRealizacao: '2026-09-01T10:00:00Z',
+  dataPrevistaDevolucao: null,
   dataDevolucao: null,
   dataAprovacao: null,
   status: 'Pendente',
@@ -155,6 +156,9 @@ export const loanCreationDependents = [
     responsavel: null,
   },
 ];
+const normalizeNullableDate = (value: unknown): string | null =>
+  typeof value === 'string' && value.length > 0 ? value : null;
+
 const normalizeLoanFixture = (value: Record<string, unknown>) => {
   const rawProducts = Array.isArray(value.produtos)
     ? value.produtos
@@ -263,14 +267,9 @@ const normalizeLoanFixture = (value: Record<string, unknown>) => {
       typeof value.dataRealizacao === 'string'
         ? value.dataRealizacao
         : '2026-09-01T10:00:00Z',
-    dataDevolucao:
-      typeof value.dataDevolucao === 'string' && value.dataDevolucao.length > 0
-        ? value.dataDevolucao
-        : null,
-    dataAprovacao:
-      typeof value.dataAprovacao === 'string' && value.dataAprovacao.length > 0
-        ? value.dataAprovacao
-        : null,
+    dataPrevistaDevolucao: normalizeNullableDate(value.dataPrevistaDevolucao),
+    dataDevolucao: normalizeNullableDate(value.dataDevolucao),
+    dataAprovacao: normalizeNullableDate(value.dataAprovacao),
     produtos,
     solicitante:
       requester === null

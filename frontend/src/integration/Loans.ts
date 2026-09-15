@@ -57,7 +57,6 @@ interface IProduto {
 
 interface ICreateLoan {
   diasParaDevolucao: number | string;
-  solicitanteId: number | string;
   produtos: IProduto[];
 }
 
