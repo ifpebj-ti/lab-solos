@@ -1,5 +1,8 @@
 import unittest
+import shlex
 from pathlib import Path
+
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -51,6 +54,29 @@ class AutomaticDeploymentTests(unittest.TestCase):
         self.assertIn("NoNewPrivileges=true", service)
         self.assertIn("OnUnitActiveSec=5min", timer)
         self.assertIn("Persistent=true", timer)
+
+    def test_docker_config_is_accessible_with_home_protection(self):
+        settings = {}
+        environment = {}
+        for line in SERVICE.read_text(encoding="utf-8").splitlines():
+            if "=" not in line or line.startswith("#"):
+                continue
+            key, value = line.split("=", 1)
+            settings[key] = value
+            if key == "Environment":
+                environment.update(item.split("=", 1) for item in shlex.split(value))
+        self.assertEqual(settings["ProtectHome"], "true")
+        self.assertEqual(settings["StateDirectoryMode"], "0700")
+        self.assertEqual(environment["DOCKER_CONFIG"], "/var/lib/" + settings["StateDirectory"])
+
+    def test_every_production_service_has_bounded_logs(self):
+        services = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))["services"]
+        self.assertEqual(set(services), {"proxy", "frontend", "backend", "db"})
+        for name, service in services.items():
+            with self.subTest(service=name):
+                logging = service["logging"]
+                self.assertEqual(logging["driver"], "json-file")
+                self.assertEqual(logging["options"], {"max-size": "10m", "max-file": "3"})
 
 
 if __name__ == "__main__":

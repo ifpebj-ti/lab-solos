@@ -52,3 +52,47 @@ systemctl status labon-update.timer
 journalctl -u labon-update.service --since today
 cat /opt/labon/.deployed-version
 ```
+
+### Configuração do Docker no serviço
+
+O atualizador mantém `ProtectHome=true` e usa `DOCKER_CONFIG=/var/lib/labon-docker`.
+O systemd cria esse diretório com `StateDirectory=labon-docker`, dono `ubuntu` e
+permissão `0700`. Assim, o cliente Docker encontra o plugin Compose instalado no
+sistema sem precisar acessar `/home/ubuntu/.docker`, bloqueado pelo isolamento.
+As imagens públicas do GHCR não exigem copiar credenciais do usuário.
+
+O deploy verifica a disponibilidade do Compose e a validade da configuração antes
+de baixar imagens ou alterar contêineres. Para conferir o resultado do serviço:
+
+```bash
+systemctl show labon-update.service -p Result -p ExecMainStatus
+systemctl list-timers labon-update.timer
+```
+
+### Rotação de logs dos contêineres
+
+Os quatro serviços de produção usam `json-file`, com `max-size: "10m"` e
+`max-file: "3"`: aproximadamente 30 MB por serviço, 120 MB no conjunto.
+Os limites são definidos no Compose, sem alterar o daemon Docker para outros
+contêineres. A configuração entra em vigor ao recriar os serviços; um simples
+`docker restart` não a aplica aos contêineres existentes.
+
+```bash
+docker inspect labon-backend-1 labon-frontend-1 labon-db-1 labon-proxy-1 \
+  --format '{{.Name}} {{json .HostConfig.LogConfig}}'
+```
+
+### Bancos legados e atualização de credenciais
+
+O bootstrap atual usa `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD`. Em instalações
+antigas, preserve os valores existentes de `PRODUCTION_ADMIN_EMAIL` e
+`PRODUCTION_ADMIN_PASSWORD` ao preencher as novas variáveis; não gere outra senha
+como parte de uma atualização. Um banco que já contém usuários não recria o
+administrador inicial.
+
+Uma instalação criada por `EnsureCreated` precisa seguir o
+[procedimento de migração do banco](../../backend/LabSolos-Server-DotNet8/Data/Migrations/README.md)
+antes da primeira atualização para uma versão com migrações EF. Faça backup,
+teste sua restauração e compare o esquema completo com a baseline antes de
+registrá-la. O rollback de imagens do atualizador não restaura o banco nem desfaz
+migrações; a reversão de dados exige o procedimento específico da migração.

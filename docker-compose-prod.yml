@@ -1,3 +1,9 @@
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 networks:
   private_network:
     driver: bridge
@@ -6,6 +12,7 @@ networks:
 
 services:
   proxy:
+    logging: *bounded-logging
     image: caddy:2.10-alpine
     restart: unless-stopped
     ports:
@@ -28,6 +35,7 @@ services:
     mem_limit: 256m
 
   frontend:
+    logging: *bounded-logging
     image: ${LABON_FRONTEND_IMAGE:-ghcr.io/ifpebj-ti/lab-solos-frontend}:${LABON_IMAGE_VERSION:?LABON_IMAGE_VERSION must be set}
     restart: unless-stopped
     expose:
@@ -41,6 +49,7 @@ services:
     mem_limit: 256m
 
   backend:
+    logging: *bounded-logging
     image: ${LABON_BACKEND_IMAGE:-ghcr.io/ifpebj-ti/lab-solos-backend}:${LABON_IMAGE_VERSION:?LABON_IMAGE_VERSION must be set}
     restart: unless-stopped
     expose:
@@ -71,6 +80,7 @@ services:
     mem_limit: 1536m
 
   db:
+    logging: *bounded-logging
     image: postgres:15
     restart: unless-stopped
     expose:
