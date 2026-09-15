@@ -44,3 +44,20 @@ As validações técnicas locais foram executadas. O aceite global/merge não po
 ser fechado sem resolver QC-001, atualizar a proteção remota e executar o PR de
 prova descrito na T030.
 Nenhuma proteção, PR, issue ou merge foi mutado nesta execução.
+## Atualizacao final da prova remota
+
+O aceite foi concluido em 2026-09-15. A revisao GREEN do PR #346 foi executada
+no commit `29c8050fc819085bb5acb6aa602242a4265116ee` na execucao
+[35008036822](https://github.com/ifpebj-ti/lab-solos/actions/runs/35008036822),
+com os nove checks obrigatorios aprovados, incluindo E2E real, baseline e
+`Quality gate`. O workflow de dependencias tambem passou na execucao
+[35008036907](https://github.com/ifpebj-ti/lab-solos/actions/runs/35008036907).
+
+A revisao RED esta registrada no commit `d4b9cf71a4d109051e41b49d3743e93a12f3a185`
+e na execucao [35000986662](https://github.com/ifpebj-ti/lab-solos/actions/runs/35000986662).
+O ruleset `develop` 9464959 esta ativo com nove checks obrigatorios; o PR
+permanece aberto, sem merge automatico. As issues #227 e #237 estao como
+`Done` no Project 41.
+
+Portanto, CA-001, CA-002 e CA-003 estao aceitos e a fundacao de qualidade esta
+concluida.

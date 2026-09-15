@@ -110,3 +110,11 @@ T030 está concluída: o ruleset `develop` 9464959 preserva os sete checks
 existentes e exige também `Code quality baseline` e `Quality gate`. A PR de
 prova registrou uma revisão RED bloqueada e uma revisão GREEN aprovada, sem
 merge automático.
+## Prova remota encerrada
+
+A revisao GREEN foi confirmada no commit `29c8050fc819085bb5acb6aa602242a4265116ee`
+pela execucao [35008036822](https://github.com/ifpebj-ti/lab-solos/actions/runs/35008036822).
+Os nove checks obrigatorios passaram, assim como os gates de dependencia na
+execucao [35008036907](https://github.com/ifpebj-ti/lab-solos/actions/runs/35008036907).
+O PR #346 esta `CLEAN` e continua aberto para revisao humana; nao houve merge
+automatico. Os itens #227 e #237 foram marcados como `Done` no Project 41.
