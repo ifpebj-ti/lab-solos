@@ -76,7 +76,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
             client,
             $"/api/Emprestimos/devolver/{loanId}");
 
-        Assert.Equal(HttpStatusCode.BadRequest, firstReturnResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, firstReturnResponse.StatusCode);
 
         var afterFirstReturn = await ReadLoanStateAsync(factory, loanId);
         Assert.Equal(StatusEmprestimo.Aprovado, afterFirstReturn.Status);

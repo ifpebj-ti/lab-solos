@@ -2,6 +2,7 @@ import json
 import hashlib
 import subprocess
 import sys
+import tempfile
 import unittest
 from copy import deepcopy
 from collections import Counter
@@ -177,6 +178,110 @@ class QualityNormalizationTests(unittest.TestCase):
 
         self.assertEqual(first["fingerprint"], second["fingerprint"])
         self.assertEqual(first["evidence"], second["evidence"])
+
+    def test_sarif_without_snippet_keeps_fingerprint_across_message_locales(self):
+        portuguese = {
+            "version": "2.1.0",
+            "runs": [
+                {
+                    "tool": {"driver": {"name": "roslyn"}},
+                    "results": [
+                        {
+                            "ruleId": "CA1502",
+                            "level": "warning",
+                            "message": {"text": "Complexidade excessiva."},
+                            "locations": [
+                                {
+                                    "physicalLocation": {
+                                        "artifactLocation": {
+                                            "uri": "backend/src/Loans/LoanService.cs"
+                                        },
+                                        "region": {
+                                            "startLine": 17,
+                                            "startColumn": 5,
+                                            "endLine": 17,
+                                            "endColumn": 28,
+                                        },
+                                    }
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
+        }
+        english = deepcopy(portuguese)
+        english["runs"][0]["results"][0]["message"]["text"] = (
+            "Avoid excessive complexity."
+        )
+
+        first = normalize_sarif_report(
+            portuguese,
+            self.policy,
+            repository_root=self.repository_root,
+            tool_name="roslyn",
+        )[0]
+        second = normalize_sarif_report(
+            english,
+            self.policy,
+            repository_root=self.repository_root,
+            tool_name="roslyn",
+        )[0]
+
+        self.assertEqual(first["fingerprint"], second["fingerprint"])
+
+    def test_sarif_without_snippet_keeps_fingerprint_when_source_line_moves(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "backend" / "src" / "Loans" / "LoanService.cs"
+            source.parent.mkdir(parents=True)
+            source.write_text("using System;\nvar result = 1;\n", encoding="utf-8")
+            first = {
+                "version": "2.1.0",
+                "runs": [
+                    {
+                        "tool": {"driver": {"name": "roslyn"}},
+                        "results": [
+                            {
+                                "ruleId": "CA1502",
+                                "level": "warning",
+                                "message": {"text": "Complexidade excessiva."},
+                                "locations": [
+                                    {
+                                        "physicalLocation": {
+                                            "artifactLocation": {
+                                                "uri": "backend/src/Loans/LoanService.cs"
+                                            },
+                                            "region": {"startLine": 2},
+                                        }
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+            moved = deepcopy(first)
+            moved["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["region"][
+                "startLine"
+            ] = 3
+            original = normalize_sarif_report(
+                first,
+                self.policy,
+                repository_root=root,
+                tool_name="roslyn",
+            )
+            source.write_text(
+                "using System;\n// moved\nvar result = 1;\n", encoding="utf-8"
+            )
+            shifted = normalize_sarif_report(
+                moved,
+                self.policy,
+                repository_root=root,
+                tool_name="roslyn",
+            )
+
+            self.assertEqual(original[0]["fingerprint"], shifted[0]["fingerprint"])
 
     def test_unknown_rule_is_rejected_instead_of_silently_categorized(self):
         with self.assertRaises(UnknownQualityRuleError):

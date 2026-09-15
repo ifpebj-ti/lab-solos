@@ -250,8 +250,8 @@
                          "owner":  "equipe frontend"
                      },
                      {
-                         "id":  "2c08f721ec472d216623416a515b71f8e6593ca9852b387cf8e545b1af62c33d",
-                         "fingerprint":  "2c08f721ec472d216623416a515b71f8e6593ca9852b387cf8e545b1af62c33d",
+                         "id":  "4d53c75075a62c92d41bb5d1c4f33e1b886d0d392394d0149429a4bb120499ae",
+                         "fingerprint":  "4d53c75075a62c92d41bb5d1c4f33e1b886d0d392394d0149429a4bb120499ae",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -270,8 +270,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "2674be3fb21bf7aa40e19dbb36f4a0beb0bf5ff82ac29bb7c82da38f831c445f",
-                         "fingerprint":  "2674be3fb21bf7aa40e19dbb36f4a0beb0bf5ff82ac29bb7c82da38f831c445f",
+                         "id":  "e64f20c90f0315e6783e2b21bc5be47db9a69e7feb8d1b32f5aa5469bcd3a783",
+                         "fingerprint":  "e64f20c90f0315e6783e2b21bc5be47db9a69e7feb8d1b32f5aa5469bcd3a783",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -290,8 +290,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "f367151d1ee45c5c478e80bac4c688585287b181c2ff6760bacc20bab43113e9",
-                         "fingerprint":  "f367151d1ee45c5c478e80bac4c688585287b181c2ff6760bacc20bab43113e9",
+                         "id":  "82b22268284a201599a7f12784a4d7f4bfcb0fe848822d2cd4f7664652fc4fef",
+                         "fingerprint":  "82b22268284a201599a7f12784a4d7f4bfcb0fe848822d2cd4f7664652fc4fef",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -310,8 +310,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8f17d2199a19682ef598d32bdeec7c14a9877032d14ced32be66df3338c424ef",
-                         "fingerprint":  "8f17d2199a19682ef598d32bdeec7c14a9877032d14ced32be66df3338c424ef",
+                         "id":  "096f10669cd46f14c59a99152635e55704403b3fef9df0a599c5c21cafa205d9",
+                         "fingerprint":  "096f10669cd46f14c59a99152635e55704403b3fef9df0a599c5c21cafa205d9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -330,8 +330,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "03b502a39cf9f2f520a5f3d40f241e7579bbd3ee6da3e5b15bb07ba98b6bdb21",
-                         "fingerprint":  "03b502a39cf9f2f520a5f3d40f241e7579bbd3ee6da3e5b15bb07ba98b6bdb21",
+                         "id":  "c44914459ffd9652fbe343d1e03d04bd3b701094f0beca45ff44b3d6319673ba",
+                         "fingerprint":  "c44914459ffd9652fbe343d1e03d04bd3b701094f0beca45ff44b3d6319673ba",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -350,8 +350,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "3aae3d1f8af6a19819e6af023db413109e6ad2b6041ad8a009fa502fa7a8931f",
-                         "fingerprint":  "3aae3d1f8af6a19819e6af023db413109e6ad2b6041ad8a009fa502fa7a8931f",
+                         "id":  "1c92edd1a54d870fca2d26b7e493eae8aa04373130135c01360896407b35fa0d",
+                         "fingerprint":  "1c92edd1a54d870fca2d26b7e493eae8aa04373130135c01360896407b35fa0d",
                          "module":  "backend-usuarios-aprovacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -370,8 +370,8 @@
                          "owner":  "equipe de autorizacao"
                      },
                      {
-                         "id":  "19dcf75a658f4120130d8108811c62651ba62c80d95cb7ed8575f2115e378a82",
-                         "fingerprint":  "19dcf75a658f4120130d8108811c62651ba62c80d95cb7ed8575f2115e378a82",
+                         "id":  "649afb54077a4baeea23aadc5dd66a0f42a376d36954a0b6c60a40e6fe4b5405",
+                         "fingerprint":  "649afb54077a4baeea23aadc5dd66a0f42a376d36954a0b6c60a40e6fe4b5405",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -390,8 +390,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "3dc2e997f6947c7287cf6dd0a3a7fca7cc4b5337dd2090f13720f60001d2f8a6",
-                         "fingerprint":  "3dc2e997f6947c7287cf6dd0a3a7fca7cc4b5337dd2090f13720f60001d2f8a6",
+                         "id":  "ee199dd1c604d81ad867820aa2fe9364594bd55f612971a329197dfb1b7f2009",
+                         "fingerprint":  "ee199dd1c604d81ad867820aa2fe9364594bd55f612971a329197dfb1b7f2009",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -410,8 +410,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
-                         "fingerprint":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
+                         "id":  "7b9d6a6330d1f4d95d0d8f3fdeb38b17925959f05a7d752f465b5fb3d63a32c0",
+                         "fingerprint":  "7b9d6a6330d1f4d95d0d8f3fdeb38b17925959f05a7d752f465b5fb3d63a32c0",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -430,8 +430,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
-                         "fingerprint":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
+                         "id":  "f7185ee7b782e379b11339fca53dd3f3489956c6c865811cd068348fbbd7b6d9",
+                         "fingerprint":  "f7185ee7b782e379b11339fca53dd3f3489956c6c865811cd068348fbbd7b6d9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -450,8 +450,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
-                         "fingerprint":  "697fcdb9bcbddd88a9fed633ec909f1cc167daed1739bdaaa743880362ce0887",
+                         "id":  "ea574f77e901ef5569701b76e2f73df2552cbb70437d3199f82d7e847f2b63a8",
+                         "fingerprint":  "ea574f77e901ef5569701b76e2f73df2552cbb70437d3199f82d7e847f2b63a8",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -470,8 +470,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a3adf9cc28715b4b503c6e3e4407722e25870720dc7a1ac2fc68f263228e085",
-                         "fingerprint":  "8a3adf9cc28715b4b503c6e3e4407722e25870720dc7a1ac2fc68f263228e085",
+                         "id":  "d3a7c9723e99a941e011681105a54eb7b1d84f8f499e7efe81b1363edd54458d",
+                         "fingerprint":  "d3a7c9723e99a941e011681105a54eb7b1d84f8f499e7efe81b1363edd54458d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -490,8 +490,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "c16478beb7c555d6e3c9d12a265ca2f86fae339f83fe330d04fc501ac95f289f",
-                         "fingerprint":  "c16478beb7c555d6e3c9d12a265ca2f86fae339f83fe330d04fc501ac95f289f",
+                         "id":  "0a55ddf6c2dae8b1dcca3312ba059290653e6281bb0b36e698ffb04bfc4782b8",
+                         "fingerprint":  "0a55ddf6c2dae8b1dcca3312ba059290653e6281bb0b36e698ffb04bfc4782b8",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -510,8 +510,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ab6f1d0071a3fd5c7ff17fc7a1fddc24b983c6c554304c60b9d4d7ddd37c0fe5",
-                         "fingerprint":  "ab6f1d0071a3fd5c7ff17fc7a1fddc24b983c6c554304c60b9d4d7ddd37c0fe5",
+                         "id":  "b131c42e12b41604d0243f13629cac5ddeff18db7eb596b81b870a5e4396ccf0",
+                         "fingerprint":  "b131c42e12b41604d0243f13629cac5ddeff18db7eb596b81b870a5e4396ccf0",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -530,8 +530,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ab6f1d0071a3fd5c7ff17fc7a1fddc24b983c6c554304c60b9d4d7ddd37c0fe5",
-                         "fingerprint":  "ab6f1d0071a3fd5c7ff17fc7a1fddc24b983c6c554304c60b9d4d7ddd37c0fe5",
+                         "id":  "68f06b2fbe5488056d76508eba54f4467a33b5990aa9fc51e1f56b7482456110",
+                         "fingerprint":  "68f06b2fbe5488056d76508eba54f4467a33b5990aa9fc51e1f56b7482456110",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -550,8 +550,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "7f78f2e2bcded9d30df84a33235cc51aa47ea932a545c4c54f64a6cb192add66",
-                         "fingerprint":  "7f78f2e2bcded9d30df84a33235cc51aa47ea932a545c4c54f64a6cb192add66",
+                         "id":  "f314b4f0896169f61d29269cdbeda5c73eef8913a7a2a1d859be5ddf0365ae71",
+                         "fingerprint":  "f314b4f0896169f61d29269cdbeda5c73eef8913a7a2a1d859be5ddf0365ae71",
                          "module":  "backend-compartilhado",
                          "category":  "confiabilidade",
                          "severity":  "media",
@@ -570,8 +570,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d56d17254f3eca85fad97c2935b86658118bdb48dfede659939fae1b06dd7663",
-                         "fingerprint":  "d56d17254f3eca85fad97c2935b86658118bdb48dfede659939fae1b06dd7663",
+                         "id":  "000c49be0975e69a166a144082a4c0a5266b868882cf4fbba28c524a29ba1c04",
+                         "fingerprint":  "000c49be0975e69a166a144082a4c0a5266b868882cf4fbba28c524a29ba1c04",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -590,8 +590,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "44b9667d180c8b84a4595ab7407b2fbe4354d28ce839ec17d5dc3ae493688320",
-                         "fingerprint":  "44b9667d180c8b84a4595ab7407b2fbe4354d28ce839ec17d5dc3ae493688320",
+                         "id":  "ffc5a131cc181cfd874d77f5efb5865294d30ea306158bc280022af904637abc",
+                         "fingerprint":  "ffc5a131cc181cfd874d77f5efb5865294d30ea306158bc280022af904637abc",
                          "module":  "backend-usuarios-aprovacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -610,8 +610,8 @@
                          "owner":  "equipe de autorizacao"
                      },
                      {
-                         "id":  "79392ddb77b532fd5d5d5f1c9e9ca679ce0da2f262860bcd0af2dc11236cd964",
-                         "fingerprint":  "79392ddb77b532fd5d5d5f1c9e9ca679ce0da2f262860bcd0af2dc11236cd964",
+                         "id":  "c46ab52025b051a4e1d87243637358fe2866823dbeface739eac088e16eaf216",
+                         "fingerprint":  "c46ab52025b051a4e1d87243637358fe2866823dbeface739eac088e16eaf216",
                          "module":  "backend-usuarios-aprovacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -630,8 +630,8 @@
                          "owner":  "equipe de autorizacao"
                      },
                      {
-                         "id":  "90cfaf94cf86fbd71eb17571a919114c2e3c876db0d3b7a2492735588b375480",
-                         "fingerprint":  "90cfaf94cf86fbd71eb17571a919114c2e3c876db0d3b7a2492735588b375480",
+                         "id":  "ec1551ae1a503c3acca9917bf836fdebfad99d4385be1cab976f7a3b91094346",
+                         "fingerprint":  "ec1551ae1a503c3acca9917bf836fdebfad99d4385be1cab976f7a3b91094346",
                          "module":  "backend-usuarios-aprovacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -650,8 +650,8 @@
                          "owner":  "equipe de autorizacao"
                      },
                      {
-                         "id":  "c476be9b3972b72f129297ad652bc152c8041c0997749057c4248aa805dbd7aa",
-                         "fingerprint":  "c476be9b3972b72f129297ad652bc152c8041c0997749057c4248aa805dbd7aa",
+                         "id":  "567ca4c362bfe761cac24fa83d8518a112e1f2a6a40e367c8b00bdb932327016",
+                         "fingerprint":  "567ca4c362bfe761cac24fa83d8518a112e1f2a6a40e367c8b00bdb932327016",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -670,8 +670,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "dc13ffe48dc0a6f058bab83ca8d4ae75f54e66f434ff5666774dfa0614dc201b",
+                         "fingerprint":  "dc13ffe48dc0a6f058bab83ca8d4ae75f54e66f434ff5666774dfa0614dc201b",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -690,8 +690,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "4c8c8da6a24f3539967666bd4ae46a57ade32ddfc87efad87e57261b46d0af07",
+                         "fingerprint":  "4c8c8da6a24f3539967666bd4ae46a57ade32ddfc87efad87e57261b46d0af07",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -710,8 +710,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "0b2dd50452fcfa8990281c49a1263bae0a61101447375b7c01a1a837bc1f189d",
+                         "fingerprint":  "0b2dd50452fcfa8990281c49a1263bae0a61101447375b7c01a1a837bc1f189d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -730,8 +730,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
-                         "fingerprint":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
+                         "id":  "c2db78e49165c618aab431f314402f0a6169b6099e2c2850383db511d4999a81",
+                         "fingerprint":  "c2db78e49165c618aab431f314402f0a6169b6099e2c2850383db511d4999a81",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -750,8 +750,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "c132e076c7d8c237c1b56f922a638027ef36ec54174c479706b398e127bd9e63",
+                         "fingerprint":  "c132e076c7d8c237c1b56f922a638027ef36ec54174c479706b398e127bd9e63",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -770,8 +770,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "6290bb88b5713be9680dfa2d5bb8e84988ca5dce9590cc53acf36287246aa96e",
+                         "fingerprint":  "6290bb88b5713be9680dfa2d5bb8e84988ca5dce9590cc53acf36287246aa96e",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -790,8 +790,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "fcf88eaed0e0d91fc76103b8f58a44fda90ad04b46cf13183fdf5d0b09e95507",
+                         "fingerprint":  "fcf88eaed0e0d91fc76103b8f58a44fda90ad04b46cf13183fdf5d0b09e95507",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -810,8 +810,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "083918a980815e64a72b99bc22027deb52cbcd156303e5a4d71b3834b1e8e5aa",
+                         "fingerprint":  "083918a980815e64a72b99bc22027deb52cbcd156303e5a4d71b3834b1e8e5aa",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -830,8 +830,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
-                         "fingerprint":  "1d31344302bf15f90648ab0be507f02078c96b9928186d7c62ddb07ab18898ab",
+                         "id":  "ac3139c2695ce43d013eb45f3a507a8a93d490bc426da2a4c2b0fe16246117e0",
+                         "fingerprint":  "ac3139c2695ce43d013eb45f3a507a8a93d490bc426da2a4c2b0fe16246117e0",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -850,8 +850,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a3f6ce35f37a437376acdaeeae905fdade752e4d898bdfa3af40b91e68aa51e0",
-                         "fingerprint":  "a3f6ce35f37a437376acdaeeae905fdade752e4d898bdfa3af40b91e68aa51e0",
+                         "id":  "aa8877b6638da6aed80f058b626079bbbf6255bdb7cf3fd278837c2a882f8482",
+                         "fingerprint":  "aa8877b6638da6aed80f058b626079bbbf6255bdb7cf3fd278837c2a882f8482",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -870,8 +870,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "25c0a2406b2677eacd7a16e27ec4cf34a6ae785cf04ff44496e09f68c82b99b2",
-                         "fingerprint":  "25c0a2406b2677eacd7a16e27ec4cf34a6ae785cf04ff44496e09f68c82b99b2",
+                         "id":  "25d0d6893c58ea9a1f7abbae7250983c700c3a94e8fec81cae1c4d38d1c7937d",
+                         "fingerprint":  "25d0d6893c58ea9a1f7abbae7250983c700c3a94e8fec81cae1c4d38d1c7937d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -890,8 +890,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a3f6ce35f37a437376acdaeeae905fdade752e4d898bdfa3af40b91e68aa51e0",
-                         "fingerprint":  "a3f6ce35f37a437376acdaeeae905fdade752e4d898bdfa3af40b91e68aa51e0",
+                         "id":  "a91945bc6a89933aa11918006165c5dc20d7b68c55aa5a5e473d67e41229324e",
+                         "fingerprint":  "a91945bc6a89933aa11918006165c5dc20d7b68c55aa5a5e473d67e41229324e",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -910,8 +910,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "c3de6efac48eabfcfdaafb85cd6e16c2239121d17db6ba354c76f1d0cd659b52",
-                         "fingerprint":  "c3de6efac48eabfcfdaafb85cd6e16c2239121d17db6ba354c76f1d0cd659b52",
+                         "id":  "ec58b62de413768c354461bbd3c65003695a12fc89e26bc016d51bc44b199d9e",
+                         "fingerprint":  "ec58b62de413768c354461bbd3c65003695a12fc89e26bc016d51bc44b199d9e",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -930,8 +930,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "cf7abae6051a0f08bc6765246973972e6157851ff1f292ace841cf34ad918b31",
-                         "fingerprint":  "cf7abae6051a0f08bc6765246973972e6157851ff1f292ace841cf34ad918b31",
+                         "id":  "2d8b903cb052dee0f6c51aea44ce971deb59e7d3c4f86037f8075affb6349df0",
+                         "fingerprint":  "2d8b903cb052dee0f6c51aea44ce971deb59e7d3c4f86037f8075affb6349df0",
                          "module":  "backend-autenticacao",
                          "category":  "confiabilidade",
                          "severity":  "media",
@@ -950,8 +950,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "44b9667d180c8b84a4595ab7407b2fbe4354d28ce839ec17d5dc3ae493688320",
-                         "fingerprint":  "44b9667d180c8b84a4595ab7407b2fbe4354d28ce839ec17d5dc3ae493688320",
+                         "id":  "9b85a899ad8351d46fa91c1880b0087eb843cfb58876b5c0f7a4c5bc5bb074cc",
+                         "fingerprint":  "9b85a899ad8351d46fa91c1880b0087eb843cfb58876b5c0f7a4c5bc5bb074cc",
                          "module":  "backend-usuarios-aprovacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -970,8 +970,8 @@
                          "owner":  "equipe de autorizacao"
                      },
                      {
-                         "id":  "bb44699d006eb7abb183aad6a389fc9e44543bc53536bee2eed80c093718133c",
-                         "fingerprint":  "bb44699d006eb7abb183aad6a389fc9e44543bc53536bee2eed80c093718133c",
+                         "id":  "374b20a125ab87864b57de2dea5102973a1547c66079d24c8f20232ec47c534d",
+                         "fingerprint":  "374b20a125ab87864b57de2dea5102973a1547c66079d24c8f20232ec47c534d",
                          "module":  "backend-autenticacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -990,8 +990,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
-                         "fingerprint":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
+                         "id":  "9f49fc991bf508ed8e70ad1ebfe429761af81fd75ae8913da9b6cf5554c43e2a",
+                         "fingerprint":  "9f49fc991bf508ed8e70ad1ebfe429761af81fd75ae8913da9b6cf5554c43e2a",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1010,8 +1010,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "5dc25bf9c1ce384c8a38aa9fe5e181bf12516b0152e1c0ed9c2727dbf8adf4c9",
+                         "fingerprint":  "5dc25bf9c1ce384c8a38aa9fe5e181bf12516b0152e1c0ed9c2727dbf8adf4c9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1030,8 +1030,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
-                         "fingerprint":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
+                         "id":  "c2db78e49165c618aab431f314402f0a6169b6099e2c2850383db511d4999a81",
+                         "fingerprint":  "c2db78e49165c618aab431f314402f0a6169b6099e2c2850383db511d4999a81",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1050,8 +1050,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "9e535a82580b791be00f522f94ab1ca3bfb232784ae23f79e63acb52452d4f3c",
-                         "fingerprint":  "9e535a82580b791be00f522f94ab1ca3bfb232784ae23f79e63acb52452d4f3c",
+                         "id":  "8f1ffb88fd68aa141d74977c6d70e19d74ed2dce3e1f4759bafdc708c62e42e3",
+                         "fingerprint":  "8f1ffb88fd68aa141d74977c6d70e19d74ed2dce3e1f4759bafdc708c62e42e3",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1070,8 +1070,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "bb44699d006eb7abb183aad6a389fc9e44543bc53536bee2eed80c093718133c",
-                         "fingerprint":  "bb44699d006eb7abb183aad6a389fc9e44543bc53536bee2eed80c093718133c",
+                         "id":  "374b20a125ab87864b57de2dea5102973a1547c66079d24c8f20232ec47c534d",
+                         "fingerprint":  "374b20a125ab87864b57de2dea5102973a1547c66079d24c8f20232ec47c534d",
                          "module":  "backend-autenticacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1090,8 +1090,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "702724f50cef52d613507ab74f02d51b741c9104903f76fdfc7d2035fadd132c",
-                         "fingerprint":  "702724f50cef52d613507ab74f02d51b741c9104903f76fdfc7d2035fadd132c",
+                         "id":  "ac7c0c2f6fd018fc18f6c462c05ed067a38c7d395fca8a8be6c46923869bccfe",
+                         "fingerprint":  "ac7c0c2f6fd018fc18f6c462c05ed067a38c7d395fca8a8be6c46923869bccfe",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1110,8 +1110,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "fef2f717dfd54ac0826db3fcad9c9f8b5aa0b1e55ea3d1a1e8e611c48a67f0b2",
-                         "fingerprint":  "fef2f717dfd54ac0826db3fcad9c9f8b5aa0b1e55ea3d1a1e8e611c48a67f0b2",
+                         "id":  "4b72a924ea001e4c3a8124bbae314106095564efde4f27a6366700791c9030e2",
+                         "fingerprint":  "4b72a924ea001e4c3a8124bbae314106095564efde4f27a6366700791c9030e2",
                          "module":  "backend-autenticacao",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1130,8 +1130,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "97466bc7ed1048a9b9c300e8b67effa93d038971a4b93e497e3bd0f931f837ff",
+                         "fingerprint":  "97466bc7ed1048a9b9c300e8b67effa93d038971a4b93e497e3bd0f931f837ff",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1150,8 +1150,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "c525b291adc7698ce5680049353857c6a6a7eec5e3957011be95146491c52298",
+                         "fingerprint":  "c525b291adc7698ce5680049353857c6a6a7eec5e3957011be95146491c52298",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1170,8 +1170,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "f56856fe2725c65d9a82eae386279e9e9445dee221429cf6514127ef13198c4f",
+                         "fingerprint":  "f56856fe2725c65d9a82eae386279e9e9445dee221429cf6514127ef13198c4f",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1190,8 +1190,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "5c017be57a2837f2baceee148ae21e5bfcf1bce60fe52d697d7ac9c40471b3d8",
-                         "fingerprint":  "5c017be57a2837f2baceee148ae21e5bfcf1bce60fe52d697d7ac9c40471b3d8",
+                         "id":  "c827bb421689a5e103b08c6c8eb205e308476632ae656114a3d166b826118392",
+                         "fingerprint":  "c827bb421689a5e103b08c6c8eb205e308476632ae656114a3d166b826118392",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1210,8 +1210,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "aed4382d5097a9d5ddd80fa3fac9b05ac4a0bd5bca682166f6e4af431306da27",
+                         "fingerprint":  "aed4382d5097a9d5ddd80fa3fac9b05ac4a0bd5bca682166f6e4af431306da27",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1230,8 +1230,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "3347a1423bf66c351766e55eadcf424762a96a6b8ad7f4003bad4178d198e578",
-                         "fingerprint":  "3347a1423bf66c351766e55eadcf424762a96a6b8ad7f4003bad4178d198e578",
+                         "id":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
+                         "fingerprint":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1250,8 +1250,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
-                         "fingerprint":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
+                         "id":  "d4dc5016f68f046c6b4d9ba84edf4e3049bdb54c35cfe34369c54bd5dc9668af",
+                         "fingerprint":  "d4dc5016f68f046c6b4d9ba84edf4e3049bdb54c35cfe34369c54bd5dc9668af",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1270,8 +1270,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
-                         "fingerprint":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
+                         "id":  "9afe0a8d04460c12e30600210ea35e416724f867bca48d78bd7388054a16fd7a",
+                         "fingerprint":  "9afe0a8d04460c12e30600210ea35e416724f867bca48d78bd7388054a16fd7a",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1290,8 +1290,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "4ae5790dbd8eeb3fd9943ccf299496b1bdf2c1ea9a80ec40c63460f1d5163b0e",
-                         "fingerprint":  "4ae5790dbd8eeb3fd9943ccf299496b1bdf2c1ea9a80ec40c63460f1d5163b0e",
+                         "id":  "19b152f444337c67bac884cecb4f6e075ef34dbecb2ede2ff7ac0117c5cca12f",
+                         "fingerprint":  "19b152f444337c67bac884cecb4f6e075ef34dbecb2ede2ff7ac0117c5cca12f",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1310,8 +1310,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
-                         "fingerprint":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
+                         "id":  "6d067365837d485132661b855c40d849de2bfa0055f2a524d10f27028935feb3",
+                         "fingerprint":  "6d067365837d485132661b855c40d849de2bfa0055f2a524d10f27028935feb3",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1330,8 +1330,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
-                         "fingerprint":  "22aeec59b3cd33b62908f66134feace1a2cdceca1d43b5a12c318667e0524dad",
+                         "id":  "7067320af5dd2b34a404ff449490fb364412fee4aab1a59209f7bcc851aadcdc",
+                         "fingerprint":  "7067320af5dd2b34a404ff449490fb364412fee4aab1a59209f7bcc851aadcdc",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1350,8 +1350,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
-                         "fingerprint":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
+                         "id":  "a7333fb21470e74d1ed8b371715f97807e90e3e7308f5fac6afdfc0a0c445b1a",
+                         "fingerprint":  "a7333fb21470e74d1ed8b371715f97807e90e3e7308f5fac6afdfc0a0c445b1a",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1370,8 +1370,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "e84d17efad3247aba766bf257530b3caa0d5d4c9a47ff8ec361b593801ff6a05",
+                         "fingerprint":  "e84d17efad3247aba766bf257530b3caa0d5d4c9a47ff8ec361b593801ff6a05",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1390,8 +1390,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d705fdb895e3549a52d54c5f562dabe7a48439fc37a8d3347e6df8b1eebeaaab",
-                         "fingerprint":  "d705fdb895e3549a52d54c5f562dabe7a48439fc37a8d3347e6df8b1eebeaaab",
+                         "id":  "8292f57e288aae6a22c7b84e87b75df1e273e6c109880194d8d37fc391d474da",
+                         "fingerprint":  "8292f57e288aae6a22c7b84e87b75df1e273e6c109880194d8d37fc391d474da",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1410,8 +1410,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "0f6b67626cfd906898bb6c8d29ce2d5e7e89f94d2b6e304f18a527f0244b6eff",
+                         "fingerprint":  "0f6b67626cfd906898bb6c8d29ce2d5e7e89f94d2b6e304f18a527f0244b6eff",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1430,8 +1430,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "549c9c732629e1d4cfa90932709237385496021e7f63f594d91f74a137793bf9",
+                         "fingerprint":  "549c9c732629e1d4cfa90932709237385496021e7f63f594d91f74a137793bf9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1450,8 +1450,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d705fdb895e3549a52d54c5f562dabe7a48439fc37a8d3347e6df8b1eebeaaab",
-                         "fingerprint":  "d705fdb895e3549a52d54c5f562dabe7a48439fc37a8d3347e6df8b1eebeaaab",
+                         "id":  "2dbc0e1896e3c40eb4fdf13739bc38838bd16b3adf1f1695c69bf8404170ad48",
+                         "fingerprint":  "2dbc0e1896e3c40eb4fdf13739bc38838bd16b3adf1f1695c69bf8404170ad48",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1470,8 +1470,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
-                         "fingerprint":  "8a72e18d43a1362fa52f1b4171ae7fc05bf34842efd9dc08a1a4f55d7bc38cc2",
+                         "id":  "3b1953b56de8a0e6ef3e931cbb67525bd7a0148b617ed92eb68812878cb93438",
+                         "fingerprint":  "3b1953b56de8a0e6ef3e931cbb67525bd7a0148b617ed92eb68812878cb93438",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1490,8 +1490,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
-                         "fingerprint":  "df68ef42a338d64c25be30dd1a6bc9fef870936ce03655f64855b950f34554bf",
+                         "id":  "3c9be054f0b15ee4963d8bfe1887881834fbac50122b4bcd0bdb0159d7793bf5",
+                         "fingerprint":  "3c9be054f0b15ee4963d8bfe1887881834fbac50122b4bcd0bdb0159d7793bf5",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1510,8 +1510,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "f467c4849f688307e001e863a3862b79471ea31f0bd19a1bbc592c52ede0fb83",
+                         "fingerprint":  "f467c4849f688307e001e863a3862b79471ea31f0bd19a1bbc592c52ede0fb83",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1530,8 +1530,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "21b6abe8848c96ce24fd5d367479b403cd765ebac77f26823db9b892c55e100f",
+                         "fingerprint":  "21b6abe8848c96ce24fd5d367479b403cd765ebac77f26823db9b892c55e100f",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1550,8 +1550,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "adad7ef64d51bb306753e9af58d07532bccc833243850d1523172b55f403c213",
+                         "fingerprint":  "adad7ef64d51bb306753e9af58d07532bccc833243850d1523172b55f403c213",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1570,8 +1570,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ac7c16f3da28d4f12549a9c691fb8ac832b84be2527db507530a1194fd2c63a7",
-                         "fingerprint":  "ac7c16f3da28d4f12549a9c691fb8ac832b84be2527db507530a1194fd2c63a7",
+                         "id":  "6ed07dde3a954b60e15a2d16b3e13b7281b8958a2321a62f63ec8ec01af55a61",
+                         "fingerprint":  "6ed07dde3a954b60e15a2d16b3e13b7281b8958a2321a62f63ec8ec01af55a61",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1590,8 +1590,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "9a2542c8a3d3eefb476572b715d34bf10984b6baa8c8dbb5b425c4d94407b8a3",
+                         "fingerprint":  "9a2542c8a3d3eefb476572b715d34bf10984b6baa8c8dbb5b425c4d94407b8a3",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1610,8 +1610,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "3600a4a2ee87e2924fce24d0de3d0ed437c49e4a5201dbac923cdd054d1bd1bc",
+                         "fingerprint":  "3600a4a2ee87e2924fce24d0de3d0ed437c49e4a5201dbac923cdd054d1bd1bc",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1630,8 +1630,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "817882ff5fe6e9c8f2dfd992d8c35aac6f3dda932c9b850876d9421ea36f6967",
+                         "fingerprint":  "817882ff5fe6e9c8f2dfd992d8c35aac6f3dda932c9b850876d9421ea36f6967",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1650,8 +1650,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "817882ff5fe6e9c8f2dfd992d8c35aac6f3dda932c9b850876d9421ea36f6967",
+                         "fingerprint":  "817882ff5fe6e9c8f2dfd992d8c35aac6f3dda932c9b850876d9421ea36f6967",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1670,8 +1670,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
-                         "fingerprint":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
+                         "id":  "f953901b583b176bdf340934319bd91c8664a30df66b705f37fe8d27f8dbc31c",
+                         "fingerprint":  "f953901b583b176bdf340934319bd91c8664a30df66b705f37fe8d27f8dbc31c",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1690,8 +1690,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
-                         "fingerprint":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
+                         "id":  "4c67c03ec6fd7e95349634c38807ee01c15c31423e0218207107e03840782655",
+                         "fingerprint":  "4c67c03ec6fd7e95349634c38807ee01c15c31423e0218207107e03840782655",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1710,8 +1710,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
-                         "fingerprint":  "a5ae1d621f86676048d280ecd5ab520e95f26b60964ae5eda5b196ab2b52106f",
+                         "id":  "4c67c03ec6fd7e95349634c38807ee01c15c31423e0218207107e03840782655",
+                         "fingerprint":  "4c67c03ec6fd7e95349634c38807ee01c15c31423e0218207107e03840782655",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1730,8 +1730,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
-                         "fingerprint":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
+                         "id":  "5ef3a1121130be19b88c35ab95f0477551109a37db298157c857040e881bf3c0",
+                         "fingerprint":  "5ef3a1121130be19b88c35ab95f0477551109a37db298157c857040e881bf3c0",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1750,8 +1750,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
-                         "fingerprint":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
+                         "id":  "8cd49f47c24c5e68f088c68ce66c7e959dd1ec59f22ff9707200f82a3a527172",
+                         "fingerprint":  "8cd49f47c24c5e68f088c68ce66c7e959dd1ec59f22ff9707200f82a3a527172",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1770,8 +1770,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
-                         "fingerprint":  "12691f36db6cc6a1e099ef61fe8148d66348a1a23b86d6d3652f15928c1b0bd5",
+                         "id":  "8cd49f47c24c5e68f088c68ce66c7e959dd1ec59f22ff9707200f82a3a527172",
+                         "fingerprint":  "8cd49f47c24c5e68f088c68ce66c7e959dd1ec59f22ff9707200f82a3a527172",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1790,8 +1790,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "a4626a34c401b7b1289131c4fbcbc05c12d706a28b49435beb56b8e777fc10ac",
+                         "fingerprint":  "a4626a34c401b7b1289131c4fbcbc05c12d706a28b49435beb56b8e777fc10ac",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1810,8 +1810,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
-                         "fingerprint":  "6632441850365761bfd23c0242750fd630e0789f3813eb3efc02bd2f9c426a68",
+                         "id":  "5be278cff6213cabb37cae2cb74ef027c8607b9955d72e5fc07f85b957be8c96",
+                         "fingerprint":  "5be278cff6213cabb37cae2cb74ef027c8607b9955d72e5fc07f85b957be8c96",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1830,8 +1830,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "5c017be57a2837f2baceee148ae21e5bfcf1bce60fe52d697d7ac9c40471b3d8",
-                         "fingerprint":  "5c017be57a2837f2baceee148ae21e5bfcf1bce60fe52d697d7ac9c40471b3d8",
+                         "id":  "eb9c28790956741e99d714c0bf72785abd69cd7c712cc7d40dabf2178dd29315",
+                         "fingerprint":  "eb9c28790956741e99d714c0bf72785abd69cd7c712cc7d40dabf2178dd29315",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1850,8 +1850,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "eb9797443080a1c4ea0e94f59eccdaa94ffe44693871618e79299b09fd92c58e",
+                         "fingerprint":  "eb9797443080a1c4ea0e94f59eccdaa94ffe44693871618e79299b09fd92c58e",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1870,8 +1870,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "03e29f999decfc9229781884f17c01a30a7852fbd7cd5e03863e35f88709dd1d",
+                         "fingerprint":  "03e29f999decfc9229781884f17c01a30a7852fbd7cd5e03863e35f88709dd1d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1890,8 +1890,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "ac0b2c1cfda67d635a9c4d64739384703b6cbb2354946b54dd8ad8c06afb0fa9",
+                         "fingerprint":  "ac0b2c1cfda67d635a9c4d64739384703b6cbb2354946b54dd8ad8c06afb0fa9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1910,8 +1910,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "03e29f999decfc9229781884f17c01a30a7852fbd7cd5e03863e35f88709dd1d",
+                         "fingerprint":  "03e29f999decfc9229781884f17c01a30a7852fbd7cd5e03863e35f88709dd1d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1930,8 +1930,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "5f5676533d6c88befd7a310b199330c24d41d5a45849d28f1e12d7248ea6fa63",
-                         "fingerprint":  "5f5676533d6c88befd7a310b199330c24d41d5a45849d28f1e12d7248ea6fa63",
+                         "id":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
+                         "fingerprint":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1950,8 +1950,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "ca4cb0baf62f29e0c81032c162517b04253c430fc1178f590bbeddfae0d69ca7",
-                         "fingerprint":  "ca4cb0baf62f29e0c81032c162517b04253c430fc1178f590bbeddfae0d69ca7",
+                         "id":  "6f1940c94f107e670031b77e6079145eb417285fde923e49166a8a90e4631657",
+                         "fingerprint":  "6f1940c94f107e670031b77e6079145eb417285fde923e49166a8a90e4631657",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1970,8 +1970,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "2f95596cbe8247e81849f977241a755ddaf012689d6d00d57bbcc2e77e1e4ce4",
+                         "fingerprint":  "2f95596cbe8247e81849f977241a755ddaf012689d6d00d57bbcc2e77e1e4ce4",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -1990,8 +1990,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "4d84991f59942227cdc6431da1c6e92f90166de8b5ef1d86c3946946c58fff66",
-                         "fingerprint":  "4d84991f59942227cdc6431da1c6e92f90166de8b5ef1d86c3946946c58fff66",
+                         "id":  "d1ff101c71213a790b220865b7d1a7acb10347cc31f34417cdf4a1f56f96c074",
+                         "fingerprint":  "d1ff101c71213a790b220865b7d1a7acb10347cc31f34417cdf4a1f56f96c074",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2010,8 +2010,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "af37f9f4448fbfa398dd6e255e0d6d2200daf941eadfa798f9a285853d5bfb92",
-                         "fingerprint":  "af37f9f4448fbfa398dd6e255e0d6d2200daf941eadfa798f9a285853d5bfb92",
+                         "id":  "b2fb587f606c3fafa9d1027762b7ce4669b9c7c3435c4ed0186b09667629c7bd",
+                         "fingerprint":  "b2fb587f606c3fafa9d1027762b7ce4669b9c7c3435c4ed0186b09667629c7bd",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2030,8 +2030,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "e2e98973f6b88553068e171be5df212d036e105e8405071b0f9da57c3ecba279",
+                         "fingerprint":  "e2e98973f6b88553068e171be5df212d036e105e8405071b0f9da57c3ecba279",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2050,8 +2050,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "f7ca88aaf4371a26555c63731a33640349b13a70cfccd76b1912ab0d10ef7f50",
-                         "fingerprint":  "f7ca88aaf4371a26555c63731a33640349b13a70cfccd76b1912ab0d10ef7f50",
+                         "id":  "872107e84ca58e1089dd165c9635a42c5ce82a65a9131d6627c4232934db6fcd",
+                         "fingerprint":  "872107e84ca58e1089dd165c9635a42c5ce82a65a9131d6627c4232934db6fcd",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2070,8 +2070,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1b4ed5d5864537116d53ab62562d9d6afb4eaf373ede62e13aee89f693709f7c",
-                         "fingerprint":  "1b4ed5d5864537116d53ab62562d9d6afb4eaf373ede62e13aee89f693709f7c",
+                         "id":  "f3a7657b8396a2a7167752f824455d6b26345c9a0e760bffd358c90eef841e3a",
+                         "fingerprint":  "f3a7657b8396a2a7167752f824455d6b26345c9a0e760bffd358c90eef841e3a",
                          "module":  "backend-compartilhado",
                          "category":  "confiabilidade",
                          "severity":  "media",
@@ -2090,8 +2090,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "3b7bfb500f69261164f718afa8933ab882ad7a0fc38ae6cb6169b58c2dca5dc9",
-                         "fingerprint":  "3b7bfb500f69261164f718afa8933ab882ad7a0fc38ae6cb6169b58c2dca5dc9",
+                         "id":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
+                         "fingerprint":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2110,8 +2110,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "d886c280f7847db43eac057a0fc55bca56c7e8e16db5699e6326c6a5a365608b",
+                         "fingerprint":  "d886c280f7847db43eac057a0fc55bca56c7e8e16db5699e6326c6a5a365608b",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2130,8 +2130,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "fb3b44fb098233ca4e8a299df7fc8fdec7250ed7de2d6339b6f06fdedd9b1761",
+                         "fingerprint":  "fb3b44fb098233ca4e8a299df7fc8fdec7250ed7de2d6339b6f06fdedd9b1761",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2150,8 +2150,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "1eadeaae0a175ab79a5dbfba1b8fbd2154f1cbae5e3a6a7d502b9e208f6edb52",
+                         "fingerprint":  "1eadeaae0a175ab79a5dbfba1b8fbd2154f1cbae5e3a6a7d502b9e208f6edb52",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2170,8 +2170,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "2fb3105c7cd3b279f8cddf10a4a3f26b6284990187ad4c0eccc068be27e3f8e9",
-                         "fingerprint":  "2fb3105c7cd3b279f8cddf10a4a3f26b6284990187ad4c0eccc068be27e3f8e9",
+                         "id":  "1fb7d983611b4b53d7ed34c3e3975cb9485d56312f02c1f13ef85f3872305822",
+                         "fingerprint":  "1fb7d983611b4b53d7ed34c3e3975cb9485d56312f02c1f13ef85f3872305822",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2190,8 +2190,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "c8835fffc186dcaaaa5774955d54355f7ba019246e31e8b1bcd794a807a0f010",
+                         "fingerprint":  "c8835fffc186dcaaaa5774955d54355f7ba019246e31e8b1bcd794a807a0f010",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2210,8 +2210,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "c859b90110cba6e24ed96b37ac5d2fc4f706ba188a5896fdd36dbc5165a227cf",
+                         "fingerprint":  "c859b90110cba6e24ed96b37ac5d2fc4f706ba188a5896fdd36dbc5165a227cf",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2230,8 +2230,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
-                         "fingerprint":  "a4d990ebf323673dcf1dd539a0fe4d4324e184ef9ef4d1aa129f37beadef73bf",
+                         "id":  "973917b6cb6e836f5d754eb4d0ffbaf22c1480849023d09e05eb87dbd1ee5016",
+                         "fingerprint":  "973917b6cb6e836f5d754eb4d0ffbaf22c1480849023d09e05eb87dbd1ee5016",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2250,8 +2250,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "af37f9f4448fbfa398dd6e255e0d6d2200daf941eadfa798f9a285853d5bfb92",
-                         "fingerprint":  "af37f9f4448fbfa398dd6e255e0d6d2200daf941eadfa798f9a285853d5bfb92",
+                         "id":  "7f2a387a14af853d39ed661622be5731b1404f5487384c297b9de7802e4ee6b2",
+                         "fingerprint":  "7f2a387a14af853d39ed661622be5731b1404f5487384c297b9de7802e4ee6b2",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2270,8 +2270,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "6f62fada34e1ac86fa4f55daf8e8578c71709cee21a8d5de048d825933b378e3",
+                         "fingerprint":  "6f62fada34e1ac86fa4f55daf8e8578c71709cee21a8d5de048d825933b378e3",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2290,8 +2290,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "912d6e278194973e948f5ac459d505da5b471e5c50000da1e5e9b5262125f26b",
+                         "fingerprint":  "912d6e278194973e948f5ac459d505da5b471e5c50000da1e5e9b5262125f26b",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2310,8 +2310,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "6f62fada34e1ac86fa4f55daf8e8578c71709cee21a8d5de048d825933b378e3",
+                         "fingerprint":  "6f62fada34e1ac86fa4f55daf8e8578c71709cee21a8d5de048d825933b378e3",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2330,8 +2330,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
-                         "fingerprint":  "ee8034f835619cf0c3c23427ce36df5bfd09e6bb651f7374dd74001590c68f03",
+                         "id":  "912d6e278194973e948f5ac459d505da5b471e5c50000da1e5e9b5262125f26b",
+                         "fingerprint":  "912d6e278194973e948f5ac459d505da5b471e5c50000da1e5e9b5262125f26b",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2350,8 +2350,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "af543561925e8baf4abe2bbd5ee2f3bcce2adc2cf655b436f125b52cb3079908",
-                         "fingerprint":  "af543561925e8baf4abe2bbd5ee2f3bcce2adc2cf655b436f125b52cb3079908",
+                         "id":  "d3e86971fd093796574d9eca0dd51e5bcd3e294de6ac4afc9a93531f443f353c",
+                         "fingerprint":  "d3e86971fd093796574d9eca0dd51e5bcd3e294de6ac4afc9a93531f443f353c",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2370,8 +2370,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a02a623e3d1b22a0b1988445606c3799c648341ad7191912aebeb34880080a0a",
-                         "fingerprint":  "a02a623e3d1b22a0b1988445606c3799c648341ad7191912aebeb34880080a0a",
+                         "id":  "29c47f50f87856f835f9d238d4306d9464bcaf5c154f7f8e28524de3c2269ce8",
+                         "fingerprint":  "29c47f50f87856f835f9d238d4306d9464bcaf5c154f7f8e28524de3c2269ce8",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2390,8 +2390,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "bb31f3675aff685665624f4f8436817a98cd2f8fc928c9ad1e4de22d8c3413ed",
-                         "fingerprint":  "bb31f3675aff685665624f4f8436817a98cd2f8fc928c9ad1e4de22d8c3413ed",
+                         "id":  "d3e86971fd093796574d9eca0dd51e5bcd3e294de6ac4afc9a93531f443f353c",
+                         "fingerprint":  "d3e86971fd093796574d9eca0dd51e5bcd3e294de6ac4afc9a93531f443f353c",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2410,8 +2410,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "6709e1c0ba991377a81b8f795260026d863c19e5695d13fe9b5c21b86edba960",
-                         "fingerprint":  "6709e1c0ba991377a81b8f795260026d863c19e5695d13fe9b5c21b86edba960",
+                         "id":  "29c47f50f87856f835f9d238d4306d9464bcaf5c154f7f8e28524de3c2269ce8",
+                         "fingerprint":  "29c47f50f87856f835f9d238d4306d9464bcaf5c154f7f8e28524de3c2269ce8",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2430,8 +2430,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "17f1a90fce32edda54e36ec3dd36ac3cdb431b470f43c77abe45eb651e3538dd",
+                         "fingerprint":  "17f1a90fce32edda54e36ec3dd36ac3cdb431b470f43c77abe45eb651e3538dd",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2450,8 +2450,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "b4a5d75f97b14ddfc1e4d49c55c7611c6ec59b5b2cd165c0898e31eb60232abe",
+                         "fingerprint":  "b4a5d75f97b14ddfc1e4d49c55c7611c6ec59b5b2cd165c0898e31eb60232abe",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2470,8 +2470,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "73f29773957d6b7c98c361b4b5ae38161dc15df2a07c81434f2d136679cb8520",
+                         "fingerprint":  "73f29773957d6b7c98c361b4b5ae38161dc15df2a07c81434f2d136679cb8520",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2490,8 +2490,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
-                         "fingerprint":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
+                         "id":  "f54791ff8dafcb88c559a028b89cc1338c78edefef71967f7fbd2c5cb55f6568",
+                         "fingerprint":  "f54791ff8dafcb88c559a028b89cc1338c78edefef71967f7fbd2c5cb55f6568",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2510,8 +2510,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "108339fabe8309b31a161b5d664a4d53c77ff102fae0682961d236a18c4eeecb",
+                         "fingerprint":  "108339fabe8309b31a161b5d664a4d53c77ff102fae0682961d236a18c4eeecb",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2530,8 +2530,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d35463ef2a265cac38d0d284d4a50bf55de673b16916ea2113eb26b88f839e40",
-                         "fingerprint":  "d35463ef2a265cac38d0d284d4a50bf55de673b16916ea2113eb26b88f839e40",
+                         "id":  "97643a0f13126277942285e914d20c90c6a00771ad0266506e2429427fff0789",
+                         "fingerprint":  "97643a0f13126277942285e914d20c90c6a00771ad0266506e2429427fff0789",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2550,8 +2550,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
-                         "fingerprint":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
+                         "id":  "f54791ff8dafcb88c559a028b89cc1338c78edefef71967f7fbd2c5cb55f6568",
+                         "fingerprint":  "f54791ff8dafcb88c559a028b89cc1338c78edefef71967f7fbd2c5cb55f6568",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2570,8 +2570,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "90ccb2f043b069048949bdc19994414ff256c56673a2de346a2f22750abd5df7",
+                         "fingerprint":  "90ccb2f043b069048949bdc19994414ff256c56673a2de346a2f22750abd5df7",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2590,8 +2590,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "0ebdc611cb42121e6203dd92515ac07ed52a3dabb6cbf00e046f1bb0b8f7ed8a",
-                         "fingerprint":  "0ebdc611cb42121e6203dd92515ac07ed52a3dabb6cbf00e046f1bb0b8f7ed8a",
+                         "id":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
+                         "fingerprint":  "a70e31b3e35363fd8db9aef0b4195b521db4ff65f5bc995ce4b21012ee2eeae4",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2610,8 +2610,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "75ca807d4747b25d9e8ca1ee9307d5c4db8e65f251d084a3701e673bec9a7acd",
-                         "fingerprint":  "75ca807d4747b25d9e8ca1ee9307d5c4db8e65f251d084a3701e673bec9a7acd",
+                         "id":  "5fc39417ea91811a5e428a34da86abc5fc6316f42e9e812d2c8037912eb849f7",
+                         "fingerprint":  "5fc39417ea91811a5e428a34da86abc5fc6316f42e9e812d2c8037912eb849f7",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2630,8 +2630,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d5edf2379c0d8d63f11a56a4089e8df433bd4ae9be75028ea92c1c6694f7fd26",
-                         "fingerprint":  "d5edf2379c0d8d63f11a56a4089e8df433bd4ae9be75028ea92c1c6694f7fd26",
+                         "id":  "83fe6ed3ee4710cae44690b76af47896d27a2bb3f5b7699326ea4ca97f3128b8",
+                         "fingerprint":  "83fe6ed3ee4710cae44690b76af47896d27a2bb3f5b7699326ea4ca97f3128b8",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2650,8 +2650,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
-                         "fingerprint":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
+                         "id":  "05d2b6fd2774f43c8f7fd31426ab1d9508724c91fad735d78369a997aaabdc3f",
+                         "fingerprint":  "05d2b6fd2774f43c8f7fd31426ab1d9508724c91fad735d78369a997aaabdc3f",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2670,8 +2670,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1f3d52a7e7a911e196e28a35c848c5ac64ef685064f4bfac27cbe0605747b53d",
-                         "fingerprint":  "1f3d52a7e7a911e196e28a35c848c5ac64ef685064f4bfac27cbe0605747b53d",
+                         "id":  "53fc8bf887e687fc805ccfcd014dcc0a1cf7fc7092911dc37e6b5a041f3699d2",
+                         "fingerprint":  "53fc8bf887e687fc805ccfcd014dcc0a1cf7fc7092911dc37e6b5a041f3699d2",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2690,8 +2690,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
-                         "fingerprint":  "84c76281b258635cfdbc8be7d9e9b88986ff41c0110dc9807f4174e3d92d3d89",
+                         "id":  "f4b27d653428279f756aa80231ce26391109571650fdd3ffce8c5c77fa6972bc",
+                         "fingerprint":  "f4b27d653428279f756aa80231ce26391109571650fdd3ffce8c5c77fa6972bc",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2710,8 +2710,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "1f3d52a7e7a911e196e28a35c848c5ac64ef685064f4bfac27cbe0605747b53d",
-                         "fingerprint":  "1f3d52a7e7a911e196e28a35c848c5ac64ef685064f4bfac27cbe0605747b53d",
+                         "id":  "12bbfa212dc35c2b042bf548295c706ebd4816afaa74018e561ba0f483bc6761",
+                         "fingerprint":  "12bbfa212dc35c2b042bf548295c706ebd4816afaa74018e561ba0f483bc6761",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2730,8 +2730,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "29ac4acef999b083ac379277fbab5aeacd9f7a6c0c1dbe2240d710ead0dcd89f",
-                         "fingerprint":  "29ac4acef999b083ac379277fbab5aeacd9f7a6c0c1dbe2240d710ead0dcd89f",
+                         "id":  "0cb6ec8eb72dcbe1132ece2ab617ca386b4de9c0c7213abf19434122f0c06bb7",
+                         "fingerprint":  "0cb6ec8eb72dcbe1132ece2ab617ca386b4de9c0c7213abf19434122f0c06bb7",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2750,8 +2750,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "386e857631d1f8c7015760fce7585a3671690e93169382b9189ef17e879d6fc5",
-                         "fingerprint":  "386e857631d1f8c7015760fce7585a3671690e93169382b9189ef17e879d6fc5",
+                         "id":  "87955b93b049c1bd480476df51d8239b20d28c9fb8c1f739ebf7fc74151b6610",
+                         "fingerprint":  "87955b93b049c1bd480476df51d8239b20d28c9fb8c1f739ebf7fc74151b6610",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2770,8 +2770,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "003da0a849e991067c902310b102701ec273c78dbb239572722050f62ae5091d",
+                         "fingerprint":  "003da0a849e991067c902310b102701ec273c78dbb239572722050f62ae5091d",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2790,8 +2790,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "211098ab80b2a4f76d8d7c77232df28b00779250a7b4a829456eb7d77be96bcf",
-                         "fingerprint":  "211098ab80b2a4f76d8d7c77232df28b00779250a7b4a829456eb7d77be96bcf",
+                         "id":  "c1d09cd12da64768c1d26ab0ae582c411bb1b62969faea578285cecdab193ff8",
+                         "fingerprint":  "c1d09cd12da64768c1d26ab0ae582c411bb1b62969faea578285cecdab193ff8",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2810,8 +2810,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
-                         "fingerprint":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
+                         "id":  "1679515c8b6d9f41ca218166ea537dbc5e01593e6e07881da8b865ecb35127f9",
+                         "fingerprint":  "1679515c8b6d9f41ca218166ea537dbc5e01593e6e07881da8b865ecb35127f9",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2830,8 +2830,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "4db9d9752392aef3cc7fd3f91e7a36a77e1efedcf3828731aaac459cbcd57b96",
+                         "fingerprint":  "4db9d9752392aef3cc7fd3f91e7a36a77e1efedcf3828731aaac459cbcd57b96",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2850,8 +2850,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
-                         "fingerprint":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
+                         "id":  "b5c691e8bab7c4d5ba47d37289de83ad9f2054246cbf2d1e408b54ae4ceb3593",
+                         "fingerprint":  "b5c691e8bab7c4d5ba47d37289de83ad9f2054246cbf2d1e408b54ae4ceb3593",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2870,8 +2870,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
-                         "fingerprint":  "8b3f71bd646f71ac1974039e803f193797ddc0b8af3af7c4caf4abd973decaf7",
+                         "id":  "53e0cd07ec162bb2b865a5ba22fed1d81941f6be51d6eeced215a123eddc93de",
+                         "fingerprint":  "53e0cd07ec162bb2b865a5ba22fed1d81941f6be51d6eeced215a123eddc93de",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2890,8 +2890,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "211098ab80b2a4f76d8d7c77232df28b00779250a7b4a829456eb7d77be96bcf",
-                         "fingerprint":  "211098ab80b2a4f76d8d7c77232df28b00779250a7b4a829456eb7d77be96bcf",
+                         "id":  "c18974dd6b35e966d669e6eae470168bab95b94d23c5429cbc02b77a1b43817c",
+                         "fingerprint":  "c18974dd6b35e966d669e6eae470168bab95b94d23c5429cbc02b77a1b43817c",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2910,8 +2910,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
-                         "fingerprint":  "d185b61853e97ecf8eeb3512201e7a92570ee63b5982c4bc73b2fc35d43a6c77",
+                         "id":  "c82a68e9e6b10c97f83d69570bf467a98c23529b2e8416003bdf6b96bb2f0a03",
+                         "fingerprint":  "c82a68e9e6b10c97f83d69570bf467a98c23529b2e8416003bdf6b96bb2f0a03",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2930,8 +2930,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "f49bed0240c4782c3b0eb64de7ea3cd77d83ee1e976fee30533b1be8a53f9545",
-                         "fingerprint":  "f49bed0240c4782c3b0eb64de7ea3cd77d83ee1e976fee30533b1be8a53f9545",
+                         "id":  "9811181385c0b85f1556d6f5cb2c147da8304e2fcbef9d3aeb310d1c76aaaeec",
+                         "fingerprint":  "9811181385c0b85f1556d6f5cb2c147da8304e2fcbef9d3aeb310d1c76aaaeec",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2950,8 +2950,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "a8af98b879b6a7ff1ca0f45ee1ae41d4f132bd152545c50f54e566755e50f8b4",
-                         "fingerprint":  "a8af98b879b6a7ff1ca0f45ee1ae41d4f132bd152545c50f54e566755e50f8b4",
+                         "id":  "143a057a70ff65aa8a1c06afe7c39d5d0f9f21f7b63f785b099ea6f03aea285e",
+                         "fingerprint":  "143a057a70ff65aa8a1c06afe7c39d5d0f9f21f7b63f785b099ea6f03aea285e",
                          "module":  "backend-emprestimos-estoque",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2970,8 +2970,8 @@
                          "owner":  "equipe de emprestimos"
                      },
                      {
-                         "id":  "5933946a112e6eac88c3192da3320f941af1bf2eebc6b62091d41d4f6d61c9ca",
-                         "fingerprint":  "5933946a112e6eac88c3192da3320f941af1bf2eebc6b62091d41d4f6d61c9ca",
+                         "id":  "666c8c87ea91cc64b55bb756709511e834136a12866b598a7344718fd015ed56",
+                         "fingerprint":  "666c8c87ea91cc64b55bb756709511e834136a12866b598a7344718fd015ed56",
                          "module":  "backend-compartilhado",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -2990,8 +2990,8 @@
                          "owner":  "equipe backend"
                      },
                      {
-                         "id":  "239fe7f63a70aa7a1fe79a05b76673f9c6a671910a4ef6e7043540c23f53a0fa",
-                         "fingerprint":  "239fe7f63a70aa7a1fe79a05b76673f9c6a671910a4ef6e7043540c23f53a0fa",
+                         "id":  "6b7bf780bddbfba1c93ae826c4e9b7a4c37b25975bd5f2f6025cd2f8d88fa6c7",
+                         "fingerprint":  "6b7bf780bddbfba1c93ae826c4e9b7a4c37b25975bd5f2f6025cd2f8d88fa6c7",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3010,8 +3010,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "df630225e8176f17328e65aebd850ad8d0e48c257b67dcdbf20cf42fc54fbdd3",
-                         "fingerprint":  "df630225e8176f17328e65aebd850ad8d0e48c257b67dcdbf20cf42fc54fbdd3",
+                         "id":  "2df33861be14fce25174351b2738e004590b26ea5c287b33e7567c3e7e0f229a",
+                         "fingerprint":  "2df33861be14fce25174351b2738e004590b26ea5c287b33e7567c3e7e0f229a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3030,8 +3030,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "f93d6b34eaec338663b3296eeccd4df0811d17c36dc5a511de53dd27d6f8b9d8",
-                         "fingerprint":  "f93d6b34eaec338663b3296eeccd4df0811d17c36dc5a511de53dd27d6f8b9d8",
+                         "id":  "3206a63d9ee5a223258b94df7627675444b6a98e402517574d4423d3780fde89",
+                         "fingerprint":  "3206a63d9ee5a223258b94df7627675444b6a98e402517574d4423d3780fde89",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3050,8 +3050,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "16463f8b0de3f309ffafeb6737f2fca5026d2574b652af7b3dfa022526782980",
-                         "fingerprint":  "16463f8b0de3f309ffafeb6737f2fca5026d2574b652af7b3dfa022526782980",
+                         "id":  "e2012fa98871dd496d99253562153a4ef0ffdc55ab73a1a93448d235462a5549",
+                         "fingerprint":  "e2012fa98871dd496d99253562153a4ef0ffdc55ab73a1a93448d235462a5549",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3070,8 +3070,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "5d5cb9e6aef49103261d5959b2528c9ef2099204742ea49dc2f87a670ea313da",
-                         "fingerprint":  "5d5cb9e6aef49103261d5959b2528c9ef2099204742ea49dc2f87a670ea313da",
+                         "id":  "25e7d3314df36be42f010b0c446a5e9bb353ccfa9becbd6c755f543021c89e00",
+                         "fingerprint":  "25e7d3314df36be42f010b0c446a5e9bb353ccfa9becbd6c755f543021c89e00",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3090,8 +3090,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "b196da9b45d257b9549cb0b7ee3d7d0de33001b1b117daf9a27e3e97469270d8",
-                         "fingerprint":  "b196da9b45d257b9549cb0b7ee3d7d0de33001b1b117daf9a27e3e97469270d8",
+                         "id":  "e759e7e5d889ac9319ca00e4b61d8591d0a640be90e0669b68db5442905ee81e",
+                         "fingerprint":  "e759e7e5d889ac9319ca00e4b61d8591d0a640be90e0669b68db5442905ee81e",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3110,8 +3110,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "affa26ffa9bf2180949231308d335a9b6b8e2443dcbd418865c89e02cf16bbff",
-                         "fingerprint":  "affa26ffa9bf2180949231308d335a9b6b8e2443dcbd418865c89e02cf16bbff",
+                         "id":  "99aa9827d7b6bf01251eaba7d8c4ac9250f926d7cb990d2634a10a487a0df56e",
+                         "fingerprint":  "99aa9827d7b6bf01251eaba7d8c4ac9250f926d7cb990d2634a10a487a0df56e",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3130,8 +3130,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "a4917b23f92d1954a87d32a3cd58e5be50f84f44f58ad7860aeccc4c0b3c4ee8",
-                         "fingerprint":  "a4917b23f92d1954a87d32a3cd58e5be50f84f44f58ad7860aeccc4c0b3c4ee8",
+                         "id":  "7e120413714807e4319b64838104d9b24b20805a953e72c7a1f1605a15de24c8",
+                         "fingerprint":  "7e120413714807e4319b64838104d9b24b20805a953e72c7a1f1605a15de24c8",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3150,8 +3150,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "31dac870f2e0318b4df91cadf7bd5dfec91877907a5b7d1bb6adf08dfd5a70fd",
-                         "fingerprint":  "31dac870f2e0318b4df91cadf7bd5dfec91877907a5b7d1bb6adf08dfd5a70fd",
+                         "id":  "427af7def83c712533fd2c479df482fa2362bf9faef502cfdd7e2d11dcf1bc61",
+                         "fingerprint":  "427af7def83c712533fd2c479df482fa2362bf9faef502cfdd7e2d11dcf1bc61",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3170,8 +3170,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "52809ed1cbb1b375220376030fc04fe65c3c755f530ac7c3c3f084d1e33e70ed",
-                         "fingerprint":  "52809ed1cbb1b375220376030fc04fe65c3c755f530ac7c3c3f084d1e33e70ed",
+                         "id":  "ff1f6f0c56b4014a7bdddfa041573381a28bfa25983f899f7d1c2872b99a2d8a",
+                         "fingerprint":  "ff1f6f0c56b4014a7bdddfa041573381a28bfa25983f899f7d1c2872b99a2d8a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3190,8 +3190,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "7c0c9ddbf11f4facd3306823dd8d58f0b61c14e7926c933e0dcdb4b74d8c6569",
-                         "fingerprint":  "7c0c9ddbf11f4facd3306823dd8d58f0b61c14e7926c933e0dcdb4b74d8c6569",
+                         "id":  "ad8860493b36fda9b23885dd6bd7092b9a1ff6651bd4d59e5b98b62536c264f9",
+                         "fingerprint":  "ad8860493b36fda9b23885dd6bd7092b9a1ff6651bd4d59e5b98b62536c264f9",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3210,8 +3210,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "2b0d4cb6995c01bf14f15439ac66c7020feac2348f841c735fe5e48286f053c4",
-                         "fingerprint":  "2b0d4cb6995c01bf14f15439ac66c7020feac2348f841c735fe5e48286f053c4",
+                         "id":  "02ce5523715079dd7ea89ba0d585a3e8f963d25734f6469da5ef0eac0eec47f8",
+                         "fingerprint":  "02ce5523715079dd7ea89ba0d585a3e8f963d25734f6469da5ef0eac0eec47f8",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3230,8 +3230,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "132a258dc62980bbc94ad113e7dbcf8a8e91d734ff11738b263a6f7b54e0e1d6",
-                         "fingerprint":  "132a258dc62980bbc94ad113e7dbcf8a8e91d734ff11738b263a6f7b54e0e1d6",
+                         "id":  "9ffd817d5d3dd21821c0e4fa08d35c8b610c32d03d513d5cf7d595182cafc544",
+                         "fingerprint":  "9ffd817d5d3dd21821c0e4fa08d35c8b610c32d03d513d5cf7d595182cafc544",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3250,8 +3250,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "18402c03a3cf67bd5cd3391e4a1405779129b47b496b074aa04afdfa8a1acb61",
-                         "fingerprint":  "18402c03a3cf67bd5cd3391e4a1405779129b47b496b074aa04afdfa8a1acb61",
+                         "id":  "cb7ac81a21857dadca9684136295b5525beee42b1f4d0ef2c3c0c8e2a39f4b35",
+                         "fingerprint":  "cb7ac81a21857dadca9684136295b5525beee42b1f4d0ef2c3c0c8e2a39f4b35",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3270,8 +3270,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "e03e9380d0bc81cd172a7fed1db0b069ec9f2a3b14b0bc00c593d71ea9ac163b",
-                         "fingerprint":  "e03e9380d0bc81cd172a7fed1db0b069ec9f2a3b14b0bc00c593d71ea9ac163b",
+                         "id":  "fbde402c18dd4d47633241225fd1bbaf2728bf02da312f23b4827b207d6ec714",
+                         "fingerprint":  "fbde402c18dd4d47633241225fd1bbaf2728bf02da312f23b4827b207d6ec714",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3290,8 +3290,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "42a1286a3b39ca16e028eda6f8b4c42df1db7c9f66d2c98c4902b309c053b87d",
-                         "fingerprint":  "42a1286a3b39ca16e028eda6f8b4c42df1db7c9f66d2c98c4902b309c053b87d",
+                         "id":  "484cd2e7541c8f7657fbe3281d444b2e9ae3e64ad4774b0986c523adb78dfd10",
+                         "fingerprint":  "484cd2e7541c8f7657fbe3281d444b2e9ae3e64ad4774b0986c523adb78dfd10",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3310,8 +3310,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "a017985ddb58ce1e4d77dc66382a9426e1a64cde7321fddd646788c2a825b100",
-                         "fingerprint":  "a017985ddb58ce1e4d77dc66382a9426e1a64cde7321fddd646788c2a825b100",
+                         "id":  "45ca6bd4d38a7b328caec89b75ac890a8dabce4487b840e26b6686261ff08894",
+                         "fingerprint":  "45ca6bd4d38a7b328caec89b75ac890a8dabce4487b840e26b6686261ff08894",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3330,8 +3330,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "5510baf024afe220de97b16febb1a2ce7729d4a098998a4d6db0bbf44a9f6e21",
-                         "fingerprint":  "5510baf024afe220de97b16febb1a2ce7729d4a098998a4d6db0bbf44a9f6e21",
+                         "id":  "1754951021d6938d5723aa3269f3e80a63f2d2878f49cd4de3860efefd9606e7",
+                         "fingerprint":  "1754951021d6938d5723aa3269f3e80a63f2d2878f49cd4de3860efefd9606e7",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3350,8 +3350,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "17a06557a9915668c789b771e85eea04de2f061b4986ebb2c230f27b149bd735",
-                         "fingerprint":  "17a06557a9915668c789b771e85eea04de2f061b4986ebb2c230f27b149bd735",
+                         "id":  "460e73f441aa1a5c53335f338dccea4cb400ade815a280f55b58419419d7cd06",
+                         "fingerprint":  "460e73f441aa1a5c53335f338dccea4cb400ade815a280f55b58419419d7cd06",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3370,8 +3370,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "2c6f5a88d29b99f03f66906f662a09dd9337380d3b0fdb42a2c6da4db07bb1d2",
-                         "fingerprint":  "2c6f5a88d29b99f03f66906f662a09dd9337380d3b0fdb42a2c6da4db07bb1d2",
+                         "id":  "eaed4fdebeeae7acbeca6a4a9003dc80017eec368c20d930704f97a84a8724b2",
+                         "fingerprint":  "eaed4fdebeeae7acbeca6a4a9003dc80017eec368c20d930704f97a84a8724b2",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3390,8 +3390,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "bab51efcc0b634d36b1f776c2cffe8626362726b964e6953d53417fa3b92b42a",
-                         "fingerprint":  "bab51efcc0b634d36b1f776c2cffe8626362726b964e6953d53417fa3b92b42a",
+                         "id":  "a6f4add9be7c1e8401cd26e7ec1e86006ef675d901331012196654d0508dd829",
+                         "fingerprint":  "a6f4add9be7c1e8401cd26e7ec1e86006ef675d901331012196654d0508dd829",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3410,8 +3410,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "219d20e5912af9ca5db5a63546901a5cf1a8aca21948fc89cc9e5f71bcd8f9e9",
-                         "fingerprint":  "219d20e5912af9ca5db5a63546901a5cf1a8aca21948fc89cc9e5f71bcd8f9e9",
+                         "id":  "06b9e89d667920655b94664f377b2453b895857a01180d8a0b09cc280379271c",
+                         "fingerprint":  "06b9e89d667920655b94664f377b2453b895857a01180d8a0b09cc280379271c",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3430,8 +3430,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "8619f0c239f2070f9617dd2264781142ef60897bdd090941a32196ea85f840f4",
-                         "fingerprint":  "8619f0c239f2070f9617dd2264781142ef60897bdd090941a32196ea85f840f4",
+                         "id":  "ef51e36e85334833f65f18dcfbc4d36dbcd1ccfdfdfd18f52dc303ded3ae8761",
+                         "fingerprint":  "ef51e36e85334833f65f18dcfbc4d36dbcd1ccfdfdfd18f52dc303ded3ae8761",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3450,8 +3450,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "06a8c6f1f48ce289853d60b60d8f39c345416792acd7b27b481c62b7bf23c424",
-                         "fingerprint":  "06a8c6f1f48ce289853d60b60d8f39c345416792acd7b27b481c62b7bf23c424",
+                         "id":  "19bbbbad682dbd68e66b394bbc7867da211ac1819b63e00c8b708b63b205f781",
+                         "fingerprint":  "19bbbbad682dbd68e66b394bbc7867da211ac1819b63e00c8b708b63b205f781",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3470,8 +3470,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "101daca004f0743832539401dde42e70abb41a14a158ff1e23611482bbc6ff67",
-                         "fingerprint":  "101daca004f0743832539401dde42e70abb41a14a158ff1e23611482bbc6ff67",
+                         "id":  "9653bfb0acdc5a1eae393ab183c30c4f5f0d3be9b6116ed9aa1cd9cd3635163f",
+                         "fingerprint":  "9653bfb0acdc5a1eae393ab183c30c4f5f0d3be9b6116ed9aa1cd9cd3635163f",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3490,8 +3490,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "4cb20f2b440ba828fb42568c066beaca6f13e5eb0b5d22fba24470b6fed0acef",
-                         "fingerprint":  "4cb20f2b440ba828fb42568c066beaca6f13e5eb0b5d22fba24470b6fed0acef",
+                         "id":  "7b0eb7a85e2de2fff8e496d29f165bb55e43d3ba30ceaa48b849c91b644c6f80",
+                         "fingerprint":  "7b0eb7a85e2de2fff8e496d29f165bb55e43d3ba30ceaa48b849c91b644c6f80",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3510,8 +3510,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "d7934e22657d32fcc19a9d25be2d369b5448a692073d65beed04999d6089e9d7",
-                         "fingerprint":  "d7934e22657d32fcc19a9d25be2d369b5448a692073d65beed04999d6089e9d7",
+                         "id":  "9ad9e3beab12bb588b502f0e2e9ef7d26dfcac862a4342a67d0d2af9efed762f",
+                         "fingerprint":  "9ad9e3beab12bb588b502f0e2e9ef7d26dfcac862a4342a67d0d2af9efed762f",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3530,8 +3530,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ff1f769d40fb94f718a9ba1a84432197982d3aa364a46192be46c82692b6449f",
-                         "fingerprint":  "ff1f769d40fb94f718a9ba1a84432197982d3aa364a46192be46c82692b6449f",
+                         "id":  "e3c670ff134eaabc2adb8c25155e7d2bae684498016247bde6838f08c8eb024a",
+                         "fingerprint":  "e3c670ff134eaabc2adb8c25155e7d2bae684498016247bde6838f08c8eb024a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3550,8 +3550,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ad298d7a5ab95e66eb98d41b781d3de397c3cd4eee3061a418830ca57e4473b1",
-                         "fingerprint":  "ad298d7a5ab95e66eb98d41b781d3de397c3cd4eee3061a418830ca57e4473b1",
+                         "id":  "ac9739a1cd8d5f2adfb3baa7de39117355e9dc7b1eefc6b34688eca529108b90",
+                         "fingerprint":  "ac9739a1cd8d5f2adfb3baa7de39117355e9dc7b1eefc6b34688eca529108b90",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3570,8 +3570,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "cbf4478246f73602b4bfa47ed6566d9adcce25b0130f8b02aefe9368e2856d43",
-                         "fingerprint":  "cbf4478246f73602b4bfa47ed6566d9adcce25b0130f8b02aefe9368e2856d43",
+                         "id":  "721a8c30b0bd8726c1cd72881f1d8324ee769132150e1176bd3441072f4c914c",
+                         "fingerprint":  "721a8c30b0bd8726c1cd72881f1d8324ee769132150e1176bd3441072f4c914c",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3590,8 +3590,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "d81852aa260ffdd20743deee5fa781aa9d46b4846412685d9b9c351b4ac354e3",
-                         "fingerprint":  "d81852aa260ffdd20743deee5fa781aa9d46b4846412685d9b9c351b4ac354e3",
+                         "id":  "f711a0157729eb5cdfa8eb2222811fd3a0bed751fe7e614dd2b39a18027ca05c",
+                         "fingerprint":  "f711a0157729eb5cdfa8eb2222811fd3a0bed751fe7e614dd2b39a18027ca05c",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3610,8 +3610,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "b643f9bfba676b0d0e022af74442b0117a2288f1e8e36f9a51e045b0afbbca21",
-                         "fingerprint":  "b643f9bfba676b0d0e022af74442b0117a2288f1e8e36f9a51e045b0afbbca21",
+                         "id":  "7ea006aacbbf710f88e4735abdedadc6284310c9a157cc5cb27958215ca7655c",
+                         "fingerprint":  "7ea006aacbbf710f88e4735abdedadc6284310c9a157cc5cb27958215ca7655c",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3630,8 +3630,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "76f3e20bb0e72eabf68d12db86eccfca6c99ed613abad2ed74799506b520bbe9",
-                         "fingerprint":  "76f3e20bb0e72eabf68d12db86eccfca6c99ed613abad2ed74799506b520bbe9",
+                         "id":  "9f85e1465de2c66170d1d32cb0044ca9239307a3bd64611a1a9a246375949b7e",
+                         "fingerprint":  "9f85e1465de2c66170d1d32cb0044ca9239307a3bd64611a1a9a246375949b7e",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3650,8 +3650,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "b888c5dfdcfa3a16aedb4e7113bfc82eb3d2d89cad8c8475e8a90e6d77dfb9c6",
-                         "fingerprint":  "b888c5dfdcfa3a16aedb4e7113bfc82eb3d2d89cad8c8475e8a90e6d77dfb9c6",
+                         "id":  "ed80dbba40d71ccbbca91d74e65e34afcd6c642ce690e1e647d31bdb7a3d910b",
+                         "fingerprint":  "ed80dbba40d71ccbbca91d74e65e34afcd6c642ce690e1e647d31bdb7a3d910b",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3670,8 +3670,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "c885110f6252089d75a213d6f564f8ab2e54457809cb1cbdef32338a2eeeba73",
-                         "fingerprint":  "c885110f6252089d75a213d6f564f8ab2e54457809cb1cbdef32338a2eeeba73",
+                         "id":  "f0b91dcf8648fcc9ff95014436b7ea00c961033bb47b419ffefb0b20ae67afa9",
+                         "fingerprint":  "f0b91dcf8648fcc9ff95014436b7ea00c961033bb47b419ffefb0b20ae67afa9",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3690,8 +3690,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "dd3afc8d596d5cf3763a847c16d854606d18b019641772929138ba3ff87646f5",
-                         "fingerprint":  "dd3afc8d596d5cf3763a847c16d854606d18b019641772929138ba3ff87646f5",
+                         "id":  "d20a906e8094eef71d64f0008e520423b745916f5a978d634392c02e7a8ae408",
+                         "fingerprint":  "d20a906e8094eef71d64f0008e520423b745916f5a978d634392c02e7a8ae408",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3710,8 +3710,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "e312f2740ebf36e8b578dc28b6059d9a1ec18303faee706bad16d9779298fb3f",
-                         "fingerprint":  "e312f2740ebf36e8b578dc28b6059d9a1ec18303faee706bad16d9779298fb3f",
+                         "id":  "b9d1c89a074a1fb20588da2d5eb41a84aa6861f8b0d1845216aa0907025b314a",
+                         "fingerprint":  "b9d1c89a074a1fb20588da2d5eb41a84aa6861f8b0d1845216aa0907025b314a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3730,8 +3730,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "14e96e406f15f76b6961bd2d2bd4b98c874b6aafde4e0a0766c117129453b48e",
-                         "fingerprint":  "14e96e406f15f76b6961bd2d2bd4b98c874b6aafde4e0a0766c117129453b48e",
+                         "id":  "776aa184ee0647303890573e7a254a2ab4c1c0116e6fc69f13e0a9134af4d9e4",
+                         "fingerprint":  "776aa184ee0647303890573e7a254a2ab4c1c0116e6fc69f13e0a9134af4d9e4",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3750,8 +3750,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ce6e19029f3ab9ac161e32f54b358a6dfbd884cdc13c9f509cce5f040fd60eb4",
-                         "fingerprint":  "ce6e19029f3ab9ac161e32f54b358a6dfbd884cdc13c9f509cce5f040fd60eb4",
+                         "id":  "32649b12b484fb5642dc44a46f98d2374c601c4939b22ff33fbebcc59daec891",
+                         "fingerprint":  "32649b12b484fb5642dc44a46f98d2374c601c4939b22ff33fbebcc59daec891",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3770,8 +3770,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "e85d501cda0389d596696808def3f3f2cb6cb8fee13b7c196e634c647ec9642c",
-                         "fingerprint":  "e85d501cda0389d596696808def3f3f2cb6cb8fee13b7c196e634c647ec9642c",
+                         "id":  "9a82318a4dddf44aad36fcca1dce253e6b91999760c4d4755a9e27cde9af17d9",
+                         "fingerprint":  "9a82318a4dddf44aad36fcca1dce253e6b91999760c4d4755a9e27cde9af17d9",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3790,8 +3790,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "9f8e54a299dfaf0f60f0ece7db340eb1f7372f3190bd9ffd6bf64ef6096c73d2",
-                         "fingerprint":  "9f8e54a299dfaf0f60f0ece7db340eb1f7372f3190bd9ffd6bf64ef6096c73d2",
+                         "id":  "5ba27dbb702e5e936113387fba71602b695fb1e0c8c1747585bdab1bf7bdb3b9",
+                         "fingerprint":  "5ba27dbb702e5e936113387fba71602b695fb1e0c8c1747585bdab1bf7bdb3b9",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3810,8 +3810,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "200679bf3f195ba14261d97c7bb8dc95dcb0ed077935a5672af619b185464874",
-                         "fingerprint":  "200679bf3f195ba14261d97c7bb8dc95dcb0ed077935a5672af619b185464874",
+                         "id":  "9c9bdf7bfb24fe526225f7d218887470c8e8a9069aaaf33fb0ecd75fb72bf3fe",
+                         "fingerprint":  "9c9bdf7bfb24fe526225f7d218887470c8e8a9069aaaf33fb0ecd75fb72bf3fe",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3830,8 +3830,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "2d9050ad825b2af455ce1e17914b435a4f6c5d878a5bfc41bf113bedcfd25c82",
-                         "fingerprint":  "2d9050ad825b2af455ce1e17914b435a4f6c5d878a5bfc41bf113bedcfd25c82",
+                         "id":  "a9f65b743fee723b0df376c752dffa556509792f5d389fb4995d36b734e6e325",
+                         "fingerprint":  "a9f65b743fee723b0df376c752dffa556509792f5d389fb4995d36b734e6e325",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3850,8 +3850,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "4572af506415b17caa2c7c197115494af764010b36b974c193c48e7474499379",
-                         "fingerprint":  "4572af506415b17caa2c7c197115494af764010b36b974c193c48e7474499379",
+                         "id":  "f88df9c1778ae746dc769cab6fef954b326153315594d7e4944a904dda3f8c4a",
+                         "fingerprint":  "f88df9c1778ae746dc769cab6fef954b326153315594d7e4944a904dda3f8c4a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3870,8 +3870,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "aa76b0051c95db6a83c88baa9da7d024a822bc472b90d65c51d799a383f13573",
-                         "fingerprint":  "aa76b0051c95db6a83c88baa9da7d024a822bc472b90d65c51d799a383f13573",
+                         "id":  "440c6c9118348bf544278f926ab641b71308f0390c37b37de79d9a8eb433c6c6",
+                         "fingerprint":  "440c6c9118348bf544278f926ab641b71308f0390c37b37de79d9a8eb433c6c6",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3890,8 +3890,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "b6cbf8774b38ea04ce5a2927a5d91ec8511e3689ec325c5200ceb1a2beed7d17",
-                         "fingerprint":  "b6cbf8774b38ea04ce5a2927a5d91ec8511e3689ec325c5200ceb1a2beed7d17",
+                         "id":  "13273797ae1ae46b0783ffb93d3b01510bed17a56a3d76fd1b3f0f666c7bdb30",
+                         "fingerprint":  "13273797ae1ae46b0783ffb93d3b01510bed17a56a3d76fd1b3f0f666c7bdb30",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3910,8 +3910,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "0bab7e7f090f13c362f108353dd3a4273a81d1339ff9bc0d6bb793e2921f28ef",
-                         "fingerprint":  "0bab7e7f090f13c362f108353dd3a4273a81d1339ff9bc0d6bb793e2921f28ef",
+                         "id":  "f19721d72d2f984183991a099b593936ab2e4e1236d5a2184726a082f8b9c0bf",
+                         "fingerprint":  "f19721d72d2f984183991a099b593936ab2e4e1236d5a2184726a082f8b9c0bf",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3930,8 +3930,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "bf860490bab48a42e6d5c056673e7b5fdbc89e8e63810d94ad0da377b5be0309",
-                         "fingerprint":  "bf860490bab48a42e6d5c056673e7b5fdbc89e8e63810d94ad0da377b5be0309",
+                         "id":  "2bfbafa3d7d5a9399a938c57928e25b91a99909ddc4ee321230ffe80b407d5fd",
+                         "fingerprint":  "2bfbafa3d7d5a9399a938c57928e25b91a99909ddc4ee321230ffe80b407d5fd",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3950,8 +3950,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "4bf893e7a4866c8227d8eb9ebcdaef6f3795f1e0965fc164cf03e210ac0b6a3f",
-                         "fingerprint":  "4bf893e7a4866c8227d8eb9ebcdaef6f3795f1e0965fc164cf03e210ac0b6a3f",
+                         "id":  "557f2d202ce04445758231e8b6e55704e8d42a519ab714dfdfcc5b366a7b70fa",
+                         "fingerprint":  "557f2d202ce04445758231e8b6e55704e8d42a519ab714dfdfcc5b366a7b70fa",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3970,8 +3970,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ceb44841dc95de854bb002505d2fb5e4c10afa04babe59c18f854372ddf03450",
-                         "fingerprint":  "ceb44841dc95de854bb002505d2fb5e4c10afa04babe59c18f854372ddf03450",
+                         "id":  "d9c20233581877e012fd5f593593f60e5200dfeb8bb63356f0623ebf3515ebe4",
+                         "fingerprint":  "d9c20233581877e012fd5f593593f60e5200dfeb8bb63356f0623ebf3515ebe4",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -3990,8 +3990,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "fa31c0ab81773482b33563c5cfc501f9e96ccef3d0948fdb26ec0a6a37886915",
-                         "fingerprint":  "fa31c0ab81773482b33563c5cfc501f9e96ccef3d0948fdb26ec0a6a37886915",
+                         "id":  "ab62e43c57ebba4d2544148af361c4f99d35ce3354ac55944f0072f6eaa4ae39",
+                         "fingerprint":  "ab62e43c57ebba4d2544148af361c4f99d35ce3354ac55944f0072f6eaa4ae39",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4010,8 +4010,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "7bb4c7fb1e067f786d6591f429c2b6cb8f2cf52582d02b9af0cf94699addf350",
-                         "fingerprint":  "7bb4c7fb1e067f786d6591f429c2b6cb8f2cf52582d02b9af0cf94699addf350",
+                         "id":  "1003eaec4f11fafcd788ffc5e42b6c7a1328e5698612708b43a1492a7e4aba1a",
+                         "fingerprint":  "1003eaec4f11fafcd788ffc5e42b6c7a1328e5698612708b43a1492a7e4aba1a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4030,8 +4030,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "3ae31528e5d8752fbe31f0431f15f5bf65d62f9e194adb9091022ff62aadb89d",
-                         "fingerprint":  "3ae31528e5d8752fbe31f0431f15f5bf65d62f9e194adb9091022ff62aadb89d",
+                         "id":  "15a9623645dedad34c448c931c43ceb5cfcb1c1c3d4105a929255eb0cd3a0172",
+                         "fingerprint":  "15a9623645dedad34c448c931c43ceb5cfcb1c1c3d4105a929255eb0cd3a0172",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4050,8 +4050,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "f45c6d9054c13e3e575c13df8ae17efcd76b5be86955f40850a098073181d78c",
-                         "fingerprint":  "f45c6d9054c13e3e575c13df8ae17efcd76b5be86955f40850a098073181d78c",
+                         "id":  "32523ba790709d6c25de16ea0486b493d093002b5e0d3197db72d01620a19be8",
+                         "fingerprint":  "32523ba790709d6c25de16ea0486b493d093002b5e0d3197db72d01620a19be8",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4070,8 +4070,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "51b07aa781a9cc8ea835c24a5fda2ad25d4da43c6e21b2f590f3cba2a3938728",
-                         "fingerprint":  "51b07aa781a9cc8ea835c24a5fda2ad25d4da43c6e21b2f590f3cba2a3938728",
+                         "id":  "82dbf99f6fef6ea59043fede468666d15b6a484d82c26cdebcc555e11de39d57",
+                         "fingerprint":  "82dbf99f6fef6ea59043fede468666d15b6a484d82c26cdebcc555e11de39d57",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4090,8 +4090,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "65b5176ce01959a0c7408a89d6381c21feb52982db01202f500fee1b18ffa324",
-                         "fingerprint":  "65b5176ce01959a0c7408a89d6381c21feb52982db01202f500fee1b18ffa324",
+                         "id":  "ff73cc87c7a4d0729faa47b0ae05224c593c7b6728cf70923e0423223ae9f6fa",
+                         "fingerprint":  "ff73cc87c7a4d0729faa47b0ae05224c593c7b6728cf70923e0423223ae9f6fa",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4110,8 +4110,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "6f09b4523a85dc4d05661c53907d340ca5e22b4e7a58d60979515a6c6b000f4e",
-                         "fingerprint":  "6f09b4523a85dc4d05661c53907d340ca5e22b4e7a58d60979515a6c6b000f4e",
+                         "id":  "8c8d2b60edb0aa124376d2071009478bef65fc1b15398c7c59b4853c572960ad",
+                         "fingerprint":  "8c8d2b60edb0aa124376d2071009478bef65fc1b15398c7c59b4853c572960ad",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4130,8 +4130,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "d703222f2808c09189ec711d8000f9f23dcb15dbab44f101f5647cfa5c1f7cc7",
-                         "fingerprint":  "d703222f2808c09189ec711d8000f9f23dcb15dbab44f101f5647cfa5c1f7cc7",
+                         "id":  "927f626ea0333efaf4463f4a49d4b9aa13b29e208766b82fffb67d14c09ba964",
+                         "fingerprint":  "927f626ea0333efaf4463f4a49d4b9aa13b29e208766b82fffb67d14c09ba964",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4150,8 +4150,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "869e483ecd935498137861232f37844154d1068ab3021114359e05c1dc0db328",
-                         "fingerprint":  "869e483ecd935498137861232f37844154d1068ab3021114359e05c1dc0db328",
+                         "id":  "cc56beb77680f86c5accd9e9a13857ad21e02fe50ef0aed246ca9187e84daf09",
+                         "fingerprint":  "cc56beb77680f86c5accd9e9a13857ad21e02fe50ef0aed246ca9187e84daf09",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4170,8 +4170,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ecebc5c1d720043b6462e0d428c2d55c8833deadda5eaa580870494e43bd1dc8",
-                         "fingerprint":  "ecebc5c1d720043b6462e0d428c2d55c8833deadda5eaa580870494e43bd1dc8",
+                         "id":  "e41ccea70db4861f68d8cd13a6b82a8f541c0dd66595f2066079ae46d0e67d62",
+                         "fingerprint":  "e41ccea70db4861f68d8cd13a6b82a8f541c0dd66595f2066079ae46d0e67d62",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4190,8 +4190,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "882d58d8a79f391834307a1fcf8544fb97445b198ce01777ae4b87cd7fa14eaa",
-                         "fingerprint":  "882d58d8a79f391834307a1fcf8544fb97445b198ce01777ae4b87cd7fa14eaa",
+                         "id":  "41e793ac23d0efc78d42702ac19c87405ce8e7eeed8f4cba28d8bfd448114ff8",
+                         "fingerprint":  "41e793ac23d0efc78d42702ac19c87405ce8e7eeed8f4cba28d8bfd448114ff8",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4210,8 +4210,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "e208394a5174032698ecc15786f4155821dd37349938684d2c8d6ed100064af0",
-                         "fingerprint":  "e208394a5174032698ecc15786f4155821dd37349938684d2c8d6ed100064af0",
+                         "id":  "c05aa9b4d57a24535446dea7d534bc01b912b601a9c7aff0a0e662d83f464f28",
+                         "fingerprint":  "c05aa9b4d57a24535446dea7d534bc01b912b601a9c7aff0a0e662d83f464f28",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4230,8 +4230,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "0e18ae1dd1aca5571d62d8d629f9644ad52a4aeec07e417d6eb78c332c2aace4",
-                         "fingerprint":  "0e18ae1dd1aca5571d62d8d629f9644ad52a4aeec07e417d6eb78c332c2aace4",
+                         "id":  "9a1e70c7b2dec95dbd2b17591f44c0e5ea950d44febe5fa899138116afdd7392",
+                         "fingerprint":  "9a1e70c7b2dec95dbd2b17591f44c0e5ea950d44febe5fa899138116afdd7392",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4250,8 +4250,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "54f0224a6b1613c11fa584c25d06944611e6d10e637f9bffc9764ac946454a2c",
-                         "fingerprint":  "54f0224a6b1613c11fa584c25d06944611e6d10e637f9bffc9764ac946454a2c",
+                         "id":  "99c090470153a1658b0beda5d1b452f255277661de299e6e69abcf73269e8554",
+                         "fingerprint":  "99c090470153a1658b0beda5d1b452f255277661de299e6e69abcf73269e8554",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4270,8 +4270,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "a019ff61c5ca238a83a427d7bf4115c213ced86c110a70c2e2ce1a27bb9d746a",
-                         "fingerprint":  "a019ff61c5ca238a83a427d7bf4115c213ced86c110a70c2e2ce1a27bb9d746a",
+                         "id":  "3b6f8ed9aa610b2d830c4b6488db648aa0ae007e941171767d9183c9ecece680",
+                         "fingerprint":  "3b6f8ed9aa610b2d830c4b6488db648aa0ae007e941171767d9183c9ecece680",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4290,8 +4290,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "0dd78b04f260297f0de23023d2bfe66ab951a5a73a6baf0b752372792ae0791c",
-                         "fingerprint":  "0dd78b04f260297f0de23023d2bfe66ab951a5a73a6baf0b752372792ae0791c",
+                         "id":  "040003e10b6cf3ec2dc98c3b1085d36da4923bfa7d8c3a5b877491dbd84f116d",
+                         "fingerprint":  "040003e10b6cf3ec2dc98c3b1085d36da4923bfa7d8c3a5b877491dbd84f116d",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4310,8 +4310,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "6d6ed5216046a23707673ce653fc4d66f91d2153cbb81c0da8785702a7746ea5",
-                         "fingerprint":  "6d6ed5216046a23707673ce653fc4d66f91d2153cbb81c0da8785702a7746ea5",
+                         "id":  "72a34318c6d7140d27507c00cf5a683ce9286900a711b9601cd8a9d13ecbefe3",
+                         "fingerprint":  "72a34318c6d7140d27507c00cf5a683ce9286900a711b9601cd8a9d13ecbefe3",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4330,8 +4330,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "31b8db572d51d53041cbde17367d2eb026b86efb9868a276a5a78ec7b0990cf1",
-                         "fingerprint":  "31b8db572d51d53041cbde17367d2eb026b86efb9868a276a5a78ec7b0990cf1",
+                         "id":  "1d80813fed71c811a7657bebd126f99c5ed37f8557f1badefa3efa817292f0d9",
+                         "fingerprint":  "1d80813fed71c811a7657bebd126f99c5ed37f8557f1badefa3efa817292f0d9",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4350,8 +4350,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "a89fb8c66cb21bada2f2054400408fd3a9fcd36ccfe73cf529f21168ce75fdaa",
-                         "fingerprint":  "a89fb8c66cb21bada2f2054400408fd3a9fcd36ccfe73cf529f21168ce75fdaa",
+                         "id":  "d22bb618207d5b3aa950bab787e37b3718e649018ec9ee1c03d407b91f8c09f3",
+                         "fingerprint":  "d22bb618207d5b3aa950bab787e37b3718e649018ec9ee1c03d407b91f8c09f3",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4370,8 +4370,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "ff37ec89398cc973e53fb0cdc37848797d2282d83bfd98d4b0fc19fac5a8c5d7",
-                         "fingerprint":  "ff37ec89398cc973e53fb0cdc37848797d2282d83bfd98d4b0fc19fac5a8c5d7",
+                         "id":  "aba1188ec334fabce1c903598e7e6cf211f0cf8da3dbbd22729da890256f7b8b",
+                         "fingerprint":  "aba1188ec334fabce1c903598e7e6cf211f0cf8da3dbbd22729da890256f7b8b",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4390,8 +4390,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "2a1b42aed5ce4efdd3433b9cc87840674fed309a42cfb27675770941e57d8fc2",
-                         "fingerprint":  "2a1b42aed5ce4efdd3433b9cc87840674fed309a42cfb27675770941e57d8fc2",
+                         "id":  "de13a50de617efca70d8fbb16c7da94e9b1df70e30ca55ccc01e297f0559bf47",
+                         "fingerprint":  "de13a50de617efca70d8fbb16c7da94e9b1df70e30ca55ccc01e297f0559bf47",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4410,8 +4410,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "b161d546fcfa82e4961f530cc9639bb8697a0e88970cabce1a2fa03350ceb1c3",
-                         "fingerprint":  "b161d546fcfa82e4961f530cc9639bb8697a0e88970cabce1a2fa03350ceb1c3",
+                         "id":  "7ed189ad5ebf9f6769b6e085e3381c7ef98ee9dd27115429671827543e2c05f8",
+                         "fingerprint":  "7ed189ad5ebf9f6769b6e085e3381c7ef98ee9dd27115429671827543e2c05f8",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4430,8 +4430,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "e9680d8e6d503c680054433fc469fd9407b05090f57596a5a7908eb370009b8f",
-                         "fingerprint":  "e9680d8e6d503c680054433fc469fd9407b05090f57596a5a7908eb370009b8f",
+                         "id":  "5c1583a524538598edf989ddacd964b9139dc7174846f1c4cf4c185913b18116",
+                         "fingerprint":  "5c1583a524538598edf989ddacd964b9139dc7174846f1c4cf4c185913b18116",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4450,8 +4450,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "2c7de658f0af72b1f58270d870d1c86988e246b3fe8c04d177f3a99dd292bda5",
-                         "fingerprint":  "2c7de658f0af72b1f58270d870d1c86988e246b3fe8c04d177f3a99dd292bda5",
+                         "id":  "dd3328f908da34e0cfffff8322bb854e71220a825f899a5f43a9006b2ff9a48a",
+                         "fingerprint":  "dd3328f908da34e0cfffff8322bb854e71220a825f899a5f43a9006b2ff9a48a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4470,8 +4470,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "f34d0e573187d4dbfe094b15025c352c1c97f20ca10907d7c72c44f7bc473617",
-                         "fingerprint":  "f34d0e573187d4dbfe094b15025c352c1c97f20ca10907d7c72c44f7bc473617",
+                         "id":  "c155283661d3227380d3d57320882c8c88cfedd1df4e7f94e66d25d72eb3de2a",
+                         "fingerprint":  "c155283661d3227380d3d57320882c8c88cfedd1df4e7f94e66d25d72eb3de2a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4490,8 +4490,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "99a00b63f793a76c80694569efab489d23e0000960aff7c837dcb98a0ecef29b",
-                         "fingerprint":  "99a00b63f793a76c80694569efab489d23e0000960aff7c837dcb98a0ecef29b",
+                         "id":  "2d5ab22f239059759cc862bc17eee5fa1523d66d383dd157b05c38ba5beb06bf",
+                         "fingerprint":  "2d5ab22f239059759cc862bc17eee5fa1523d66d383dd157b05c38ba5beb06bf",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4510,8 +4510,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "63a7795275ee5dff0ca33a83ed778836ecd0e4d623aba4d5c1f3165d063e2995",
-                         "fingerprint":  "63a7795275ee5dff0ca33a83ed778836ecd0e4d623aba4d5c1f3165d063e2995",
+                         "id":  "a3f33fd32b116be8a1288ca1f820fd841b78bac9ad664f3598d9c4030177961b",
+                         "fingerprint":  "a3f33fd32b116be8a1288ca1f820fd841b78bac9ad664f3598d9c4030177961b",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4530,8 +4530,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "3d8d0662dcb41e3af451f5f26c1b7d23a46de769e8dd714a806069376aee2be8",
-                         "fingerprint":  "3d8d0662dcb41e3af451f5f26c1b7d23a46de769e8dd714a806069376aee2be8",
+                         "id":  "11150e8c83f7a2dbb54041398a6890fe52c9c2aa55cd7f6812a6158c1152c6bd",
+                         "fingerprint":  "11150e8c83f7a2dbb54041398a6890fe52c9c2aa55cd7f6812a6158c1152c6bd",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4550,8 +4550,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "45c0ecb8db800dfb995945b5d1d4859d8742b91991999da11d2124d38fa219fa",
-                         "fingerprint":  "45c0ecb8db800dfb995945b5d1d4859d8742b91991999da11d2124d38fa219fa",
+                         "id":  "9dd37ab9f88800e41f55b3fd63f3d6c60f1ffac19c8b938ff3e5fd9f263ac99a",
+                         "fingerprint":  "9dd37ab9f88800e41f55b3fd63f3d6c60f1ffac19c8b938ff3e5fd9f263ac99a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4570,8 +4570,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "a31d0e6bf5ea1bc10b01d70291d2bc674f22cd624807ab2e1a05d6e9b8bd5f4f",
-                         "fingerprint":  "a31d0e6bf5ea1bc10b01d70291d2bc674f22cd624807ab2e1a05d6e9b8bd5f4f",
+                         "id":  "f3e5e94a386a956f7aa394908b210f611ad43d8da0610601aadaa55c22a77d3a",
+                         "fingerprint":  "f3e5e94a386a956f7aa394908b210f611ad43d8da0610601aadaa55c22a77d3a",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4590,8 +4590,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "5cceba00809f7973714066a6a518f977423d3bfd3ed63b65d05b03339a72042e",
-                         "fingerprint":  "5cceba00809f7973714066a6a518f977423d3bfd3ed63b65d05b03339a72042e",
+                         "id":  "1071736646f91742ab9c2a54d8fbdf8b6c65addb6a88e12a78785b1c7ead8243",
+                         "fingerprint":  "1071736646f91742ab9c2a54d8fbdf8b6c65addb6a88e12a78785b1c7ead8243",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4610,8 +4610,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "77b2761cb0a0c10e69d45e29704de74e3c0f568f304d208fe0e14b7260d2da0b",
-                         "fingerprint":  "77b2761cb0a0c10e69d45e29704de74e3c0f568f304d208fe0e14b7260d2da0b",
+                         "id":  "fbaad41fa3e4d9fbd13a507cdc7f47706e883d3e4d61606f3ed9e5eb6516eddb",
+                         "fingerprint":  "fbaad41fa3e4d9fbd13a507cdc7f47706e883d3e4d61606f3ed9e5eb6516eddb",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4630,8 +4630,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "cdb3de6057d0d4a5a09c1d3b1006a235f941f9776d47f8863fc2f4a85b13438d",
-                         "fingerprint":  "cdb3de6057d0d4a5a09c1d3b1006a235f941f9776d47f8863fc2f4a85b13438d",
+                         "id":  "6e37c8d61a76f6b57ff3544ad5fe2a0a4fd084662914fe56c7faffa8d0b9b70f",
+                         "fingerprint":  "6e37c8d61a76f6b57ff3544ad5fe2a0a4fd084662914fe56c7faffa8d0b9b70f",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",
@@ -4650,8 +4650,8 @@
                          "owner":  "equipe de qualidade"
                      },
                      {
-                         "id":  "af2689fc98d1fee6810ce336feaf98339f96de5329390af25f0dec1f4381e2d4",
-                         "fingerprint":  "af2689fc98d1fee6810ce336feaf98339f96de5329390af25f0dec1f4381e2d4",
+                         "id":  "9b8a6da3bfac1c5b8f393240478948ee7be27492aef3b3266e1273a237ced12f",
+                         "fingerprint":  "9b8a6da3bfac1c5b8f393240478948ee7be27492aef3b3266e1273a237ced12f",
                          "module":  "backend-testes",
                          "category":  "manutenibilidade",
                          "severity":  "media",

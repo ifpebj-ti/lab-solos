@@ -426,6 +426,36 @@ def _sarif_rule_id(result: Mapping[str, Any], rules: list[Any]) -> str:
     raise MalformedReportError("resultado SARIF sem ruleId")
 
 
+def _sarif_location_context(
+    region: Mapping[str, Any],
+    *,
+    path: str,
+    repository_root: str | Path | None,
+) -> str:
+    """Build a stable identity when SARIF has no source snippet."""
+
+    start_line = region.get("startLine")
+    if repository_root is not None and isinstance(start_line, int) and start_line >= 1:
+        source_path = Path(repository_root) / path
+        try:
+            source_lines = source_path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeError):
+            source_lines = []
+        if len(source_lines) >= start_line and source_lines[start_line - 1].strip():
+            return "sarif-source:" + source_lines[start_line - 1]
+
+    coordinates = {
+        key: region.get(key)
+        for key in ("startLine", "startColumn", "endLine", "endColumn")
+    }
+    return "sarif-location:" + json.dumps(
+        coordinates,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def normalize_sarif_report(
     report: Any,
     policy: Mapping[str, Any],
@@ -464,13 +494,26 @@ def normalize_sarif_report(
             if not isinstance(message, str):
                 raise MalformedReportError("resultado SARIF sem message.text")
             uri, region = _sarif_location(result)
+            path = normalize_path(uri, repository_root)
             snippet = region.get("snippet")
             if snippet is None:
-                context = message
+                context = _sarif_location_context(
+                    region,
+                    path=path,
+                    repository_root=repository_root,
+                )
             else:
                 snippet = _mapping(snippet, "SARIF region.snippet")
-                context = snippet.get("text", message)
-            path = normalize_path(uri, repository_root)
+                snippet_text = snippet.get("text")
+                context = (
+                    snippet_text
+                    if isinstance(snippet_text, str) and snippet_text.strip()
+                    else _sarif_location_context(
+                        region,
+                        path=path,
+                        repository_root=repository_root,
+                    )
+                )
             evidence = {
                 "source": "sarif",
                 "level": result.get("level", "warning"),

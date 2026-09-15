@@ -81,6 +81,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    env:
+      E2E_COMPOSE_PROJECT: lab-solos-quality-e2e
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -289,12 +291,12 @@ jobs:
           python -B .github/scripts/check_quality_gate.py
           --required frontend-quality backend-quality auth-e2e workflow-quality
           quality-baseline container-scan
-          --job frontend-quality=$FRONTEND_RESULT
-          --job backend-quality=$BACKEND_RESULT
-          --job auth-e2e=$E2E_RESULT
-          --job workflow-quality=$WORKFLOW_RESULT
-          --job quality-baseline=$QUALITY_RESULT
-          --job container-scan=$CONTAINER_RESULT
+          --job "frontend-quality=$FRONTEND_RESULT"
+          --job "backend-quality=$BACKEND_RESULT"
+          --job "auth-e2e=$E2E_RESULT"
+          --job "workflow-quality=$WORKFLOW_RESULT"
+          --job "quality-baseline=$QUALITY_RESULT"
+          --job "container-scan=$CONTAINER_RESULT"
 
   container-scan:
     name: Scan ${{ matrix.component }} on ${{ matrix.platform }}
