@@ -10,6 +10,9 @@ Group=ubuntu
 SupplementaryGroups=docker
 WorkingDirectory=/opt/labon
 Environment=LABON_DEPLOY_DIR=/opt/labon
+Environment=DOCKER_CONFIG=/var/lib/labon-docker
+StateDirectory=labon-docker
+StateDirectoryMode=0700
 ExecStart=/opt/labon/infra/oci/scripts/update-from-github.sh
 UMask=0077
 NoNewPrivileges=true
