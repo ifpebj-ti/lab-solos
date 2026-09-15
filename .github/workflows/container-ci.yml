@@ -56,7 +56,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "8.0.419"
 
       - name: Restore backend solution
         run: dotnet restore backend/backend.sln
@@ -100,6 +100,17 @@ jobs:
         working-directory: frontend
         run: npx --no-install playwright install --with-deps chromium
 
+      - name: Set up Docker
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        with:
+          version: "29.7.2"
+          set-host: true
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        with:
+          version: "v5.3.1"
+
       - name: Start synthetic E2E stack
         run: docker compose -f docker-compose-e2e.yml up -d --build --wait
 
@@ -131,10 +142,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Install test dependency
         run: python -m pip install PyYAML==6.0.3
+
+      - name: Set up Node.js for contract fixtures
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20.20.2"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up .NET for contract fixtures
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "8.0.419"
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: frontend
+        run: npm ci
+
+      - name: Prepare temporary test workspace
+        run: mkdir --parents .tmp
 
       - name: Run workflow contract tests
         run: python -m unittest discover -s .github/scripts/tests -p "test_*.py" -v
@@ -171,6 +201,17 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: "8.0.419"
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        with:
+          version: "29.7.2"
+          set-host: true
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        with:
+          version: "v5.3.1"
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
