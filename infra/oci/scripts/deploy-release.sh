@@ -83,6 +83,9 @@ if [[ -f "$state_file" ]]; then
   previous_version="$(tr -d '\r\n' < "$state_file")"
 fi
 
+docker compose version >/dev/null || fail "Docker Compose indisponível; verifique DOCKER_CONFIG e as permissões do serviço"
+compose config --quiet || fail "Configuração de produção inválida"
+
 log "Validando imagens da release ${target_version}"
 docker manifest inspect "${frontend_image}:${target_version}" >/dev/null
 docker manifest inspect "${backend_image}:${target_version}" >/dev/null

@@ -41,9 +41,8 @@ JWT_ISSUER=labon
 JWT_AUDIENCE=labon-web
 JWT_EXPIRES_IN_MINUTES=60
 ALLOWED_HOSTS=labon.nmvr.me
-PRODUCTION_ADMIN_NAME=Administrador LabOn
-PRODUCTION_ADMIN_EMAIL=admin@nmvr.me
-PRODUCTION_ADMIN_PASSWORD=${admin_password}
+SEED_ADMIN_EMAIL=admin@nmvr.me
+SEED_ADMIN_PASSWORD=${admin_password}
 ENV
 
   cat > admin-credentials.txt <<CREDS
