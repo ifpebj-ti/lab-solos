@@ -108,4 +108,75 @@ describe('Login', () => {
     });
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
+
+  it('envia credenciais validas normalizadas e confirma o acesso', async () => {
+    mocks.authenticate.mockResolvedValue({ status: 200 } as never);
+
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'USER@EXAMPLE.ORG' },
+    });
+    fireEvent.change(screen.getByLabelText('Senha'), {
+      target: { value: 'senha-segura' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submeter Login' }));
+
+    await waitFor(() => {
+      expect(mocks.authenticate).toHaveBeenCalledWith(
+        {
+          method: 'POST',
+          params: {
+            email: 'user@example.org',
+            password: 'senha-segura',
+          },
+        },
+        expect.any(Function)
+      );
+      expect(mocks.toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.stringContaining('Acesso autorizado'),
+        })
+      );
+    });
+  });
+
+  it('impede submissao duplicada enquanto a autenticacao esta pendente', async () => {
+    let resolveLogin: (value: { status: number }) => void = () => undefined;
+    const pendingLogin = new Promise<{ status: number }>((resolve) => {
+      resolveLogin = resolve;
+    });
+    mocks.authenticate.mockReturnValue(pendingLogin);
+
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'user@example.org' },
+    });
+    fireEvent.change(screen.getByLabelText('Senha'), {
+      target: { value: 'senha-segura' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submeter Login' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Carregando...' })
+      ).toBeDisabled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Carregando...' }));
+    expect(mocks.authenticate).toHaveBeenCalledOnce();
+
+    resolveLogin({ status: 200 });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeEnabled();
+    });
+  });
 });

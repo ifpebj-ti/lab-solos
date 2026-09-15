@@ -93,6 +93,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
       body: JSON.stringify({
         id: 13013,
         dataRealizacao: '2026-09-07T10:00:00',
+        dataPrevistaDevolucao: null,
         dataDevolucao: '2026-09-08T10:00:00',
         dataAprovacao: null,
         status: 'Aprovado',

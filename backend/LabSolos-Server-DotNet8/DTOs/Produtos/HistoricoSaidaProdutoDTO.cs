@@ -4,6 +4,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
     {
         public int EmprestimoId { get; set; }
         public DateTime DataEmprestimo { get; set; }
+        public DateTime? DataPrevistaDevolucao { get; set; }
         public DateTime? DataDevolucao { get; set; }
         public int QuantidadeEmprestada { get; set; }
         public string StatusEmprestimo { get; set; } = string.Empty;

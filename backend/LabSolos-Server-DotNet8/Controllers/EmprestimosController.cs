@@ -23,12 +23,18 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly INotificacaoService _notificacaoService;
+        private readonly TimeProvider _timeProvider;
 
-        public EmprestimosController(IUnitOfWork uow, IMapper mapper, INotificacaoService notificacaoService)
+        public EmprestimosController(
+            IUnitOfWork uow,
+            IMapper mapper,
+            INotificacaoService notificacaoService,
+            TimeProvider timeProvider)
         {
             _uow = uow;
             _mapper = mapper;
             _notificacaoService = notificacaoService;
+            _timeProvider = timeProvider;
         }
 
         [HttpGet("usuario/{userId}")]
@@ -173,7 +179,9 @@ namespace LabSolos_Server_DotNet8.Controllers
             var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
 
             emprestimo.SolicitanteId = userId;
-            emprestimo.DataDevolucao = DateTime.UtcNow.AddDays(emprestimoDto.DiasParaDevolucao);
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            emprestimo.DataPrevistaDevolucao = now.AddDays(emprestimoDto.DiasParaDevolucao);
+            emprestimo.DataDevolucao = null;
 
             var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
             await _uow.CommitAsync();
@@ -271,7 +279,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 produto.Quantidade -= item.Quantidade;
 
-                if (!(produto.DataValidade < DateTime.UtcNow.Date))
+                if (!(produto.DataValidade < _timeProvider.GetUtcNow().UtcDateTime.Date))
                 {
                     if (produto.Quantidade > 0)
                     {
@@ -293,7 +301,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             // Atualizar o status do empréstimo para aprovado
             emprestimo.Status = StatusEmprestimo.Aprovado;
-            emprestimo.DataAprovacao = DateTime.UtcNow;
+            emprestimo.DataAprovacao = _timeProvider.GetUtcNow().UtcDateTime;
             emprestimo.AprovadorId = userId;
 
             // Salvar as mudanças no banco de dados
@@ -351,8 +359,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Solicitante do empréstimo não encontrado.");
             }
 
-            // Atualizar o status do empréstimo para aprovado
+            // Atualizar o status do empréstimo para rejeitado
             emprestimo.Status = StatusEmprestimo.Rejeitado;
+            emprestimo.AprovadorId = userId;
 
             // Salvar as mudanças no banco de dados
             _uow.EmprestimoRepository.Atualizar(emprestimo);
@@ -426,7 +435,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 produto.Quantidade += item.Quantidade;
 
                 // Atualizar status do produto baseado na disponibilidade e validade
-                if (produto.DataValidade < DateTime.UtcNow.Date)
+                if (produto.DataValidade < _timeProvider.GetUtcNow().UtcDateTime.Date)
                 {
                     produto.Status = StatusProduto.Vencido;
                 }
@@ -439,7 +448,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             // Atualizar a data de devolução para agora
-            emprestimo.DataDevolucao = DateTime.UtcNow;
+            emprestimo.DataDevolucao = _timeProvider.GetUtcNow().UtcDateTime;
 
             // Salvar as mudanças no banco de dados
             _uow.EmprestimoRepository.Atualizar(emprestimo);

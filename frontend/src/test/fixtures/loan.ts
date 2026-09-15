@@ -37,6 +37,7 @@ export const loanProductFixture = {
 export const loanFixture = {
   id: 42,
   dataRealizacao: '2026-09-01T10:00:00Z',
+  dataPrevistaDevolucao: '2026-09-15T10:00:00Z',
   dataDevolucao: null,
   dataAprovacao: null,
   status: 'Pendente',

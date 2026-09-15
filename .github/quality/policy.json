@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "fingerprint": {
+    "algorithm": "sha256",
+    "version": 1
+  },
+  "rules": {
+    "eslint/no-unused-vars": {
+      "category": "manutenibilidade",
+      "severity": "baixa"
+    },
+    "eslint/complexity": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "eslint/max-depth": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "ASP0015": {
+      "category": "confiabilidade",
+      "severity": "media"
+    },
+    "ASP0025": {
+      "category": "confiabilidade",
+      "severity": "media"
+    },
+    "CA1051": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1304": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1305": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1311": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1707": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1711": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1805": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1816": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1822": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1829": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1848": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1859": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1860": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1861": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1862": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1869": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA2254": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "SYSLIB1045": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CA1502": {
+      "category": "manutenibilidade",
+      "severity": "media"
+    },
+    "CS8604": {
+      "category": "confiabilidade",
+      "severity": "media"
+    }
+  },
+  "modules": [
+    {
+      "name": "automacao",
+      "prefixes": [".github/", "frontend/e2e/"]
+    },
+    {
+      "name": "backend-testes",
+      "prefixes": ["backend/Tests/"]
+    },
+    {
+      "name": "backend-autenticacao",
+      "prefixes": [
+        "backend/src/Auth/",
+        "backend/src/Controllers/Auth/",
+        "backend/LabSolos-Server-DotNet8/Services/Security/",
+        "backend/LabSolos-Server-DotNet8/Controllers/AuthController.cs"
+      ]
+    },
+    {
+      "name": "backend-usuarios-aprovacao",
+      "prefixes": [
+        "backend/src/Users/",
+        "backend/src/Controllers/Users/",
+        "backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs",
+        "backend/LabSolos-Server-DotNet8/Services/UsuarioService.cs"
+      ]
+    },
+    {
+      "name": "backend-emprestimos-estoque",
+      "prefixes": [
+        "backend/src/Loans/",
+        "backend/src/Controllers/Loans/",
+        "backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs",
+        "backend/LabSolos-Server-DotNet8/Services/ProdutoService.cs"
+      ]
+    },
+    {
+      "name": "backend-compartilhado",
+      "prefixes": ["backend/"]
+    },
+    {
+      "name": "frontend-testes",
+      "prefixes": ["frontend/src/test/", "frontend/src/__tests__/"]
+    },
+    {
+      "name": "frontend-autenticacao",
+      "prefixes": [
+        "frontend/src/pages/Login",
+        "frontend/src/pages/ChangePassword",
+        "frontend/src/pages/ResetPassword"
+      ]
+    },
+    {
+      "name": "frontend-cadastro-aprovacao",
+      "prefixes": ["frontend/src/pages/CreateAccount", "frontend/src/pages/RegistrationRequests"]
+    },
+    {
+      "name": "frontend-emprestimos",
+      "prefixes": ["frontend/src/pages/LoansRequest", "frontend/src/contracts/loan"]
+    },
+    {
+      "name": "frontend-compartilhado",
+      "prefixes": ["frontend/src/"]
+    }
+  ],
+  "exclusions": [
+    "**/node_modules/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/dist/**",
+    "**/.tmp/**"
+  ]
+}

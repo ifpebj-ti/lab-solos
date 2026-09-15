@@ -1,0 +1,14 @@
+[
+  {
+    "filePath": "C:\\repo\\frontend\\src\\auth\\login.ts",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 1,
+        "message": "unused value",
+        "line": 99,
+        "source": "const second = readToken();"
+      }
+    ]
+  }
+]

@@ -1,0 +1,514 @@
+# Inventário de qualidade
+
+- Revisão: `a58cc224c2e6a327434674a0de0585adc62219a2`
+- Working tree alterado: `sim`
+- Gerado em: `2026-09-15T16:25:06.952335Z`
+- Achados: **238** (alta: 4, média: 233, baixa: 1)
+
+## Produtores
+
+| Produtor | Projeto | Estado | Achados | Relatório |
+|---|---|---|---:|---|
+| dotnet:E2ESeed | E2ESeed | success | 0 | `.tmp/quality/T031/current-attempt-c3h24vbk/backend/obj/E2ESeed/release/quality/E2ESeed.sarif` |
+| dotnet:LabSolos-Server-DotNet8 | LabSolos-Server-DotNet8 | success | 137 | `.tmp/quality/T031/current-attempt-c3h24vbk/backend/obj/LabSolos-Server-DotNet8/release/quality/LabSolos-Server-DotNet8.sarif` |
+| dotnet:Tests | Tests | success | 84 | `.tmp/quality/T031/current-attempt-c3h24vbk/backend/obj/Tests/release/quality/Tests.sarif` |
+| eslint | — | success | 11 | `.tmp/quality/T031/current-attempt-c3h24vbk/frontend/eslint.json` |
+
+## Achados por módulo
+
+### automacao
+
+- **alta** `QC-005` (corrigido) — `frontend/e2e/infra` — Jornadas E2E devem isolar credenciais, Mailpit, retries e estado entre cenários.
+  - Evidência: `{"candidate": "QC-005", "ownerRole": "responsável pela automação", "resolution": {"evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T024.md", "task": "T024", "verification": "Playwright real: credenciais 4/4 e suíte real 7/7; UI 197/197; conta, Mailpit, workers e retries isolados por cenário."}, "scenario": "isolamento E2E", "status": "corrigido"}`
+- **media** `complexity` (aberto) — `frontend/e2e/responsive-support.ts:165` — Arrow function has a complexity of 25. Maximum allowed is 20.
+  - Evidência: `{"column": 56, "endColumn": 58, "endLine": 165, "source": "eslint"}`
+
+### backend-autenticacao
+
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/Security/CredentialTelemetry.cs:19` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/Security/CredentialTelemetry.cs:31` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/Security/CredentialTelemetry.cs:42` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `ASP0025` (aberto) — `backend/LabSolos-Server-DotNet8/Services/Security/SecurityServiceCollectionExtensions.cs:26` — Use AddAuthorizationBuilder to register authorization services and construct policies
+  - Evidência: `{"level": "note", "source": "sarif"}`
+
+### backend-compartilhado
+
+- **media** `CA1707` (aberto) — `backend/LabSolos-Server-DotNet8/BackgroundServices/EmprestimosVencidosBackgroundService.cs:3` — Remova os sublinhados do nome do namespace 'LabSolos_Server_DotNet8'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/BackgroundServices/EmprestimosVencidosBackgroundService.cs:21` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/BackgroundServices/EmprestimosVencidosBackgroundService.cs:30` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/BackgroundServices/EmprestimosVencidosBackgroundService.cs:32` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/BackgroundServices/EmprestimosVencidosBackgroundService.cs:36` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/AuditoriaController.cs:29` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaController.RegistrarLog(CreateLogAuditoriaDTO)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `ASP0015` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/AuditoriaController.cs:32` — The header 'User-Agent' can be accessed using the UserAgent property
+  - Evidência: `{"level": "note", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/EmailController.cs:92` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:40` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:61` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:77` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:100` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:123` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:139` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/NotificacoesController.cs:155` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:42` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:50` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:183` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:191` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:195` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:203` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:212` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:216` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:225` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:237` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:250` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/ProdutosController.cs:286` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1805` (aberto) — `backend/LabSolos-Server-DotNet8/DTOs/Notificacoes/CreateNotificacaoDTO.cs:11` — O membro 'EhGlobal' foi inicializado explicitamente para o valor padrão
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1861` (aberto) — `backend/LabSolos-Server-DotNet8/Data/Migrations/20260830172637_InitialSchemaBaseline.cs:243` — Prefira campos 'static readonly' em vez de argumentos de matriz constante se o método chamado for chamado repetidamente e não estiver modificando a matriz passada
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1860` (aberto) — `backend/LabSolos-Server-DotNet8/Data/Seeds/SeedNotificacoes.cs:13` — Prefira comparar 'Count' com 0 em vez de usar 'Any()', tanto para clareza quanto para desempenho
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Filters/ApiExceptionFilter.cs:16` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Filters/ApiLoggingFilter.cs:12` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Filters/ApiLoggingFilter.cs:23` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Filters/ApiLoggingFilter.cs:32` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/LoteMappingProfile.cs:17` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'LoteMappingProfile.LoteMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/LoteMappingProfile.cs:21` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'LoteMappingProfile.LoteMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `QC-004` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:48` — Valores ausentes ou malformados no mapeamento de produtos precisam de contrato explícito.
+  - Evidência: `{"candidate": "QC-004", "ownerRole": "responsável pelo backend", "scenario": "mapeamento de produtos", "status": "candidato não reproduzido"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:77` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:79` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:91` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:93` — O comportamento de 'DateTime.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:100` — O comportamento de 'DateTime.ToString(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.ToString(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs:105` — O comportamento de 'DateTime.ToString(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'ProdutoMappingProfile.ProdutoMappingProfile()' por uma chamada para 'DateTime.ToString(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1822` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:36` — O membro 'CapturarDadosRequisicaoAsync' não acessa os dados da instância e pode ser marcado como estático
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:46` — O comportamento de 'string.ToLower()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.CapturarDadosRequisicaoAsync(HttpContext)' por uma chamada para 'string.ToLower(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:46` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1862` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:46` — Prefira a sobrecarga do método de comparação de strings 'string.Contains(string)' que usa um valor enum 'StringComparison' para realizar uma comparação que não diferencia maiúsculas de minúsculas, mas lembre-se de que isso pode causar mudanças sutis no comportamento, portanto, certifique-se de realizar testes completos após aplicar a sugestão, ou se a comparação culturalmente sensível não for necessária, considere usar 'StringComparison.OrdinalIgnoreCase'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — O comportamento de 'string.ToLower()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.CapturarDadosRequisicaoAsync(HttpContext)' por uma chamada para 'string.ToLower(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — O comportamento de 'string.ToLower()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.CapturarDadosRequisicaoAsync(HttpContext)' por uma chamada para 'string.ToLower(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1862` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — Prefira a sobrecarga do método de comparação de strings 'string.Contains(string)' que usa um valor enum 'StringComparison' para realizar uma comparação que não diferencia maiúsculas de minúsculas, mas lembre-se de que isso pode causar mudanças sutis no comportamento, portanto, certifique-se de realizar testes completos após aplicar a sugestão, ou se a comparação culturalmente sensível não for necessária, considere usar 'StringComparison.OrdinalIgnoreCase'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1862` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:67` — Prefira a sobrecarga do método de comparação de strings 'string.Contains(string)' que usa um valor enum 'StringComparison' para realizar uma comparação que não diferencia maiúsculas de minúsculas, mas lembre-se de que isso pode causar mudanças sutis no comportamento, portanto, certifique-se de realizar testes completos após aplicar a sugestão, ou se a comparação culturalmente sensível não for necessária, considere usar 'StringComparison.OrdinalIgnoreCase'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:110` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.RegistrarLogAuditoriaAsync(HttpContext, string, DateTime)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:120` — O comportamento de 'int.ToString()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.RegistrarLogAuditoriaAsync(HttpContext, string, DateTime)' por uma chamada para 'int.ToString(IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `ASP0015` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:126` — The header 'User-Agent' can be accessed using the UserAgent property
+  - Evidência: `{"level": "note", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:139` — O comportamento de 'string.ToLower()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.DeterminarTipoAcao(HttpRequest)' por uma chamada para 'string.ToLower(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:139` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:140` — O comportamento de 'string.ToUpper()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.DeterminarTipoAcao(HttpRequest)' por uma chamada para 'string.ToUpper(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:140` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:196` — O comportamento de 'string.ToLower()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.DeterminarNivelRisco(HttpRequest, HttpResponse)' por uma chamada para 'string.ToLower(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:196` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1304` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:197` — O comportamento de 'string.ToUpper()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'AuditoriaMiddleware.DeterminarNivelRisco(HttpRequest, HttpResponse)' por uma chamada para 'string.ToUpper(CultureInfo)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1311` (aberto) — `backend/LabSolos-Server-DotNet8/Middlewares/AuditoriaMiddleware.cs:197` — Especifique uma cultura ou use uma versão invariável para evitar a dependência implícita da cultura atual
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1805` (aberto) — `backend/LabSolos-Server-DotNet8/Models/LogAuditoria.cs:38` — O membro 'Suspeita' foi inicializado explicitamente para o valor padrão
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1805` (aberto) — `backend/LabSolos-Server-DotNet8/Models/Notificacao.cs:13` — O membro 'Lida' foi inicializado explicitamente para o valor padrão
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1051` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/LoteRepository.cs:16` — Não declarar campos de instância visíveis
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/LoteRepository.cs:20` — O comportamento de 'int.ToString()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'LoteRepository.GetLoteByCodigoAsync(int)' por uma chamada para 'int.ToString(IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:31` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:33` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:39` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:43` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:56` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:61` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:65` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:73` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:131` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:136` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:141` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:144` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:154` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:160` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/ProdutoRepository.cs:164` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1051` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/Repository.cs:27` — Não declarar campos de instância visíveis
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1816` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UnitOfWork.cs:148` — Altere UnitOfWork.Dispose() para chamar GC.SuppressFinalize(object). Isso impedirá que tipos derivados que introduzem um finalizador precisem reimplementar 'IDisposable' para chamá-lo.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:46` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:48` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:54` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:62` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:66` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:74` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:121` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:126` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:131` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:134` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:139` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:145` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Repositories/UsuarioRepository.cs:149` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Services/JwtService.cs:15` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'JwtService._expiresInMinutes' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:104` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:115` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:123` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:132` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:139` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:156` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1860` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:160` — Prefira comparar 'Count' com 0 em vez de usar 'Any()', tanto para clareza quanto para desempenho
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:165` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1822` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:185` — O membro 'FiltrarNotificacoesPorNivelUsuario' não acessa os dados da instância e pode ser marcado como estático
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:300` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA2254` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:300` — O modelo de mensagem de log não deve variar entre as chamadas para 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:327` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA2254` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:327` — O modelo de mensagem de log não deve variar entre as chamadas para 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:388` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:392` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:419` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA2254` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:419` — O modelo de mensagem de log não deve variar entre as chamadas para 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:423` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:472` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA2254` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:472` — O modelo de mensagem de log não deve variar entre as chamadas para 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:476` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA2254` (aberto) — `backend/LabSolos-Server-DotNet8/Services/NotificacaoService.cs:476` — O modelo de mensagem de log não deve variar entre as chamadas para 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+
+### backend-emprestimos-estoque
+
+- **alta** `QC-001` (corrigido) — `backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs:1` — Sequência criar, aprovar e devolver precisa de contrato explícito para DataDevolucao.
+  - Evidência: `{"candidate": "QC-001", "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T016.md", "ownerRole": "responsável pelo domínio de empréstimos", "resolution": {"evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T031.md", "task": "T031", "verification": "LoanReturnCharacterizationTests e LoanReturnMigrationTests: 4 aprovados; segunda devolução retorna 400 sem novo efeito."}, "scenario": "CT-009", "status": "corrigido", "verification": "T031: criar, aprovar e devolver por HTTP/PostgreSQL retornou 204; prazo preservado, efetivação única e estoque reposto de 8 para 10."}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs:170` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'EmprestimosController.Adicionar(AddEmprestimoDTO)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs:241` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'EmprestimosController.AprovarEmprestimo(int)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs:333` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'EmprestimosController.ReprovarEmprestimo(int)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs:392` — O comportamento de 'int.Parse(string)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'EmprestimosController.DevolverEmprestimo(int)' por uma chamada para 'int.Parse(string, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/ProdutoService.cs:75` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1829` (aberto) — `backend/LabSolos-Server-DotNet8/Services/ProdutoService.cs:123` — Use a propriedade "Count" em vez de Enumerable.Count()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/ProdutoService.cs:131` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogError(ILogger, Exception?, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1822` (aberto) — `backend/LabSolos-Server-DotNet8/Services/ProdutoService.cs:136` — O membro 'ObterIdentificadorUsuario' não acessa os dados da instância e pode ser marcado como estático
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+
+### backend-testes
+
+- **media** `CA1707` (aberto) — `backend/Tests/Contracts/UsuarioDataContractTests.cs:31` — Remova os sublinhados do nome do membro Tests.Contracts.UsuarioDataContractTests.DataIngresso_IsOptionalCivilDateAcrossUserContracts(System.Type)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Contracts/UsuarioDataContractTests.cs:45` — Remova os sublinhados do nome do membro Tests.Contracts.UsuarioDataContractTests.DataIngresso_SerializesAsIsoCivilDateOrNull(System.Type)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Contracts/UsuarioDataContractTests.cs:64` — Remova os sublinhados do nome do membro Tests.Contracts.UsuarioDataContractTests.UsuarioMappings_PreserveCivilDateNullabilityAndEnumNames()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Contracts/UsuarioDataContractTests.cs:105` — Remova os sublinhados do nome do membro Tests.Contracts.UsuarioDataContractTests.UsuariosController_ReceivesApplicationTimeProvider()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Contracts/UsuarioDataContractTests.cs:149` — Remova os sublinhados do nome do membro Tests.Contracts.UsuarioDataContractTests.OpenApi_DescribesDataIngressoAsNullableDateString(System.Type)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:19` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePasswordDto_DoesNotAcceptClientProvidedIdentity()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:29` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePassword_DerivesUserIdFromAuthenticatedSubjectAndReturnsNoContent()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:56` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePassword_ValidationFailure_ReturnsStableProblemDetails(string, string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:85` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePassword_ConcurrencyFailure_ReturnsConflictProblemDetails()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:106` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePassword_MissingOrMalformedSubject_ReturnsUnauthorizedWithoutCallingService()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthChangePasswordTests.cs:117` — Remova os sublinhados do nome do membro Tests.Controllers.AuthChangePasswordTests.ChangePassword_RequiresDedicatedAuthorizationPolicy()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthLoginContractTests.cs:21` — Remova os sublinhados do nome do membro Tests.Controllers.AuthLoginContractTests.Login_UnavailableAccount_UsesSameGenericUnauthorizedResponse(LabSolos_Server_DotNet8.Enums.StatusUsuario)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/AuthLoginContractTests.cs:33` — Remova os sublinhados do nome do membro Tests.Controllers.AuthLoginContractTests.Login_ValidAccount_ReturnsFlagAndVersionedClaims()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:17` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.SecurePasswordRecovery_ExposesNewPublicEndpointsAndRemovesJwtPasswordHashing()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:40` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.RequestPasswordReset_AlwaysReturnsTheSameAcceptedResponseWithoutSecrets()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:79` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.RequestPasswordReset_SmtpFailureRemainsExternallyNeutral()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:105` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.ResetPassword_InvalidTokenReturnsGenericProblemWithoutEchoingCredentials()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:141` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.ResetPassword_BindsCodeInTheNewContractAndLegacyAliasDelegatesToTheSameService()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1869` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:155` — Evite criar uma nova instância 'JsonSerializerOptions' para cada operação de serialização. Em vez disso, armazene em cache e reutilize instâncias.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/PasswordRecoveryTests.cs:198` — Remova os sublinhados do nome do membro Tests.Controllers.PasswordRecoveryTests.PasswordResetDto_ContainsOnlyThePublicResetContract()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UserCreationPasswordPolicyTests.cs:31` — Remova os sublinhados do nome do membro Tests.Controllers.UserCreationPasswordPolicyTests.UserCreationResponseDto_DoesNotExposePasswordOrHash()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UserCreationPasswordPolicyTests.cs:44` — Remova os sublinhados do nome do membro Tests.Controllers.UserCreationPasswordPolicyTests.PrepararSenhaCadastro_DoesNotWriteRejectedPasswordToLogs()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UserCreationPasswordPolicyTests.cs:64` — Remova os sublinhados do nome do membro Tests.Controllers.UserCreationPasswordPolicyTests.PrepararSenhaCadastro_UsesSharedPolicyAndHashesOnlyAcceptedPasswords(string, bool, string?)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UserCreationPasswordPolicyTests.cs:96` — Remova os sublinhados do nome do membro Tests.Controllers.UserCreationPasswordPolicyTests.Adicionar_RejectsPasswordBelowSharedMinimumWithoutPersistingOrEchoingSecret()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UserCreationPasswordPolicyTests.cs:113` — Remova os sublinhados do nome do membro Tests.Controllers.UserCreationPasswordPolicyTests.Adicionar_AcceptedPasswordPreservesCreatedFlowAndOmitsCredentialsFromResponse()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UsuarioRegistrationValidationTests.cs:21` — Remova os sublinhados do nome do membro Tests.Controllers.UsuarioRegistrationValidationTests.Adicionar_InvalidAcademicFields_ReturnsFieldValidationProblemWithoutEchoingValues()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Controllers/UsuarioRegistrationValidationTests.cs:49` — Remova os sublinhados do nome do membro Tests.Controllers.UsuarioRegistrationValidationTests.Adicionar_ValidAcademicFields_AreNormalizedBeforeMappingAndPersistence()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/CredentialLifecycleMigrationTests.cs:15` — Remova os sublinhados do nome do membro Tests.Data.CredentialLifecycleMigrationTests.Model_and_migration_history_describe_the_credential_lifecycle()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/CredentialLifecycleMigrationTests.cs:40` — Remova os sublinhados do nome do membro Tests.Data.CredentialLifecycleMigrationTests.New_database_reaches_the_complete_schema_through_migrate()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/CredentialLifecycleMigrationTests.cs:59` — Remova os sublinhados do nome do membro Tests.Data.CredentialLifecycleMigrationTests.Baselined_legacy_schema_is_upgraded_without_losing_users_and_invalidates_tokens()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/Tests/Data/CredentialLifecycleMigrationTests.cs:142` — O comportamento de 'Convert.ToInt32(object)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'CredentialLifecycleMigrationTests.CountAppliedMigrationsAsync()' por uma chamada para 'Convert.ToInt32(object, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/DatabaseProviderCompatibilityTests.cs:9` — Remova os sublinhados do nome do membro Tests.Data.DatabaseProviderCompatibilityTests.AppDbContext_DeveSelecionarProvedorNpgsql()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/UserDataMigrationTests.cs:15` — Remova os sublinhados do nome do membro Tests.Data.UserDataMigrationTests.Model_and_history_describe_civil_admission_date()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/UserDataMigrationTests.cs:32` — Remova os sublinhados do nome do membro Tests.Data.UserDataMigrationTests.New_database_reaches_nullable_date_idempotently()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Data/UserDataMigrationTests.cs:45` — Remova os sublinhados do nome do membro Tests.Data.UserDataMigrationTests.Upgrade_uses_utc_date_and_preserves_null_and_legacy_city()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/Tests/Data/UserDataMigrationTests.cs:119` — O comportamento de 'Convert.ToInt32(object)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'UserDataMigrationTests.CountAppliedMigrationsAsync()' por uma chamada para 'Convert.ToInt32(object, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Infrastructure/PostgreSqlApplicationSmokeTests.cs:14` — Remova os sublinhados do nome do membro Tests.Infrastructure.PostgreSqlApplicationSmokeTests.Application_uses_disposable_postgresql_and_answers_health_check()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Infrastructure/PostgreSqlApplicationSmokeTests.cs:43` — Remova os sublinhados do nome do membro Tests.Infrastructure.PostgreSqlApplicationSmokeTests.Fixture_recreates_an_empty_database_between_cases()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/Tests/Infrastructure/PostgreSqlContainerFixture.cs:35` — O comportamento de 'Convert.ToInt32(object)' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'PostgreSqlContainerFixture.CountPublicTablesAsync()' por uma chamada para 'Convert.ToInt32(object, IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1711` (aberto) — `backend/Tests/Infrastructure/PostgreSqlContainerFixture.cs:42` — Renomeie o nome de tipo PostgreSqlIntegrationCollection para que ele não termine em 'Collection'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/JwtSessionVersionTests.cs:20` — Remova os sublinhados do nome do membro Tests.Integration.JwtSessionVersionTests.TokensIssuedBeforeVersionIncrement_AreRejectedAfterIncrement()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/JwtSessionVersionTests.cs:43` — Remova os sublinhados do nome do membro Tests.Integration.JwtSessionVersionTests.InvalidSessionIdentity_IsRejected(string?, string?, int, LabSolos_Server_DotNet8.Enums.StatusUsuario)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1305` (aberto) — `backend/Tests/Integration/JwtSessionVersionTests.cs:97` — O comportamento de 'int.ToString()' pode variar dependendo das configurações de localidade do usuário atual. Substitua esta chamada em 'JwtSessionVersionTests.CreateToken(int, string, string, [NivelUsuario])' por uma chamada para 'int.ToString(IFormatProvider)'.
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/PostAuthenticationNavigationTests.cs:17` — Remova os sublinhados do nome do membro Tests.Integration.PostAuthenticationNavigationTests.GlobalLoans_AreRestrictedToAdministrators_AndEmptyListIsSuccessful()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/PostAuthenticationNavigationTests.cs:43` — Remova os sublinhados do nome do membro Tests.Integration.PostAuthenticationNavigationTests.UserLoans_ExistingUserWithoutLoansReturnsEmpty_AndMissingUserRemainsNotFound()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/PostAuthenticationNavigationTests.cs:59` — Remova os sublinhados do nome do membro Tests.Integration.PostAuthenticationNavigationTests.DependentLoans_ExistingResponsibleWithoutLoansReturnsEmpty_AndMissingUserRemainsNotFound(bool)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/PostAuthenticationNavigationTests.cs:78` — Remova os sublinhados do nome do membro Tests.Integration.PostAuthenticationNavigationTests.LoanDetails_AdministratorCanReadNullableProductRelations()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/RequiredPasswordChangeAuthorizationTests.cs:18` — Remova os sublinhados do nome do membro Tests.Integration.RequiredPasswordChangeAuthorizationTests.PendingPasswordChange_IsForbiddenFromPrivateApi_ButCanChangePasswordAndLoginAgain()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/SecureSeedStartupTests.cs:19` — Remova os sublinhados do nome do membro Tests.Integration.SecureSeedStartupTests.Empty_production_database_without_seed_configuration_aborts_before_health_check()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/SecureSeedStartupTests.cs:35` — Remova os sublinhados do nome do membro Tests.Integration.SecureSeedStartupTests.Empty_production_database_with_invalid_seed_configuration_aborts(string, string?, string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/SecureSeedStartupTests.cs:56` — Remova os sublinhados do nome do membro Tests.Integration.SecureSeedStartupTests.Valid_configuration_creates_exactly_one_initial_admin(string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/SecureSeedStartupTests.cs:80` — Remova os sublinhados do nome do membro Tests.Integration.SecureSeedStartupTests.Populated_database_does_not_require_seed_configuration_or_change_credentials()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Integration/SecureSeedStartupTests.cs:104` — Remova os sublinhados do nome do membro Tests.Integration.SecureSeedStartupTests.Unrelated_data_does_not_make_an_empty_user_database_skip_seed_validation()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Mappings/MappingConfigurationTests.cs:10` — Remova os sublinhados do nome do membro Tests.Mappings.MappingConfigurationTests.TodosOsPerfisDoAssembly_DevemTerConfiguracaoValida()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1822` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:17` — O membro 'ObterDbContextEmMemoria' não acessa os dados da instância e pode ser marcado como estático
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1822` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:26` — O membro 'ObterProdutoRepositoryComLogger' não acessa os dados da instância e pode ser marcado como estático
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:33` — Remova os sublinhados do nome do membro Tests.Repositories.ProdutoRepositoryTests.AdicionarAsync_DeveAdicionarProduto()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:62` — Remova os sublinhados do nome do membro Tests.Repositories.ProdutoRepositoryTests.ObterTodosAsync_DeveRetornarTodosOsProdutos()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:102` — Remova os sublinhados do nome do membro Tests.Repositories.ProdutoRepositoryTests.AtualizarAsync_DeveAtualizarProduto()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Repositories/ProdutoRepositoryTests.cs:134` — Remova os sublinhados do nome do membro Tests.Repositories.ProdutoRepositoryTests.DeletarAsync_DeveRemoverProduto()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:16` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_ValidRequest_UpdatesCredentialAndRevokesSessions()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:45` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_AcceptsEverySuccessfulIdentityVerification(Microsoft.AspNetCore.Identity.PasswordVerificationResult)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:65` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_WrongCurrentPassword_ReturnsStableCodeWithoutMutation()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:87` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_ConfirmationMismatch_ReturnsStableCodeBeforePasswordChecks()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:112` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_PolicyRejection_ReturnsPolicyCodeWithoutMutation()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:137` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.ChangePasswordAsync_ConcurrencyFailure_ReturnsConflictAndPersistsNothing()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/CredentialServiceTests.cs:163` — Remova os sublinhados do nome do membro Tests.Security.CredentialServiceTests.CredentialTelemetry_UsesClosedReasonVocabularyWithoutLoggingProvidedValue()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/IdentityCompatibilityTests.cs:10` — Remova os sublinhados do nome do membro Tests.Security.IdentityCompatibilityTests.DefinirSenha_DeveGerarHashCompativelComIdentityDoFramework()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/IdentityCompatibilityTests.cs:26` — Remova os sublinhados do nome do membro Tests.Security.IdentityCompatibilityTests.VerificarSenha_DeveAceitarSenhaCorretaERejeitarSenhaIncorreta()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordBlocklistTests.cs:9` — Remova os sublinhados do nome do membro Tests.Security.PasswordBlocklistTests.Load_fails_with_a_sanitized_error_when_resource_is_missing()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordBlocklistTests.cs:19` — Remova os sublinhados do nome do membro Tests.Security.PasswordBlocklistTests.Load_fails_when_resource_has_no_entries()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordBlocklistTests.cs:29` — Remova os sublinhados do nome do membro Tests.Security.PasswordBlocklistTests.AddPasswordSecurity_registers_the_single_password_policy()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordPolicyTests.cs:16` — Remova os sublinhados do nome do membro Tests.Security.PasswordPolicyTests.Validate_rejects_invalid_passwords_with_stable_codes(string?, string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordPolicyTests.cs:28` — Remova os sublinhados do nome do membro Tests.Security.PasswordPolicyTests.Validate_accepts_boundaries_unicode_and_passwords_without_composition_rules(string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordPolicyTests.cs:41` — Remova os sublinhados do nome do membro Tests.Security.PasswordPolicyTests.Validate_compares_blocklist_using_form_kc_and_ordinal_ignore_case(string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/PasswordPolicyTests.cs:52` — Remova os sublinhados do nome do membro Tests.Security.PasswordPolicyTests.Result_never_exposes_the_password()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/RecoveryTokenTests.cs:16` — Remova os sublinhados do nome do membro Tests.Security.RecoveryTokenTests.RequestPasswordResetAsync_GeneratesAndPersistsOnlyASha256Hash()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/RecoveryTokenTests.cs:45` — Remova os sublinhados do nome do membro Tests.Security.RecoveryTokenTests.ResetPasswordAsync_RequiresTheMatchingEmailAndRevokesAllSessions()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Security/RecoveryTokenTests.cs:87` — Remova os sublinhados do nome do membro Tests.Security.RecoveryTokenTests.ResetPasswordAsync_ExpiredOrConsumedToken_ReturnsTheSameGenericFailure()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Services/UsuarioServiceValidationTests.cs:31` — Remova os sublinhados do nome do membro Tests.Services.UsuarioServiceValidationTests.ValidarEstrutura_RejectsInvalidAcademicCity(string?)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Services/UsuarioServiceValidationTests.cs:43` — Remova os sublinhados do nome do membro Tests.Services.UsuarioServiceValidationTests.ValidarEstrutura_RejectsAcademicCourseOutsideLengthLimits(string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Services/UsuarioServiceValidationTests.cs:56` — Remova os sublinhados do nome do membro Tests.Services.UsuarioServiceValidationTests.ValidarEstrutura_AcceptsAndNormalizesAcademicCourseAtMinimumLength(string, string)
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Services/UsuarioServiceValidationTests.cs:70` — Remova os sublinhados do nome do membro Tests.Services.UsuarioServiceValidationTests.ValidarEstrutura_AcceptsAcademicCourseAtMaximumLengthAfterTrim()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1707` (aberto) — `backend/Tests/Services/UsuarioServiceValidationTests.cs:82` — Remova os sublinhados do nome do membro Tests.Services.UsuarioServiceValidationTests.ValidarEstrutura_DoesNotApplyAcademicCityAndCourseRulesToCommonUser()
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+
+### backend-usuarios-aprovacao
+
+- **alta** `QC-002` (corrigido) — `backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:1` — Aprovação de dependente deve vincular o decisor autenticado ao vínculo de responsabilidade.
+  - Evidência: `{"candidate": "QC-002", "ownerRole": "responsável por autorização", "resolution": {"evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T013.md", "task": "T013", "verification": "CriticalUserApprovalTests e UsuarioDataContractTests: 33 aprovados; identidade autenticada e vínculo persistido validados por HTTP/PostgreSQL."}, "scenario": "CT-003", "status": "corrigido"}`
+- **alta** `QC-003` (corrigido) — `backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:1` — Cadastro público de administrador deve ser recusado sem criar conta privilegiada.
+  - Evidência: `{"candidate": "QC-003", "ownerRole": "responsável por autenticação", "resolution": {"evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T012.md", "task": "T012", "verification": "CriticalRegistrationTests: 15 aprovados; recusa HTTP 403 sem exceção de middleware e sem persistência privilegiada."}, "scenario": "CT-002", "status": "corrigido"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:63` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:68` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogWarning(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs:235` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1051` (aberto) — `backend/LabSolos-Server-DotNet8/Services/UsuarioService.cs:30` — Não declarar campos de instância visíveis
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+- **media** `CA1848` (aberto) — `backend/LabSolos-Server-DotNet8/Services/UsuarioService.cs:81` — Para melhorar o desempenho, use os delegados LoggerMessage em vez de chamar 'LoggerExtensions.LogInformation(ILogger, string?, params object?[])'
+  - Evidência: `{"level": "warning", "source": "sarif"}`
+
+### frontend-compartilhado
+
+- **media** `complexity` (aberto) — `frontend/src/components/modals/ProductEditModal.tsx:133` — Async arrow function has a complexity of 35. Maximum allowed is 20.
+  - Evidência: `{"column": 51, "endColumn": 53, "endLine": 133, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/components/screens/VerificationPage.tsx:184` — Arrow function has a complexity of 28. Maximum allowed is 20.
+  - Evidência: `{"column": 44, "endColumn": 46, "endLine": 184, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/errors/migrationInventory.test.ts:45` — Arrow function has a complexity of 23. Maximum allowed is 20.
+  - Evidência: `{"column": 48, "endColumn": 50, "endLine": 45, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/ViewClass.tsx:37` — Function 'ViewClass' has a complexity of 24. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 19, "endLine": 37, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/ViewClassMentor.tsx:36` — Function 'ViewClassMentor' has a complexity of 23. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 25, "endLine": 36, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/admin/MentoringHistoryAdm.tsx:30` — Function 'MentoringHistoryAdm' has a complexity of 23. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 29, "endLine": 30, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/admin/ReturnLoan.tsx:54` — Function 'ReturnLoan' has a complexity of 40. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 20, "endLine": 54, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/loan/LoanHistory.tsx:67` — Function 'LoanHistoryMentee' has a complexity of 50. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 27, "endLine": 67, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/mentee/HistoryMentoring.tsx:29` — Function 'HistoryMentoring' has a complexity of 22. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 26, "endLine": 29, "source": "eslint"}`
+- **media** `complexity` (aberto) — `frontend/src/pages/mentor/MentoringHistory.tsx:30` — Function 'MentoringHistory' has a complexity of 22. Maximum allowed is 20.
+  - Evidência: `{"column": 1, "endColumn": 26, "endLine": 30, "source": "eslint"}`
+- **baixa** `QC-006` (aberto) — `frontend/src` — Impacto dos avisos de recurso e tamanho de pacote deve ser comprovado antes de priorização.
+  - Evidência: `{"candidate": "QC-006", "ownerRole": "responsável pelo frontend", "scenario": "recursos frontend", "status": "candidato não reproduzido"}`

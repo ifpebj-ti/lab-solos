@@ -67,6 +67,7 @@ export const produtoEmprestadoSchema = z.object({
 export const emprestimoSchema = z.object({
   id: z.number().int(),
   dataRealizacao: z.string(),
+  dataPrevistaDevolucao: z.string().nullable(),
   dataDevolucao: z.string().nullable(),
   dataAprovacao: z.string().nullable(),
   status: z.string(),

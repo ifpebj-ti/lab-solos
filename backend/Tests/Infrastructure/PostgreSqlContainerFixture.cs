@@ -5,7 +5,7 @@ namespace Tests.Infrastructure;
 
 public sealed class PostgreSqlContainerFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:16-alpine")
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685")
         .WithDatabase("labsolos_tests")
         .WithUsername("labsolos_test")
         .WithPassword("synthetic-postgres-password")

@@ -20,6 +20,8 @@ describe('contrato de empréstimo', () => {
         }),
       ],
       aprovador: null,
+      dataPrevistaDevolucao: '2026-09-15T10:00:00Z',
+      dataDevolucao: null,
     });
   });
 

@@ -1,0 +1,13 @@
+[
+  {
+    "filePath": "C:\\repo\\frontend\\src\\auth\\login.ts",
+    "messages": [
+      {
+        "ruleId": "quality/unknown-rule",
+        "severity": 1,
+        "message": "unknown rule",
+        "line": 10
+      }
+    ]
+  }
+]

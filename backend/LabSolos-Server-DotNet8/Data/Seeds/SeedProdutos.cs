@@ -12,7 +12,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             var emprestimo1 = new Emprestimo
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-10),
-                DataDevolucao = DateTime.UtcNow.AddDays(10),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(10),
+                DataDevolucao = null,
                 DataAprovacao = DateTime.UtcNow.AddDays(-9),
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 3,
@@ -22,7 +23,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             var emprestimo2 = new Emprestimo
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-5),
-                DataDevolucao = DateTime.UtcNow.AddDays(5),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(5),
+                DataDevolucao = null,
                 Status = StatusEmprestimo.Pendente,
                 SolicitanteId = 4
             };
@@ -30,7 +32,8 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             var emprestimo3 = new Emprestimo
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-2),
-                DataDevolucao = DateTime.UtcNow.AddDays(6),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(6),
+                DataDevolucao = null,
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 5,
                 AprovadorId = 1
@@ -41,6 +44,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-15),
                 DataAprovacao = DateTime.UtcNow.AddDays(-15),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(-8),
                 DataDevolucao = null, // Não foi devolvido
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 3,
@@ -51,6 +55,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-20),
                 DataAprovacao = DateTime.UtcNow.AddDays(-20),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(-13),
                 DataDevolucao = null, // Não foi devolvido
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 4,
@@ -61,6 +66,7 @@ namespace LabSolos_Server_DotNet8.Data.Seeds
             {
                 DataRealizacao = DateTime.UtcNow.AddDays(-12),
                 DataAprovacao = DateTime.UtcNow.AddDays(-12),
+                DataPrevistaDevolucao = DateTime.UtcNow.AddDays(-5),
                 DataDevolucao = null, // Não foi devolvido
                 Status = StatusEmprestimo.Aprovado,
                 SolicitanteId = 5,

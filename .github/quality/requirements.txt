@@ -1,0 +1,2 @@
+# Dependencies used by the Python quality workflow and contract tests.
+PyYAML==6.0.3

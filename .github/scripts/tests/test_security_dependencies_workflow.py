@@ -29,6 +29,8 @@ class SecurityDependenciesWorkflowTests(unittest.TestCase):
         self.assert_has("pull_request:")
         self.assert_has("workflow_dispatch:")
         self.assert_has("branches: [develop]")
+        self.assert_has("types: [opened, synchronize, reopened, edited, ready_for_review]")
+        self.assert_has("merge_group:")
         for path in (
             '"frontend/package.json"',
             '"frontend/package-lock.json"',
@@ -102,6 +104,13 @@ class SecurityDependenciesWorkflowTests(unittest.TestCase):
         self.assertIn("nuget-audit.json", self.text)
         self.assertIn("if: always()", self.text)
         self.assertRegex(self.text, r"(?i)critical.*high|high.*critical")
+
+    def test_every_third_party_action_is_pinned_to_a_full_sha(self):
+        references = re.findall(r"(?m)^\s+uses:\s+([^\s#]+)", self.text)
+        self.assertGreater(len(references), 0)
+        for reference in references:
+            with self.subTest(reference=reference):
+                self.assertRegex(reference, r"^[^@]+@[0-9a-f]{40}$")
 
 
 if __name__ == "__main__":

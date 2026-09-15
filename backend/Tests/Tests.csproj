@@ -24,5 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LabSolos-Server-DotNet8\LabSolos-Server-DotNet8.csproj" />
+    <ProjectReference Include="..\TestSupport\E2ESeed\E2ESeed.csproj" />
   </ItemGroup>
 </Project>
