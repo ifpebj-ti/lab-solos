@@ -35,12 +35,18 @@ namespace LabSolos_Server_DotNet8.Services
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly ILogger<NotificacaoService> _logger;
+        private readonly TimeProvider _timeProvider;
 
-        public NotificacaoService(IUnitOfWork uow, IMapper mapper, ILogger<NotificacaoService> logger)
+        public NotificacaoService(
+            IUnitOfWork uow,
+            IMapper mapper,
+            ILogger<NotificacaoService> logger,
+            TimeProvider timeProvider)
         {
             _uow = uow;
             _mapper = mapper;
             _logger = logger;
+            _timeProvider = timeProvider;
         }
 
         public async Task<IEnumerable<NotificacaoDTO>> ObterNotificacoesUsuarioAsync(int usuarioId, bool apenasNaoLidas = false)
@@ -392,12 +398,12 @@ namespace LabSolos_Server_DotNet8.Services
         {
             try
             {
-                var dataLimite = DateTime.UtcNow.AddDays(-7); // Empréstimos aprovados há mais de 7 dias
+                var now = _timeProvider.GetUtcNow().UtcDateTime;
 
                 var emprestimosVencidos = await _uow.EmprestimoRepository.ObterTodosAsync(e =>
                     e.Status == StatusEmprestimo.Aprovado &&
-                    e.DataAprovacao != null &&
-                    e.DataAprovacao < dataLimite &&
+                    e.DataPrevistaDevolucao != null &&
+                    e.DataPrevistaDevolucao <= now &&
                     e.DataDevolucao == null, // Ainda não foi devolvido
                     query => query
                         .Include(e => e.Solicitante)
@@ -407,7 +413,7 @@ namespace LabSolos_Server_DotNet8.Services
 
                 foreach (var emprestimo in emprestimosVencidos)
                 {
-                    await CriarNotificacaoEmprestimoVencidoAsync(emprestimo);
+                    await CriarNotificacaoEmprestimoVencidoAsync(emprestimo, now);
                 }
 
                 _logger.LogInformation($"Verificação de empréstimos vencidos concluída. {emprestimosVencidos.Count()} empréstimos vencidos encontrados.");
@@ -419,7 +425,7 @@ namespace LabSolos_Server_DotNet8.Services
             }
         }
 
-        private async Task CriarNotificacaoEmprestimoVencidoAsync(Emprestimo emprestimo)
+        private async Task CriarNotificacaoEmprestimoVencidoAsync(Emprestimo emprestimo, DateTime now)
         {
             try
             {
@@ -440,7 +446,7 @@ namespace LabSolos_Server_DotNet8.Services
                     u.TipoUsuario == TipoUsuario.Administrador &&
                     u.Status == StatusUsuario.Habilitado);
 
-                var diasVencido = (DateTime.UtcNow - emprestimo.DataAprovacao!.Value).Days;
+                var diasVencido = Math.Max(0, (now - emprestimo.DataPrevistaDevolucao!.Value).Days);
                 var produtosList = string.Join(", ", emprestimo.Produtos.Select(p => p.Produto.NomeProduto));
 
                 var titulo = $"Empréstimo vencido há {diasVencido} dias";

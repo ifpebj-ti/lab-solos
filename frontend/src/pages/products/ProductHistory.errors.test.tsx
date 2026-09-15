@@ -25,9 +25,16 @@ const productHistory = {
 
 const renderPage = () =>
   render(
-    <MemoryRouter initialEntries={['/products/7/history']}>
+    <MemoryRouter initialEntries={['/admin/products/7/history']}>
       <Routes>
-        <Route path='/products/:id/history' element={<ProductHistoryPage />} />
+        <Route
+          path='/admin/products/:id/history'
+          element={<ProductHistoryPage />}
+        />
+        <Route
+          path='/admin/search-material'
+          element={<div>Busca administrativa</div>}
+        />
       </Routes>
     </MemoryRouter>
   );
@@ -95,6 +102,17 @@ describe('ProductHistory: estados de consulta', () => {
     expect(feedback).toHaveTextContent('Voltar');
     expect(feedback).not.toHaveTextContent('SENTINELA_REMOTA');
     expect(Cookie.get('doorKey')).toBe('session-token');
+  });
+
+  it('retorna à busca administrativa após carregar o histórico', async () => {
+    server.use(http.get(historyUrl, () => HttpResponse.json(productHistory)));
+
+    renderPage();
+
+    await screen.findByText('Béquer');
+    screen.getByRole('button', { name: 'Voltar para busca de materiais' }).click();
+
+    expect(await screen.findByText('Busca administrativa')).toBeInTheDocument();
   });
 
   it('repete a consulta e recupera o histórico', async () => {

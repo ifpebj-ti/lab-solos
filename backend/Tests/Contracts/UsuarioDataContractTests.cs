@@ -2,6 +2,7 @@ using System.Text.Json;
 using AutoMapper;
 using Core.DTOs.Mappings;
 using LabSolos_Server_DotNet8.Controllers;
+using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -108,6 +109,35 @@ public class UsuarioDataContractTests
         Assert.Contains(
             constructor.GetParameters(),
             parameter => parameter.ParameterType == typeof(TimeProvider));
+    }
+
+    [Fact]
+    public void AprovarDtoPreservesOnlyTheCompatibleApproverIdRequestField()
+    {
+        var properties = typeof(AprovarDTO).GetProperties();
+
+        var property = Assert.Single(properties);
+        Assert.Equal(nameof(AprovarDTO.AprovadorId), property.Name);
+        Assert.Equal(typeof(int), property.PropertyType);
+
+        var json = JsonSerializer.Serialize(new AprovarDTO { AprovadorId = 37 }, WebJson);
+        Assert.Equal("{\"aprovadorId\":37}", json);
+    }
+
+    [Fact]
+    public void DependentApprovalResponseContractDoesNotExposeCredentialsOrInternalIdentity()
+    {
+        var propertyNames = typeof(DependenteDTO)
+            .GetProperties()
+            .Select(property => property.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.DoesNotContain("Senha", propertyNames);
+        Assert.DoesNotContain("SenhaHash", propertyNames);
+        Assert.DoesNotContain("TokenRedefinicao", propertyNames);
+        Assert.DoesNotContain("TokenExpiracao", propertyNames);
+        Assert.DoesNotContain("ResponsavelId", propertyNames);
+        Assert.DoesNotContain("VersaoSessao", propertyNames);
     }
 
     [Theory]

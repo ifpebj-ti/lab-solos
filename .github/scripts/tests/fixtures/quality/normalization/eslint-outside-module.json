@@ -1,0 +1,13 @@
+[
+  {
+    "filePath": "C:\\repo\\vendor\\generated.ts",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 1,
+        "message": "unused value",
+        "line": 10
+      }
+    ]
+  }
+]

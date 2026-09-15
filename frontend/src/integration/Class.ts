@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { emprestimosSchema } from '@/contracts/loan';
 import { dependenteSchema } from '@/contracts/user';
 
 import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
@@ -32,6 +33,7 @@ export const getLoansByDependentes = async () => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
+    emprestimosSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.loansByDependents);
@@ -189,6 +191,7 @@ export const getLoansByClass = async ({ id }: IIdMentorClass) => {
         Authorization: `Bearer ${doorKey}`,
       },
     });
+    emprestimosSchema.parse(response.data);
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.loansByClass);

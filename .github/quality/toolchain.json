@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "tools": {
+    "node": {
+      "required": "20.20.2",
+      "command": ["node", "--version"],
+      "parser": "node",
+      "source": "https://nodejs.org/en/blog/release/v20.20.2"
+    },
+    "npm": {
+      "required": "10.8.2",
+      "command": ["npm", "--version"],
+      "parser": "npm",
+      "source": "https://nodejs.org/dist/index.json"
+    },
+    "dotnet": {
+      "required": "8.0.419",
+      "command": ["dotnet", "--version"],
+      "parser": "dotnet",
+      "source": "https://dotnet.microsoft.com/en-us/download/dotnet/8.0"
+    },
+    "python": {
+      "required": "3.12.14",
+      "command": ["python", "--version"],
+      "parser": "python",
+      "source": "https://www.python.org/downloads/release/python-31214/"
+    },
+    "docker": {
+      "required": "29.7.2",
+      "command": ["docker", "version", "--format", "{{.Server.Version}}"],
+      "parser": "docker",
+      "source": "local validation on 2026-09-14"
+    },
+    "docker-compose": {
+      "required": "5.3.1",
+      "command": ["docker", "compose", "version", "--short"],
+      "parser": "docker-compose",
+      "source": "local validation on 2026-09-14"
+    }
+  },
+  "images": {
+    "backend-sdk": {
+      "image": "mcr.microsoft.com/dotnet/sdk:8.0.419-bookworm-slim",
+      "digest": "sha256:dd09bcce84d9130e7f3e85c83a8ce9709e1d95e45c48c722a0d7923b38d8024c",
+      "resolvedAt": "2026-09-14"
+    },
+    "backend-runtime": {
+      "image": "mcr.microsoft.com/dotnet/aspnet:8.0.30-bookworm-slim",
+      "digest": "sha256:787c228ea85457bec43c8b084e6ac360b26ea43b5c2fcbe861f721f2e8670dd3",
+      "resolvedAt": "2026-09-14"
+    },
+    "frontend-node": {
+      "image": "node:20.20.2-bookworm-slim",
+      "digest": "sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0",
+      "resolvedAt": "2026-09-14"
+    },
+    "frontend-runtime": {
+      "image": "nginx:1.29.3-alpine-slim",
+      "digest": "sha256:4c175d0d849aae0e0eedc64d718ef6323bed2bc68ee673e2d0a1bd5d501d0e5f",
+      "resolvedAt": "2026-09-14"
+    },
+    "compose-smtp-cert": {
+      "image": "alpine/openssl:3.3.1",
+      "digest": "sha256:d428569834003946999b6eb12e902c3c03de740fa61ddb0147233bb1bd16affe",
+      "resolvedAt": "2026-09-14"
+    },
+    "compose-smtp": {
+      "image": "axllent/mailpit:v1.28.0",
+      "digest": "sha256:c076638db1e15662150be4fb62b8a6e96ef6ba5bde90c838a0239225854830f7",
+      "resolvedAt": "2026-09-14"
+    },
+    "compose-postgres": {
+      "image": "postgres:15-alpine",
+      "digest": "sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b",
+      "resolvedAt": "2026-09-14"
+    },
+    "testcontainers-postgres": {
+      "image": "postgres:16-alpine",
+      "digest": "sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685",
+      "resolvedAt": "2026-09-14"
+    }
+  },
+  "runner": {
+    "required": {
+      "image": "ubuntu-24.04",
+      "architecture": "x64"
+    },
+    "observed": {
+      "image": "Ubuntu 24.04.5 LTS",
+      "revision": "20260907.300.1",
+      "sourceCommit": "fc63e1b4dbfacf7e2449bf0706226f9f6eea583e",
+      "observedAt": "2026-09-14"
+    },
+    "source": "https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300"
+  },
+  "playwright": {
+    "package": "1.62.1",
+    "lockfile": "frontend/package-lock.json",
+    "chromium": {
+      "revision": "1234",
+      "version": "151.0.7922.34",
+      "distribution": "Chrome for Testing"
+    },
+    "source": "frontend/node_modules/playwright-core/browsers.json"
+  },
+  "compatibility": {
+    "node": {
+      "line": "20",
+      "lockfile": "frontend/package-lock.json",
+      "engineBaseline": "Node.js 20.20.2 satisfies packages requiring Node.js 20 or newer"
+    },
+    "npm": {
+      "packageManager": "npm@10.8.2",
+      "lockfile": "frontend/package-lock.json"
+    },
+    "dotnet": {
+      "targetFramework": "net8.0",
+      "solution": "backend/backend.sln"
+    },
+    "python": {
+      "line": "3.12",
+      "requirements": ".github/quality/requirements.txt"
+    }
+  },
+  "resolvedAt": "2026-09-14"
+}

@@ -15,7 +15,10 @@ class FrontendContainerContractTests(unittest.TestCase):
 
     def test_build_stage_installs_the_committed_lockfile_before_sources(self) -> None:
         self.assertTrue((FRONTEND_ROOT / "package-lock.json").is_file())
-        self.assertRegex(self.dockerfile, r"(?m)^FROM node:[^\s]+ AS build$")
+        self.assertRegex(
+            self.dockerfile,
+            r"(?m)^FROM node:20\.20\.2-bookworm-slim@sha256:[0-9a-f]{64} AS build$",
+        )
 
         copy_lockfile = self.dockerfile.index("COPY package.json package-lock.json ./")
         npm_ci = self.dockerfile.index("RUN npm ci")
@@ -24,8 +27,25 @@ class FrontendContainerContractTests(unittest.TestCase):
         self.assertLess(copy_lockfile, npm_ci)
         self.assertLess(npm_ci, copy_sources)
 
+    def test_build_uses_explicit_deterministic_metadata(self) -> None:
+        build_command = self.dockerfile.index("RUN npm run build")
+        for variable in (
+            "VITE_APP_VERSION",
+            "VITE_APP_GIT_HASH",
+            "VITE_APP_BUILD_DATE",
+        ):
+            self.assertIn(f"ARG {variable}=", self.dockerfile)
+            self.assertIn(f"ENV {variable}=", self.dockerfile)
+            self.assertLess(
+                self.dockerfile.index(f"ENV {variable}="),
+                build_command,
+            )
+
     def test_runtime_preserves_nginx_entrypoint_and_port_80(self) -> None:
-        self.assertRegex(self.dockerfile, r"(?m)^FROM nginx:[^\s]+$")
+        self.assertRegex(
+            self.dockerfile,
+            r"(?m)^FROM nginx:1\.29\.3-alpine-slim@sha256:[0-9a-f]{64}$",
+        )
         self.assertIn(
             "COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html",
             self.dockerfile,

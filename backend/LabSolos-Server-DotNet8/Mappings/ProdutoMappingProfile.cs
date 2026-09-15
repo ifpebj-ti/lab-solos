@@ -1,4 +1,5 @@
 using AutoMapper;
+using System.Globalization;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
@@ -45,9 +46,9 @@ namespace Core.DTOs.Mappings
             // Mapeamento de AddProdutoDTO para Produto
             CreateMap<AddProdutoDTO, Produto>(MemberList.None)
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
-                    DateTime.SpecifyKind(DateTime.Parse(src.DataFabricacao), DateTimeKind.Utc)))
+                    ParseOptionalUtcDate(src.DataFabricacao)))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
-                    DateTime.SpecifyKind(DateTime.Parse(src.DataValidade), DateTimeKind.Utc)));
+                    ParseOptionalUtcDate(src.DataValidade)));
 
             // Mapeamento de AddProdutoDTO para Quimico
             CreateMap<AddProdutoDTO, Quimico>(MemberList.None)
@@ -102,6 +103,18 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.UltimaModificacao, opt => opt.MapFrom(src =>
                     src.UltimaModificacao.ToString("yyyy-MM-dd HH:mm:ss")));
+        }
+
+        private static DateTime? ParseOptionalUtcDate(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            return DateTime.SpecifyKind(
+                DateTime.Parse(value, CultureInfo.InvariantCulture),
+                DateTimeKind.Utc);
         }
     }
 }

@@ -52,7 +52,11 @@ describe('acompanhamento responsivo', () => {
     expect(record).toHaveTextContent('8 litros');
     expect(within(record).getByRole('link')).toHaveAttribute(
       'href',
-      '/admin/verification'
+      '/admin/verification?id=91'
+    );
+    expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute(
+      'href',
+      '/admin/search-material'
     );
   });
 });

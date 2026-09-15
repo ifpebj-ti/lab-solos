@@ -162,4 +162,47 @@ describe('ChangePassword', () => {
     expect(mocks.clearSession).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
+
+  it('impede alteracoes duplicadas enquanto a credencial esta pendente', async () => {
+    let resolveRequest: (value: { status: number }) => void = () => undefined;
+    const pendingRequest = new Promise<{ status: number }>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mocks.post.mockReturnValue(pendingRequest);
+    render(<ChangePassword />);
+
+    fillValidForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Salvando...' })
+      ).toBeDisabled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvando...' }));
+    expect(mocks.post).toHaveBeenCalledOnce();
+
+    resolveRequest({ status: 204 });
+    await waitFor(() => {
+      expect(mocks.clearSession).toHaveBeenCalledOnce();
+      expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+  });
+
+  it('encerra uma tentativa obrigatoria sem sessao residual', async () => {
+    mocks.readSession.mockReturnValue(null);
+    render(<ChangePassword required />);
+
+    expect(
+      screen.getByRole('heading', { name: 'Defina uma nova senha' })
+    ).toBeVisible();
+    fillValidForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
+
+    await waitFor(() => {
+      expect(mocks.clearSession).toHaveBeenCalledOnce();
+      expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
 });

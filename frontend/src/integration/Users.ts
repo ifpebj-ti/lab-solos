@@ -1,9 +1,25 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
-import { academicoSchema, usuarioSchema } from '@/contracts/user';
+import {
+  academicoSchema,
+  dependenteSchema,
+  usuarioSchema,
+} from '@/contracts/user';
 
-import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
+
+const dependentesResponseSchema = dependenteSchema.array();
+
+const emptyOnNotFound = (error: unknown, operation: OperationId): [] => {
+  const normalized = reportAppError(error, operation);
+
+  if (normalized.category === 'not_found' && normalized.status === 404) {
+    return [];
+  }
+
+  throw normalized;
+};
 
 const parseUserResponse = (data: unknown) => {
   const academicResult = academicoSchema.safeParse(data);
@@ -37,6 +53,73 @@ interface IUpdateUserStatus {
   userId: number;
   status: string;
 }
+
+/** 404 nesta operação representa uma coleção de cadastros vazia para aprovação. */
+export const getDependentesForApproval = async (rankID: string | number) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'GET',
+      url: `Usuarios/${rankID}/dependentes/aprovacao`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+
+    return dependentesResponseSchema.parse(response.data);
+  } catch (error) {
+    return emptyOnNotFound(error, OPERATION_IDS.dependentsForApproval);
+  }
+};
+
+const mutateDependentApproval = async (
+  solicitanteId: string | number,
+  action: 'aprovar' | 'rejeitar',
+  operation: OperationId
+) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+    const rankID = Cookie.get('rankID');
+
+    if (!doorKey || !rankID) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'PATCH',
+      url: `Usuarios/dependentes/${solicitanteId}/${action}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+      data: {
+        aprovadorId: Number(rankID),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    throw reportAppError(error, operation);
+  }
+};
+
+export const approveDependente = (solicitanteId: string | number) =>
+  mutateDependentApproval(
+    solicitanteId,
+    'aprovar',
+    OPERATION_IDS.approveDependent
+  );
+
+export const rejectDependente = (solicitanteId: string | number) =>
+  mutateDependentApproval(
+    solicitanteId,
+    'rejeitar',
+    OPERATION_IDS.rejectDependent
+  );
 
 export const getRegisteredUsers = async () => {
   try {

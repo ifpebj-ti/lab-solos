@@ -127,6 +127,7 @@ interface UsuarioEmprestimo {
 interface HistoricoSaidaItem {
   emprestimoId: number;
   dataEmprestimo: string;
+  dataPrevistaDevolucao: string | null;
   dataDevolucao: string | null;
   quantidadeEmprestada: number;
   statusEmprestimo: string;

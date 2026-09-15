@@ -14,6 +14,7 @@ import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 import { formatDateTime } from '@/function/date';
+import type { Emprestimo } from '@/contracts/loan';
 import type { Usuario } from '@/contracts/user';
 import {
   ResponsiveCell,
@@ -26,6 +27,7 @@ import {
   useResponsiveColumns,
 } from '@/components/global/table/responsiveContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { buildDetailUrl } from '@/navigation/profileNavigation';
 
 const loanRequestColumns: readonly ResponsiveColumn[] = [
   { key: 'requestedAt', label: 'Data de solicitação', weight: 2 },
@@ -34,44 +36,8 @@ const loanRequestColumns: readonly ResponsiveColumn[] = [
   { key: 'actions', label: 'Ações', weight: 2 },
 ];
 
-interface IProduto {
-  id: number;
-  nomeProduto: string;
-  fornecedor: string;
-  tipo: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  localizacaoProduto: string;
-  status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
-  emprestimoProdutos: IEmprestimoProduto[] | null;
-}
-
-interface IEmprestimoProduto {
-  id: number;
-  emprestimoId: number;
-  produtoId: number;
-  produto: IProduto | null;
-  quantidade: number;
-  emprestimo: IEmprestimo | null;
-}
-
-export interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string | null;
-  status: string;
-  emprestimoProdutos: (IEmprestimoProduto | null)[];
-  solicitanteId: number;
-  solicitante: Usuario | null;
-  aprovadorId: number | null;
-  aprovador: Usuario | null;
-}
+const requesterName = (user: Usuario | null | undefined) =>
+  user?.nomeCompleto ?? 'Não corresponde';
 
 interface LoanRequestRowProps {
   data: readonly string[];
@@ -94,6 +60,7 @@ function LoanRequestRow({
 }: LoanRequestRowProps) {
   const navigate = useNavigate();
   const columns = requireResponsiveColumns(useResponsiveColumns());
+  const detailUrl = buildDetailUrl('/admin/history/loan', id);
   const backgroundColor =
     rowIndex % 2 === 0 ? 'bg-backgroundMy' : 'bg-cl-table-item';
 
@@ -114,14 +81,14 @@ function LoanRequestRow({
         ) {
           return;
         }
-        navigate('/admin/history/loan', { state: { id } });
+        navigate(detailUrl, { state: { id } });
       }}
     >
       {data.map((value, index) => (
         <ResponsiveCell key={columns[index].key} columnKey={columns[index].key}>
           {index === 0 ? (
             <Link
-              to='/admin/history/loan'
+              to={detailUrl}
               state={{ id }}
               className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-sm underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 [@media(pointer:coarse)]:min-h-11'
             >
@@ -175,7 +142,7 @@ function LoansRequest() {
   const itemsPerPage = 7;
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true);
-  const [loan, setLoan] = useState<IEmprestimo[] | null>(null);
+  const [loan, setLoan] = useState<Emprestimo[] | null>(null);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [pendingLoanId, setPendingLoanId] = useState<number | null>(null);
 
@@ -252,7 +219,7 @@ function LoansRequest() {
             error={loadError}
             operationId={OPERATION_IDS.allLoans}
             onRetry={fetchAllLoans}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin/all-loans')}
           />
         )}
       </div>
@@ -263,8 +230,8 @@ function LoansRequest() {
     setIsAscending(ascending);
   };
   const filteredUsers = loan.filter((user) =>
-    user.solicitante?.nomeCompleto
-      ?.toLowerCase()
+    requesterName(user.solicitante)
+      .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
   const sortedUsers = isAscending
@@ -288,7 +255,7 @@ function LoansRequest() {
             error={loadError}
             operationId={OPERATION_IDS.allLoans}
             onRetry={fetchAllLoans}
-            onNavigate={() => navigate('/')}
+            onNavigate={() => navigate('/admin/all-loans')}
           />
         </div>
       )}
@@ -354,13 +321,13 @@ function LoansRequest() {
                       data={[
                         formatDateTime(String(rowData.dataRealizacao)) ||
                           'Não corresponde',
-                        rowData.solicitante?.nomeCompleto || 'Não corresponde',
+                        requesterName(rowData.solicitante),
                         rowData.solicitante?.email || 'Não corresponde',
                       ]}
                       rowIndex={index}
                       id={rowData.id}
                       itemLabel={
-                        rowData.solicitante?.nomeCompleto || 'Não corresponde'
+                        requesterName(rowData.solicitante)
                       }
                       pending={pendingLoanId === rowData.id}
                       onReject={() => handleReject(rowData.id)}

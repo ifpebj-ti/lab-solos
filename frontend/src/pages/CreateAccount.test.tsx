@@ -245,4 +245,20 @@ describe('CreateAccount', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     await waitFor(() => expect(createMentor).toHaveBeenCalledTimes(2));
   });
+
+  it('bloqueia confirmação de senha divergente sem criar conta', async () => {
+    renderCreateAccount();
+    fillValidForm();
+
+    const confirmation = document.querySelector<HTMLInputElement>(
+      'input[name="repeat"]'
+    );
+    if (!confirmation) throw new Error('Campo de confirmação não encontrado.');
+
+    fireEvent.change(confirmation, { target: { value: 'Senha456' } });
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    expect(await screen.findByText(/As senhas n.o coincidem/i)).toBeVisible();
+    expect(createMentor).not.toHaveBeenCalled();
+  });
 });

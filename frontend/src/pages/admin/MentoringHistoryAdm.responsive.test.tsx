@@ -48,6 +48,6 @@ describe('histórico de mentorados administrativo responsivo', () => {
     expect(Array.from(record.querySelectorAll('dt')).map((node) => node.textContent)).toEqual([
       'Código', 'Data de Uso', 'Quant. Itens Utilizados', 'Status',
     ]);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/admin/history/loan');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/admin/history/loan?id=3202');
   });
 });

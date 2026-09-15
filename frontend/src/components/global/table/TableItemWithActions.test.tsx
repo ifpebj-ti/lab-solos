@@ -21,7 +21,8 @@ function LocationState() {
 function renderItem(
   data: React.ReactNode[],
   onRowClick?: () => void,
-  id: number | string = 17
+  id: number | string = 17,
+  destinationRoute = '/admin/view-class'
 ) {
   return render(
     <MemoryRouter>
@@ -29,7 +30,7 @@ function renderItem(
         <TableItemWithActions
           data={data}
           rowIndex={0}
-          destinationRoute='/admin/view-class'
+          destinationRoute={destinationRoute}
           id={id}
           onRowClick={onRowClick}
           itemLabel='Ana Silva'
@@ -41,12 +42,30 @@ function renderItem(
 }
 
 describe('TableItemWithActions', () => {
-  it.each([17, 'user-17'])('preserva o tipo do id ao navegar para %s', (id) => {
-    renderItem(['Ana Silva', 'Habilitado'], undefined, id);
+  it('transporta o ID no href e no clique para detalhes de usuÃ¡rio', () => {
+    renderItem(['Ana Silva', 'Habilitado']);
 
+    expect(screen.getByRole('link', { name: 'Abrir Ana Silva' })).toHaveAttribute(
+      'href',
+      '/admin/view-class?id=17'
+    );
     fireEvent.click(screen.getByRole('link', { name: 'Abrir Ana Silva' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent(JSON.stringify({ id }));
+    expect(screen.getByRole('status')).toHaveTextContent(JSON.stringify({ id: 17 }));
+  });
+
+  it('mantÃ©m destinos comuns sem query e o state.id legado', () => {
+    renderItem(['Ana Silva', 'Habilitado'], undefined, 'user-17', '/admin/users');
+
+    expect(screen.getByRole('link', { name: 'Abrir Ana Silva' })).toHaveAttribute(
+      'href',
+      '/admin/users'
+    );
+    fireEvent.click(screen.getByRole('link', { name: 'Abrir Ana Silva' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      JSON.stringify({ id: 'user-17' })
+    );
   });
 
   it('prioriza onRowClick e oferece uma acao primaria nomeada', () => {

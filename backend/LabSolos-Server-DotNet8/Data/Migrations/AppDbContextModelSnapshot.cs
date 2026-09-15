@@ -39,6 +39,9 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Property<DateTime?>("DataDevolucao")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DataPrevistaDevolucao")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("DataRealizacao")
                         .HasColumnType("timestamp with time zone");
 

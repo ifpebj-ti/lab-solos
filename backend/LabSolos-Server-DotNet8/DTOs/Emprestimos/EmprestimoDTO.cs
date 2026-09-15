@@ -8,6 +8,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Emprestimos
     {
         public int Id { get; set; }
         public DateTime DataRealizacao { get; set; }
+        public DateTime? DataPrevistaDevolucao { get; set; }
         public DateTime? DataDevolucao { get; set; }
         public DateTime? DataAprovacao { get; set; }
         public string Status { get; set; } = string.Empty;

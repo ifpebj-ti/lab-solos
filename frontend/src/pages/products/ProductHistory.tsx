@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Calendar } from 'lucide-react';
 import { getProductHistoricoSaida } from '@/integration/Product';
@@ -9,6 +9,7 @@ import { getUnidadePlural } from '@/mocks/Unidades';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { createApplicationError } from '@/errors/applicationError';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { parsePositiveId } from '@/navigation/profileNavigation';
 
 interface UsuarioEmprestimo {
   id: number;
@@ -20,6 +21,7 @@ interface UsuarioEmprestimo {
 interface HistoricoSaidaItem {
   emprestimoId: number;
   dataEmprestimo: string;
+  dataPrevistaDevolucao: string | null;
   dataDevolucao: string | null;
   quantidadeEmprestada: number;
   statusEmprestimo: string;
@@ -49,11 +51,12 @@ export default function ProductHistoryPage() {
   const [filteredData, setFilteredData] = useState<HistoricoSaidaItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('');
+  const requestSequence = useRef(0);
 
   const fetchData = useCallback(async () => {
-    const productId = id ? Number(id) : NaN;
+    const productId = parsePositiveId(id);
 
-    if (!Number.isInteger(productId)) {
+    if (productId === null) {
       setData(null);
       setError(
         createApplicationError({
@@ -66,22 +69,29 @@ export default function ProductHistoryPage() {
       return;
     }
 
+    const sequence = ++requestSequence.current;
     setLoading(true);
+    setData(null);
+    setError(null);
 
     try {
       const response = await getProductHistoricoSaida({ id: productId });
+      if (sequence !== requestSequence.current) return;
       setData(response);
       setFilteredData(response.historico);
       setError(null);
     } catch (err) {
-      setError(err);
+      if (sequence === requestSequence.current) setError(err);
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
     void fetchData();
+    return () => {
+      requestSequence.current += 1;
+    };
   }, [fetchData]);
 
   useEffect(() => {
@@ -126,7 +136,7 @@ export default function ProductHistoryPage() {
           error={error}
           operationId={OPERATION_IDS.productHistory}
           onRetry={fetchData}
-          onNavigate={() => navigate(-1)}
+          onNavigate={() => navigate('/admin/search-material')}
         />
       </div>
     );
@@ -142,14 +152,16 @@ export default function ProductHistoryPage() {
             error={error}
             operationId={OPERATION_IDS.productHistory}
             onRetry={fetchData}
-            onNavigate={() => navigate(-1)}
+            onNavigate={() => navigate('/admin/search-material')}
           />
         </div>
       )}
       {/* Header */}
       <div className='flex items-center mb-6'>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/admin/search-material')}
+          aria-label='Voltar para busca de materiais'
+          title='Voltar para busca de materiais'
           className='mr-4 p-2 hover:bg-gray-200 rounded-md transition-colors'
         >
           <ChevronLeft size={24} />

@@ -1,54 +1,21 @@
+import { useCallback, useEffect, useState } from 'react';
+
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
+import SearchInput from '@/components/global/inputs/SearchInput';
 import HeaderTable from '@/components/global/table/Header';
 import ItemTable from '@/components/global/table/Item';
-import {
-  ResponsiveTable,
-  type ResponsiveColumn,
-} from '@/components/global/table/ResponsiveTable';
-import { useEffect, useState } from 'react';
-import SearchInput from '@/components/global/inputs/SearchInput';
-import TopDown from '@/components/global/table/TopDown';
-import SelectInput from '@/components/global/inputs/SelectInput';
-import FollowUpCard from '@/components/screens/FollowUp';
-import LayersIcon from '../../../public/icons/LayersIcon';
+import BackLink from '@/components/global/BackLink';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
 import Pagination from '@/components/global/table/Pagination';
+import { ResponsiveTable, type ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
 import { getLoansByDependentes } from '@/integration/Class';
 import { formatDateTime } from '@/function/date';
-import type { Usuario } from '@/contracts/user';
+import type { Emprestimo } from '@/contracts/loan';
+import type { Dependente } from '@/contracts/user';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
-interface IProduto {
-  id: number;
-  nomeProduto: string;
-  fornecedor: string;
-  tipo: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  localizacaoProduto: string;
-  status: string;
-  ultimaModificacao: string;
-  loteId: number | null;
-  lote: unknown | null;
-  emprestimoId: number | null;
-  emprestimo: unknown | null;
-}
-
-interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string;
-  status: string;
-  produtos: IProduto[];
-  solicitanteId: number;
-  solicitante: Usuario;
-  aprovadorId: number;
-  aprovador: Usuario;
-}
-
-const historyColumns: readonly ResponsiveColumn[] = [
+const columns: readonly ResponsiveColumn[] = [
   { key: 'id', label: 'Id', weight: 1 },
   { key: 'borrower', label: 'Mentorado Vinculado', weight: 3 },
   { key: 'date', label: 'Data', weight: 2 },
@@ -56,168 +23,57 @@ const historyColumns: readonly ResponsiveColumn[] = [
   { key: 'status', label: 'Status', weight: 2 },
 ];
 
+const getRequesterName = (
+  requester: Pick<Dependente, 'nomeCompleto'> | null | undefined
+) => requester?.nomeCompleto ?? 'Não informado';
+
 function LoanHistories() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loans, setLoans] = useState<Emprestimo[] | null>(null);
+  const [error, setError] = useState<unknown | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAscending, setIsAscending] = useState(true);
-  const [value, setValue] = useState('todos');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  const [page, setPage] = useState(1);
   const itemsPerPage = 7;
 
-  useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getLoansByDependentes();
-        setLoans(response);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-        }
-        setLoans([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetLoansDependentes();
+  const loadLoans = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try { setLoans(await getLoansByDependentes()); }
+    catch (reason) { setLoans(null); setError(reason); }
+    finally { setLoading(false); }
   }, []);
 
-  const toggleSortOrder = (ascending: boolean) => {
-    setIsAscending(ascending);
-  };
+  useEffect(() => { void loadLoans(); }, [loadLoans]);
 
-  // Filtragem baseada no termo de busca e status
-  const filteredLoans = loans.filter((loan) => {
-    const matchesText =
-      loan.id.toString().includes(searchTerm) ||
-      loan.solicitante.nomeCompleto
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      value === 'todos' || loan.status.toLowerCase() === value.toLowerCase();
-    return matchesText && matchesStatus;
-  });
-
-  // Ordenação dos empréstimos
-  const sortedLoans = isAscending
-    ? [...filteredLoans].sort((a, b) =>
-        a.dataRealizacao.localeCompare(b.dataRealizacao)
-      )
-    : [...filteredLoans].sort((a, b) =>
-        b.dataRealizacao.localeCompare(a.dataRealizacao)
-      );
-
-  // Dados da página atual
-  const currentData = sortedLoans.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const filtered = (loans ?? []).filter((loan) =>
+     `${loan.id} ${getRequesterName(loan.solicitante)}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const current = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  // Contagem de empréstimos por status
-  const getLoanCountText = (status: string) => {
-    return loans.filter((loan) => loan.status === status).length.toString();
-  };
-
-  const options = [
-    { value: 'todos', label: 'Todos' },
-    { value: 'devolvido', label: 'Devolvido' },
-    { value: 'não devolvido', label: 'Não devolvido' },
-  ];
+  if (loading && loans === null && error === null) {
+    return <div role='status' className='flex min-h-screen items-center justify-center bg-backgroundMy'><LoadingIcon />Carregando...<BackLink /></div>;
+  }
 
   return (
-    <>
-      {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
-            <LoadingIcon />
-          </div>
-          Carregando...
-        </div>
+    <div className='w-full min-w-0 flex min-h-screen flex-col items-center overflow-y-auto bg-backgroundMy pb-9'>
+      <div className='w-11/12 flex items-center justify-between mt-7'><BackLink /><h1>Histórico de Empréstimos</h1><OpenSearch /></div>
+      {error !== null ? (
+        <div className='w-11/12 mt-7'><ErrorFeedback error={error} operationId={OPERATION_IDS.loansByDependents} onRetry={loadLoans} /></div>
       ) : (
-        <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-              Histórico de Empréstimos
-            </h1>
-            <div className='flex items-center justify-between gap-x-6'>
-              <OpenSearch />
+        <div className='w-11/12 mt-7'>
+          <SearchInput name='search' onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }} value={searchTerm} />
+          <ResponsiveTable label='Histórico de Empréstimos' columns={columns}>
+            <HeaderTable />
+            <div className='w-full min-h-72'>
+              {current.length === 0 ? <p className='p-10 text-center'>Nenhum dado disponível para exibição.</p> : current.map((loan, index) => (
+                 <ItemTable key={loan.id} data={[String(loan.id), getRequesterName(loan.solicitante), formatDateTime(loan.dataRealizacao), String(loan.produtos.length), loan.status]} rowIndex={index} />
+              ))}
             </div>
-          </div>
-          <div className='w-11/12 min-w-0 h-32 mt-7 flex flex-wrap items-center gap-4'>
-            <FollowUpCard
-              title='Devolvidos'
-              number={getLoanCountText('devolvido')}
-              icon={<LayersIcon />}
-            />
-            <FollowUpCard
-              title='Não devolvidos'
-              number={getLoanCountText('não devolvido')}
-              icon={<LayersIcon />}
-            />
-          </div>
-          <div className='w-11/12 min-w-0 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
-            <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
-              <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
-                <div className='w-full min-w-0 md:w-[40%]'>
-                  <SearchInput
-                    name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    value={searchTerm}
-                  />
-                </div>
-                <TopDown
-                  onClick={() => toggleSortOrder(!isAscending)}
-                  top={isAscending}
-                />
-                <div className='w-full min-w-0 md:w-[30%] md:-mt-4'>
-                  <SelectInput
-                    options={options}
-                    onValueChange={(value) => {
-                      setValue(value);
-                      setCurrentPage(1);
-                    }}
-                    value={value}
-                  />
-                </div>
-              </div>
-              <ResponsiveTable label='Histórico de Empréstimos' columns={historyColumns}>
-                <HeaderTable />
-                <div className='w-full min-w-0 items-center flex flex-col min-h-72'>
-                  {currentData.length === 0 ? (
-                    <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                      Nenhum dado disponível para exibição.
-                    </div>
-                  ) : (
-                    currentData.map((loan, index) => (
-                      <ItemTable
-                        key={loan.id}
-                        data={[
-                          String(loan.id),
-                          String(loan.solicitante.nomeCompleto),
-                          formatDateTime(loan.dataRealizacao),
-                          String(loan.produtos.length),
-                          loan.status,
-                        ]}
-                        rowIndex={index}
-                      />
-                    ))
-                  )}
-                </div>
-              </ResponsiveTable>
-              <div className='mb-4'>
-                <Pagination
-                  totalItems={filteredLoans.length}
-                  itemsPerPage={itemsPerPage}
-                  currentPage={currentPage}
-                  onPageChange={setCurrentPage}
-                />
-              </div>
-            </div>
-          </div>
+          </ResponsiveTable>
+          {current.length > 0 ? <Pagination totalItems={filtered.length} itemsPerPage={itemsPerPage} currentPage={page} onPageChange={setPage} /> : null}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

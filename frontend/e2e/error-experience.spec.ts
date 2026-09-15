@@ -28,7 +28,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   let shouldForbid = false;
   await page.route('**/api/**', async (route) => {
     const url = route.request().url();
-    if (url.includes('/Auth/login') || url.includes('/Emprestimos/undefined')) {
+    if (url.includes('/Auth/login') || url.includes('/Emprestimos/13013')) {
       await route.fallback();
       return;
     }
@@ -60,7 +60,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
       }),
     });
   });
-  await page.route('**/api/Emprestimos/undefined', async (route) => {
+  await page.route('**/api/Emprestimos/13013', async (route) => {
     if (shouldExpire) {
       shouldExpire = false;
       await route.fulfill({
@@ -93,6 +93,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
       body: JSON.stringify({
         id: 13013,
         dataRealizacao: '2026-09-07T10:00:00',
+        dataPrevistaDevolucao: null,
         dataDevolucao: '2026-09-08T10:00:00',
         dataAprovacao: null,
         status: 'Aprovado',
@@ -101,6 +102,12 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
           id: 13013,
           nomeCompleto: 'Usuário sintético de experiência de erros',
           email: 'synthetic-mentor@example.invalid',
+          telefone: null,
+          dataIngresso: '2026-09-01',
+          status: 'Habilitado',
+          nivelUsuario: 'Mentorado',
+          tipoUsuario: 'Academico',
+          responsavel: null,
         },
         aprovador: null,
       }),
@@ -128,7 +135,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   await page.getByRole('button', { name: 'Submeter Login' }).click();
   await expect(page).toHaveURL(/\/mentor\/?$/);
 
-  await gotoProtectedRoute('/mentor/history/loan?context=allowed#details');
+  await gotoProtectedRoute('/mentor/history/loan?id=13013&context=allowed#details');
   await expect(page).toHaveURL(/\/$/);
   const clearedCookieNames = (await page.context().cookies()).map(
     (cookie) => cookie.name
@@ -140,12 +147,12 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
 
   await loginThroughUi();
   await expect(page).toHaveURL(
-    /\/mentor\/history\/loan\?context=allowed#details$/
+    /\/mentor\/history\/loan\?id=13013&context=allowed#details$/
   );
   await expect(page.getByRole('heading', { name: /Hist/ })).toBeVisible();
 
   shouldExpire = true;
-  await gotoProtectedRoute('/mentor/history/loan?context=unsafe#details');
+  await gotoProtectedRoute('/mentor/history/loan?id=13013&context=unsafe#details');
   await expect(page).toHaveURL(/\/$/);
   await page.evaluate(() =>
     sessionStorage.setItem('auth:intended-route', '//evil.example/steal')
@@ -154,7 +161,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   await expect(page).toHaveURL(/\/mentor\/?$/);
 
   shouldExpire = true;
-  await gotoProtectedRoute('/mentor/history/loan?context=other-profile#details');
+  await gotoProtectedRoute('/mentor/history/loan?id=13013&context=other-profile#details');
   await expect(page).toHaveURL(/\/$/);
   await page.evaluate(() =>
     sessionStorage.setItem('auth:intended-route', '/admin/settings')
@@ -163,9 +170,9 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   await expect(page).toHaveURL(/\/mentor\/?$/);
 
   shouldForbid = true;
-  await gotoProtectedRoute('/mentor/history/loan?context=forbidden#details');
+  await gotoProtectedRoute('/mentor/history/loan?id=13013&context=forbidden#details');
   await expect(page).toHaveURL(
-    /\/mentor\/history\/loan\?context=forbidden#details$/
+    /\/mentor\/history\/loan\?id=13013&context=forbidden#details$/
   );
   const feedback = page.getByRole('alert');
   await expect(feedback).toContainText(/permiss/i);

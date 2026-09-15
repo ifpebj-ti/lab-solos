@@ -27,7 +27,8 @@ public sealed class IntegrationWebApplicationFactory(
             ["ConnectionStrings:PostgresConnection"] = database.ConnectionString,
             ["Jwt:Key"] = SyntheticJwtKey,
             ["Jwt:Issuer"] = "labsolos-integration-tests",
-            ["Jwt:Audience"] = "labsolos-integration-tests"
+            ["Jwt:Audience"] = "labsolos-integration-tests",
+            ["Jwt:ExpiresInMinutes"] = "60"
         };
 
         foreach (var pair in _options.Configuration)

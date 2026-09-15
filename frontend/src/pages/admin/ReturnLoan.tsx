@@ -1,7 +1,7 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import HeaderTable from '@/components/global/table/Header';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { formatDate } from '@/function/date';
 import { getLoansById, returnLoan } from '@/integration/Loans';
@@ -17,7 +17,10 @@ import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 import { toast } from '@/components/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
+import BackLink from '@/components/global/BackLink';
+import type { Emprestimo } from '@/contracts/loan';
 import type { Usuario } from '@/contracts/user';
+import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
 
 const readOnlyColumns: readonly ResponsiveColumn[] = [
   { key: 'item', label: 'Item', weight: 4 },
@@ -39,78 +42,72 @@ const otherReturnColumns: readonly ResponsiveColumn[] = [
   { key: 'reason', label: 'Justificativa', weight: 4 },
 ];
 
-export interface ILote {
-  codigoLote: string;
-  fornecedor: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  dataEntrada: string;
-  produtos: IProduto[]; // Normalmente vazio na resposta
-}
+const userName = (user: Usuario | null) => user?.nomeCompleto ?? 'Não informado';
 
-export interface IProduto {
-  id: number;
-  catmat: string;
-  nomeProduto: string;
-  tipoProduto: string;
-  fornecedor: string;
-  unidadeMedida: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  status: string;
-  lote: ILote;
-}
-
-export interface IEmprestimoProduto {
-  emprestimoId: number;
-  produto: IProduto;
-  quantidade: number;
-}
-
-export interface IEmprestimo {
-  id: number;
-  dataRealizacao: string;
-  dataDevolucao: string;
-  dataAprovacao: string | null;
-  status: string;
-  produtos: IEmprestimoProduto[];
-  solicitante: Usuario;
-  aprovador: Usuario | null;
-}
+export type {
+  Emprestimo as IEmprestimo,
+  Lote as ILote,
+  Produto as IProduto,
+  ProdutoEmprestado as IEmprestimoProduto,
+} from '@/contracts/loan';
 
 function ReturnLoan() {
-  const [loading, setLoading] = useState(true);
-  const [loans, setLoans] = useState<IEmprestimo | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loans, setLoans] = useState<Emprestimo | null>(null);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [isReturning, setIsReturning] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const id = location.state?.id; // Recupera o ID passado via state
+  const idResolution = readIdFromLocation(location);
+  const requestSequence = useRef(0);
+  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+
+  useEffect(() => {
+    if (!hasLegacyId || idResolution.id === null) return;
+
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
 
   const fetchLoan = useCallback(async (): Promise<boolean> => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setLoading(false);
+      setLoans(null);
+      setLoadError(null);
+      return false;
+    }
+
+    const sequence = ++requestSequence.current;
     setLoading(true);
+    setLoans(null);
+    setLoadError(null);
     try {
-      const loansResponse = await getLoansById({ id });
+      const loansResponse = await getLoansById({ id: idResolution.id });
+      if (sequence !== requestSequence.current) return false;
       setLoans(loansResponse);
       setLoadError(null);
       return true;
     } catch (error) {
+      if (sequence !== requestSequence.current) return false;
       setLoadError(error);
       return false;
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
-  }, [id]);
+  }, [hasValidQueryId, idResolution.id]);
 
   useEffect(() => {
     void fetchLoan();
+    return () => {
+      requestSequence.current += 1;
+    };
   }, [fetchLoan]);
 
   const handleReturn = async () => {
-    if (!loans?.id || isReturning) return;
+    if (!loans || isReturning) return;
 
     setIsReturning(true);
     try {
@@ -131,15 +128,19 @@ function ReturnLoan() {
     ? [
         {
           title: 'Nome',
-          value: loans.solicitante.nomeCompleto,
+          value: userName(loans.solicitante),
           width: '40%',
         },
         {
           title: 'Email',
-          value: loans.solicitante.email,
+          value: loans.solicitante?.email ?? 'Não informado',
           width: '30%',
         },
-        { title: 'Telefone', value: loans.solicitante.telefone, width: '30%' },
+        {
+          title: 'Telefone',
+          value: loans.solicitante?.telefone ?? 'Não informado',
+          width: '30%',
+        },
       ]
     : [];
   const infoItems3 = loans
@@ -147,7 +148,7 @@ function ReturnLoan() {
         {
           title: 'Responsável',
           value:
-            loans.solicitante.responsavel?.nomeCompleto ?? 'Não Corresponde',
+            loans.solicitante?.responsavel?.nomeCompleto ?? 'Não Corresponde',
           width: '100%',
         },
       ]
@@ -173,7 +174,7 @@ function ReturnLoan() {
       (p) => !['Quimico', 'Vidraria'].includes(p.produto.tipoProduto)
     ) || [];
 
-  if (loading && loans === null) {
+  if (hasLegacyId || (hasValidQueryId && loading && loans === null && loadError === null)) {
     return (
       <div
         role='status'
@@ -183,21 +184,25 @@ function ReturnLoan() {
           <LoadingIcon />
         </div>
         Carregando...
+        <BackLink pathname='/admin/return' />
       </div>
     );
   }
 
-  if (loans === null) {
+  if (!hasValidQueryId || loans === null) {
     return (
-      <div className='flex min-h-screen items-center justify-center bg-backgroundMy p-6'>
-        {loadError !== null && (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        {loadError !== null ? (
           <ErrorFeedback
             error={loadError}
             operationId={OPERATION_IDS.loanById}
             onRetry={fetchLoan}
-            onNavigate={() => navigate(-1)}
+            onNavigate={() => navigate('/admin/all-loans')}
           />
+        ) : (
+          <p>Selecione um registro para consultar</p>
         )}
+        <BackLink pathname='/admin/return' />
       </div>
     );
   }
@@ -211,10 +216,13 @@ function ReturnLoan() {
               error={loadError}
               operationId={OPERATION_IDS.loanById}
               onRetry={fetchLoan}
-              onNavigate={() => navigate(-1)}
+              onNavigate={() => navigate('/admin/all-loans')}
             />
           </div>
         )}
+          <div className='w-11/12 mt-5'>
+            <BackLink pathname='/admin/return' />
+          </div>
           <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Devolução de Empréstimo
@@ -264,8 +272,8 @@ function ReturnLoan() {
                         data={[
                           row.produto.nomeProduto,
                           row.produto.quantidade.toString(),
-                          row.produto.unidadeMedida,
-                          row.produto.lote.codigoLote,
+                          row.produto.unidadeMedida ?? 'Não informado',
+                          row.produto.lote?.codigoLote ?? 'Não informado',
                         ]}
                         rowIndex={rowIndex}
                       />
@@ -319,8 +327,8 @@ function ReturnLoan() {
                         data={[
                           row.produto.nomeProduto,
                           row.produto.quantidade.toString(),
-                          row.produto.unidadeMedida,
-                          row.produto.lote.codigoLote,
+                          row.produto.unidadeMedida ?? 'Não informado',
+                          row.produto.lote?.codigoLote ?? 'Não informado',
                         ]}
                         rowIndex={rowIndex}
                         rowId={`${row.emprestimoId}-${row.produto.id}`}

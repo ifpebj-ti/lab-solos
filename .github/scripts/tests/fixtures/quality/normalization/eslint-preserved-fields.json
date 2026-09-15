@@ -1,0 +1,17 @@
+[
+  {
+    "filePath": "C:\\repo\\frontend\\src\\auth\\login.ts",
+    "messages": [
+      {
+        "ruleId": "no-unused-vars",
+        "severity": 2,
+        "message": "unused value",
+        "line": 10,
+        "evidence": {"ticket": "QC-TEST", "source": "fixture"},
+        "status": "corrigido",
+        "backlogId": "BL-001",
+        "owner": "equipe de qualidade"
+      }
+    ]
+  }
+]

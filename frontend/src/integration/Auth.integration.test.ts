@@ -3,9 +3,19 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/services/BaseApi';
+import { authenticate } from './Auth';
 import { server } from '@/test/msw/server';
 
 const API_ORIGIN = 'http://localhost:8080/api';
+
+const encodeSegment = (value: object) =>
+  btoa(JSON.stringify(value))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+
+const createToken = (payload: object) =>
+  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
 
 describe('Auth e BaseApi com MSW', () => {
   beforeEach(() => {
@@ -112,5 +122,40 @@ describe('Auth e BaseApi com MSW', () => {
       '/mentor/private-resource?tab=active#details'
     );
     expect(sessionStorage.getItem('auth:notice')).toBe('session-expired');
+  });
+
+  it('conclui login por MSW e persiste a sessao para o perfil autenticado', async () => {
+    const token = createToken({
+      sub: '42',
+      role: 'Mentor',
+      password_change_required: false,
+    });
+    server.use(
+      http.post(`${API_ORIGIN}/Auth/login`, async ({ request }) => {
+        expect(await request.json()).toEqual({
+          email: 'user@example.org',
+          password: 'senha-segura',
+        });
+        return HttpResponse.json(
+          { token, requiresPasswordChange: false },
+          { status: 200 }
+        );
+      })
+    );
+    const navigate = vi.fn();
+
+    const response = await authenticate(
+      {
+        method: 'POST',
+        params: { email: 'user@example.org', password: 'senha-segura' },
+      },
+      navigate
+    );
+
+    expect(response.status).toBe(200);
+    expect(navigate).toHaveBeenCalledWith('/mentor/');
+    expect(Cookie.get('doorKey')).toBe(token);
+    expect(Cookie.get('rankID')).toBe('42');
+    expect(Cookie.get('level')).toBe('Mentor');
   });
 });

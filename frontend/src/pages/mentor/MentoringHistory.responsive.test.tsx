@@ -58,6 +58,6 @@ describe('histórico de mentorados responsivo', () => {
       'Itens Utilizados',
       'Status',
     ]);
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/loan');
+    expect(within(record).getByRole('link')).toHaveAttribute('href', '/mentor/history/loan?id=4301');
   });
 });

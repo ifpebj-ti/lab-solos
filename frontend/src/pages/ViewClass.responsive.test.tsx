@@ -59,7 +59,7 @@ describe('visualização de turma responsiva', () => {
     ]);
     expect(within(record).getByRole('link')).toHaveAttribute(
       'href',
-      '/admin/view-class-mentor'
+      '/admin/view-class-mentor?id=71'
     );
     expect(record).toHaveTextContent('Mentorado');
   });

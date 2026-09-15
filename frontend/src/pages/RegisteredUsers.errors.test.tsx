@@ -1,7 +1,7 @@
 import Cookie from 'js-cookie';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
@@ -42,7 +42,11 @@ const users = [
   },
 ];
 
-const renderPage = () => render(<MemoryRouter><RegisteredUsers /></MemoryRouter>);
+const renderPage = () => render(<MemoryRouter><RegisteredUsers /><LocationProbe /></MemoryRouter>);
+
+function LocationProbe() {
+  return <output aria-label='rota atual'>{useLocation().pathname}</output>;
+}
 
 function useSuccessfulHandlers() {
   server.use(
@@ -170,7 +174,8 @@ describe('RegisteredUsers: estados de consulta', () => {
     expect(feedback).toHaveTextContent('Você não tem permissão para esta ação.');
     expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
     expect(Cookie.get('doorKey')).toBe('session-token');
-    expect(window.location.pathname).toBe('/');
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+    expect(screen.getByLabelText('rota atual')).toHaveTextContent('/admin');
     expect(screen.queryByText('Nenhum usuário cadastrado.')).not.toBeInTheDocument();
   });
 

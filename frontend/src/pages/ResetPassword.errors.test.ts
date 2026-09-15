@@ -16,16 +16,17 @@ const resetData = {
 describe('ResetPassword HTTP errors', () => {
   it('preserva o código conhecido de token no contrato normalizado', async () => {
     server.use(
-      http.post(`${API_ORIGIN}/Email/reset-password`, () =>
-        HttpResponse.json(
+      http.post(`${API_ORIGIN}/Email/reset-password`, async ({ request }) => {
+        expect(await request.json()).toMatchObject({ code: 'codigo-seguro' });
+        return HttpResponse.json(
           {
             errors: {
               code: ['password_reset_invalid'],
             },
           },
           { status: 400 }
-        )
-      )
+        );
+      })
     );
 
     const error = await resetPassword(resetData).catch(

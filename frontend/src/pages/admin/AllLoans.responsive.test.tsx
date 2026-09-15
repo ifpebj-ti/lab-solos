@@ -33,6 +33,9 @@ describe('todos os empréstimos responsivo', () => {
       'Data de Solicitação', 'Solicitante', 'Responsável', 'Itens Utilizados', 'Status',
     ]);
     expect(record).toHaveTextContent('Solicitante');
-    expect(within(record).getByRole('link')).toHaveAttribute('href', '/admin/history/loan');
+    expect(within(record).getByRole('link')).toHaveAttribute(
+      'href',
+      '/admin/history/loan?id=3001'
+    );
   });
 });

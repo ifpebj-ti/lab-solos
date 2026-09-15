@@ -66,7 +66,7 @@ describe('ResetPassword', () => {
     await waitFor(() => {
       expect(mocks.post).toHaveBeenCalledWith('/Email/reset-password', {
         email: 'usuario@example.org',
-        token: 'codigo-seguro',
+        code: 'codigo-seguro',
         newPassword: 'nova-senha-valida',
         confirmation: 'nova-senha-valida',
       });
@@ -205,5 +205,31 @@ describe('ResetPassword', () => {
       screen.queryByRole('button', { name: 'Tentar novamente' })
     ).not.toBeInTheDocument();
     expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it('impede redefinicoes duplicadas enquanto o token esta sendo validado', async () => {
+    let resolveRequest: (value: { status: number }) => void = () => undefined;
+    const pendingRequest = new Promise<{ status: number }>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mocks.post.mockReturnValue(pendingRequest);
+    render(<ResetPassword />);
+    mocks.clearSession.mockClear();
+
+    fillValidForm();
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar senha' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Atualizando...' })
+      ).toBeDisabled();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizando...' }));
+    expect(mocks.post).toHaveBeenCalledOnce();
+
+    resolveRequest({ status: 204 });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Atualizar senha' })).toBeEnabled();
+    });
   });
 });

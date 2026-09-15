@@ -20,15 +20,18 @@ import {
 } from '@/integration/Product';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit } from 'lucide-react';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
 
 const verificationHistoryColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data', weight: 15 },
@@ -50,6 +53,7 @@ interface UsuarioEmprestimo {
 interface HistoricoSaidaItem {
   emprestimoId: number;
   dataEmprestimo: string;
+  dataPrevistaDevolucao: string | null;
   dataDevolucao: string | null;
   quantidadeEmprestada: number;
   statusEmprestimo: string;
@@ -125,7 +129,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 function VerificationPage({ userType }: VerificationProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [value, setValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [productsById, setProductsById] = useState<IProduto>();
@@ -136,7 +140,12 @@ function VerificationPage({ userType }: VerificationProps) {
   >([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const location = useLocation();
-  const id = location.state?.id;
+  const navigate = useNavigate();
+  const idResolution = readIdFromLocation(location);
+  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+  const requestSequence = useRef(0);
+  const [loadError, setLoadError] = useState<unknown | null>(null);
 
   // Configurações específicas por tipo de usuário
   const getBackRoute = () => {
@@ -300,30 +309,52 @@ function VerificationPage({ userType }: VerificationProps) {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (!hasLegacyId || idResolution.id === null) return;
+    navigate(
+      buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
+      { replace: true, state: null }
+    );
+  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+
+  const fetchData = useCallback(async () => {
+    if (!hasValidQueryId || idResolution.id === null) {
+      setIsLoading(false);
+      setProductsById(undefined);
+      setHistoricoData(null);
+      setLoadError(null);
+      return;
+    }
+
+    const sequence = ++requestSequence.current;
+    setIsLoading(true);
+    setProductsById(undefined);
+    setHistoricoData(null);
+    setLoadError(null);
       try {
-        const productResponse = await getProductById({ id });
+        const productResponse = await getProductById({ id: idResolution.id });
+        if (sequence !== requestSequence.current) return;
         setProductsById(productResponse);
 
         // Busca histórico para admin (tabela detalhada e gráfico)
         if (showHistoricoDetalhado || needsHistoricoForChart) {
-          const historicoResponse = await getProductHistoricoSaida({ id });
+          const historicoResponse = await getProductHistoricoSaida({ id: idResolution.id });
+          if (sequence !== requestSequence.current) return;
           setHistoricoData(historicoResponse);
           setFilteredHistorico(historicoResponse.historico);
         }
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados', error);
-        }
+        if (sequence === requestSequence.current) setLoadError(error);
       } finally {
-        setIsLoading(false);
+        if (sequence === requestSequence.current) setIsLoading(false);
       }
-    };
+  }, [hasValidQueryId, idResolution.id, needsHistoricoForChart, showHistoricoDetalhado]);
 
-    if (id) {
-      fetchData();
-    }
-  }, [id, showHistoricoDetalhado, needsHistoricoForChart]);
+  useEffect(() => {
+    void fetchData();
+    return () => {
+      requestSequence.current += 1;
+    };
+  }, [fetchData]);
 
   // Filtros para histórico
   useEffect(() => {
@@ -353,9 +384,9 @@ function VerificationPage({ userType }: VerificationProps) {
 
   // Função para recarregar dados do produto após edição
   const handleProductUpdate = async () => {
-    if (id) {
+    if (hasValidQueryId && idResolution.id !== null) {
       try {
-        const productResponse = await getProductById({ id });
+        const productResponse = await getProductById({ id: idResolution.id });
         setProductsById(productResponse);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -376,10 +407,21 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  if (!productsById) {
+  if (!hasValidQueryId || (!productsById && loadError === null)) {
     return (
       <div className='flex justify-center items-center h-screen bg-backgroundMy'>
+        <p>Selecione um registro para consultar</p>
+        <Link to={getBackRoute()} aria-label='Voltar'>Voltar</Link>
         <p className='text-clt-2 font-inter-medium'>Produto não encontrado.</p>
+      </div>
+    );
+  }
+
+  if (loadError !== null && !productsById) {
+    return (
+      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <ErrorFeedback error={loadError} operationId={OPERATION_IDS.productById} onRetry={fetchData} />
+        <Link to={getBackRoute()} aria-label='Voltar'>Voltar</Link>
       </div>
     );
   }
@@ -442,6 +484,7 @@ function VerificationPage({ userType }: VerificationProps) {
         <div className='flex items-center gap-4'>
           <Link
             to={getBackRoute()}
+            aria-label='Voltar'
             className='flex items-center justify-center w-10 h-10 rounded-md border border-borderMy hover:bg-cl-table-item transition-colors'
           >
             <ArrowLeft className='w-5 h-5 text-clt-2' />
@@ -501,7 +544,7 @@ function VerificationPage({ userType }: VerificationProps) {
                 <p className='text-2xl font-bold text-primaryMy'>
                   {historicoData.totalQuantidadeEmprestada}{' '}
                   {getUnidadePlural(
-                    productsById.unidadeMedida,
+                    productsById?.unidadeMedida ?? '',
                     historicoData.totalQuantidadeEmprestada
                   )}
                 </p>
@@ -514,7 +557,7 @@ function VerificationPage({ userType }: VerificationProps) {
               </CardHeader>
               <CardContent className='min-w-0'>
                 <p className='text-lg font-medium text-clt-2'>
-                  {productsById.status}
+                  {productsById?.status ?? 'N/A'}
                 </p>
               </CardContent>
             </Card>

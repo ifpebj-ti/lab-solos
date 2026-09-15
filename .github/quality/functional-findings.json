@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "findings": [
+    {
+      "id": "QC-001",
+      "fingerprint": "functional:QC-001",
+      "module": "backend-emprestimos-estoque",
+      "category": "confiabilidade",
+      "severity": "alta",
+      "originalSeverity": "alta",
+      "tool": "functional",
+      "ruleId": "QC-001",
+      "path": "backend/LabSolos-Server-DotNet8/Controllers/EmprestimosController.cs",
+      "line": 1,
+      "message": "Sequência criar, aprovar e devolver precisa de contrato explícito para DataDevolucao.",
+      "evidence": {
+        "candidate": "QC-001",
+        "status": "corrigido",
+        "scenario": "CT-009",
+        "ownerRole": "responsável pelo domínio de empréstimos",
+        "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T016.md",
+        "verification": "T031: criar, aprovar e devolver por HTTP/PostgreSQL retornou 204; prazo preservado, efetivação única e estoque reposto de 8 para 10.",
+        "resolution": {
+          "task": "T031",
+          "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T031.md",
+          "verification": "LoanReturnCharacterizationTests e LoanReturnMigrationTests: 4 aprovados; segunda devolução retorna 400 sem novo efeito."
+        }
+      },
+      "status": "corrigido",
+      "backlogId": "QC-001",
+      "owner": "responsável pelo domínio de empréstimos"
+    },
+    {
+      "id": "QC-002",
+      "fingerprint": "functional:QC-002",
+      "module": "backend-usuarios-aprovacao",
+      "category": "seguranca",
+      "severity": "alta",
+      "originalSeverity": "candidata",
+      "tool": "functional",
+      "ruleId": "QC-002",
+      "path": "backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs",
+      "line": 1,
+      "message": "Aprovação de dependente deve vincular o decisor autenticado ao vínculo de responsabilidade.",
+      "evidence": {
+        "candidate": "QC-002",
+        "status": "corrigido",
+        "scenario": "CT-003",
+        "ownerRole": "responsável por autorização",
+        "resolution": {
+          "task": "T013",
+          "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T013.md",
+          "verification": "CriticalUserApprovalTests e UsuarioDataContractTests: 33 aprovados; identidade autenticada e vínculo persistido validados por HTTP/PostgreSQL."
+        }
+      },
+      "status": "corrigido",
+      "backlogId": "QC-002",
+      "owner": "responsável por autorização"
+    },
+    {
+      "id": "QC-003",
+      "fingerprint": "functional:QC-003",
+      "module": "backend-usuarios-aprovacao",
+      "category": "seguranca",
+      "severity": "alta",
+      "originalSeverity": "candidata",
+      "tool": "functional",
+      "ruleId": "QC-003",
+      "path": "backend/LabSolos-Server-DotNet8/Controllers/UsuariosController.cs",
+      "line": 1,
+      "message": "Cadastro público de administrador deve ser recusado sem criar conta privilegiada.",
+      "evidence": {
+        "candidate": "QC-003",
+        "status": "corrigido",
+        "scenario": "CT-002",
+        "ownerRole": "responsável por autenticação",
+        "resolution": {
+          "task": "T012",
+          "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T012.md",
+          "verification": "CriticalRegistrationTests: 15 aprovados; recusa HTTP 403 sem exceção de middleware e sem persistência privilegiada."
+        }
+      },
+      "status": "corrigido",
+      "backlogId": "QC-003",
+      "owner": "responsável por autenticação"
+    },
+    {
+      "id": "QC-004",
+      "fingerprint": "functional:QC-004",
+      "module": "backend-compartilhado",
+      "category": "confiabilidade",
+      "severity": "media",
+      "originalSeverity": "candidata",
+      "tool": "functional",
+      "ruleId": "QC-004",
+      "path": "backend/LabSolos-Server-DotNet8/Mappings/ProdutoMappingProfile.cs",
+      "line": 48,
+      "message": "Valores ausentes ou malformados no mapeamento de produtos precisam de contrato explícito.",
+      "evidence": {
+        "candidate": "QC-004",
+        "status": "candidato não reproduzido",
+        "scenario": "mapeamento de produtos",
+        "ownerRole": "responsável pelo backend"
+      },
+      "status": "aberto",
+      "backlogId": "QC-004",
+      "owner": "responsável pelo backend"
+    },
+    {
+      "id": "QC-005",
+      "fingerprint": "functional:QC-005",
+      "module": "automacao",
+      "category": "confiabilidade",
+      "severity": "alta",
+      "originalSeverity": "candidata",
+      "tool": "functional",
+      "ruleId": "QC-005",
+      "path": "frontend/e2e/infra/",
+      "line": null,
+      "message": "Jornadas E2E devem isolar credenciais, Mailpit, retries e estado entre cenários.",
+      "evidence": {
+        "candidate": "QC-005",
+        "status": "corrigido",
+        "scenario": "isolamento E2E",
+        "ownerRole": "responsável pela automação",
+        "resolution": {
+          "task": "T024",
+          "evidence": ".codex/docs/specs/fundacao-qualidade-testes/evidencias/T024.md",
+          "verification": "Playwright real: credenciais 4/4 e suíte real 7/7; UI 197/197; conta, Mailpit, workers e retries isolados por cenário."
+        }
+      },
+      "status": "corrigido",
+      "backlogId": "QC-005",
+      "owner": "responsável pela automação"
+    },
+    {
+      "id": "QC-006",
+      "fingerprint": "functional:QC-006",
+      "module": "frontend-compartilhado",
+      "category": "manutenibilidade",
+      "severity": "baixa",
+      "originalSeverity": "candidata",
+      "tool": "functional",
+      "ruleId": "QC-006",
+      "path": "frontend/src/",
+      "line": null,
+      "message": "Impacto dos avisos de recurso e tamanho de pacote deve ser comprovado antes de priorização.",
+      "evidence": {
+        "candidate": "QC-006",
+        "status": "candidato não reproduzido",
+        "scenario": "recursos frontend",
+        "ownerRole": "responsável pelo frontend"
+      },
+      "status": "aberto",
+      "backlogId": "QC-006",
+      "owner": "responsável pelo frontend"
+    }
+  ]
+}

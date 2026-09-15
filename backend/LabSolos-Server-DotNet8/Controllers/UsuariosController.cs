@@ -1,4 +1,6 @@
 using AutoMapper;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
@@ -25,6 +27,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUtilitiesService _utilsService;
         private readonly INotificacaoService _notificacaoService;
         private readonly TimeProvider _timeProvider;
+        private const string DependentDecisionUnauthorizedMessage =
+            "Você não tem permissão para processar este usuário dependente.";
 
         public UsuariosController(
             ILogger<UsuariosController> logger,
@@ -105,15 +109,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            if (usuario.Dependentes == null || usuario.Dependentes.Count == 0)
-            {
-                return NotFound("Este usuário não possui dependentes.");
-            }
-
             // Obter todos os empréstimos dos dependentes
             var emprestimosDependentesDTO = new List<EmprestimoDTO>();
 
-            foreach (var dependente in usuario.Dependentes)
+            foreach (var dependente in usuario.Dependentes ?? Enumerable.Empty<Usuario>())
             {
                 var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id,
                     query => query
@@ -126,11 +125,6 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 var emprestimosDTO = _mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos);
                 emprestimosDependentesDTO.AddRange(emprestimosDTO);
-            }
-
-            if (emprestimosDependentesDTO.Count == 0)
-            {
-                return NotFound("Nenhum empréstimo encontrado para os dependentes.");
             }
 
             return Ok(emprestimosDependentesDTO);
@@ -210,7 +204,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 // Bloquear tentativa de adicionar Administrador
                 if (addUsuarioDTO.TipoUsuario == TipoUsuario.Administrador.ToString())
                 {
-                    return Forbid("Você não tem permissão para adicionar um usuário do tipo Administrador. Apenas administradores podem realizar essa ação.");
+                    return StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        "Você não tem permissão para adicionar um usuário do tipo Administrador. Apenas administradores podem realizar essa ação.");
                 }
 
                 int? responsavelId = null;
@@ -402,10 +398,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário dependente não encontrado.");
             }
 
-            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
-            if (dependente.ResponsavelId != aprovadorDto.AprovadorId)
+            var authorizationError = ValidateDependentDecision(dependente, aprovadorDto);
+            if (authorizationError is not null)
             {
-                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+                return authorizationError;
             }
 
             // Verificar se o usuário já foi aprovado
@@ -462,10 +458,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return NotFound("Usuário dependente não encontrado.");
             }
 
-            // Verificar se o solicitante é um dependente do responsável indicado (AprovadorId)
-            if (dependente.ResponsavelId != aprovadorDto.AprovadorId)
+            var authorizationError = ValidateDependentDecision(dependente, aprovadorDto);
+            if (authorizationError is not null)
             {
-                return Unauthorized("Você não tem permissão para aprovar este empréstimo, pois o solicitante não é um dependente do responsável indicado.");
+                return authorizationError;
             }
 
             // Verificar se o usuário já foi aprovado
@@ -508,7 +504,33 @@ namespace LabSolos_Server_DotNet8.Controllers
             _uow.UsuarioRepository.Atualizar(dependente);
             await _uow.CommitAsync();
 
-            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = dependente });
+            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
+        }
+
+        private UnauthorizedObjectResult? ValidateDependentDecision(Usuario dependente, AprovarDTO aprovadorDto)
+        {
+            var authenticatedUserId = GetAuthenticatedUserId();
+            if (authenticatedUserId is null || aprovadorDto.AprovadorId != authenticatedUserId.Value)
+            {
+                return Unauthorized(DependentDecisionUnauthorizedMessage);
+            }
+
+            if (User.IsInRole(NivelUsuario.Administrador.ToString()))
+            {
+                return null;
+            }
+
+            return dependente.ResponsavelId == authenticatedUserId.Value
+                ? null
+                : Unauthorized(DependentDecisionUnauthorizedMessage);
+        }
+
+        private int? GetAuthenticatedUserId()
+        {
+            var subject = User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+            return int.TryParse(subject, out var userId) ? userId : null;
         }
 
         [HttpDelete("{id}")]
