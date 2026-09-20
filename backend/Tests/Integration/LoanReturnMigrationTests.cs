@@ -89,8 +89,7 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
     private async Task<(string DataType, string Nullable)> ReadColumnAsync(string columnName)
     {
         var result = await TryReadColumnAsync(columnName);
-        Assert.NotNull(result);
-        return result.Value;
+        return result ?? throw new InvalidOperationException($"Column '{columnName}' was not found.");
     }
 
     private async Task<(string DataType, string Nullable)?> TryReadColumnAsync(string columnName)

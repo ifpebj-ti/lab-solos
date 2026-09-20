@@ -17,7 +17,11 @@ public sealed class UserDataMigrationTests(PostgreSqlContainerFixture database)
         using var context = CreateContext();
         var property = context.Model.FindEntityType(typeof(Usuario))?.FindProperty(nameof(Usuario.DataIngresso));
 
-        Assert.NotNull(property);
+        if (property is null)
+        {
+            throw new InvalidOperationException("Usuario.DataIngresso was not found in the EF model.");
+        }
+
         Assert.Equal(typeof(DateOnly?), property.ClrType);
         Assert.Equal("date", property.GetColumnType());
         Assert.Collection(
