@@ -11,7 +11,7 @@ namespace Tests.Middlewares;
 public sealed class AuditoriaMiddlewareTests
 {
     [Fact]
-    public async Task InvokeAsync_PreservesBodyForPipelineAndSanitizesAuditLog()
+    public async Task InvokeAsyncPreservesBodyForPipelineAndSanitizesAuditLog()
     {
         const string requestBody = "{\"nome\":\"Alice\",\"senha\":\"nao registrar\"}";
         var bodySeenByPipeline = string.Empty;
@@ -45,7 +45,7 @@ public sealed class AuditoriaMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_PreservesBodyForPipelineWhenAuditCaptureThrows()
+    public async Task InvokeAsyncPreservesBodyForPipelineWhenAuditCaptureThrows()
     {
         const string requestBody = "{\"nome\":\"Alice\"}";
         var bodySeenByPipeline = string.Empty;
