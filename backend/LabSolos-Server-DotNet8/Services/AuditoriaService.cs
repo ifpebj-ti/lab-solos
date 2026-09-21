@@ -3,18 +3,31 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LabSolos_Server_DotNet8.Services
 {
     public class AuditoriaService : IAuditoriaService
     {
+        private static readonly Action<ILogger, Exception?> LogAuditPersistenceFailure =
+            LoggerMessage.Define(
+                LogLevel.Warning,
+                new EventId(1001, nameof(LogAuditPersistenceFailure)),
+                "Falha esperada ao persistir registro de auditoria.");
+
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private readonly ILogger<AuditoriaService> _logger;
 
-        public AuditoriaService(IUnitOfWork uow, IMapper mapper)
+        public AuditoriaService(
+            IUnitOfWork uow,
+            IMapper mapper,
+            ILogger<AuditoriaService> logger)
         {
             _uow = uow;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task RegistrarLogAsync(CreateLogAuditoriaDTO logDto, int? usuarioId = null, string? enderecoIP = null, string? userAgent = null)
@@ -45,10 +58,10 @@ namespace LabSolos_Server_DotNet8.Services
                 _uow.LogAuditoriaRepository.Criar(log);
                 await _uow.CommitAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                // Log de erro interno - não deve falhar a operação principal
-                Console.WriteLine($"Erro ao registrar log de auditoria: {ex.Message}");
+                // A auditoria é secundária à operação principal; registre a falha esperada sem mascarar outras exceções.
+                LogAuditPersistenceFailure(_logger, ex);
             }
         }
 
