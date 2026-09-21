@@ -132,46 +132,39 @@ namespace LabSolos_Server_DotNet8.Services
             // Regras automáticas de detecção de atividade suspeita
 
             // 1. Múltiplas tentativas de login falhado
-            if (log.TipoAcao == TipoAcaoAuditoria.LoginFalhado)
-            {
-                var ultimaHora = DateTime.UtcNow.AddHours(-1);
-                var tentativasRecentes = await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(
+            var tentativasRecentes = log.TipoAcao == TipoAcaoAuditoria.LoginFalhado
+                ? await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(
                     new FiltroAuditoriaDTO
                     {
-                        DataInicio = ultimaHora,
+                        DataInicio = DateTime.UtcNow.AddHours(-1),
                         EnderecoIP = log.EnderecoIP,
                         TipoAcao = TipoAcaoAuditoria.LoginFalhado,
                         TamanhoPagina = int.MaxValue
-                    });
+                    })
+                : 0;
 
-                if (tentativasRecentes > 5)
-                {
-                    log.MotivoSuspeita = $"Múltiplas tentativas de login falhado ({tentativasRecentes}) do IP {log.EnderecoIP}";
-                    return true;
-                }
+            if (tentativasRecentes > 5)
+            {
+                log.MotivoSuspeita = $"Múltiplas tentativas de login falhado ({tentativasRecentes}) do IP {log.EnderecoIP}";
+                return true;
             }
 
             // 2. Acesso em horário incomum (entre 23h e 6h)
             var hora = log.DataHora.Hour;
-            if (hora >= 23 || hora <= 6)
+            if ((hora >= 23 || hora <= 6) &&
+                (log.TipoAcao == TipoAcaoAuditoria.AcessoAdministrativo ||
+                 log.NivelRisco == NivelRiscoAuditoria.Alto))
             {
-                if (log.TipoAcao == TipoAcaoAuditoria.AcessoAdministrativo ||
-                    log.NivelRisco == NivelRiscoAuditoria.Alto)
-                {
-                    log.MotivoSuspeita = "Acesso administrativo em horário incomum";
-                    return true;
-                }
+                log.MotivoSuspeita = "Acesso administrativo em horário incomum";
+                return true;
             }
 
             // 3. Atividade excessiva
-            if (log.UsuarioId.HasValue)
+            if (log.UsuarioId.HasValue &&
+                await VerificarAtividadeSuspeitaAsync(log.UsuarioId.Value, log.EnderecoIP))
             {
-                var atividade = await VerificarAtividadeSuspeitaAsync(log.UsuarioId.Value, log.EnderecoIP);
-                if (atividade)
-                {
-                    log.MotivoSuspeita = "Atividade excessiva detectada";
-                    return true;
-                }
+                log.MotivoSuspeita = "Atividade excessiva detectada";
+                return true;
             }
 
             // 4. Ações críticas
