@@ -255,13 +255,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             var isStatusPatch = patchProdutoDto.Operations.Any(op =>
                 op.path.Equals("/status", StringComparison.OrdinalIgnoreCase));
 
-            if (isStatusPatch && !string.IsNullOrEmpty(produtoPatchRequest.Status))
+            if (isStatusPatch
+                && !string.IsNullOrEmpty(produtoPatchRequest.Status)
+                && !Enum.TryParse<StatusProduto>(produtoPatchRequest.Status, out _))
             {
-                if (!Enum.TryParse<StatusProduto>(produtoPatchRequest.Status, out _))
-                {
-                    _logger.LogWarning("Status inválido fornecido para produto {ProdutoId}: {Status}", id, produtoPatchRequest.Status);
-                    return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusProduto>())}");
-                }
+                _logger.LogWarning("Status inválido fornecido para produto {ProdutoId}: {Status}", id, produtoPatchRequest.Status);
+                return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusProduto>())}");
             }
 
             // Validar datas se estiverem sendo alteradas
@@ -270,20 +269,18 @@ namespace LabSolos_Server_DotNet8.Controllers
             var isDataValidadePatch = patchProdutoDto.Operations.Any(op =>
                 op.path.Equals("/dataValidade", StringComparison.OrdinalIgnoreCase));
 
-            if (isDataFabricacaoPatch && !string.IsNullOrEmpty(produtoPatchRequest.DataFabricacao))
+            if (isDataFabricacaoPatch
+                && !string.IsNullOrEmpty(produtoPatchRequest.DataFabricacao)
+                && !DateTime.TryParse(produtoPatchRequest.DataFabricacao, out _))
             {
-                if (!DateTime.TryParse(produtoPatchRequest.DataFabricacao, out _))
-                {
-                    return BadRequest("Data de fabricação inválida. Use o formato YYYY-MM-DD.");
-                }
+                return BadRequest("Data de fabricação inválida. Use o formato YYYY-MM-DD.");
             }
 
-            if (isDataValidadePatch && !string.IsNullOrEmpty(produtoPatchRequest.DataValidade))
+            if (isDataValidadePatch
+                && !string.IsNullOrEmpty(produtoPatchRequest.DataValidade)
+                && !DateTime.TryParse(produtoPatchRequest.DataValidade, out _))
             {
-                if (!DateTime.TryParse(produtoPatchRequest.DataValidade, out _))
-                {
-                    return BadRequest("Data de validade inválida. Use o formato YYYY-MM-DD.");
-                }
+                return BadRequest("Data de validade inválida. Use o formato YYYY-MM-DD.");
             }
 
             // Mapear as alterações de volta para o produto
