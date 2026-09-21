@@ -375,12 +375,11 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest(ModelState);
 
             // Validar se o status é válido (se estiver sendo alterado)
-            if (isStatusPatch && !string.IsNullOrEmpty(usuarioPatchRequest.Status))
+            if (isStatusPatch &&
+                !string.IsNullOrEmpty(usuarioPatchRequest.Status) &&
+                !Enum.TryParse<StatusUsuario>(usuarioPatchRequest.Status, out _))
             {
-                if (!Enum.TryParse<StatusUsuario>(usuarioPatchRequest.Status, out _))
-                {
-                    return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusUsuario>())}");
-                }
+                return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusUsuario>())}");
             }
 
             _mapper.Map(usuarioPatchRequest, usuario);
