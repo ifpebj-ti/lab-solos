@@ -35,6 +35,54 @@ public sealed class AuditoriaServiceTests
     }
 
     [Fact]
+    public async Task RegistrarLogAsyncMarcaLoginFalhoComoSuspeitoQuandoHaTentativasRecentes()
+    {
+        var fixture = CreateFixture();
+        LogAuditoria? createdLog = null;
+        fixture.LogRepository
+            .Setup(repository => repository.ObterTotalLogsFiltradosAsync(It.Is<FiltroAuditoriaDTO>(filter =>
+                filter.TipoAcao == TipoAcaoAuditoria.LoginFalhado &&
+                filter.EnderecoIP == "192.0.2.10")))
+            .ReturnsAsync(6);
+        fixture.LogRepository
+            .Setup(repository => repository.Criar(It.IsAny<LogAuditoria>()))
+            .Callback<LogAuditoria>(log => createdLog = log)
+            .Returns((LogAuditoria log) => log);
+
+        await fixture.Service.RegistrarLogAsync(
+            CreateLogDto(TipoAcaoAuditoria.LoginFalhado),
+            enderecoIP: "192.0.2.10");
+
+        Assert.NotNull(createdLog);
+        Assert.True(createdLog!.Suspeita);
+        Assert.Equal("Múltiplas tentativas de login falhado (6) do IP 192.0.2.10", createdLog.MotivoSuspeita);
+    }
+
+    [Fact]
+    public async Task RegistrarLogAsyncMantemLoginFalhoNaoSuspeitoSemTentativasRecentes()
+    {
+        var fixture = CreateFixture();
+        LogAuditoria? createdLog = null;
+        fixture.LogRepository
+            .Setup(repository => repository.ObterTotalLogsFiltradosAsync(It.Is<FiltroAuditoriaDTO>(filter =>
+                filter.TipoAcao == TipoAcaoAuditoria.LoginFalhado &&
+                filter.EnderecoIP == "192.0.2.10")))
+            .ReturnsAsync(0);
+        fixture.LogRepository
+            .Setup(repository => repository.Criar(It.IsAny<LogAuditoria>()))
+            .Callback<LogAuditoria>(log => createdLog = log)
+            .Returns((LogAuditoria log) => log);
+
+        await fixture.Service.RegistrarLogAsync(
+            CreateLogDto(TipoAcaoAuditoria.LoginFalhado),
+            enderecoIP: "192.0.2.10");
+
+        Assert.NotNull(createdLog);
+        Assert.False(createdLog!.Suspeita);
+        Assert.Null(createdLog.MotivoSuspeita);
+    }
+
+    [Fact]
     public async Task RegistrarLogAsyncMantemContratoQuandoPersistenciaFalha()
     {
         var fixture = CreateFixture();
@@ -73,14 +121,16 @@ public sealed class AuditoriaServiceTests
         Assert.Same(unexpectedFailure, exception);
     }
 
-    private static CreateLogAuditoriaDTO CreateLogDto()
+    private static CreateLogAuditoriaDTO CreateLogDto(
+        TipoAcaoAuditoria tipoAcao = TipoAcaoAuditoria.Login,
+        NivelRiscoAuditoria nivelRisco = NivelRiscoAuditoria.Baixo)
     {
         return new CreateLogAuditoriaDTO
         {
             Acao = "login",
             Recurso = "usuarios",
-            TipoAcao = TipoAcaoAuditoria.Login,
-            NivelRisco = NivelRiscoAuditoria.Baixo
+            TipoAcao = tipoAcao,
+            NivelRisco = nivelRisco
         };
     }
 
