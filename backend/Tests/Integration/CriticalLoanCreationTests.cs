@@ -1,11 +1,22 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
+using AutoMapper;
+using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.DTOs.Emprestimos;
+using LabSolos_Server_DotNet8.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Repositories;
+using LabSolos_Server_DotNet8.Services;
+using Moq;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -188,4 +199,87 @@ public sealed class CriticalLoanCreationTests(PostgreSqlContainerFixture databas
 
     private static readonly DateTimeOffset ScenarioNow =
         new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero);
+}
+
+public sealed class EmprestimosControllerNotificationFailureTests
+{
+    [Fact]
+    public async Task AdicionarPropagatesUnexpectedNotificationFailure()
+    {
+        var notificationFailure = new InvalidOperationException("notification failure");
+        var notificationService = new Mock<INotificacaoService>();
+        notificationService
+            .Setup(service => service.CriarNotificacaoNovoEmprestimo(It.IsAny<int>()))
+            .ThrowsAsync(notificationFailure);
+
+        var controller = CreateController(notificationService);
+
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => controller.Adicionar(new AddEmprestimoDTO { DiasParaDevolucao = 7 }));
+
+        Assert.Same(notificationFailure, thrown);
+    }
+
+    [Fact]
+    public async Task AdicionarKeepsCreatedResponseWhenNotificationPersistenceFails()
+    {
+        var notificationService = new Mock<INotificacaoService>();
+        notificationService
+            .Setup(service => service.CriarNotificacaoNovoEmprestimo(It.IsAny<int>()))
+            .ThrowsAsync(new DbUpdateException("notification persistence failure"));
+
+        var result = await CreateController(notificationService)
+            .Adicionar(new AddEmprestimoDTO { DiasParaDevolucao = 7 });
+
+        Assert.IsType<CreatedAtActionResult>(result);
+    }
+
+    private static EmprestimosController CreateController(
+        Mock<INotificacaoService> notificationService)
+    {
+        var loanRepository = new Mock<IRepository<Emprestimo>>();
+        var unitOfWork = new Mock<IUnitOfWork>();
+        var mapper = new Mock<IMapper>();
+        var createdLoan = new Emprestimo
+        {
+            Id = 42,
+            DataRealizacao = DateTime.UtcNow,
+            Status = StatusEmprestimo.Pendente,
+            SolicitanteId = 7
+        };
+
+        mapper
+            .Setup(current => current.Map<Emprestimo>(It.IsAny<AddEmprestimoDTO>()))
+            .Returns(createdLoan);
+        mapper
+            .Setup(current => current.Map<EmprestimoDTO>(It.IsAny<Emprestimo>()))
+            .Returns(new EmprestimoDTO());
+        loanRepository
+            .Setup(repository => repository.Criar(It.IsAny<Emprestimo>()))
+            .Returns(createdLoan);
+        loanRepository
+            .Setup(repository => repository.ObterAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<Emprestimo, bool>>>(),
+                It.IsAny<Func<IQueryable<Emprestimo>, IQueryable<Emprestimo>>?>()))
+            .ReturnsAsync(createdLoan);
+        unitOfWork.SetupGet(current => current.EmprestimoRepository).Returns(loanRepository.Object);
+        unitOfWork.Setup(current => current.CommitAsync()).Returns(Task.CompletedTask);
+
+        var controller = new EmprestimosController(
+            unitOfWork.Object,
+            mapper.Object,
+            notificationService.Object,
+            TimeProvider.System);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.NameIdentifier, "7") },
+                    "test"))
+            }
+        };
+
+        return controller;
+    }
 }
