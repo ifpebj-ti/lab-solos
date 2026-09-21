@@ -36,6 +36,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             scenario,
             StatusEmprestimo.Aprovado,
             expectedQuantity: 8,
+            expectedProductStatus: StatusProduto.Disponivel,
             expectDecisionTimestamp: true);
 
         using var replay = await SendDecisionAsync(client, "aprovar", scenario.LoanId);
@@ -47,6 +48,33 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             scenario,
             StatusEmprestimo.Aprovado,
             expectedQuantity: 8,
+            expectedProductStatus: StatusProduto.Disponivel,
+            expectDecisionTimestamp: true);
+    }
+
+    [Fact]
+    public async Task AdministratorApprovalMarksExpiredProductWithoutChangingDecisionContract()
+    {
+        var seeded = await SeedScenarioAsync("loan-decision-expired-product");
+        await using var factory = seeded.Factory;
+        var scenario = seeded.Scenario;
+        await SetProductExpirationAsync(factory, scenario.ProductId, ScenarioNow.AddDays(-1).UtcDateTime);
+
+        using var client = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.AdministratorEmail,
+            scenario.AdministratorPassword);
+
+        using var response = await SendDecisionAsync(client, "aprovar", scenario.LoanId);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        await AssertPersistedDecisionAsync(
+            factory,
+            scenario,
+            StatusEmprestimo.Aprovado,
+            expectedQuantity: 8,
+            expectedProductStatus: StatusProduto.Vencido,
             expectDecisionTimestamp: true);
     }
 
@@ -71,6 +99,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             scenario,
             StatusEmprestimo.Rejeitado,
             expectedQuantity: 10,
+            expectedProductStatus: StatusProduto.Disponivel,
             expectDecisionTimestamp: false);
 
         using var replay = await SendDecisionAsync(client, "reprovar", scenario.LoanId);
@@ -82,6 +111,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             scenario,
             StatusEmprestimo.Rejeitado,
             expectedQuantity: 10,
+            expectedProductStatus: StatusProduto.Disponivel,
             expectDecisionTimestamp: false);
     }
 
@@ -157,6 +187,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
         CriticalScenarioData scenario,
         StatusEmprestimo expectedStatus,
         float expectedQuantity,
+        StatusProduto expectedProductStatus,
         bool expectDecisionTimestamp)
     {
         var persisted = await ReadLoanStateAsync(factory, scenario.LoanId);
@@ -173,6 +204,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
         }
 
         Assert.Equal(expectedQuantity, await ReadProductQuantityAsync(factory, scenario.ProductId));
+        Assert.Equal(expectedProductStatus, await ReadProductStatusAsync(factory, scenario.ProductId));
     }
 
     private static async Task AssertPendingLoanUnchangedAsync(
@@ -183,6 +215,7 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
         Assert.Equal(StatusEmprestimo.Pendente, persisted.Status);
         Assert.Null(persisted.ApproverId);
         Assert.Equal(10, await ReadProductQuantityAsync(factory, scenario.ProductId));
+        Assert.Equal(StatusProduto.Disponivel, await ReadProductStatusAsync(factory, scenario.ProductId));
     }
 
     private async Task<(IntegrationWebApplicationFactory Factory, CriticalScenarioData Scenario)> SeedScenarioAsync(
@@ -234,6 +267,18 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             ProdutoId = secondProductId,
             Quantidade = 2
         });
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SetProductExpirationAsync(
+        IntegrationWebApplicationFactory factory,
+        int productId,
+        DateTime expiration)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var product = await context.Produtos.SingleAsync(candidate => candidate.Id == productId);
+        product.DataValidade = expiration;
         await context.SaveChangesAsync();
     }
 
@@ -289,6 +334,19 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             .AsNoTracking()
             .Where(product => product.Id == productId)
             .Select(product => product.Quantidade)
+            .SingleAsync();
+    }
+
+    private static async Task<StatusProduto> ReadProductStatusAsync(
+        IntegrationWebApplicationFactory factory,
+        int productId)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await context.Produtos
+            .AsNoTracking()
+            .Where(product => product.Id == productId)
+            .Select(product => product.Status)
             .SingleAsync();
     }
 

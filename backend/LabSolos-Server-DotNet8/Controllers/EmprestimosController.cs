@@ -279,22 +279,12 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 produto.Quantidade -= item.Quantidade;
 
-                if (!(produto.DataValidade < _timeProvider.GetUtcNow().UtcDateTime.Date))
-                {
-                    if (produto.Quantidade > 0)
-                    {
-                        produto.Status = StatusProduto.Disponivel;
-                    }
-                    else
-                    {
-                        produto.Status = StatusProduto.Esgotado;
-
-                    }
-                }
-                else
-                {
-                    produto.Status = StatusProduto.Vencido;
-                }
+                var currentDate = _timeProvider.GetUtcNow().UtcDateTime.Date;
+                produto.Status = produto.DataValidade < currentDate
+                    ? StatusProduto.Vencido
+                    : produto.Quantidade > 0
+                        ? StatusProduto.Disponivel
+                        : StatusProduto.Esgotado;
 
                 _uow.ProdutoRepository.Atualizar(produto);
             }
