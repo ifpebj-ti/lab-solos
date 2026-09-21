@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using LabSolos_Server_DotNet8.DTOs.Email;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
@@ -18,6 +19,11 @@ public class EmailController(
     private readonly IEmailService _emailService = emailService;
     private readonly ICredentialService _credentialService = credentialService;
     private readonly ILogger<EmailController> _logger = logger;
+    private static readonly Action<ILogger, Exception?> LogEmailDeliveryFailure =
+        LoggerMessage.Define(
+            LogLevel.Warning,
+            new EventId(1001, nameof(LogEmailDeliveryFailure)),
+            "Falha esperada na entrega de e-mail.");
 
     [HttpPost("enviar")]
     public IActionResult EnviarEmail([FromQuery] string para)
@@ -31,9 +37,17 @@ public class EmailController(
 
             return Ok("E-mail enviado com sucesso!");
         }
-        catch (Exception)
+        catch (SmtpException ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return EmailDeliveryFailureResponse(ex);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return EmailDeliveryFailureResponse(ex);
+        }
+        catch (FormatException ex)
+        {
+            return EmailDeliveryFailureResponse(ex);
         }
     }
 
@@ -87,9 +101,17 @@ public class EmailController(
                     "RedefiniÃ§Ã£o de Senha",
                     BuildPasswordResetEmail(request.RecipientName ?? "UsuÃ¡rio", request.Token));
             }
-            catch (Exception)
+            catch (SmtpException ex)
             {
-                _logger.LogWarning("Password reset email delivery failed.");
+                LogEmailDeliveryFailure(_logger, ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                LogEmailDeliveryFailure(_logger, ex);
+            }
+            catch (FormatException ex)
+            {
+                LogEmailDeliveryFailure(_logger, ex);
             }
         }
 
@@ -185,4 +207,10 @@ public class EmailController(
             </p>
         </body>
         </html>";
+
+    private StatusCodeResult EmailDeliveryFailureResponse(Exception exception)
+    {
+        LogEmailDeliveryFailure(_logger, exception);
+        return StatusCode(StatusCodes.Status500InternalServerError);
+    }
 }
