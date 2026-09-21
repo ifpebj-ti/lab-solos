@@ -2,6 +2,7 @@ using LabSolos_Server_DotNet8.DTOs.Notificacoes;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace LabSolos_Server_DotNet8.Controllers
@@ -11,8 +12,14 @@ namespace LabSolos_Server_DotNet8.Controllers
     [Authorize]
     public class NotificacoesController : ControllerBase
     {
+        private const string InternalServerErrorMessage = "Erro interno do servidor";
         private readonly INotificacaoService _notificacaoService;
         private readonly ILogger<NotificacoesController> _logger;
+        private static readonly Action<ILogger, string, Exception?> LogNotificationOperationFailure =
+            LoggerMessage.Define<string>(
+                LogLevel.Error,
+                new EventId(1001, nameof(LogNotificationOperationFailure)),
+                "Falha operacional na operação de notificações: {Operacao}.");
 
         public NotificacoesController(INotificacaoService notificacaoService, ILogger<NotificacoesController> logger)
         {
@@ -35,10 +42,9 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return Ok(notificacoes);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Erro ao obter notificações do usuário");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("obter notificações do usuário", ex);
             }
         }
 
@@ -56,10 +62,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var count = await _notificacaoService.ContarNaoLidasFiltradas(usuarioId.Value, nivelUsuario);
                 return Ok(new { count });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Erro ao contar notificações não lidas");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("contar notificações não lidas", ex);
             }
         }
 
@@ -72,10 +77,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var notificacao = await _notificacaoService.CriarNotificacaoAsync(createDto);
                 return CreatedAtAction(nameof(ObterMinhasNotificacoes), new { id = notificacao.Id }, notificacao);
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Erro ao criar notificação");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("criar notificação", ex);
             }
         }
 
@@ -95,10 +99,9 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return Ok(new { message = "Notificação marcada como lida" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Erro ao marcar notificação como lida: {NotificacaoId}", id);
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse($"marcar notificação {id} como lida", ex);
             }
         }
 
@@ -118,10 +121,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var marcadasCount = await _notificacaoService.MarcarVariasComoLidaComVerificacaoAsync(marcarLidaDto.NotificacaoIds, usuarioId.Value);
                 return Ok(new { message = $"{marcadasCount} notificações marcadas como lidas" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Erro ao marcar notificações como lidas");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("marcar notificações como lidas", ex);
             }
         }
 
@@ -134,10 +136,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _notificacaoService.GerarNotificacoesAutomaticasAsync();
                 return Ok(new { message = "Notificações automáticas geradas com sucesso" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Erro ao gerar notificações automáticas");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("gerar notificações automáticas", ex);
             }
         }
 
@@ -150,11 +151,16 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _notificacaoService.VerificarEmprestimosVencidosAsync();
                 return Ok(new { message = "Verificação de empréstimos vencidos executada com sucesso" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Erro ao verificar empréstimos vencidos");
-                return StatusCode(500, "Erro interno do servidor");
+                return InternalServerErrorResponse("verificar empréstimos vencidos", ex);
             }
+        }
+
+        private ObjectResult InternalServerErrorResponse(string operation, Exception exception)
+        {
+            LogNotificationOperationFailure(_logger, operation, exception);
+            return StatusCode(StatusCodes.Status500InternalServerError, InternalServerErrorMessage);
         }
 
         private int? GetCurrentUserId()
