@@ -191,7 +191,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 await _notificacaoService.CriarNotificacaoNovoEmprestimo(novoEmprestimo.Id);
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
                 // Log do erro mas não falha o processo principal
                 // TODO: Adicionar logging apropriado
