@@ -18,29 +18,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                 .Include(l => l.Usuario)
                 .AsQueryable();
 
-            if (filtro.DataInicio.HasValue)
-                query = query.Where(l => l.DataHora >= filtro.DataInicio.Value);
-
-            if (filtro.DataFim.HasValue)
-                query = query.Where(l => l.DataHora <= filtro.DataFim.Value);
-
-            if (filtro.UsuarioId.HasValue)
-                query = query.Where(l => l.UsuarioId == filtro.UsuarioId.Value);
-
-            if (filtro.TipoAcao.HasValue)
-                query = query.Where(l => l.TipoAcao == filtro.TipoAcao.Value);
-
-            if (filtro.NivelRisco.HasValue)
-                query = query.Where(l => l.NivelRisco == filtro.NivelRisco.Value);
-
-            if (filtro.ApenasSuspeitas == true)
-                query = query.Where(l => l.Suspeita);
-
-            if (!string.IsNullOrEmpty(filtro.EnderecoIP))
-                query = query.Where(l => l.EnderecoIP.Contains(filtro.EnderecoIP));
-
-            if (!string.IsNullOrEmpty(filtro.Recurso))
-                query = query.Where(l => l.Recurso.Contains(filtro.Recurso));
+            query = AplicarFiltros(query, filtro);
 
             return await query
                 .OrderByDescending(l => l.DataHora)
@@ -51,22 +29,29 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<int> ObterTotalLogsFiltradosAsync(FiltroAuditoriaDTO filtro)
         {
-            var query = _context.LogsAuditoria.AsQueryable();
+            var query = AplicarFiltros(_context.LogsAuditoria.AsQueryable(), filtro);
 
-            if (filtro.DataInicio.HasValue)
-                query = query.Where(l => l.DataHora >= filtro.DataInicio.Value);
+            return await query.CountAsync();
+        }
 
-            if (filtro.DataFim.HasValue)
-                query = query.Where(l => l.DataHora <= filtro.DataFim.Value);
+        private static IQueryable<LogAuditoria> AplicarFiltros(
+            IQueryable<LogAuditoria> query,
+            FiltroAuditoriaDTO filtro)
+        {
+            if (filtro.DataInicio is { } dataInicio)
+                query = query.Where(l => l.DataHora >= dataInicio);
 
-            if (filtro.UsuarioId.HasValue)
-                query = query.Where(l => l.UsuarioId == filtro.UsuarioId.Value);
+            if (filtro.DataFim is { } dataFim)
+                query = query.Where(l => l.DataHora <= dataFim);
 
-            if (filtro.TipoAcao.HasValue)
-                query = query.Where(l => l.TipoAcao == filtro.TipoAcao.Value);
+            if (filtro.UsuarioId is { } usuarioId)
+                query = query.Where(l => l.UsuarioId == usuarioId);
 
-            if (filtro.NivelRisco.HasValue)
-                query = query.Where(l => l.NivelRisco == filtro.NivelRisco.Value);
+            if (filtro.TipoAcao is { } tipoAcao)
+                query = query.Where(l => l.TipoAcao == tipoAcao);
+
+            if (filtro.NivelRisco is { } nivelRisco)
+                query = query.Where(l => l.NivelRisco == nivelRisco);
 
             if (filtro.ApenasSuspeitas == true)
                 query = query.Where(l => l.Suspeita);
@@ -77,7 +62,7 @@ namespace LabSolos_Server_DotNet8.Repositories
             if (!string.IsNullOrEmpty(filtro.Recurso))
                 query = query.Where(l => l.Recurso.Contains(filtro.Recurso));
 
-            return await query.CountAsync();
+            return query;
         }
 
         public async Task<IEnumerable<LogAuditoria>> ObterLogsSuspeitosAsync(int limite = 50)
