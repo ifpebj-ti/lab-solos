@@ -74,9 +74,19 @@ git diff --check -- backend/Tests/Integration/LoanReturnMigrationTests.cs backen
 => exit 0 (somente avisos informativos de conversão LF/CRLF do Git).
 ```
 
-## Estado Code Quality
+## Estado Code Quality e prova remota
 
-Não foi feito commit, push, merge, criação de PR ou alteração de ruleset, conforme o escopo da execução. Portanto, ainda não existe análise Code Quality em um SHA contendo esta correção. A última consulta remota continua mostrando os findings #65 e #66 como `open`; a resolução no Code Quality permanece pendente de uma execução remota posterior, fora desta tarefa.
+Commit publicado: `8bf8ff0adce09b449620c9f07fdc61b6547fb83d`. PR de prova para `develop`: [#359](https://github.com/ifpebj-ti/lab-solos/pull/359), SHA `8bf8ff0adce09b449620c9f07fdc61b6547fb83d`.
+
+O run CodeQL da PR foi o [35546192698](https://github.com/ifpebj-ti/lab-solos/actions/runs/35546192698), com sucesso em ambas as linguagens:
+
+```text
+CodeQL (csharp): success — job 106172422771 — 2m30s
+CodeQL (javascript-typescript): success — job 106172422645 — 1m28s
+GET code-scanning/alerts?ref=refs/pull/359/head: 0 alertas abertos
+```
+
+A consulta direta dos findings gerenciados no painel padrão ainda retorna #65 e #66 como `open`, pois a PR #359 é destinada a `develop` e ainda não foi promovida a `main`. Essa diferença é intencional: a prova remota de `develop` está verde; a reconciliação final do Code Quality gerenciado exige uma promoção limpa para `main`.
 
 ## Arquivos alterados
 
@@ -101,4 +111,4 @@ Start-Service -Name com.docker.service
 => falhou: Não é possível abrir o serviço com.docker.service no computador '.'.
 ```
 
-O Docker Desktop foi iniciado localmente após a captura inicial e o daemon ficou disponível (`docker info` respondeu com versão `29.7.2`). Os cinco testes focais alcançaram os corpos e passaram. O bloqueio remanescente é exclusivamente operacional: ainda não existe SHA publicado com esta correção para executar CodeQL e confirmar a baixa dos findings #65 e #66. Não foram feitas tentativas de instalar, alterar permissões, editar infraestrutura ou ampliar o escopo.
+O Docker Desktop foi iniciado localmente após a captura inicial e o daemon ficou disponível (`docker info` respondeu com versão `29.7.2`). Os cinco testes focais alcançaram os corpos e passaram. O bloqueio remanescente é exclusivamente a promoção para `main` necessária para confirmar a baixa dos findings gerenciados #65 e #66. Não foram feitas tentativas de instalar, alterar permissões, editar infraestrutura ou ampliar o escopo.
