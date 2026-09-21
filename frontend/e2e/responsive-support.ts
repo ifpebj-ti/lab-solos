@@ -275,10 +275,10 @@ const normalizeLoanFixture = (value: Record<string, unknown>) => {
       requester === null
         ? null
         : makeLoanUser(
-            typeof requester === 'object' && requester !== null && 'id' in requester
+            typeof requester === 'object' && 'id' in requester
               ? Number((requester as { id: unknown }).id)
               : 4242,
-            requester && typeof requester === 'object'
+            typeof requester === 'object'
               ? (requester as Record<string, unknown>)
               : {}
           ),
