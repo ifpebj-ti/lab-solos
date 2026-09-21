@@ -174,6 +174,29 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
                 item.ReferenciaId == scenario.LoanId));
     }
 
+    [Fact]
+    public async Task AutomaticNotificationsEndpointPreservesSuccessContract()
+    {
+        var seeded = await SeedScenarioAsync("automatic-notification-contract");
+        await using var factory = seeded.Factory;
+        var scenario = seeded.Scenario;
+
+        using var client = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.AdministratorEmail,
+            scenario.AdministratorPassword);
+
+        using var response = await client.PostAsync(
+            "/api/Notificacoes/gerar-automaticas",
+            content: null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(
+            "Notificações automáticas geradas com sucesso",
+            document.RootElement.GetProperty("message").GetString());
+    }
+
     private async Task<(IntegrationWebApplicationFactory Factory, CriticalScenarioData Scenario)> SeedScenarioAsync(
         string scenarioKey)
     {
