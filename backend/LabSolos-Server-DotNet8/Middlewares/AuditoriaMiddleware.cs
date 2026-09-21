@@ -2,6 +2,7 @@ using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Extensions;
 using LabSolos_Server_DotNet8.Services;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +11,7 @@ namespace LabSolos_Server_DotNet8.Middlewares
 {
     public class AuditoriaMiddleware
     {
+        private const string DadosRequisicaoIndisponiveis = "Erro ao capturar dados da requisição";
         private readonly RequestDelegate _next;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Func<Stream, TextReader> _requestBodyReaderFactory;
@@ -40,7 +42,7 @@ namespace LabSolos_Server_DotNet8.Middlewares
             await _next(context);
 
             // Registrar log de auditoria após a resposta
-            _ = Task.Run(async () => await RegistrarLogAuditoriaAsync(context, dadosRequisicao, inicioRequisicao));
+            await RegistrarLogAuditoriaAsync(context, dadosRequisicao, inicioRequisicao);
         }
 
         private async Task<string> CapturarDadosRequisicaoAsync(HttpContext context)
@@ -96,9 +98,13 @@ namespace LabSolos_Server_DotNet8.Middlewares
 
                 return JsonSerializer.Serialize(dados);
             }
-            catch
+            catch (IOException)
             {
-                return "Erro ao capturar dados da requisição";
+                return DadosRequisicaoIndisponiveis;
+            }
+            catch (JsonException)
+            {
+                return DadosRequisicaoIndisponiveis;
             }
         }
 
@@ -138,7 +144,7 @@ namespace LabSolos_Server_DotNet8.Middlewares
 
                 await auditoriaService.RegistrarLogAsync(logDto, userId, enderecoIP, userAgent);
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
                 // Log de erro mas não deve falhar a aplicação
                 Console.WriteLine($"Erro no middleware de auditoria: {ex.Message}");

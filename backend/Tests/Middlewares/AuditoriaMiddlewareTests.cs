@@ -3,6 +3,7 @@ using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Middlewares;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -78,6 +79,65 @@ public sealed class AuditoriaMiddlewareTests
         Assert.True(bodyReader!.IsDisposed);
     }
 
+    [Fact]
+    public async Task InvokeAsyncPropagatesUnexpectedCaptureFailure()
+    {
+        var loggedData = CreateLoggedDataSource();
+        using var services = loggedData.Services;
+        var middleware = CreateMiddleware(
+            services,
+            _ => Task.CompletedTask,
+            _ => throw new InvalidOperationException("falha inesperada de captura"));
+        var context = CreatePostContext(
+            new MemoryStream(Encoding.UTF8.GetBytes("{\"nome\":\"Alice\"}")));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.InvokeAsync(context));
+    }
+
+    [Fact]
+    public async Task InvokeAsyncKeepsPipelineResponseWhenAuditPersistenceFailsExpectedly()
+    {
+        var service = new Mock<IAuditoriaService>();
+        service
+            .Setup(instance => instance.RegistrarLogAsync(
+                It.IsAny<CreateLogAuditoriaDTO>(),
+                It.IsAny<int?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .ThrowsAsync(new DbUpdateException("falha esperada de persistência"));
+        using var services = CreateServices(service.Object);
+        var middleware = CreateMiddleware(
+            services,
+            context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status204NoContent;
+                return Task.CompletedTask;
+            });
+        var context = new DefaultHttpContext();
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status204NoContent, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task InvokeAsyncPropagatesUnexpectedAuditPersistenceFailure()
+    {
+        var service = new Mock<IAuditoriaService>();
+        service
+            .Setup(instance => instance.RegistrarLogAsync(
+                It.IsAny<CreateLogAuditoriaDTO>(),
+                It.IsAny<int?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .ThrowsAsync(new InvalidOperationException("falha inesperada de persistência"));
+        using var services = CreateServices(service.Object);
+        var middleware = CreateMiddleware(services, _ => Task.CompletedTask);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => middleware.InvokeAsync(new DefaultHttpContext()));
+    }
+
     private static AuditoriaMiddleware CreateMiddleware(
         ServiceProvider services,
         RequestDelegate next,
@@ -116,10 +176,15 @@ public sealed class AuditoriaMiddlewareTests
                 (log, _, _, _) => auditLog.TrySetResult(log))
             .Returns(Task.CompletedTask);
 
-        var services = new ServiceCollection()
-            .AddSingleton(service.Object)
-            .BuildServiceProvider();
+        var services = CreateServices(service.Object);
         return (services, auditLog);
+    }
+
+    private static ServiceProvider CreateServices(IAuditoriaService service)
+    {
+        return new ServiceCollection()
+            .AddSingleton(service)
+            .BuildServiceProvider();
     }
 
     private sealed class ThrowOnceOnReadStream(byte[] content) : MemoryStream(content)
