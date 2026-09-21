@@ -12,11 +12,21 @@ namespace LabSolos_Server_DotNet8.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly Func<Stream, TextReader> _requestBodyReaderFactory;
 
-        public AuditoriaMiddleware(RequestDelegate next, IServiceScopeFactory serviceScopeFactory)
+        public AuditoriaMiddleware(
+            RequestDelegate next,
+            IServiceScopeFactory serviceScopeFactory,
+            Func<Stream, TextReader>? requestBodyReaderFactory = null)
         {
             _next = next;
             _serviceScopeFactory = serviceScopeFactory;
+            _requestBodyReaderFactory = requestBodyReaderFactory ?? (body => new StreamReader(
+                body,
+                Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: true,
+                bufferSize: 1024,
+                leaveOpen: true));
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -55,7 +65,8 @@ namespace LabSolos_Server_DotNet8.Middlewares
                     (request.Method == "POST" || request.Method == "PUT" || request.Method == "PATCH"))
                 {
                     request.EnableBuffering();
-                    var body = await new StreamReader(request.Body).ReadToEndAsync();
+                    using var reader = _requestBodyReaderFactory(request.Body);
+                    var body = await reader.ReadToEndAsync();
                     request.Body.Position = 0;
 
                     // Remover dados sensíveis como senhas
