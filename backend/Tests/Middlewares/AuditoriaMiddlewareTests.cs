@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Middlewares;
 using LabSolos_Server_DotNet8.Services;
@@ -43,6 +44,40 @@ public sealed class AuditoriaMiddlewareTests
         Assert.DoesNotContain("nao registrar", log.DadosRequisicao);
         Assert.NotNull(bodyReader);
         Assert.True(bodyReader!.IsDisposed);
+    }
+
+    [Fact]
+    public async Task InvokeAsyncSanitizesSensitiveFieldsWithoutChangingBodyFieldOrder()
+    {
+        const string requestBody = "{\"primeiro\":\"1\",\"senha\":\"segredo\",\"meio\":\"2\",\"PASSWORD\":\"segredo2\",\"ultimo\":\"3\"}";
+        var loggedData = CreateLoggedDataSource();
+        var auditLog = loggedData.AuditLog;
+        using var services = loggedData.Services;
+        var middleware = CreateMiddleware(services, _ => Task.CompletedTask);
+
+        await middleware.InvokeAsync(CreatePostContext(
+            new MemoryStream(Encoding.UTF8.GetBytes(requestBody))));
+
+        var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.NotNull(log.DadosRequisicao);
+        using var document = JsonDocument.Parse(log.DadosRequisicao!);
+        var fields = document.RootElement
+            .GetProperty("Body")
+            .EnumerateObject()
+            .ToArray();
+
+        Assert.Collection(
+            fields,
+            field => Assert.Equal("primeiro", field.Name),
+            field => Assert.Equal("senha", field.Name),
+            field => Assert.Equal("meio", field.Name),
+            field => Assert.Equal("PASSWORD", field.Name),
+            field => Assert.Equal("ultimo", field.Name));
+        Assert.Equal("1", fields[0].Value.GetString());
+        Assert.Equal("***", fields[1].Value.GetString());
+        Assert.Equal("2", fields[2].Value.GetString());
+        Assert.Equal("***", fields[3].Value.GetString());
+        Assert.Equal("3", fields[4].Value.GetString());
     }
 
     [Fact]
