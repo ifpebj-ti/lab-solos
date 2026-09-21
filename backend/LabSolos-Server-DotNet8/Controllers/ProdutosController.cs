@@ -15,11 +15,18 @@ namespace LabSolos_Server_DotNet8.Controllers
     [Route("api/[controller]")]
     public class ProdutosController : ControllerBase
     {
+        private const string HistoryReadFailureMessage =
+            "Erro interno do servidor. Tente novamente mais tarde.";
         private readonly IProdutoService _produtoService;
         private readonly IUtilitiesService _utilsService;
         private readonly ILogger<ProdutosController> _logger;
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private static readonly Action<ILogger, int, Exception?> LogHistoryReadFailure =
+            LoggerMessage.Define<int>(
+                LogLevel.Error,
+                new EventId(1001, nameof(LogHistoryReadFailure)),
+                "Falha operacional ao obter histórico de saída do produto {ProdutoId}.");
 
         public ProdutosController(
             IProdutoService produtoService,
@@ -198,11 +205,16 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return Ok(historico);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                _logger.LogError(ex, "Erro inesperado ao obter histórico de saída do produto {ProdutoId}", id);
-                return StatusCode(500, "Erro interno do servidor. Tente novamente mais tarde.");
+                return HistoryReadFailureResponse(id, ex);
             }
+        }
+
+        private ObjectResult HistoryReadFailureResponse(int productId, InvalidOperationException exception)
+        {
+            LogHistoryReadFailure(_logger, productId, exception);
+            return StatusCode(StatusCodes.Status500InternalServerError, HistoryReadFailureMessage);
         }
 
         [HttpPatch("{id}")]
