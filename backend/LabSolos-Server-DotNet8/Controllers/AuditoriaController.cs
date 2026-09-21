@@ -1,9 +1,10 @@
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
-using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Extensions;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace LabSolos_Server_DotNet8.Controllers
@@ -13,11 +14,20 @@ namespace LabSolos_Server_DotNet8.Controllers
     [Authorize("ApenasAdministradores")]
     public class AuditoriaController : ControllerBase
     {
+        private readonly ILogger<AuditoriaController> _logger;
         private readonly IAuditoriaService _auditoriaService;
+        private static readonly Action<ILogger, string, Exception?> LogAuditOperationFailure =
+            LoggerMessage.Define<string>(
+                LogLevel.Error,
+                new EventId(1001, nameof(LogAuditOperationFailure)),
+                "Falha operacional na operacao de auditoria: {Operacao}.");
 
-        public AuditoriaController(IAuditoriaService auditoriaService)
+        public AuditoriaController(
+            IAuditoriaService auditoriaService,
+            ILogger<AuditoriaController> logger)
         {
             _auditoriaService = auditoriaService;
+            _logger = logger;
         }
 
         [HttpPost("registrar")]
@@ -26,7 +36,14 @@ namespace LabSolos_Server_DotNet8.Controllers
             try
             {
                 var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-                var userId = userIdClaim != null ? int.Parse(userIdClaim.Value) : (int?)null;
+                int? userId = null;
+                if (userIdClaim != null)
+                {
+                    if (!int.TryParse(userIdClaim.Value, out var parsedUserId))
+                        return BadRequest(new { message = "Erro ao registrar log." });
+
+                    userId = parsedUserId;
+                }
 
                 var enderecoIP = HttpContext.GetClientIpAddress();
                 var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
@@ -35,9 +52,13 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return Ok(new { message = "Log registrado com sucesso" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                return BadRequest(new { message = $"Erro ao registrar log: {ex.Message}" });
+                return AuditOperationFailure("registrar log", "Erro ao registrar log.", ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return AuditOperationFailure("registrar log", "Erro ao registrar log.", ex);
             }
         }
 
@@ -49,9 +70,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var logs = await _auditoriaService.ObterLogsFiltradosAsync(filtro);
                 return Ok(logs);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = $"Erro ao obter logs: {ex.Message}" });
+                return AuditOperationFailure("obter logs", "Erro ao obter logs.", ex);
             }
         }
 
@@ -66,9 +87,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var relatorio = await _auditoriaService.GerarRelatorioAsync(inicio, fim);
                 return Ok(relatorio);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = $"Erro ao gerar relatório: {ex.Message}" });
+                return AuditOperationFailure("gerar relatório", "Erro ao gerar relatório.", ex);
             }
         }
 
@@ -80,9 +101,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _auditoriaService.MarcarComoSuspeitoAsync(logId, motivo);
                 return Ok(new { message = "Log marcado como suspeito" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                return BadRequest(new { message = $"Erro ao marcar log: {ex.Message}" });
+                return AuditOperationFailure("marcar log como suspeito", "Erro ao marcar log.", ex);
             }
         }
 
@@ -94,9 +115,9 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _auditoriaService.MarcarComoNaoSuspeitoAsync(logId);
                 return Ok(new { message = "Log marcado como não suspeito" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                return BadRequest(new { message = $"Erro ao marcar log: {ex.Message}" });
+                return AuditOperationFailure("marcar log como nao suspeito", "Erro ao marcar log.", ex);
             }
         }
 
@@ -110,9 +131,9 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return Ok(new { suspeita });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = $"Erro ao verificar atividade: {ex.Message}" });
+                return AuditOperationFailure("verificar atividade suspeita", "Erro ao verificar atividade.", ex);
             }
         }
 
@@ -124,10 +145,19 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _auditoriaService.ProcessarDeteccaoAutomaticaAsync();
                 return Ok(new { message = "Detecção automática processada" });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = $"Erro ao processar detecção: {ex.Message}" });
+                return AuditOperationFailure("processar detecção", "Erro ao processar detecção.", ex);
             }
+        }
+
+        private BadRequestObjectResult AuditOperationFailure(
+            string operation,
+            string message,
+            Exception exception)
+        {
+            LogAuditOperationFailure(_logger, operation, exception);
+            return BadRequest(new { message });
         }
     }
 }
