@@ -14,19 +14,15 @@
         public static string GetClientIpAddress(this HttpContext context)
         {
             // Verifica os headers de proxy mais comuns (em ordem de prioridade)
-            foreach (var value in ProxyHeaders.Select(header => context.Request.Headers[header].FirstOrDefault()))
+            foreach (var ip in ProxyHeaders
+                .Select(header => context.Request.Headers[header].FirstOrDefault())
+                .Where(value => !string.IsNullOrEmpty(value))
+                .Select(value => value!.Split(',')[0].Trim())
+                .Where(ip => !string.IsNullOrEmpty(ip) && ip != "unknown"))
             {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    // X-Forwarded-For pode conter múltiplos IPs separados por vírgula
-                    // O primeiro é o IP real do cliente
-                    var ip = value.Split(',')[0].Trim();
-
-                    if (!string.IsNullOrEmpty(ip) && ip != "unknown")
-                    {
-                        return ip;
-                    }
-                }
+                // X-Forwarded-For pode conter múltiplos IPs separados por vírgula
+                // O primeiro é o IP real do cliente
+                return ip;
             }
 
             // Fallback para o RemoteIpAddress se não houver headers
