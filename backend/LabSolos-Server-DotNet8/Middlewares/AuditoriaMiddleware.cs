@@ -76,7 +76,8 @@ namespace LabSolos_Server_DotNet8.Middlewares
                     if (bodyObj != null)
                     {
                         foreach (var key in bodyObj.Keys.Where(key =>
-                            key.ToLower().Contains("password") || key.ToLower().Contains("senha")))
+                            key.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+                            key.Contains("senha", StringComparison.OrdinalIgnoreCase)))
                         {
                             bodyObj[key] = "***";
                         }
