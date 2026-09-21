@@ -453,19 +453,19 @@ namespace LabSolos_Server_DotNet8.Services
                 var mensagem = $"O empréstimo #{emprestimo.Id} do usuário {emprestimo.Solicitante.NomeCompleto} " +
                               $"está vencido há {diasVencido} dias. Produtos: {produtosList}";
 
-                foreach (var admin in usuarios)
+                var notificacoesParaCriar = usuarios.Select(admin => new CreateNotificacaoDTO
                 {
-                    var createDto = new CreateNotificacaoDTO
-                    {
-                        Titulo = titulo,
-                        Mensagem = mensagem,
-                        Tipo = TipoNotificacao.Sistema,
-                        UsuarioId = admin.Id,
-                        LinkAcao = $"/admin/history/loan/{emprestimo.Id}",
-                        ReferenciaId = emprestimo.Id,
-                        TipoReferencia = "EmprestimoVencido"
-                    };
+                    Titulo = titulo,
+                    Mensagem = mensagem,
+                    Tipo = TipoNotificacao.Sistema,
+                    UsuarioId = admin.Id,
+                    LinkAcao = $"/admin/history/loan/{emprestimo.Id}",
+                    ReferenciaId = emprestimo.Id,
+                    TipoReferencia = "EmprestimoVencido"
+                });
 
+                foreach (var createDto in notificacoesParaCriar)
+                {
                     await CriarNotificacaoAsync(createDto);
                 }
 
