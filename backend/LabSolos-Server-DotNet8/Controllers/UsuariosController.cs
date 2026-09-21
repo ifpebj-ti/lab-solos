@@ -29,6 +29,11 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly TimeProvider _timeProvider;
         private const string DependentDecisionUnauthorizedMessage =
             "Você não tem permissão para processar este usuário dependente.";
+        private static readonly Action<ILogger, int, Exception?> LogNotificationPersistenceFailure =
+            LoggerMessage.Define<int>(
+                LogLevel.Error,
+                new EventId(1001, nameof(LogNotificationPersistenceFailure)),
+                "Falha de persistência ao criar notificação para o usuário {UsuarioId}");
 
         public UsuariosController(
             ILogger<UsuariosController> logger,
@@ -276,11 +281,11 @@ namespace LabSolos_Server_DotNet8.Controllers
                 {
                     await _notificacaoService.CriarNotificacaoNovaSolicitacaoUsuario(usuario.Id);
                 }
-                catch (Exception ex)
+                catch (DbUpdateException ex)
                 {
-                    // Log do erro mas não falha o processo principal
-                    // TODO: Adicionar logging apropriado
-                    Console.WriteLine($"Erro ao criar notificação de usuário: {ex.Message}");
+                    // A notificação é secundária ao cadastro; registre a falha esperada
+                    // sem expor detalhes de persistência nem falhar o processo principal.
+                    LogNotificationPersistenceFailure(_logger, usuario.Id, ex);
                 }
 
                 return CreatedAtAction(nameof(ObterPeloId), new { id = usuario.Id }, _mapper.Map<UsuarioDTO>(usuario));
