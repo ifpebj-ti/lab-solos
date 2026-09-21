@@ -10,7 +10,7 @@ namespace Tests.Repositories;
 public class LogAuditoriaRepositoryTests
 {
     [Fact]
-    public async Task ObterLogsFiltradosAsync_ComFiltrosNulos_NaoRestringeOsCincoCamposOpcionais()
+    public async Task ObterLogsFiltradosAsyncComFiltrosNulosNaoRestringeOsCincoCamposOpcionais()
     {
         await using var contexto = CriarContexto();
         await AdicionarLogsAsync(contexto);
@@ -36,7 +36,7 @@ public class LogAuditoriaRepositoryTests
     }
 
     [Fact]
-    public async Task ObterLogsFiltradosAsync_ComFiltrosPreenchidos_AplicaUsuarioTipoDatasENivelDeRisco()
+    public async Task ObterLogsFiltradosAsyncComFiltrosPreenchidosAplicaUsuarioTipoDatasENivelDeRisco()
     {
         await using var contexto = CriarContexto();
         await AdicionarLogsAsync(contexto);
