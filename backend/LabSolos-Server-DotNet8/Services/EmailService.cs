@@ -12,10 +12,17 @@ namespace LabSolos_Server_DotNet8.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly Func<SmtpClient> _smtpClientFactory;
+        private readonly Action<SmtpClient, MailMessage> _sendMail;
 
-        public EmailService(IConfiguration config)
+        public EmailService(
+            IConfiguration config,
+            Func<SmtpClient>? smtpClientFactory = null,
+            Action<SmtpClient, MailMessage>? sendMail = null)
         {
             _config = config;
+            _smtpClientFactory = smtpClientFactory ?? CriarSmtpClient;
+            _sendMail = sendMail ?? ((smtp, message) => smtp.Send(message));
         }
 
         public void EnviarEmail(string para, string assunto, string corpo)
@@ -29,15 +36,13 @@ namespace LabSolos_Server_DotNet8.Services
             var fromAddress = new MailAddress(de, "Redefinição de Senha LabOn");
             var toAddress = new MailAddress(para);
 
-            var smtp = new SmtpClient
-            {
-                Host = smtpHost,
-                Port = smtpPort,
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(smtpUser, smtpPass)
-            };
+            using var smtp = _smtpClientFactory();
+            smtp.Host = smtpHost;
+            smtp.Port = smtpPort;
+            smtp.EnableSsl = true;
+            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+            smtp.UseDefaultCredentials = false;
+            smtp.Credentials = new NetworkCredential(smtpUser, smtpPass);
 
             using (var message = new MailMessage(fromAddress, toAddress)
             {
@@ -46,8 +51,10 @@ namespace LabSolos_Server_DotNet8.Services
                 IsBodyHtml = true // <- ESSENCIAL!
             })
             {
-                smtp.Send(message);
+                _sendMail(smtp, message);
             }
         }
+
+        private static SmtpClient CriarSmtpClient() => new();
     }
 }
