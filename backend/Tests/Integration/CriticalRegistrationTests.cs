@@ -2,9 +2,19 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.Controllers;
+using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Repositories;
+using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -138,4 +148,94 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
     private const string RegistrationName = "Cadastro HTTP crítico";
     private const string RegistrationEmail = "critical-registration@example.test";
     private const string RegistrationPassword = "critical-registration-password-2026";
+}
+
+public sealed class UsuariosControllerRegistrationFailureTests
+{
+    [Fact]
+    public async Task AdicionarUnexpectedNotificationFailureIsNotConvertedToCreated()
+    {
+        var failure = new InvalidOperationException("notification provider secret");
+        var fixture = CreateFixture(failure);
+
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Controller.Adicionar(fixture.Request));
+
+        Assert.Same(failure, thrown);
+    }
+
+    [Fact]
+    public async Task AdicionarNotificationPersistenceFailurePreservesCreatedResponse()
+    {
+        var fixture = CreateFixture(new DbUpdateException("notification persistence failure"));
+
+        var result = await fixture.Controller.Adicionar(fixture.Request);
+
+        Assert.IsType<CreatedAtActionResult>(result);
+    }
+
+    private static Fixture CreateFixture(Exception notificationFailure)
+    {
+        var request = new AddUsuarioDTO
+        {
+            NomeCompleto = "Cadastro com falha de notificação",
+            Email = "notification-failure@example.test",
+            Senha = "critical-registration-password-2026",
+            NivelUsuario = NivelUsuario.Comum.ToString(),
+            TipoUsuario = TipoUsuario.Comum.ToString()
+        };
+        var user = new Usuario
+        {
+            NomeCompleto = request.NomeCompleto,
+            Email = request.Email,
+            SenhaHash = "generated-hash",
+            NivelUsuario = NivelUsuario.Comum,
+            TipoUsuario = TipoUsuario.Comum
+        };
+
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(instance => instance.Map<Usuario>(request)).Returns(user);
+        mapper.Setup(instance => instance.Map<UsuarioDTO>(user)).Returns(new UsuarioDTO
+        {
+            NomeCompleto = user.NomeCompleto,
+            Email = user.Email
+        });
+
+        var repository = new Mock<IRepository<Usuario>>();
+        repository.Setup(instance => instance.Criar(It.IsAny<Usuario>()))
+            .Returns((Usuario candidate) => candidate);
+
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(instance => instance.UsuarioRepository).Returns(repository.Object);
+        unitOfWork.Setup(instance => instance.CommitAsync()).Returns(Task.CompletedTask);
+
+        var utilities = new Mock<IUtilitiesService>();
+        utilities.Setup(instance => instance.ValidarEnum(
+                request.TipoUsuario,
+                "TipoUsuario",
+                TipoUsuario.Comum))
+            .Returns(TipoUsuario.Comum);
+
+        var usuarioService = new Mock<IUsuarioService>();
+        usuarioService.Setup(instance => instance.ValidarEstrutura(request))
+            .Returns(UsuarioValidationResult.Valid());
+        usuarioService.Setup(instance => instance.PrepararSenhaCadastro(user, request.Senha))
+            .Returns(PasswordPolicyResult.Valid);
+
+        var notifications = new Mock<INotificacaoService>();
+        notifications.Setup(instance => instance.CriarNotificacaoNovaSolicitacaoUsuario(It.IsAny<int>()))
+            .ThrowsAsync(notificationFailure);
+
+        return new Fixture(
+            request,
+            new UsuariosController(
+                NullLogger<UsuariosController>.Instance,
+                utilities.Object,
+                unitOfWork.Object,
+                mapper.Object,
+                usuarioService.Object,
+                notifications.Object));
+    }
+
+    private sealed record Fixture(AddUsuarioDTO Request, UsuariosController Controller);
 }
