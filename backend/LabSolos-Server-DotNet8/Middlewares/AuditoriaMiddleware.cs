@@ -75,12 +75,11 @@ namespace LabSolos_Server_DotNet8.Middlewares
                     var bodyObj = JsonSerializer.Deserialize<Dictionary<string, object>>(body);
                     if (bodyObj != null)
                     {
-                        foreach (var key in bodyObj.Keys.ToList())
+                        foreach (var key in bodyObj.Keys.Where(key =>
+                            key.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+                            key.Contains("senha", StringComparison.OrdinalIgnoreCase)))
                         {
-                            if (key.ToLower().Contains("password") || key.ToLower().Contains("senha"))
-                            {
-                                bodyObj[key] = "***";
-                            }
+                            bodyObj[key] = "***";
                         }
 
                         return JsonSerializer.Serialize(new
