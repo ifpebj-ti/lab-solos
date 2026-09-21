@@ -28,6 +28,14 @@ import {
   menteeMentoringHistoryFixtures,
 } from './responsive-support';
 
+test('T020 requester fixtures preserve null and populated branches', () => {
+  expect(loanHistoryMenteeFixture.solicitante).toMatchObject({
+    id: 4242,
+    nomeCompleto: 'Pessoa Sintética',
+  });
+  expect(menteeMentoringHistoryFixtures[0].solicitante).toBeNull();
+});
+
 for (const viewport of responsiveViewports) {
   test(`T006 criação de empréstimo ${viewport.width}`, async ({
     page,
