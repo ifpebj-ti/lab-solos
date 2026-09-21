@@ -422,7 +422,7 @@ function AuditoriaPage() {
                     colSpan={7}
                     className='px-4 py-8 text-center text-gray-500'
                   >
-                    {loading ? 'Carregando logs...' : 'Nenhum log encontrado'}
+                    Nenhum log encontrado
                   </td>
                 </tr>
               )}
