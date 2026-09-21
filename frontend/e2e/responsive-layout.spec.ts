@@ -36,6 +36,97 @@ test('T020 requester fixtures preserve null and populated branches', () => {
   expect(menteeMentoringHistoryFixtures[0].solicitante).toBeNull();
 });
 
+const auditLogFixture = {
+  id: 9021,
+  dataHora: '2026-09-21T12:00:00.000Z',
+  acao: 'Login',
+  recurso: 'Auth',
+  enderecoIP: '192.0.2.21',
+  tipoAcao: 'Autenticação',
+  nivelRisco: 'Baixo',
+  suspeita: false,
+  nomeUsuario: 'Pessoa Sintética',
+};
+
+const auditReportFixture = {
+  totalLogs: 1,
+  logsSuspeitos: 0,
+  logsCriticos: 0,
+  logsPorTipo: {},
+  logsPorUsuario: {},
+  logsPorIP: {},
+  logsPorDia: {},
+  ultimosLogsSuspeitos: [],
+  ipsSuspeitos: [],
+  usuariosComMaisAcessos: [],
+};
+
+test('T023 auditoria preserva loading e exibe a lista carregada', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockResponsiveSession(page, 'Administrador');
+
+  let releaseLogs!: () => void;
+  const logsPending = new Promise<void>((resolve) => {
+    releaseLogs = resolve;
+  });
+
+  await page.route('**/api/Auditoria/logs**', async (route) => {
+    await logsPending;
+    await route.fulfill({ json: [auditLogFixture] });
+  });
+  await page.route('**/api/Auditoria/relatorio**', (route) =>
+    route.fulfill({ json: auditReportFixture })
+  );
+
+  await page.goto('/admin/auditoria');
+  await expect(page.getByText('Carregando auditoria...')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Auditoria de Segurança/i })
+  ).toHaveCount(0);
+
+  releaseLogs();
+  await expect(
+    page.getByRole('heading', { name: /Auditoria de Segurança/i })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Logs de Auditoria \(1 registros\)/i })
+  ).toBeVisible();
+  await expect(page.getByText('Login')).toBeVisible();
+});
+
+test('T023 auditoria preserva o estado vazio após carregar', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockResponsiveSession(page, 'Administrador');
+  await page.route('**/api/Auditoria/logs**', (route) =>
+    route.fulfill({ json: [] })
+  );
+  await page.route('**/api/Auditoria/relatorio**', (route) =>
+    route.fulfill({ json: auditReportFixture })
+  );
+
+  await page.goto('/admin/auditoria');
+  await expect(page.getByText('Nenhum log encontrado')).toBeVisible();
+});
+
+test('T023 auditoria preserva o erro de carregamento', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockResponsiveSession(page, 'Administrador');
+  await page.route('**/api/Auditoria/logs**', (route) =>
+    route.fulfill({ status: 500, json: { message: 'erro sintético' } })
+  );
+  await page.route('**/api/Auditoria/relatorio**', (route) =>
+    route.fulfill({ status: 500, json: { message: 'erro sintético' } })
+  );
+
+  await page.goto('/admin/auditoria');
+  await expect(
+    page.getByText('Erro ao carregar dados de auditoria', { exact: true })
+  ).toBeVisible();
+  await expect(page.getByText('Nenhum log encontrado')).toBeVisible();
+});
+
 for (const viewport of responsiveViewports) {
   test(`T006 criação de empréstimo ${viewport.width}`, async ({
     page,
