@@ -2,22 +2,20 @@
 {
     public static class HttpContextExtensions
     {
+        private static readonly string[] ProxyHeaders =
+        {
+            "X-Forwarded-For",      // Nginx, Apache, AWS ELB
+            "X-Real-IP",            // Nginx
+            "CF-Connecting-IP",     // Cloudflare
+            "True-Client-IP",       // Akamai, Cloudflare Enterprise
+            "X-Client-IP"           // Outros proxies
+        };
+
         public static string GetClientIpAddress(this HttpContext context)
         {
             // Verifica os headers de proxy mais comuns (em ordem de prioridade)
-            var headers = new[]
+            foreach (var value in ProxyHeaders.Select(header => context.Request.Headers[header].FirstOrDefault()))
             {
-                "X-Forwarded-For",      // Nginx, Apache, AWS ELB
-                "X-Real-IP",            // Nginx
-                "CF-Connecting-IP",     // Cloudflare
-                "True-Client-IP",       // Akamai, Cloudflare Enterprise
-                "X-Client-IP"           // Outros proxies
-            };
-
-            foreach (var header in headers)
-            {
-                var value = context.Request.Headers[header].FirstOrDefault();
-
                 if (!string.IsNullOrEmpty(value))
                 {
                     // X-Forwarded-For pode conter múltiplos IPs separados por vírgula
