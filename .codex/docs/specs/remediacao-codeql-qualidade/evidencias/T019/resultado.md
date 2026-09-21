@@ -72,3 +72,16 @@ Não foi executado Code Quality remoto, push, commit, merge ou alteração de ru
 - `.codex/docs/specs/remediacao-codeql-qualidade/evidencias/T019/resultado.md`
 
 Não foram alterados `tasks.md`, a evidência de T018, workflows, inventário ou arquivos fora do escopo da T019.
+
+## Prova remota da PR #361
+
+Commit analisado: `b87aa73a744cce8c77eeb4e9058d73fe3462e2c7`.
+
+- PR: https://github.com/ifpebj-ti/lab-solos/pull/361
+- CodeQL C#: run `35550401859`, job `106183943599`, sucesso;
+- CodeQL JavaScript/TypeScript: run `35550401859`, job `106183943494`, sucesso;
+- `Code quality baseline`: run `35550401878`, job `106184026269`, sucesso;
+- `Quality gate`: job `106185603474`, sucesso;
+- Code scanning no head da PR: `0` alertas, incluindo `0` ocorrências de `cs/dereferenced-value-may-be-null`.
+
+Os findings gerenciados de Code Quality permanecem aguardando o merge e a análise pós-push no `main`; essa reconciliação será registrada após a promoção.
