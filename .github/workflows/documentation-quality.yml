@@ -164,3 +164,4 @@ jobs:
               )
               if result.returncode != 1:
                   raise SystemExit("missing LABON_IMAGE_VERSION was not rejected")
+          PY
