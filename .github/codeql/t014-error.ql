@@ -8,5 +8,4 @@
 import csharp
 
 from Method m
-where m.getName() = "T014SyntheticError"
 select m, "Temporary controlled Error probe for T014."
