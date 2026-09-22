@@ -17,6 +17,9 @@ from urllib.parse import quote
 
 SCRIPT = Path(__file__).resolve().parents[1] / "check_delivery_docs.py"
 REPOSITORY_ROOT = SCRIPT.parents[2]
+WIKI_ROOT = Path(
+    os.environ.get("LABON_WIKI_ROOT", str(REPOSITORY_ROOT.parent / "lab-solos.wiki"))
+)
 sys.path.insert(0, str(SCRIPT.parent))
 import check_delivery_docs as delivery_validator
 
@@ -325,7 +328,7 @@ class ComposeValidatorContractTests(unittest.TestCase):
             for name in ("docker-compose-dev.yml", "docker-compose-prod.yml", "Caddyfile"):
                 shutil.copy2(REPOSITORY_ROOT / name, repository / name)
             shutil.copy2(
-                REPOSITORY_ROOT.parent / "lab-solos.wiki" / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
+                WIKI_ROOT / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
                 wiki / "Guia.md",
             )
             manifest = root / "manifest.json"
@@ -387,7 +390,7 @@ class ComposeValidatorContractTests(unittest.TestCase):
                 shutil.copy2(REPOSITORY_ROOT / name, repository / name)
             guide = wiki / "Guia.md"
             shutil.copy2(
-                REPOSITORY_ROOT.parent / "lab-solos.wiki" / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
+                WIKI_ROOT / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
                 guide,
             )
             guide.write_text(
@@ -456,7 +459,7 @@ class ComposeValidatorContractTests(unittest.TestCase):
             for name in ("docker-compose-dev.yml", "docker-compose-prod.yml", "Caddyfile"):
                 shutil.copy2(REPOSITORY_ROOT / name, repository / name)
             shutil.copy2(
-                REPOSITORY_ROOT.parent / "lab-solos.wiki" / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
+                WIKI_ROOT / "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
                 wiki / "Guia.md",
             )
             manifest = repository / "manifest.json"
