@@ -13,4 +13,9 @@ public static class CodeQualityMainWarningProbe
             Console.WriteLine(mapped);
         }
     }
+    public static int Dereference()
+    {
+        string? value = null;
+        return value.Length;
+    }
 }
