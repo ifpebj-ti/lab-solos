@@ -60,7 +60,7 @@ jobs:
           repository: ifpebj-ti/lab-solos.wiki
           ref: ${{ steps.manifest.outputs.wiki_sha }}
           path: .tmp/lab-solos.wiki
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Verify exact Wiki revision

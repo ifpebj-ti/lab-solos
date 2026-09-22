@@ -59,7 +59,7 @@ class DocumentationWorkflowTests(unittest.TestCase):
         self.assertIn("repository: ifpebj-ti/lab-solos.wiki", job)
         self.assertIn("ref: ${{ steps.manifest.outputs.wiki_sha }}", job)
         self.assertIn("path: .tmp/lab-solos.wiki", job)
-        self.assertIn("fetch-depth: 1", job)
+        self.assertIn("fetch-depth: 0", job)
         self.assertIn("persist-credentials: false", job)
         self.assertIn("git -C .tmp/lab-solos.wiki rev-parse HEAD", job)
         self.assertIn('test "$(git -C .tmp/lab-solos.wiki rev-parse HEAD)" = "$WIKI_SHA"', job)
