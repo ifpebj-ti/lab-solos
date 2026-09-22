@@ -55,7 +55,7 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           config-file: ./.github/codeql/codeql-config.yml
-          queries: ${{ matrix.language == 'csharp' && 'security-and-quality,./.github/codeql' || 'security-and-quality' }}
+          queries: ${{ matrix.language == 'csharp' && 'security-and-quality,./.github/codeql/t014-error.ql' || 'security-and-quality' }}
           tools: https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.27.0/codeql-bundle-linux64.tar.gz
 
       - name: Build C# solution for CodeQL
