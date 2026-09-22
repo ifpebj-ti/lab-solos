@@ -319,6 +319,9 @@ class ComposeValidatorContractTests(unittest.TestCase):
             self.assertNotIn("docker", output.getvalue().casefold())
 
     def test_real_development_and_production_examples_pass(self) -> None:
+        if not WIKI_ROOT.exists():
+            self.skipTest("checkout da Wiki indisponível para os exemplos reais")
+
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             repository = root / "repository"
@@ -380,6 +383,9 @@ class ComposeValidatorContractTests(unittest.TestCase):
             self.assertTrue(any(command[command.index("-f") + 1].endswith("docker-compose-prod.yml") for command in calls))
 
     def test_real_production_without_labon_image_version_is_invalid(self) -> None:
+        if not WIKI_ROOT.exists():
+            self.skipTest("checkout da Wiki indisponível para o exemplo real")
+
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             repository = root / "repository"
@@ -439,6 +445,9 @@ class ComposeValidatorContractTests(unittest.TestCase):
             self.assertEqual(calls, [])
 
     def test_real_examples_pass_through_cli_when_docker_is_available(self) -> None:
+        if not WIKI_ROOT.exists():
+            self.skipTest("checkout da Wiki indisponível para os exemplos reais")
+
         if shutil.which("docker") is None:
             self.skipTest("Docker ausente no PATH")
         probe = subprocess.run(
