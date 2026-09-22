@@ -14,6 +14,11 @@ namespace LabSolos_Server_DotNet8.Services
         private readonly string _audience = config["Jwt:Audience"]!;
         private readonly int _expiresInMinutes = int.Parse(config["Jwt:ExpiresInMinutes"]!);
 
+        [Obsolete("Temporary T015 control probe.")]
+        private static void ObsoleteProbe()
+        {
+        }
+
         public string GenerateToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
