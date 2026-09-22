@@ -2,8 +2,8 @@ namespace LabSolos_Server_DotNet8;
 
 public static class CodeQualityMainWarningProbe
 {
-    public static int Dereference(string? value)
-    {
-        return value.Length;
-    }
+    [Obsolete("Probe")]
+    public static void ObsoleteMethod() { }
+
+    public static void Trigger() { ObsoleteMethod(); }
 }
