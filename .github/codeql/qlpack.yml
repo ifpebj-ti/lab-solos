@@ -1,1 +1,1 @@
-name: t014-codeql-probes`nversion: 0.0.1`nlibraryPathDependencies:`n  - codeql-csharp`n
+name: t014-codeql-probes`nversion: 0.0.1`nlibraryPathDependencies:`n  - codeql-csharp`n  - codeql-javascript`n
