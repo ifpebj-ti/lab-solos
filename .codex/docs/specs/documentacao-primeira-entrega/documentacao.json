@@ -1,0 +1,128 @@
+{
+  "versao": 1,
+  "referenciaAplicacao": "790ee6bd8a1a32ff7e5519d591b73931f537657b",
+  "referenciaWiki": "3ddc49abfd271158f552ef25ab08e16211dffa9d",
+  "paginas": [
+    {
+      "caminho": "Home.md",
+      "titulo": "Olá mundo!👋 Bem-vindo(a) à Wiki do projeto LabOn",
+      "secoes": [
+        "👀 Visão Geral",
+        "👥 Equipe do Projeto",
+        "📚 Documentação",
+        "Procedimentos operacionais da primeira entrega",
+        "LICENSE"
+      ],
+      "requisitos": ["RF-008", "RNF-002", "RNF-003"],
+      "criterios": ["CA-011", "CA-012"]
+    },
+    {
+      "caminho": "Arquitetura-e-Modelagem-de-Dados.md",
+      "titulo": "Arquitetura e Modelagem de Dados",
+      "secoes": [
+        "Escopo e estado documentado",
+        "Visão geral",
+        "Componentes e responsabilidades",
+        "Modelo físico de dados",
+        "Dicionário de dados",
+        "Desenvolvimento",
+        "Produção",
+        "Redes e fronteiras de confiança",
+        "`/health` e `/api/System/health`",
+        "Atualização por release",
+        "Decisões registradas",
+        "Limites desta revisão"
+      ],
+      "requisitos": ["RF-001", "RF-002", "RF-003", "RF-004", "RF-006", "RF-008", "RNF-002", "RNF-003"],
+      "criterios": ["CA-001", "CA-002", "CA-004", "CA-005", "CA-006", "CA-008", "CA-011", "CA-012"]
+    },
+    {
+      "caminho": "Documento-de-visão-e-Requisitos.md",
+      "titulo": "Documento de Visão e Requisitos — LabOn",
+      "secoes": [
+        "1. Contexto e propósito",
+        "2. Equipe e histórico da revisão",
+        "3. Visão do produto",
+        "3.3 Propostas e limites",
+        "4. Requisitos rastreáveis",
+        "5. Critérios de leitura"
+      ],
+      "requisitos": ["RF-005", "RF-008", "RNF-002", "RNF-003"],
+      "criterios": ["CA-007", "CA-011", "CA-012"]
+    },
+    {
+      "caminho": "Análise-de-concorrência.md",
+      "titulo": "Análise de concorrência do LabOn",
+      "secoes": [
+        "1. Escopo do LabOn usado na comparação",
+        "2. Matriz comparativa sustentada",
+        "3. Fontes oficiais e afirmações sustentadas",
+        "4. Diferenciação, sem afirmações não sustentadas",
+        "5. Limites e manutenção"
+      ],
+      "requisitos": ["RF-005", "RF-008", "RNF-002", "RNF-003"],
+      "criterios": ["CA-007", "CA-012"]
+    },
+    {
+      "caminho": "Modelagem-de-Ameaça.md",
+      "titulo": "Modelagem de Ameaças do LabOn",
+      "secoes": [
+        "Objetivo e limites",
+        "Ativos",
+        "Atores",
+        "Fluxos atuais",
+        "Fronteiras de confiança",
+        "Ameaças e tratamento atual",
+        "Decisões e pendências",
+        "Fontes principais"
+      ],
+      "requisitos": ["RF-006", "RF-008", "RNF-001", "RNF-002", "RNF-003"],
+      "criterios": ["CA-008", "CA-009", "CA-011", "CA-012"]
+    },
+    {
+      "caminho": "Guia-de-Boas-Práticas-de-Desenvolvimento-Seguro.md",
+      "titulo": "Guia de Boas Práticas de Desenvolvimento Seguro",
+      "secoes": [
+        "Propósito e linguagem de estado",
+        "Processo seguro vigente",
+        "Matriz de controles",
+        "Responsabilidades e evidências",
+        "O que este guia não comprova"
+      ],
+      "requisitos": ["RF-006", "RF-007", "RF-008", "RNF-001", "RNF-002", "RNF-003"],
+      "criterios": ["CA-008", "CA-009", "CA-010", "CA-011", "CA-012"]
+    },
+    {
+      "caminho": "Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose.md",
+      "titulo": "Guia de Execução e Configuração com Docker e Docker Compose",
+      "secoes": [
+        "Escolha do ambiente",
+        "Pré-requisitos e segurança operacional",
+        "Variáveis de configuração",
+        "Bloco `.env` canônico de desenvolvimento",
+        "Bloco `.env` canônico de produção",
+        "Validação estrutural isolada",
+        "Execução em desenvolvimento",
+        "Execução em produção",
+        "Primeiro acesso e seed",
+        "Diagnóstico",
+        "Atualização por release",
+        "Backup e restauração",
+        "Encerramento e descarte",
+        "Fontes e limites da documentação"
+      ],
+      "requisitos": ["RF-003", "RF-004", "RF-007", "RF-008", "RNF-001", "RNF-002", "RNF-003"],
+      "criterios": ["CA-003", "CA-004", "CA-005", "CA-006", "CA-010", "CA-011", "CA-012"]
+    }
+  ],
+  "exemplosCompose": [
+    {
+      "secao": "Bloco `.env` canônico de desenvolvimento",
+      "arquivo": "docker-compose-dev.yml"
+    },
+    {
+      "secao": "Bloco `.env` canônico de produção",
+      "arquivo": "docker-compose-prod.yml"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+name: Documentation quality
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation-quality:
+    name: Documentation quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Read and validate fixed Wiki revision
+        id: manifest
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          manifest_path = Path(".codex/docs/specs/documentacao-primeira-entrega/documentacao.json")
+          try:
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              reference = manifest.get("referenciaWiki")
+          except (OSError, UnicodeError, json.JSONDecodeError, AttributeError):
+              raise SystemExit("documentacao.json is unreadable")
+          if not isinstance(reference, str) or re.fullmatch(r"[0-9a-f]{40}", reference) is None:
+              raise SystemExit("documentacao.json referenciaWiki must be a full Git SHA")
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"wiki_sha={reference}\n")
+          PY
+
+      - name: Checkout fixed Wiki candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ifpebj-ti/lab-solos.wiki
+          ref: ${{ steps.manifest.outputs.wiki_sha }}
+          path: .tmp/lab-solos.wiki
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact Wiki revision
+        shell: bash
+        env:
+          WIKI_SHA: ${{ steps.manifest.outputs.wiki_sha }}
+        run: |
+          test "$(git -C .tmp/lab-solos.wiki rev-parse HEAD)" = "$WIKI_SHA"
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        with:
+          version: "v5.3.1"
+
+      - name: Run focused delivery-document tests
+        run: python -m unittest discover -s .github/scripts/tests -p "test_delivery_docs*.py" -v
+
+      - name: Validate fixed Wiki editorial contract
+        run: >-
+          python .github/scripts/check_delivery_docs.py
+          --repository .
+          --wiki .tmp/lab-solos.wiki
+          --manifest .codex/docs/specs/documentacao-primeira-entrega/documentacao.json
+          --mode editorial
+
+      - name: Validate fixed Wiki Compose contract
+        run: >-
+          python .github/scripts/check_delivery_docs.py
+          --repository .
+          --wiki .tmp/lab-solos.wiki
+          --manifest .codex/docs/specs/documentacao-primeira-entrega/documentacao.json
+          --mode compose
+
+      - name: Verify missing image version fails
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          manifest_path = Path(".codex/docs/specs/documentacao-primeira-entrega/documentacao.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          production = next(
+              item for item in manifest["exemplosCompose"]
+              if item["arquivo"].endswith("docker-compose-prod.yml")
+          )
+          page_entry = next(
+              page for page in manifest["paginas"]
+              if production["secao"] in page.get("secoes", [])
+          )
+
+          with tempfile.TemporaryDirectory(prefix="labon-docs-negative-") as temporary:
+              root = Path(temporary)
+              wiki_copy = root / "wiki"
+              shutil.copytree(
+                  ".tmp/lab-solos.wiki",
+                  wiki_copy,
+                  ignore=shutil.ignore_patterns(".git"),
+              )
+              page_path = wiki_copy / page_entry["caminho"]
+              page_text = page_path.read_text(encoding="utf-8")
+              page_text, removed = re.subn(
+                  r"(?m)^LABON_IMAGE_VERSION=[^\r\n]*\r?\n",
+                  "",
+                  page_text,
+                  count=1,
+              )
+              if removed != 1:
+                  raise SystemExit("production example did not contain LABON_IMAGE_VERSION")
+              page_path.write_text(page_text, encoding="utf-8", newline="\n")
+
+              negative_manifest = root / "documentacao-negative.json"
+              negative_manifest.write_text(
+                  json.dumps(manifest, ensure_ascii=False),
+                  encoding="utf-8",
+                  newline="\n",
+              )
+              result = subprocess.run(
+                  [
+                      sys.executable,
+                      ".github/scripts/check_delivery_docs.py",
+                      "--repository",
+                      ".",
+                      "--wiki",
+                      str(wiki_copy),
+                      "--manifest",
+                      str(negative_manifest),
+                      "--mode",
+                      "compose",
+                  ],
+                  capture_output=True,
+                  text=True,
+                  check=False,
+              )
+              if result.returncode != 1:
+                  raise SystemExit("missing LABON_IMAGE_VERSION was not rejected")
