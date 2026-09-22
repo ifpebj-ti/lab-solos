@@ -97,71 +97,11 @@ jobs:
           --mode compose
 
       - name: Verify missing image version fails
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          import re
-          import shutil
-          import subprocess
-          import sys
-          import tempfile
-          from pathlib import Path
-
-          manifest_path = Path(".codex/docs/specs/documentacao-primeira-entrega/documentacao.json")
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          production = next(
-              item for item in manifest["exemplosCompose"]
-              if item["arquivo"].endswith("docker-compose-prod.yml")
-          )
-          page_entry = next(
-              page for page in manifest["paginas"]
-              if production["secao"] in page.get("secoes", [])
-          )
-
-          with tempfile.TemporaryDirectory(prefix="labon-docs-negative-") as temporary:
-              root = Path(temporary)
-              wiki_copy = root / "wiki"
-              shutil.copytree(
-                  ".tmp/lab-solos.wiki",
-                  wiki_copy,
-                  ignore=shutil.ignore_patterns(".git"),
-              )
-              page_path = wiki_copy / page_entry["caminho"]
-              page_text = page_path.read_text(encoding="utf-8")
-              page_text, removed = re.subn(
-                  r"(?m)^LABON_IMAGE_VERSION=[^\r\n]*\r?\n",
-                  "",
-                  page_text,
-                  count=1,
-              )
-              if removed != 1:
-                  raise SystemExit("production example did not contain LABON_IMAGE_VERSION")
-              page_path.write_text(page_text, encoding="utf-8", newline="\n")
-
-              negative_manifest = root / "documentacao-negative.json"
-              negative_manifest.write_text(
-                  json.dumps(manifest, ensure_ascii=False),
-                  encoding="utf-8",
-                  newline="\n",
-              )
-              result = subprocess.run(
-                  [
-                      sys.executable,
-                      ".github/scripts/check_delivery_docs.py",
-                      "--repository",
-                      ".",
-                      "--wiki",
-                      str(wiki_copy),
-                      "--manifest",
-                      str(negative_manifest),
-                      "--mode",
-                      "compose",
-                  ],
-                  capture_output=True,
-                  text=True,
-                  check=False,
-              )
-              if result.returncode != 1:
-                  raise SystemExit("missing LABON_IMAGE_VERSION was not rejected")
-          PY
+        env:
+          LABON_WIKI_ROOT: .tmp/lab-solos.wiki
+        run: >-
+          python -m unittest discover
+          -s .github/scripts/tests
+          -p "test_delivery_docs.py"
+          -k test_real_production_without_labon_image_version_is_invalid
+          -v

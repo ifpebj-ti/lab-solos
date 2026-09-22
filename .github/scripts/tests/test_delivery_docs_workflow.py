@@ -85,9 +85,11 @@ class DocumentationWorkflowTests(unittest.TestCase):
         )
         self.assertIn(base + " --mode editorial", normalised_job)
         self.assertIn(base + " --mode compose", normalised_job)
-        self.assertIn("LABON_IMAGE_VERSION", job)
-        self.assertIn("docker-compose-prod.yml", job)
-        self.assertRegex(job, r"returncode\s*!=\s*1")
+        self.assertIn(
+            "python -m unittest discover -s .github/scripts/tests -p \"test_delivery_docs.py\" "
+            "-k test_real_production_without_labon_image_version_is_invalid -v",
+            normalised_job,
+        )
 
     def test_does_not_publish_or_execute_wiki_content(self) -> None:
         workflow = self._workflow().casefold()
