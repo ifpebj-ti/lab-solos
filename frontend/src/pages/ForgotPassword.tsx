@@ -92,7 +92,7 @@ function ForgotPassword() {
   return (
     <AuthFlowShell
       title='Recuperar acesso'
-      description='Forne\u00e7a seu e-mail cadastrado para receber as instru\u00e7\u00f5es de redefini\u00e7\u00e3o de senha.'
+      description='Forneça seu e-mail cadastrado para receber as instruções de redefinição de senha.'
     >
       <div className='flex w-full flex-col'>
           {errorPresentation ? (
