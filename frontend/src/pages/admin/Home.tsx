@@ -64,6 +64,148 @@ const getDiagnosticMessage = (error: unknown): string | null => {
   return null;
 };
 
+type AdminAnalysisProps = {
+  visible: boolean;
+  approval: CollectionState<Dependente>;
+  loans: CollectionState<LoanSummary>;
+  pendingLoans: LoanSummary[];
+  selectedId: number | null;
+  hasInvalidSelectedId: boolean;
+  selectedRegistration: Dependente | undefined;
+  selectedLoan: LoanSummary | undefined;
+  onSelectPending: (id: number) => void;
+};
+
+function AdminAnalysis({
+  visible,
+  approval,
+  loans,
+  pendingLoans,
+  selectedId,
+  hasInvalidSelectedId,
+  selectedRegistration,
+  selectedLoan,
+  onSelectPending,
+}: AdminAnalysisProps) {
+  if (!visible) return null;
+
+  return (
+    <section
+      aria-labelledby='admin-analysis-title'
+      className='w-full max-w-6xl rounded-2xl border border-border bg-card p-5 shadow-sm'
+    >
+      <div className='flex flex-wrap items-center justify-between gap-3'>
+        <div>
+          <p className='text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground'>
+            Espaço de análise
+          </p>
+          <h2 id='admin-analysis-title' className='text-xl font-semibold text-foreground'>
+            Pendências para análise
+          </h2>
+        </div>
+        {selectedId !== null && !hasInvalidSelectedId ? (
+          <Link
+            className='text-sm font-semibold text-primary underline-offset-4 hover:underline'
+            to='/admin'
+          >
+            Limpar seleção
+          </Link>
+        ) : null}
+      </div>
+
+      {hasInvalidSelectedId ? (
+        <p className='mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive'>
+          O ID selecionado é inválido.
+        </p>
+      ) : selectedId !== null && selectedRegistration ? (
+        <div className='mt-5 rounded-xl border border-border bg-background p-4'>
+          <p className='text-sm font-semibold text-muted-foreground'>
+            Solicitação de cadastro
+          </p>
+          <h3 className='mt-1 text-lg font-semibold text-foreground'>
+            {selectedRegistration.nomeCompleto}
+          </h3>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            {selectedRegistration.email}
+          </p>
+          <Link
+            className='mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90'
+            to={buildDetailUrl('/admin/register-request', selectedRegistration.id)}
+          >
+            Analisar solicitação
+          </Link>
+        </div>
+      ) : selectedId !== null && selectedLoan ? (
+        <div className='mt-5 rounded-xl border border-border bg-background p-4'>
+          <p className='text-sm font-semibold text-muted-foreground'>
+            Solicitação de empréstimo
+          </p>
+          <h3 className='mt-1 text-lg font-semibold text-foreground'>
+            Pedido #{selectedLoan.id}
+          </h3>
+          {selectedLoan.solicitante?.nomeCompleto ? (
+            <p className='mt-1 text-sm text-muted-foreground'>
+              Solicitante: {selectedLoan.solicitante.nomeCompleto}
+            </p>
+          ) : null}
+          <Link
+            className='mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90'
+            to={buildDetailUrl('/admin/loans-request', selectedLoan.id)}
+          >
+            Analisar solicitação
+          </Link>
+        </div>
+      ) : selectedId !== null && approval.data !== null && loans.data !== null ? (
+        <p className='mt-5 rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground'>
+          Esta pendência não está disponível.
+        </p>
+      ) : null}
+
+      {selectedId === null ? (
+        <div className='mt-5 grid gap-3 md:grid-cols-2'>
+          {approval.data === null || approval.data.length === 0 ? (
+            <p className='rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground'>
+              Nenhuma solicitação de cadastro disponível.
+            </p>
+          ) : null}
+          {approval.data?.map((request) => (
+            <button
+              key={`registration-${request.id}`}
+              type='button'
+              className='rounded-xl border border-border bg-background p-4 text-left transition-colors hover:border-primary hover:bg-primary/5'
+              onClick={() => onSelectPending(request.id)}
+              aria-label={`Solicitação de cadastro — ${request.nomeCompleto}`}
+            >
+              <span className='block text-sm font-semibold text-foreground'>
+                Solicitação de cadastro
+              </span>
+              <span className='mt-1 block text-base text-foreground'>
+                {request.nomeCompleto}
+              </span>
+            </button>
+          ))}
+          {pendingLoans.map((loan) => (
+            <button
+              key={`loan-${loan.id}`}
+              type='button'
+              className='rounded-xl border border-border bg-background p-4 text-left transition-colors hover:border-primary hover:bg-primary/5'
+              onClick={() => onSelectPending(loan.id)}
+              aria-label={`Solicitação de empréstimo — ${loan.id}`}
+            >
+              <span className='block text-sm font-semibold text-foreground'>
+                Solicitação de empréstimo
+              </span>
+              <span className='mt-1 block text-base text-foreground'>
+                Pedido #{loan.id}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function Home() {
   const session = readSession();
   const role = session?.role;
@@ -239,121 +381,17 @@ function Home() {
           </div>
         ) : null}
 
-        {role === 'Administrador' ? (
-          <section
-            aria-labelledby='admin-analysis-title'
-            className='w-full max-w-6xl rounded-2xl border border-border bg-card p-5 shadow-sm'
-          >
-            <div className='flex flex-wrap items-center justify-between gap-3'>
-              <div>
-                <p className='text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground'>
-                  Espaço de análise
-                </p>
-                <h2 id='admin-analysis-title' className='text-xl font-semibold text-foreground'>
-                  Pendências para análise
-                </h2>
-              </div>
-              {selectedId !== null && !hasInvalidSelectedId ? (
-                <Link
-                  className='text-sm font-semibold text-primary underline-offset-4 hover:underline'
-                  to='/admin'
-                >
-                  Limpar seleção
-                </Link>
-              ) : null}
-            </div>
-
-            {hasInvalidSelectedId ? (
-              <p className='mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive'>
-                O ID selecionado é inválido.
-              </p>
-            ) : selectedId !== null && selectedRegistration ? (
-              <div className='mt-5 rounded-xl border border-border bg-background p-4'>
-                <p className='text-sm font-semibold text-muted-foreground'>
-                  Solicitação de cadastro
-                </p>
-                <h3 className='mt-1 text-lg font-semibold text-foreground'>
-                  {selectedRegistration.nomeCompleto}
-                </h3>
-                <p className='mt-1 text-sm text-muted-foreground'>
-                  {selectedRegistration.email}
-                </p>
-                <Link
-                  className='mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90'
-                  to={buildDetailUrl('/admin/register-request', selectedRegistration.id)}
-                >
-                  Analisar solicitação
-                </Link>
-              </div>
-            ) : selectedId !== null && selectedLoan ? (
-              <div className='mt-5 rounded-xl border border-border bg-background p-4'>
-                <p className='text-sm font-semibold text-muted-foreground'>
-                  Solicitação de empréstimo
-                </p>
-                <h3 className='mt-1 text-lg font-semibold text-foreground'>
-                  Pedido #{selectedLoan.id}
-                </h3>
-                {selectedLoan.solicitante?.nomeCompleto ? (
-                  <p className='mt-1 text-sm text-muted-foreground'>
-                    Solicitante: {selectedLoan.solicitante.nomeCompleto}
-                  </p>
-                ) : null}
-                <Link
-                  className='mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90'
-                  to={buildDetailUrl('/admin/loans-request', selectedLoan.id)}
-                >
-                  Analisar solicitação
-                </Link>
-              </div>
-            ) : selectedId !== null && approval.data !== null && loans.data !== null ? (
-              <p className='mt-5 rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground'>
-                Esta pendência não está disponível.
-              </p>
-            ) : null}
-
-            {selectedId === null ? (
-              <div className='mt-5 grid gap-3 md:grid-cols-2'>
-                {approval.data === null || approval.data.length === 0 ? (
-                  <p className='rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground'>
-                    Nenhuma solicitação de cadastro disponível.
-                  </p>
-                ) : null}
-                {approval.data?.map((request) => (
-                  <button
-                    key={`registration-${request.id}`}
-                    type='button'
-                    className='rounded-xl border border-border bg-background p-4 text-left transition-colors hover:border-primary hover:bg-primary/5'
-                    onClick={() => selectPending(request.id)}
-                    aria-label={`Solicitação de cadastro — ${request.nomeCompleto}`}
-                  >
-                    <span className='block text-sm font-semibold text-foreground'>
-                      Solicitação de cadastro
-                    </span>
-                    <span className='mt-1 block text-base text-foreground'>
-                      {request.nomeCompleto}
-                    </span>
-                  </button>
-                ))}
-                {pendingLoans.map((loan) => (
-                  <button
-                    key={`loan-${loan.id}`}
-                    type='button'
-                    className='rounded-xl border border-border bg-background p-4 text-left transition-colors hover:border-primary hover:bg-primary/5'
-                    onClick={() => selectPending(loan.id)}
-                    aria-label={`Solicitação de empréstimo — ${loan.id}`}
-                  >
-                    <span className='block text-sm font-semibold text-foreground'>
-                      Solicitação de empréstimo
-                    </span>
-                    <span className='mt-1 block text-base text-foreground'>
-                      Pedido #{loan.id}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </section>
-        ) : null}
+        <AdminAnalysis
+          visible={role === 'Administrador'}
+          approval={approval}
+          loans={loans}
+          pendingLoans={pendingLoans}
+          selectedId={selectedId}
+          hasInvalidSelectedId={hasInvalidSelectedId}
+          selectedRegistration={selectedRegistration}
+          selectedLoan={selectedLoan}
+          onSelectPending={selectPending}
+        />
 
         <div className='sr-only' role='status' aria-live='polite'>
           {approval.data === null && loans.data === null && alerts.data === null

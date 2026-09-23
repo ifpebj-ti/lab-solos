@@ -43,6 +43,17 @@ export interface IEmprestimo {
   aprovador: unknown | null;
 }
 
+function ResponsibleInfo({
+  visible,
+  items,
+}: {
+  visible: boolean;
+  items: Array<{ title: string; value: string; width: string }>;
+}) {
+  if (!visible) return null;
+  return <InfoContainer items={items} columns={2} className='lg:w-full' />;
+}
+
 function ProfileMentee() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<Academico>();
@@ -225,13 +236,10 @@ function ProfileMentee() {
                     columns={2}
                     className='lg:w-full'
                   />
-                  {user.responsavel ? (
-                    <InfoContainer
-                      items={infoItemsProf}
-                      columns={2}
-                      className='lg:w-full'
-                    />
-                  ) : null}
+                  <ResponsibleInfo
+                    visible={Boolean(user.responsavel)}
+                    items={infoItemsProf}
+                  />
                 </div>
               </>
             ) : null}

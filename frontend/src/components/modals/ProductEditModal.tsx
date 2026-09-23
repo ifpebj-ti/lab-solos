@@ -88,6 +88,11 @@ const EMPTY_FORM_DATA = {
 
 type EditableField = keyof typeof EMPTY_FORM_DATA;
 type FieldErrors = Partial<Record<EditableField, string>>;
+type ProductPatchOperation = {
+  op: 'replace';
+  path: string;
+  value: string | number;
+};
 
 const SERVER_FIELD_ALIASES: Readonly<Record<string, EditableField>> = {
   catmat: 'catmat',
@@ -105,6 +110,57 @@ const SERVER_FIELD_ALIASES: Readonly<Record<string, EditableField>> = {
   status: 'status',
 };
 
+function buildProductPatch(
+  formData: typeof EMPTY_FORM_DATA,
+  product: Product
+): ProductPatchOperation[] {
+  const fields: Array<[string, string, string]> = [
+    [formData.catmat, product.catmat || '', '/catmat'],
+    [formData.nomeProduto, product.nomeProduto || '', '/nomeProduto'],
+    [formData.quantidade, product.quantidade?.toString() || '', '/quantidade'],
+    [
+      formData.quantidadeMinima,
+      product.quantidadeMinima?.toString() || '',
+      '/quantidadeMinima',
+    ],
+    [formData.fornecedor, product.fornecedor || '', '/fornecedor'],
+    [
+      formData.localizacaoProduto,
+      product.localizacaoProduto || '',
+      '/localizacaoProduto',
+    ],
+    [
+      formData.dataFabricacao,
+      product.dataFabricacao?.split('T')[0] || '',
+      '/dataFabricacao',
+    ],
+    [
+      formData.dataValidade,
+      product.dataValidade?.split('T')[0] || '',
+      '/dataValidade',
+    ],
+    [
+      formData.status,
+      typeof product.status === 'number'
+        ? product.status.toString()
+        : product.status || '',
+      '/status',
+    ],
+  ];
+  const numericPaths = new Set(['/quantidade', '/quantidadeMinima']);
+
+  return fields.flatMap(([value, originalValue, path]) => {
+    if (value === originalValue) return [];
+    return [
+      {
+        op: 'replace' as const,
+        path,
+        value: numericPaths.has(path) ? parseFloat(value) : value,
+      },
+    ];
+  });
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
 
@@ -113,6 +169,15 @@ function FieldError({ id, message }: { id: string; message?: string }) {
       {message}
     </p>
   );
+}
+
+function fieldFeedbackProps(field: EditableField, errors: FieldErrors) {
+  const message = errors[field];
+  return {
+    'aria-invalid': Boolean(message),
+    'aria-describedby': message ? `${field}-error` : undefined,
+    className: message ? 'border-danger' : undefined,
+  };
 }
 
 export default function ProductEditModal({
@@ -223,98 +288,7 @@ export default function ProductEditModal({
     setIsLoading(true);
 
     try {
-      // Preparar as operações JSON Patch apenas para os campos alterados
-      const operations: Array<{
-        op: 'replace';
-        path: string;
-        value: string | number;
-      }> = [];
-
-      if (formData.catmat !== (product?.catmat || '')) {
-        operations.push({
-          op: 'replace',
-          path: '/catmat',
-          value: formData.catmat,
-        });
-      }
-
-      if (formData.nomeProduto !== (product?.nomeProduto || '')) {
-        operations.push({
-          op: 'replace',
-          path: '/nomeProduto',
-          value: formData.nomeProduto,
-        });
-      }
-
-      if (formData.quantidade !== (product?.quantidade?.toString() || '')) {
-        operations.push({
-          op: 'replace',
-          path: '/quantidade',
-          value: parseFloat(formData.quantidade),
-        });
-      }
-
-      if (
-        formData.quantidadeMinima !==
-        (product?.quantidadeMinima?.toString() || '')
-      ) {
-        operations.push({
-          op: 'replace',
-          path: '/quantidadeMinima',
-          value: parseFloat(formData.quantidadeMinima),
-        });
-      }
-
-      if (formData.fornecedor !== (product?.fornecedor || '')) {
-        operations.push({
-          op: 'replace',
-          path: '/fornecedor',
-          value: formData.fornecedor,
-        });
-      }
-
-      if (formData.localizacaoProduto !== (product?.localizacaoProduto || '')) {
-        operations.push({
-          op: 'replace',
-          path: '/localizacaoProduto',
-          value: formData.localizacaoProduto,
-        });
-      }
-
-      if (
-        formData.dataFabricacao !==
-        (product?.dataFabricacao ? product.dataFabricacao.split('T')[0] : '')
-      ) {
-        operations.push({
-          op: 'replace',
-          path: '/dataFabricacao',
-          value: formData.dataFabricacao,
-        });
-      }
-
-      if (
-        formData.dataValidade !==
-        (product?.dataValidade ? product.dataValidade.split('T')[0] : '')
-      ) {
-        operations.push({
-          op: 'replace',
-          path: '/dataValidade',
-          value: formData.dataValidade,
-        });
-      }
-
-      if (
-        formData.status !==
-        (typeof product?.status === 'number'
-          ? product.status.toString()
-          : product?.status || '')
-      ) {
-        operations.push({
-          op: 'replace',
-          path: '/status',
-          value: formData.status,
-        });
-      }
+      const operations = buildProductPatch(formData, product);
 
       // Verificar se há alguma alteração
       if (operations.length === 0) {
@@ -368,9 +342,7 @@ export default function ProductEditModal({
                 name='catmat'
                 value={formData.catmat}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.catmat)}
-                aria-describedby={fieldErrors.catmat ? 'catmat-error' : undefined}
-                className={fieldErrors.catmat ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('catmat', fieldErrors)}
                 placeholder='Código CATMAT'
               />
             </div>
@@ -383,9 +355,7 @@ export default function ProductEditModal({
                 name='nomeProduto'
                 value={formData.nomeProduto}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.nomeProduto)}
-                aria-describedby={fieldErrors.nomeProduto ? 'nomeProduto-error' : undefined}
-                className={fieldErrors.nomeProduto ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('nomeProduto', fieldErrors)}
                 placeholder='Nome do produto'
                 required
               />
@@ -403,9 +373,7 @@ export default function ProductEditModal({
                 step='0.01'
                 value={formData.quantidade}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.quantidade)}
-                aria-describedby={fieldErrors.quantidade ? 'quantidade-error' : undefined}
-                className={fieldErrors.quantidade ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('quantidade', fieldErrors)}
                 placeholder='Quantidade atual'
                 required
               />
@@ -421,9 +389,7 @@ export default function ProductEditModal({
                 step='0.01'
                 value={formData.quantidadeMinima}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.quantidadeMinima)}
-                aria-describedby={fieldErrors.quantidadeMinima ? 'quantidadeMinima-error' : undefined}
-                className={fieldErrors.quantidadeMinima ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('quantidadeMinima', fieldErrors)}
                 placeholder='Quantidade mínima'
                 required
               />
@@ -438,9 +404,7 @@ export default function ProductEditModal({
               name='fornecedor'
               value={formData.fornecedor}
               onChange={handleChange}
-              aria-invalid={Boolean(fieldErrors.fornecedor)}
-              aria-describedby={fieldErrors.fornecedor ? 'fornecedor-error' : undefined}
-              className={fieldErrors.fornecedor ? 'border-danger' : undefined}
+              {...fieldFeedbackProps('fornecedor', fieldErrors)}
               placeholder='Nome do fornecedor'
             />
           </div>
@@ -453,9 +417,7 @@ export default function ProductEditModal({
               name='localizacaoProduto'
               value={formData.localizacaoProduto}
               onChange={handleChange}
-              aria-invalid={Boolean(fieldErrors.localizacaoProduto)}
-              aria-describedby={fieldErrors.localizacaoProduto ? 'localizacaoProduto-error' : undefined}
-              className={fieldErrors.localizacaoProduto ? 'border-danger' : undefined}
+              {...fieldFeedbackProps('localizacaoProduto', fieldErrors)}
               placeholder='Localização do produto no estoque'
             />
           </div>
@@ -470,9 +432,7 @@ export default function ProductEditModal({
                 type='date'
                 value={formData.dataFabricacao}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.dataFabricacao)}
-                aria-describedby={fieldErrors.dataFabricacao ? 'dataFabricacao-error' : undefined}
-                className={fieldErrors.dataFabricacao ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('dataFabricacao', fieldErrors)}
               />
             </div>
 
@@ -485,9 +445,7 @@ export default function ProductEditModal({
                 type='date'
                 value={formData.dataValidade}
                 onChange={handleChange}
-                aria-invalid={Boolean(fieldErrors.dataValidade)}
-                aria-describedby={fieldErrors.dataValidade ? 'dataValidade-error' : undefined}
-                className={fieldErrors.dataValidade ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('dataValidade', fieldErrors)}
               />
             </div>
           </div>
@@ -498,9 +456,7 @@ export default function ProductEditModal({
             <Select value={formData.status} onValueChange={handleStatusChange}>
               <SelectTrigger
                 id='status'
-                aria-invalid={Boolean(fieldErrors.status)}
-                aria-describedby={fieldErrors.status ? 'status-error' : undefined}
-                className={fieldErrors.status ? 'border-danger' : undefined}
+                {...fieldFeedbackProps('status', fieldErrors)}
               >
                 <SelectValue placeholder='Selecione o status' />
               </SelectTrigger>
