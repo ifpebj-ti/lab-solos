@@ -3,7 +3,7 @@ import Container from '../components/global/Container';
 
 function BaseAdmin() {
   return (
-    <div className='flex justify-start flex-row w-full h-screen '>
+    <div className='flex min-h-full w-full flex-row justify-start'>
       <Container>
         <Outlet />
       </Container>

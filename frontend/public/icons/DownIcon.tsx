@@ -2,7 +2,7 @@ interface IDownIcon {
   fill?: string;
 }
 
-export default function DownIcon({ fill = '#474747' }: IDownIcon) {
+export default function DownIcon({ fill = 'currentColor' }: IDownIcon) {
   return (
     <svg
       width='20'

@@ -151,3 +151,18 @@ describe.each([
     expect(requests.every(([request]) => request.method === 'GET')).toBe(true);
   });
 });
+
+it('alinha os dados do mentorado e oculta a seção de responsável ausente', async () => {
+  vi.mocked(api).mockResolvedValue({ data: academicUser });
+
+  render(<ProfileMentee />);
+
+  await screen.findByText('Ada Lovelace');
+
+  const identityPanel = screen.getByText('Nome').parentElement?.parentElement;
+  const academicPanel = screen.getByText('Cidade').parentElement?.parentElement;
+
+  expect(identityPanel).toHaveClass('sm:grid-cols-2', 'lg:w-full');
+  expect(academicPanel).toHaveClass('sm:grid-cols-2', 'lg:w-full');
+  expect(screen.queryByText('Nome do Responsável')).not.toBeInTheDocument();
+});

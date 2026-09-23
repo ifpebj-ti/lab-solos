@@ -6,11 +6,11 @@ import { z } from 'zod';
 
 import { passwordChangeSchema } from '@/auth/passwordPolicy';
 import { clearSession } from '@/auth/session';
+import AuthFlowShell from '@/components/auth/AuthFlowShell';
 import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import type { ApplicationError } from '@/errors/applicationError';
 import { resetPassword } from '@/integration/Auth';
-import logo from '../../public/images/logo.png';
 import InputText from '../components/global/inputs/Text';
 import { toast } from '../components/hooks/use-toast';
 import { OPERATION_IDS, getFieldErrorMessage } from '@/errors/errorCatalog';
@@ -118,24 +118,11 @@ function ResetPassword() {
   }, []);
 
   return (
-    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5] min-h-screen'>
-      <div className='w-96 bg-backgroundMy border border-borderMy rounded-md shadow-lg'>
-        <div className='w-full bg-primaryMy h-28 flex items-center justify-start gap-x-2 px-4 rounded-t-[5px]'>
-          <img alt='Logo' src={logo} className='w-24' />
-          <div className='text-white gap-y-1'>
-            <h1 className='font-rajdhani-semibold text-3xl'>LabOn</h1>
-            <p className='font-rajdhani-medium text-base'>
-              {'Gerenciamento de Laborat\u00f3rios '} <br />
-              {' Qu\u00edmicos Online'}
-            </p>
-          </div>
-        </div>
-        <div className='w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between'>
-          <p className='font-inter-regular text-clt-2'>
-            {
-              'Digite seu e-mail, a nova senha e o c\u00f3digo que voc\u00ea recebeu por e-mail.'
-            }
-          </p>
+    <AuthFlowShell
+      title='Redefinir senha'
+      description='Digite seu e-mail, a nova senha e o código que você recebeu por e-mail.'
+    >
+      <div className='flex w-full flex-col'>
           {errorPresentation ? (
             <ErrorFeedback
               className='mt-3'
@@ -149,7 +136,7 @@ function ResetPassword() {
           ) : null}
           <form
             onSubmit={handleSubmit(postResetPassword)}
-            className='w-full gap-y-3 flex flex-col mt-2'
+            className='flex w-full flex-col gap-1'
           >
             <InputText
               label='Email'
@@ -174,14 +161,13 @@ function ResetPassword() {
             <button
               type='submit'
               disabled={loading}
-              className='mt-5 mb-3 bg-primaryMy rounded text-center h-9 w-full font-rajdhani-semibold text-white hover:bg-opacity-90'
+              className='mt-4 min-h-11 w-full rounded-md bg-primaryMy px-4 font-rajdhani-semibold text-lg text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
             >
               {loading ? 'Atualizando...' : 'Atualizar senha'}
             </button>
           </form>
-        </div>
       </div>
-    </div>
+    </AuthFlowShell>
   );
 }
 

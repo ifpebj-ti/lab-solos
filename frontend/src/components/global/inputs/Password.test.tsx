@@ -18,6 +18,7 @@ function Fixture() {
 it('associa senha e erro e permite mostrar e ocultar sem perder o valor', () => {
   render(<Fixture />);
   const input = screen.getByLabelText('Senha');
+  expect(input).toHaveClass('rounded-l-md');
   expect(input).toHaveAttribute('aria-invalid', 'true');
   expect(input).toHaveAccessibleDescription('Use uma senha válida.');
   fireEvent.change(input, { target: { value: 'Sintetica123!' } });

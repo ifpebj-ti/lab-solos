@@ -7,7 +7,7 @@ import TopDown from '../global/table/TopDown';
 import SelectInput from '../global/inputs/SelectInput';
 import Pagination from '../global/table/Pagination';
 import LayersIcon from '../../../public/icons/LayersIcon';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ResponsiveTable,
   type ResponsiveColumn,
@@ -15,6 +15,8 @@ import {
 import { getAllProducts } from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
 import ClickableItemTable from '../global/table/ItemClickable';
+import ErrorFeedback from '../global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 export interface IAllProducts {
   id: number;
@@ -77,24 +79,41 @@ function SearchMaterialComponent({
   const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<IAllProducts[]>([]);
   const [system, setSystem] = useState<DashboardData>();
+  const [productsError, setProductsError] = useState<unknown | null>(null);
+  const [systemError, setSystemError] = useState<unknown | null>(null);
+  const requestSequence = useRef(0);
+
+  const loadCatalog = useCallback(async () => {
+    const requestId = requestSequence.current + 1;
+    requestSequence.current = requestId;
+    setIsLoading(true);
+    const [productsResult, systemResult] = await Promise.allSettled([
+      getAllProducts(),
+      getSystemQuantities(),
+    ]);
+
+    if (requestId !== requestSequence.current) return;
+
+    if (productsResult.status === 'fulfilled') {
+      setProducts(productsResult.value);
+      setProductsError(null);
+    } else {
+      setProductsError(productsResult.reason);
+    }
+
+    if (systemResult.status === 'fulfilled') {
+      setSystem(systemResult.value.data);
+      setSystemError(null);
+    } else {
+      setSystemError(systemResult.reason);
+    }
+
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    const fetchAllProducts = async () => {
-      try {
-        const allProducts = await getAllProducts();
-        const systemQuant = await getSystemQuantities();
-        setProducts(allProducts);
-        setSystem(systemQuant.data);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados necessários', error);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAllProducts();
-  }, []);
+    void loadCatalog();
+  }, [loadCatalog]);
 
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,19 +135,35 @@ function SearchMaterialComponent({
     setIsAscending(ascending);
   };
 
-  const filteredProducts = products.filter((item) => {
-    const searchName = item.nomeProduto
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesType = value === 'todos' || item.tipoProduto === value;
-    return searchName && matchesType;
-  });
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((item) => {
+        const searchableContent = [
+          item.nomeProduto,
+          item.tipoProduto,
+          item.quantidade,
+          item.unidadeMedida,
+          item.status,
+        ]
+          .filter((part) => part !== undefined && part !== null)
+          .join(' ')
+          .toLowerCase();
+        const matchesSearch = searchableContent.includes(searchTerm.toLowerCase());
+        const matchesType = value === 'todos' || item.tipoProduto === value;
+        return matchesSearch && matchesType;
+      }),
+    [products, searchTerm, value]
+  );
 
-  const sortedUsers = isAscending
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, value]);
+
+  const sortedProducts = isAscending
     ? [...filteredProducts]
     : [...filteredProducts].reverse();
 
-  const currentData = sortedUsers.slice(
+  const currentData = sortedProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -146,6 +181,15 @@ function SearchMaterialComponent({
         return 'Pesquisa';
     }
   };
+
+  const emptyMessage = productsError
+    ? 'Nenhum dado disponível para exibição.'
+    : filteredProducts.length === 0
+      ? 'Nenhum dado disponível para exibição.'
+      : null;
+
+  const dashboardValue = (value?: number) =>
+    value === undefined ? '—' : String(value);
 
   return (
     <>
@@ -169,38 +213,44 @@ function SearchMaterialComponent({
               <OpenSearch />
             </div>
           </div>
+          <div className='w-11/12 min-w-0 flex flex-col gap-2 mt-4' aria-live='polite'>
+            {productsError ? (
+              <ErrorFeedback
+                error={productsError}
+                operationId={OPERATION_IDS.products}
+                onRetry={() => void loadCatalog()}
+                className='w-full'
+              />
+            ) : null}
+            {systemError ? (
+              <ErrorFeedback
+                error={systemError}
+                operationId={OPERATION_IDS.systemQuantities}
+                onRetry={() => void loadCatalog()}
+                className='w-full'
+              />
+            ) : null}
+          </div>
           <div className='w-11/12 flex items-center justify-center gap-4 mt-10 lg:mt-5 flex-wrap'>
             <FollowUpCard
               title='Tipos de Vidrarias'
-              number={String(
-                system?.produtos.Vidraria != undefined
-                  ? String(system?.produtos.Vidraria)
-                  : 0
-              )}
-              icon={<LayersIcon />}
+              number={dashboardValue(system?.produtos.Vidraria)}
+              icon={<LayersIcon fill='currentColor' />}
             />
             <FollowUpCard
               title='Tipos de Químicos'
-              number={String(
-                system?.produtos.Quimico != undefined
-                  ? String(system?.produtos.Quimico)
-                  : 0
-              )}
-              icon={<LayersIcon />}
+              number={dashboardValue(system?.produtos.Quimico)}
+              icon={<LayersIcon fill='currentColor' />}
             />
             <FollowUpCard
               title='Tipos de Outros'
-              number={String(
-                system?.produtos.Outro != undefined
-                  ? String(system?.produtos.Outro)
-                  : 0
-              )}
-              icon={<LayersIcon />}
+              number={dashboardValue(system?.produtos.Outro)}
+              icon={<LayersIcon fill='currentColor' />}
             />
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+          <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm'>
             <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
+                <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
@@ -226,6 +276,10 @@ function SearchMaterialComponent({
               </div>
             </div>
 
+            <p className='mt-3 w-full text-sm text-muted-foreground'>
+              Pesquise por nome, categoria, quantidade, unidade ou status. Use o filtro de categoria para restringir o índice.
+            </p>
+
             <div className='w-full min-w-0 mt-4'>
               <ResponsiveTable label='Produtos' columns={columns}>
                 <HeaderTable />
@@ -236,7 +290,7 @@ function SearchMaterialComponent({
                         role='status'
                         className='w-full h-40 flex items-center justify-center font-inter-regular'
                       >
-                        Nenhum dado disponível para exibição.
+                        {emptyMessage}
                       </div>
                     ) : (
                       currentData.map((rowData, index) => (

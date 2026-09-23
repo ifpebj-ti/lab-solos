@@ -2,7 +2,7 @@ import { Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
 Font.register({
   family: 'fontPadrao',
-  src: '../../../public/fonts/Rajdhani/Rajdhani-Medium.ttf', // Caminho da fonte dentro do projeto
+  src: '/fonts/Rajdhani/Rajdhani-Medium.ttf',
 });
 
 const styles = StyleSheet.create({
@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'column',
-    marginTop: 85,
+    marginTop: 0,
   },
   line: {
     width: '90%',

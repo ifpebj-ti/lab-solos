@@ -117,7 +117,7 @@ function HistoryMentoring() {
 
   if (loading && user === null && userError === null) {
     return (
-      <div role='status' className='flex min-h-screen flex-col justify-center items-center gap-4 bg-backgroundMy'>
+      <div role='status' className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas text-foreground'>
         <LoadingIcon />
         Carregando...
         <BackLink />
@@ -126,7 +126,7 @@ function HistoryMentoring() {
   }
   if (!sessionId || (user === null && userError === null)) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <div className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6'>
         <p>Selecione um registro para consultar</p>
         <BackLink />
       </div>
@@ -134,7 +134,7 @@ function HistoryMentoring() {
   }
   if (userError !== null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <div className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6'>
         <ErrorFeedback error={userError} operationId={OPERATION_IDS.userById} onRetry={loadData} />
         <BackLink />
       </div>
@@ -142,7 +142,7 @@ function HistoryMentoring() {
   }
 
   return (
-    <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen flex-col items-center overflow-y-auto bg-backgroundMy pb-9'>
+    <div className='flex min-h-svh w-full min-w-0 flex-col items-center overflow-y-auto bg-canvas pb-9 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full'>
       <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
         <BackLink />
         <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>Histórico de Mentorados</h1>
@@ -157,7 +157,7 @@ function HistoryMentoring() {
         <InfoContainer items={infoItems6} />
         <InfoContainer items={infoItems7} />
       </div>
-      <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+      <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-sm'>
         {loansError !== null ? (
           <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
         ) : (
@@ -167,8 +167,10 @@ function HistoryMentoring() {
               <TopDown onClick={() => setIsAscending((value) => !value)} top={isAscending} />
             </div>
             <ResponsiveTable label='Histórico de mentorados' columns={historyMentoringColumns}>
-              <HeaderTable />
-              <div className='w-full min-w-0 flex flex-col justify-start min-h-72'>
+              <div role='presentation'>
+                <HeaderTable />
+              </div>
+              <div role='presentation' className='w-full min-w-0 flex flex-col justify-start min-h-72'>
                 {loans?.length === 0 ? (
                   <div className='w-full h-40 flex flex-col items-center justify-center'>
                     <p>Você ainda não possui empréstimos registrados.</p>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { clearSession, readSession } from '@/auth/session';
+import AuthFlowShell from '@/components/auth/AuthFlowShell';
 import { passwordChangeSchema } from '@/auth/passwordPolicy';
 import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
 import { Input } from '@/components/ui/input';
@@ -64,6 +65,7 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
     } catch (error: unknown) {
       const normalizedError = normalizeError(error);
       if (normalizedError.category === 'authentication') {
+        notifyError(normalizedError, OPERATION_IDS.changePassword);
         if (!isApplicationError(error)) endSession();
         return;
       }
@@ -89,18 +91,14 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
   };
 
   return (
-    <section className='mx-auto flex w-full max-w-md flex-col gap-6 p-6'>
-      <header>
-        <h1 className='text-3xl font-bold'>
-          {required ? 'Defina uma nova senha' : 'Alterar senha'}
-        </h1>
-        <p className='text-muted-foreground'>
-          {required
-            ? 'Para continuar, defina uma nova senha para sua conta.'
-            : 'Informe sua senha atual e escolha uma nova senha.'}
-        </p>
-      </header>
-
+    <AuthFlowShell
+      title={required ? 'Defina uma nova senha' : 'Alterar senha'}
+      description={
+        required
+          ? 'Para continuar, defina uma nova senha para sua conta.'
+          : 'Informe sua senha atual e escolha uma nova senha.'
+      }
+    >
       <form className='flex flex-col gap-4' onSubmit={handleSubmit(submit)}>
         <div className='flex flex-col gap-1'>
           <label htmlFor='current-password'>Senha atual</label>
@@ -128,12 +126,12 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
         <button
           type='submit'
           disabled={isSubmitting}
-          className='rounded bg-primaryMy px-4 py-2 font-semibold text-white'
+          className='min-h-11 rounded-md bg-primaryMy px-4 font-rajdhani-semibold text-lg text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
         >
           {isSubmitting ? 'Salvando...' : 'Alterar senha'}
         </button>
       </form>
-    </section>
+    </AuthFlowShell>
   );
 }
 

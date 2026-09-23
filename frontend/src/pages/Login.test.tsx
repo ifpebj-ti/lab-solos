@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Login from './Login';
+import { ThemeProvider } from '@/theme/ThemeProvider';
 
 const mocks = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -45,6 +46,16 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+function renderLogin() {
+  return render(
+    <ThemeProvider>
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    </ThemeProvider>
+  );
+}
+
 describe('Login', () => {
   beforeEach(() => {
     mocks.authenticate.mockReset();
@@ -59,11 +70,7 @@ describe('Login', () => {
   it('consome o aviso de sessao expirada uma unica vez e usa o feedback comum', async () => {
     mocks.consumeAuthNotice.mockReturnValue('session-expired');
 
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderLogin();
 
     await waitFor(() => {
       expect(mocks.consumeAuthNotice).toHaveBeenCalledOnce();
@@ -86,11 +93,7 @@ describe('Login', () => {
       retryable: false,
     });
 
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderLogin();
 
     fireEvent.change(screen.getByLabelText('Email'), {
       target: { value: 'user@example.org' },
@@ -112,11 +115,7 @@ describe('Login', () => {
   it('envia credenciais validas normalizadas e confirma o acesso', async () => {
     mocks.authenticate.mockResolvedValue({ status: 200 } as never);
 
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderLogin();
 
     fireEvent.change(screen.getByLabelText('Email'), {
       target: { value: 'USER@EXAMPLE.ORG' },
@@ -152,11 +151,7 @@ describe('Login', () => {
     });
     mocks.authenticate.mockReturnValue(pendingLogin);
 
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
+    renderLogin();
 
     fireEvent.change(screen.getByLabelText('Email'), {
       target: { value: 'user@example.org' },
@@ -178,5 +173,22 @@ describe('Login', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeEnabled();
     });
+  });
+
+  it('apresenta a entrada LabOn/IFPE com acao principal e tema publico', () => {
+    render(
+      <ThemeProvider>
+        <MemoryRouter>
+          <Login />
+        </MemoryRouter>
+      </ThemeProvider>
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Entrar no LabOn' })
+    ).toBeVisible();
+    expect(screen.getByText('IFPE')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Mudar para tema/i })).toBeVisible();
   });
 });

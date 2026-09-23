@@ -71,7 +71,7 @@ function ErrorFeedback({
       aria-describedby={descriptionId}
       tabIndex={-1}
       className={cn(
-        'w-full rounded-md border border-red-300 bg-red-50 p-4 text-red-950',
+        'w-full rounded-md border border-danger/60 bg-surface p-4 text-clt-2',
         className
       )}
     >

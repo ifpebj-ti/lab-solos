@@ -33,6 +33,11 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
       - name: Install dependencies from lockfile
         run: npm ci
 
@@ -44,6 +49,14 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+      - name: Run design validator tests
+        working-directory: ${{ github.workspace }}
+        run: python -m unittest discover -s scripts/tests -p 'test_check_design_coverage.py' -v
+
+      - name: Validate design coverage inventory
+        working-directory: ${{ github.workspace }}
+        run: python scripts/check_design_coverage.py --spec .codex/docs/specs/reformulacao-design --final
 
   backend-quality:
     name: Backend quality

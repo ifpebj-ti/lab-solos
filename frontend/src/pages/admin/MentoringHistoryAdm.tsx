@@ -131,40 +131,40 @@ function MentoringHistoryAdm() {
 
   if (hasLegacyId || (hasValidQueryId && loading && user === null)) {
     return (
-      <div role='status' className='flex min-h-screen flex-col justify-center items-center gap-4 bg-backgroundMy'>
+      <main className='min-h-svh bg-canvas text-clt-2'><div role='status' className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas'>
         <LoadingIcon />
         Carregando...
         <BackLink />
-      </div>
+      </div></main>
     );
   }
 
   if (!hasValidQueryId || (user === null && userError === null)) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         <p>Selecione um registro para consultar</p>
         <BackLink />
-      </div>
+      </main>
     );
   }
 
   if (userError !== null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         <ErrorFeedback error={userError} operationId={OPERATION_IDS.userById} onRetry={loadData} />
         <BackLink />
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen flex-col items-center overflow-y-auto bg-backgroundMy pb-9'>
-      <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+    <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
+      <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
         <BackLink />
         <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>Histórico de Mentorados</h1>
         <OpenSearch />
       </div>
-      <div className='w-11/12 min-w-0 mt-7'>
+      <div className='mt-7 min-w-0'>
         <InfoContainer items={infoItems} />
         <div className='w-full min-w-0 flex flex-wrap gap-3 mt-5'>
           <InfoContainer items={infoItems2} />
@@ -173,13 +173,13 @@ function MentoringHistoryAdm() {
           <InfoContainer items={infoItems5} />
         </div>
       </div>
-      <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+      <section aria-label='Histórico de mentorados' className='mt-10 mb-11 flex min-h-96 min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4'>
         {loansError !== null ? (
           <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
         ) : (
           <>
-            <div className='w-full min-w-0 flex flex-wrap justify-between items-center gap-3 mt-2'>
-              <SearchInput name='search' onChange={(event) => setSearchTerm(event.target.value)} value={searchTerm} />
+            <div className='mt-2 flex w-full min-w-0 flex-wrap items-center justify-between gap-3'>
+              <SearchInput name='search' onChange={(event) => { setSearchTerm(event.target.value); setCurrentPage(1); }} value={searchTerm} />
               <TopDown onClick={() => setIsAscending((value) => !value)} top={isAscending} />
             </div>
             <ResponsiveTable label='Histórico de mentorados' columns={mentoringColumns}>
@@ -210,8 +210,8 @@ function MentoringHistoryAdm() {
             ) : null}
           </>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

@@ -18,7 +18,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      'fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-50 bg-[rgb(var(--color-text-primary)/0.62)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className
     )}
     {...props}
@@ -28,7 +28,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  'fixed z-50 gap-4 bg-backgroundMy p-2 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out font-inter-regular',
+  'fixed z-50 gap-4 border-borderMy bg-surface p-4 text-clt-2 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out font-inter-regular',
   {
     variants: {
       side: {
@@ -65,7 +65,7 @@ const SheetContent = React.forwardRef<
       )}
       {...props}
     >
-      <SheetPrimitive.Close className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary'>
+      <SheetPrimitive.Close aria-label='Fechar painel' className='absolute right-4 top-4 rounded-sm text-clt-1 opacity-80 ring-offset-canvas transition-opacity hover:bg-surface-selected hover:text-clt-2 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas disabled:pointer-events-none'>
         <Cross2Icon className='h-4 w-4' />
         <span className='sr-only'>Close</span>
       </SheetPrimitive.Close>

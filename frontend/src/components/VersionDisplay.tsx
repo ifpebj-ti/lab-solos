@@ -1,23 +1,29 @@
 export default function VersionDisplay() {
-    // Ajustamos a formatação para Inglês (en-US) e removemos as horas/minutos
-    const formatDate = (dateString: string) => {
-        try {
-            return new Intl.DateTimeFormat('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-            }).format(new Date(dateString));
-        } catch {
-            return dateString;
-        }
-    };
+  const buildDate = new Date(__APP_BUILD_DATE__);
+  const isContainerPlaceholder =
+    __APP_VERSION__ === 'container' &&
+    __APP_GIT_HASH__ === 'container' &&
+    buildDate.getTime() === 0;
 
-    return (
+  if (isContainerPlaceholder) return null;
 
-        <div className="flex justify-start p-4transition-opacity ml-4">
-            <span className="text-xs text-white font-mono">
-                v{__APP_VERSION__} ({__APP_GIT_HASH__}, {formatDate(__APP_BUILD_DATE__)})
-            </span>
-        </div>
-    );
+  const formattedDate = Number.isNaN(buildDate.getTime())
+    ? __APP_BUILD_DATE__
+    : new Intl.DateTimeFormat('pt-BR', {
+        dateStyle: 'medium',
+        timeZone: 'America/Sao_Paulo',
+      }).format(buildDate);
+  const details = `Versão ${__APP_VERSION__} · ${__APP_GIT_HASH__} · build de ${formattedDate}`;
+
+  return (
+    <div className='w-full px-3 py-2'>
+      <span
+        title={details}
+        aria-label={details}
+        className='block truncate text-xs text-sidebar-foreground/70'
+      >
+        v{__APP_VERSION__}
+      </span>
+    </div>
+  );
 }

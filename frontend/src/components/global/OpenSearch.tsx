@@ -1,18 +1,20 @@
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Cookie from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
+import { Check } from 'lucide-react';
+
+import SearchIcon from '../../../public/icons/SearchIcon';
+import LinkIcon from '../../../public/icons/LinkIcon';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import SearchIcon from '../../../public/icons/SearchIcon';
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Check } from 'lucide-react';
-import LinkIcon from '../../../public/icons/LinkIcon';
-
-import { cn } from '@/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -27,245 +29,83 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import Cookie from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
+import { getNavigationSearchEntries } from '@/navigation/navigationModel';
 
 interface JwtPayload {
-  sub: string; // ID ou nível do usuário
-  role?: string; // Caso tenha uma role específica
+  role?: string;
 }
-
-const routesAdmin = [
-  {
-    value: 'home',
-    label: 'Home',
-    route: '/admin/', // Adicionando a rota desejada
-  },
-  {
-    value: 'Adicionar Material',
-    label: 'Adicionar Material',
-    route: '/admin/insert',
-  },
-  {
-    value: 'Acompanhamento de Alertas',
-    label: 'Acompanhamento de Alertas',
-    route: '/admin/follow-up',
-  },
-  {
-    value: 'Usuários Cadastrados',
-    label: 'Usuários Cadastrados',
-    route: '/admin/users',
-  },
-  {
-    value: 'Pesquisar Material',
-    label: 'Pesquisar Material',
-    route: '/admin/search-material',
-  },
-  {
-    value: 'Solicitações de Cadastros',
-    label: 'Solicitações de Cadastros',
-    route: '/admin/register-request',
-  },
-];
-const routesMentee = [
-  {
-    value: 'Home',
-    label: 'Home',
-    route: '/mentee/', // Adicionando a rota desejada
-  },
-  {
-    value: 'Pesquisar Material',
-    label: 'Pesquisar Material',
-    route: '/mentee/search-material',
-  },
-  {
-    value: 'Histórico Pessoal',
-    label: 'Histórico Pessoal',
-    route: '/mentee/history/mentoring',
-  },
-  {
-    value: 'Perfil',
-    label: 'Perfil',
-    route: '/mentee/profile',
-  },
-];
-
-const routesMentor = [
-  {
-    value: 'Home',
-    label: 'Home',
-    route: '/mentor/', // Adicionando a rota desejada
-  },
-  {
-    value: 'Histórico da Turma',
-    label: 'Histórico da Turma',
-    route: '/mentor/history/class',
-  },
-  {
-    value: 'Criar Empréstimo',
-    label: 'Criar Empréstimo',
-    route: '/mentor/loan/creation',
-  },
-  {
-    value: 'Requisições de Usuários',
-    label: 'Requisições de Usuários',
-    route: '/mentor/users-request',
-  },
-  {
-    value: 'Pesquisar Material',
-    label: 'Pesquisar Material',
-    route: '/mentor/search-material',
-  },
-  {
-    value: 'Minha Turma',
-    label: 'Minha Turma',
-    route: '/mentor/my-class',
-  },
-  {
-    value: 'Perfil',
-    label: 'Perfil',
-    route: '/mentor/profile',
-  },
-];
 
 function OpenSearch() {
   const [isOpen, setIsOpen] = useState(false);
-  const dialogRef = useRef<HTMLDivElement | null>(null);
   const [value] = useState('');
   const navigate = useNavigate();
   const auth = Cookie.get('doorKey');
-  const decoded = jwtDecode<JwtPayload>(auth!);
-
-  // Detecta o clique fora do diálogo
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dialogRef.current &&
-        !dialogRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
+  const role = useMemo(() => {
+    if (!auth) return null;
+    try {
+      return jwtDecode<JwtPayload>(auth).role ?? null;
+    } catch {
+      return null;
     }
+  }, [auth]);
+  const routes = getNavigationSearchEntries(role);
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+  const selectRoute = (route: string) => {
+    setIsOpen(false);
+    navigate(route);
+  };
 
   return (
-    //Controle de estado aberto/fechado
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <TooltipProvider>
         <Tooltip>
-          {/* O TooltipTrigger usa asChild para repassar eventos para o filho */}
           <TooltipTrigger asChild>
-            {/* AlertDialogTrigger também usa asChild para repassar o clique para o botão real */}
             <AlertDialogTrigger asChild>
-              {/*ÚNICO elemento <button> real no DOM */}
               <button
-                onClick={() => setIsOpen(true)}
-                className='border border-borderMy rounded-md h-11 w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
+                type='button'
+                aria-label='Pesquisar rotas'
+                className='flex h-11 w-11 items-center justify-center rounded-md border border-borderMy transition-all duration-200 ease-in-out hover:bg-surface-selected'
               >
-                <SearchIcon fill='#232323' />
+                <SearchIcon fill='currentColor' />
               </button>
             </AlertDialogTrigger>
           </TooltipTrigger>
-
           <TooltipContent>
-            <p className='font-inter-medium'>Abrir rotas</p>
+            <p>Abrir rotas</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      {/* Conteúdo do Modal */}
-      <AlertDialogContent ref={dialogRef}>
+      <AlertDialogContent role='dialog'>
         <AlertDialogHeader>
-          {/* Título invisível para acessibilidade (obrigatório no Radix UI) */}
-          <AlertDialogTitle className='sr-only'>Pesquisar Rotas</AlertDialogTitle>
-
-          {/* asChild aqui evita criar uma tag <p> que conteria divs (inválido) */}
+          <AlertDialogTitle className='sr-only'>Pesquisar rotas</AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="w-full">
-              <Command className='border border-borderMy'>
+            <div className='w-full'>
+              <Command className='border border-borderMy bg-surface'>
                 <CommandInput placeholder='Pesquisar link' />
-                <p className='pl-11 font-inter-medium py-2 border-b border-t border-gray-300 text-clt-2'>
+                <p className='border-b border-t border-borderMy px-11 py-2 font-inter-medium text-clt-2'>
                   Links
                 </p>
                 <CommandList>
                   <CommandEmpty>Link não encontrado.</CommandEmpty>
                   <CommandGroup>
-                    {decoded.role === 'Administrador' &&
-                      routesAdmin.map((framework) => (
-                        <CommandItem
-                          key={framework.value}
-                          value={framework.value}
-                          onSelect={() => {
-                            navigate(framework.route);
-                          }}
-                          className='font-inter-regular'
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              value === framework.value
-                                ? 'opacity-100'
-                                : 'opacity-0'
-                            )}
-                          />
-                          <LinkIcon />
-                          {framework.label}
-                        </CommandItem>
-                      ))}
-                    {decoded.role === 'Mentor' &&
-                      routesMentor.map((framework) => (
-                        <CommandItem
-                          key={framework.value}
-                          value={framework.value}
-                          onSelect={() => {
-                            navigate(framework.route);
-                          }}
-                          className='font-inter-regular'
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              value === framework.value
-                                ? 'opacity-100'
-                                : 'opacity-0'
-                            )}
-                          />
-                          <LinkIcon />
-                          {framework.label}
-                        </CommandItem>
-                      ))}
-                    {decoded.role === 'Mentorado' &&
-                      routesMentee.map((framework) => (
-                        <CommandItem
-                          key={framework.value}
-                          value={framework.value}
-                          onSelect={() => {
-                            navigate(framework.route);
-                          }}
-                          className='font-inter-regular'
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              value === framework.value
-                                ? 'opacity-100'
-                                : 'opacity-0'
-                            )}
-                          />
-                          <LinkIcon />
-                          {framework.label}
-                        </CommandItem>
-                      ))}
+                    {routes.map((route) => (
+                      <CommandItem
+                        key={`${route.value}-${route.to}`}
+                        value={`${route.value} ${route.label}`}
+                        onSelect={() => selectRoute(route.to)}
+                        className='font-inter-regular'
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            value === route.value ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                        <LinkIcon />
+                        {route.label}
+                      </CommandItem>
+                    ))}
                   </CommandGroup>
                 </CommandList>
               </Command>

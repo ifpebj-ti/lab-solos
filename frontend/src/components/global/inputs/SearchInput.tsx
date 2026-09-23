@@ -8,20 +8,20 @@ interface IInputSearch {
 
 function SearchInput({ name, onChange, value }: IInputSearch) {
   return (
-    <div className='w-full min-w-0 flex border min-h-11 border-stone-500 rounded-sm bg-white focus-within:outline focus-within:outline-2 focus-within:outline-green-800 md:min-h-9 [@media(pointer:coarse)]:min-h-11'>
+    <div className='flex min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface focus-within:outline-none focus-within:ring-2 focus-within:ring-focus focus-within:ring-offset-2 focus-within:ring-offset-canvas md:min-h-9 [@media(pointer:coarse)]:min-h-11'>
       <input
         type='text'
         name={name}
         aria-label='Pesquisar'
-        className='w-full min-w-0 px-3 bg-white text-sm focus:outline-none'
+        className='w-full min-w-0 bg-transparent px-3 text-sm text-clt-2 placeholder:text-clt-1 focus:outline-none'
         value={value} // Exibe o valor atual
         onChange={onChange} // Chama o manipulador quando o valor muda
       />
       <span
         aria-hidden='true'
-        className='px-3 bg-backgroundMy flex items-center'
+        className='flex items-center bg-backgroundMy px-3 text-clt-2'
       >
-        <SearchIcon fill='#232323' />
+        <SearchIcon fill='currentColor' />
       </span>
     </div>
   );

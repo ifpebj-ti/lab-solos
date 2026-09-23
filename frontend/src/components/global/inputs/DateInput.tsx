@@ -39,15 +39,22 @@ function DateInput({
 
   return (
     <div className='flex flex-col gap-y-1 w-full'>
-      <p className='font-inter-regular text-sm text-clt-2 mt-3'>
+      <label
+        htmlFor={String(name)}
+        className='mt-3 font-inter-regular text-sm text-clt-2'
+      >
         {nome}
-        {required && <span className='text-red-500 ml-1'>*</span>}
-      </p>
+        {required && <span className='ml-1 text-danger'>*</span>}
+      </label>
       <Popover>
         <PopoverTrigger asChild>
           <button
+            id={String(name)}
+            type='button'
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${String(name)}-error` : undefined}
             className={cn(
-              'w-full justify-start text-left font-normal flex items-center px-4 gap-x-3 h-9 border border-borderMy rounded-sm text-clt-2 font-inter-regular text-sm',
+              'flex min-h-11 w-full items-center justify-start gap-x-3 rounded-md border border-borderMy px-4 text-left font-inter-regular text-sm font-normal text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-9',
               !date && 'text-muted-foreground'
             )}
           >
@@ -70,7 +77,16 @@ function DateInput({
           />
         </PopoverContent>
       </Popover>
-      {error && <p className='text-red-500 text-xs'>{error}</p>}
+      <p
+        id={`${String(name)}-error`}
+        role={error ? 'alert' : undefined}
+        className={cn(
+          'min-h-5 text-sm text-danger [overflow-wrap:anywhere]',
+          error ? '' : 'sr-only'
+        )}
+      >
+        {error ?? ''}
+      </p>
     </div>
   );
 }

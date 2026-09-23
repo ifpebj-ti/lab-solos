@@ -13,7 +13,7 @@ type ITableItem = {
 function ItemReturn({ data, rowIndex, rowId }: ITableItem) {
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
   const [checked, setChecked] = useState(true);
   const itemName = data[0] || 'item';
   const identity = String(rowId ?? `${rowIndex}-${itemName}`);
@@ -43,7 +43,7 @@ function ItemReturn({ data, rowIndex, rowId }: ITableItem) {
         id={reasonId}
         disabled={checked}
         type='text'
-        className='min-w-0 w-full min-h-11 bg-backgroundMy px-4 py-1 rounded-sm border border-borderMy focus:outline-none md:min-h-8'
+        className='min-h-11 min-w-0 w-full rounded-md border border-borderMy bg-surface px-4 py-1 text-clt-2 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas md:min-h-8'
       />
     </div>
   );
@@ -54,7 +54,7 @@ function ItemReturn({ data, rowIndex, rowId }: ITableItem) {
     );
 
   return (
-      <ResponsiveRecord className={`${backgroundColor} hover:bg-cl-table`}>
+      <ResponsiveRecord className={`${backgroundColor} hover:bg-surface-selected`}>
         {data.map((value, index) => (
           <ResponsiveCell
             key={columns[index].key}

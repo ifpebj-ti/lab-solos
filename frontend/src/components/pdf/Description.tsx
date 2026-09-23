@@ -2,7 +2,7 @@ import { Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
 Font.register({
   family: 'fontPadrao',
-  src: '../../../public/fonts/Rajdhani/Rajdhani-Medium.ttf', // Caminho da fonte dentro do projeto
+  src: '/fonts/Rajdhani/Rajdhani-Medium.ttf',
 });
 
 const styles = StyleSheet.create({

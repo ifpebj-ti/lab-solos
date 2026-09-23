@@ -174,7 +174,9 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   await expect(page).toHaveURL(
     /\/mentor\/history\/loan\?id=13013&context=forbidden#details$/
   );
-  const feedback = page.getByRole('alert');
+  const feedback = page.getByRole('alert', {
+    name: /n[aã]o foi possível carregar o empréstimo/i,
+  });
   await expect(feedback).toContainText(/permiss/i);
   await expect(feedback).toContainText(/carregar/i);
   await expect(page.getByText(/REMOTE_403_/)).toHaveCount(0);

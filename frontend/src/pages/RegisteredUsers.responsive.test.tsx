@@ -15,6 +15,9 @@ const excel = vi.hoisted(() => ({
   worksheet: { columns: [] as unknown[], addRow: vi.fn(), xlsx: undefined },
 }));
 const saveAs = vi.hoisted(() => vi.fn());
+const pdf = vi.hoisted(() =>
+  vi.fn(() => ({ toBlob: vi.fn().mockResolvedValue(new Blob(['pdf'])) }))
+);
 
 vi.mock('@/integration/Users', () => usersApi);
 vi.mock('@/integration/Class', () => classApi);
@@ -47,9 +50,7 @@ vi.mock('@/components/ui/popover', () => ({
   PopoverContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 vi.mock('@react-pdf/renderer', () => ({
-  PDFDownloadLink: ({ children, fileName }: { children: React.ReactNode; fileName: string }) => (
-    <a href='/relatorio.pdf' download={fileName}>{children}</a>
-  ),
+  pdf,
 }));
 vi.mock('@/components/pdf/MyDocument', () => ({ MyDocument: () => null }));
 vi.mock('exceljs', () => ({
@@ -62,7 +63,7 @@ vi.mock('exceljs', () => ({
     },
   },
 }));
-vi.mock('file-saver', () => ({ saveAs }));
+vi.mock('file-saver', () => ({ default: { saveAs }, saveAs }));
 
 const users = [
   { id: 11, nomeCompleto: 'Ana Silva', dataIngresso: '2026-09-01', nivelUsuario: 'Administrador', tipoUsuario: 'Comum', status: 'Habilitado' },
@@ -124,6 +125,7 @@ describe('usuarios cadastrados responsivos', () => {
     expect(excel.addRow).toHaveBeenCalledWith(expect.objectContaining({
       nomeCompleto: 'Ana Silva', nivelUsuario: 'Administrador', id: 11,
     }));
-    expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('download', 'usuarios_cadastrados.pdf');
+    fireEvent.click(screen.getByRole('button', { name: 'PDF' }));
+    await waitFor(() => expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'usuarios_cadastrados.pdf'));
   });
 });

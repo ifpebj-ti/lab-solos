@@ -2,17 +2,10 @@ import logo from './../../../public/images/logo.png';
 import logoBlack from './../../../public/images/logoBlack.png';
 
 import * as React from 'react';
-import {
-  PackageSearch,
-  ArrowLeftRight,
-  Users,
-  Send,
-  House,
-  Shield,
-} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Cookie from 'js-cookie';
+import { X } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
@@ -21,218 +14,91 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { getUserById } from '@/integration/Users';
-import { IUser } from '@/pages/Profile';
-
-import { SheetClose } from '@/components/ui/sheet'; // 1. IMPORTE O SHEETCLOSE
-import { X } from 'lucide-react'; // Ícone de 'X'
+import { SheetClose } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import VersionDisplay from '@/components/VersionDisplay';
+import { getUserById } from '@/integration/Users';
+import { IUser } from '@/pages/Profile';
+import { getNavigationGroups } from '@/navigation/navigationModel';
+import { ThemeSwitch } from '@/theme/ThemeSwitch';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
-// Ajuste os tipos para refletir os valores reais do backend
 type UserType = 'Administrador' | 'Mentor' | 'Mentorado' | 'Comum';
-
-const menus = {
-  Administrador: {
-    navMain: [
-      {
-        title: 'inicio',
-        url: '/admin/',
-        icon: House,
-        isActive: true,
-      },
-      {
-        title: 'Produtos',
-        url: '/admin/search-material',
-        icon: PackageSearch,
-        items: [
-          {
-            title: 'Meus Produtos',
-            url: '/admin/search-material',
-          },
-          {
-            title: 'Adicionar',
-            url: '/admin/insert',
-          },
-          {
-            title: 'Alertas',
-            url: '/admin/follow-up',
-          },
-        ],
-      },
-      {
-        title: 'Usuários',
-        url: '/admin/users',
-        icon: Users,
-        items: [
-          {
-            title: 'Ver todos',
-            url: '/admin/users',
-          },
-          {
-            title: 'Aprovar/Reprovar',
-            url: '/admin/register-request',
-          },
-        ],
-      },
-      {
-        title: 'Emprestimos',
-        url: '/admin/all-loans',
-        icon: ArrowLeftRight,
-        items: [
-          {
-            title: 'Solicitações',
-            url: '/admin/loans-request',
-          },
-          {
-            title: 'Histórico',
-            url: '/admin/all-loans',
-          },
-        ],
-      },
-      {
-        title: 'Auditoria',
-        url: '/admin/auditoria',
-        icon: Shield,
-      },
-    ],
-  },
-  Mentor: {
-    navMain: [
-      {
-        title: 'Início',
-        url: '/mentor/',
-        icon: House,
-        isActive: true,
-      },
-      {
-        title: 'Histórico',
-        url: '/mentor/history/class',
-        icon: ArrowLeftRight,
-      },
-      {
-        title: 'Criar Empréstimo',
-        url: '/mentor/loan/creation',
-        icon: Send,
-      },
-      {
-        title: 'Solicitações',
-        url: '/mentor/users-request',
-        icon: Users,
-      },
-      {
-        title: 'Pesquisar Material',
-        url: '/mentor/search-material',
-        icon: PackageSearch,
-      },
-    ],
-  },
-  Mentorado: {
-    navMain: [
-      {
-        title: 'Início',
-        url: '/mentee/',
-        icon: House,
-        isActive: true,
-      },
-      {
-        title: 'Pesquisar Material',
-        url: '/mentee/search-material',
-        icon: PackageSearch,
-      },
-      {
-        title: 'Histórico Pessoal',
-        url: '/mentee/history/mentoring',
-        icon: ArrowLeftRight,
-      },
-    ],
-  },
-  Comum: {
-    navMain: [],
-  },
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isMobile } = useSidebar();
   const [user, setUser] = useState<IUser>();
   const [loading, setLoading] = useState(true);
+  const [userError, setUserError] = useState<unknown>();
+  const [retryToken, setRetryToken] = useState(0);
   const location = useLocation();
   const id = Cookie.get('rankID')!;
 
-  // Função para verificar se um subitem está ativo
-  const isSubItemActive = (url: string): boolean => {
-    return (
-      location.pathname === url ||
-      (location.pathname.startsWith(url) && url !== '/')
-    );
-  };
+  const isSubItemActive = (url: string): boolean =>
+    location.pathname === url ||
+    (location.pathname.startsWith(`${url}/`) && url !== '/');
 
   useEffect(() => {
     const fetchGetUserById = async () => {
       try {
         const response = await getUserById({ id });
         setUser(response);
+        setUserError(undefined);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
-        }
+        setUserError(error);
         setUser(undefined);
       } finally {
         setLoading(false);
       }
     };
+
     fetchGetUserById();
-  }, [id]);
+  }, [id, retryToken]);
 
-  // Ajuste para os tipos reais
-  let userType: UserType = 'Administrador';
-  if (user && user.nivelUsuario) {
-    if (user.nivelUsuario === 'Mentor') userType = 'Mentor';
-    else if (user.nivelUsuario === 'Mentorado') userType = 'Mentorado';
-    else if (user.nivelUsuario === 'Comum') userType = 'Comum';
-    else userType = 'Administrador';
-  }
+  let userType: UserType = 'Comum';
+  if (user?.nivelUsuario === 'Mentor') userType = 'Mentor';
+  else if (user?.nivelUsuario === 'Mentorado') userType = 'Mentorado';
+  else if (user?.nivelUsuario === 'Administrador') userType = 'Administrador';
 
-  // Mapear os menus e marcar apenas subitens como ativos
   const data = {
-    navMain: menus[userType].navMain.map((item) => ({
-      ...item,
-      // Itens principais não são mais navegáveis, então isActive sempre false
+    navMain: getNavigationGroups(userType).map((item) => ({
+      title: item.label,
+      url: item.to,
+      icon: item.icon,
       isActive: false,
-      items:
-        'items' in item
-          ? item.items?.map((subItem: { title: string; url: string }) => ({
-            ...subItem,
-            isActive: isSubItemActive(subItem.url),
-          }))
-          : undefined,
+      items: item.children?.map((subItem) => ({
+        title: subItem.label,
+        url: subItem.to,
+        isActive: isSubItemActive(subItem.to),
+      })),
     })),
   };
 
   const sidebarIdentity = (
-    <div className='flex items-center gap-3 w-full'>
-      <div className='w-12 h-12 flex items-center justify-center'>
+    <div className='flex w-full items-center gap-3'>
+      <div className='relative flex h-12 w-12 items-center justify-center'>
         <img
           src={logo}
-          className='object-contain w-12 h-full transition-opacity hover:opacity-0'
+          className='h-full w-12 object-contain transition-opacity hover:opacity-0'
           alt='Logo'
         />
         <img
           src={logoBlack}
-          className='object-contain w-full h-full transition-opacity absolute opacity-0 hover:opacity-100'
-          alt='Logo Alternativo'
+          className='absolute h-full w-full object-contain opacity-0 transition-opacity hover:opacity-100'
+          alt='Logo alternativo'
         />
       </div>
       <div className='grid flex-1 text-left text-sm leading-tight'>
-        <span className='truncate font-semibold'>
-          {user?.nivelUsuario}
-        </span>
+        <span className='truncate font-semibold'>{user?.nivelUsuario}</span>
         <span className='truncate text-xs'>
           Solos e Sustentabilidade Ambiental
         </span>
@@ -242,10 +108,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar
+      aria-label='Navegação principal'
       className='top-[--header-height] !h-[calc(100svh-var(--header-height))]'
       {...props}
     >
-      {/* Cabeçalho com logo e tipo do usuário e descrição */}
       <SidebarHeader>
         <div className='flex items-center justify-between gap-2'>
           <SidebarMenu>
@@ -254,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuButton size='lg' asChild>
                   <Link
                     to={data.navMain[0].url}
-                    className='flex items-center gap-3 w-full'
+                    className='flex w-full items-center gap-3'
                   >
                     {sidebarIdentity}
                   </Link>
@@ -266,23 +132,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
 
           {isMobile && (
-            <SheetClose asChild className='md:hidden bg-white text-black'>
-              <Button variant='ghost' size='icon'>
+            <SheetClose asChild className='md:hidden bg-surface text-clt-2'>
+              <Button variant='ghost' size='icon' aria-label='Fechar menu'>
                 <X className='h-5 w-5' />
-                <span className='sr-only'>Fechar Menu</span>
+                <span className='sr-only'>Fechar menu</span>
               </Button>
             </SheetClose>
           )}
         </div>
       </SidebarHeader>
 
-      {/* Conteúdo principal com navegação */}
       <SidebarContent>
+        {userError ? (
+          <div className='px-2 pt-2'>
+            <ErrorFeedback
+              error={userError}
+              operationId={OPERATION_IDS.userById}
+              onRetry={() => setRetryToken((token) => token + 1)}
+            />
+          </div>
+        ) : null}
         <NavMain items={data.navMain} />
+        <SidebarGroup className='px-2 py-0'>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <ThemeSwitch className='static right-auto top-auto z-auto w-full justify-start border-transparent bg-transparent px-2 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring focus-visible:ring-offset-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0' />
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <NavSecondary items={[]} className='mt-auto' />
       </SidebarContent>
 
-      {/* Rodapé com informações do usuário */}
       <SidebarFooter>
         {!loading && user && (
           <NavUser
@@ -295,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarFooter>
 
-      <div className="w-full mt-auto mb-2">
+      <div className='mt-auto mb-2 w-full'>
         <VersionDisplay />
       </div>
     </Sidebar>

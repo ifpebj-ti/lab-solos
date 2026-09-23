@@ -1,10 +1,10 @@
 # Solução de problemas
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 

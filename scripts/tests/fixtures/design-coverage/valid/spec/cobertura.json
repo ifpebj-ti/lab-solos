@@ -1,0 +1,49 @@
+{
+  "versao": 1,
+  "atualizado_em": "2026-09-22",
+  "status": "fixture estrutural",
+  "fontes": [],
+  "decisoes_confirmadas": [
+    {
+      "id": "decision-demo",
+      "referencia": "evidence/decision.md",
+      "alcance": "Superfície de demonstração da fixture."
+    }
+  ],
+  "regras": {
+    "status_permitidos": [
+      "pendente",
+      "em execução",
+      "aguardando aceite",
+      "redesenhada e validada",
+      "compartilhada e validada",
+      "exclusão aprovada"
+    ]
+  },
+  "superficies": [
+    {
+      "id": "SUP-001",
+      "tipo": "rota",
+      "rota": "/demo",
+      "perfil": ["Mentor"],
+      "familia": "fixture",
+      "estados_aplicaveis": ["conteúdo típico"],
+      "larguras": [320],
+      "temas": ["claro"],
+      "onda": 1,
+      "tarefa": "T001",
+      "marco_aceite": "T001",
+      "requisitos": [],
+      "evidencias": [],
+      "decisao": null,
+      "status": "pendente",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema do artefato",
+          "justificativa": "Fixture documental pode declarar uma dimensão não aplicável antes do aceite."
+        }
+      ],
+      "observacoes": "Fixture sintética."
+    }
+  ]
+}

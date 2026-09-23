@@ -2,7 +2,7 @@ interface ILayersIcon {
   fill?: string;
 }
 
-export default function LayersIcon({ fill = '#A9A9A9' }: ILayersIcon) {
+export default function LayersIcon({ fill = 'currentColor' }: ILayersIcon) {
   return (
     <svg
       width='18'

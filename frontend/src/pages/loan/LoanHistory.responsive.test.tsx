@@ -1,6 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import LoanHistory from './LoanHistory';
@@ -11,6 +10,10 @@ const loansApi = vi.hoisted(() => ({
   rejectLoan: vi.fn(),
   returnLoan: vi.fn(),
 }));
+const pdf = vi.hoisted(() =>
+  vi.fn(() => ({ toBlob: vi.fn().mockResolvedValue(new Blob(['pdf'])) }))
+);
+const saveAs = vi.hoisted(() => vi.fn());
 const excel = vi.hoisted(() => {
   const worksheet = { addRow: vi.fn() };
   const workbook = {
@@ -23,7 +26,7 @@ const excel = vi.hoisted(() => {
 vi.mock('@/integration/Loans', () => loansApi);
 vi.mock('@/components/global/OpenSearch', () => ({ default: () => null }));
 vi.mock('@/components/hooks/use-toast', () => ({ toast: vi.fn() }));
-vi.mock('file-saver', () => ({ default: { saveAs: vi.fn() } }));
+vi.mock('file-saver', () => ({ default: { saveAs }, saveAs }));
 vi.mock('exceljs', () => ({
   default: {
     Workbook: vi.fn(function Workbook() {
@@ -32,9 +35,7 @@ vi.mock('exceljs', () => ({
   },
 }));
 vi.mock('@react-pdf/renderer', () => ({
-  PDFDownloadLink: ({ children }: { children: ReactNode }) => (
-    <a href='#'>{children}</a>
-  ),
+  pdf,
 }));
 vi.mock('@/components/pdf/LoanDoc', () => ({ LoanDoc: () => null }));
 
@@ -126,6 +127,11 @@ describe('histórico detalhado de empréstimo administrativo responsivo', () => 
         lote: 'L-201',
         tipo: 'Vidraria',
       })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'PDF' }));
+    await waitFor(() =>
+      expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'emprestimo_view.pdf')
     );
   });
 });

@@ -60,30 +60,30 @@ function HistoryClass() {
   const current = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   if (loading && loans === null && error === null) {
-    return <div role='status' className='flex min-h-screen items-center justify-center bg-backgroundMy'><LoadingIcon />Carregando...<BackLink /></div>;
+    return <main className='min-h-svh bg-canvas text-clt-2'><div role='status' className='flex min-h-svh items-center justify-center gap-3 bg-canvas'><span className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'><LoadingIcon /></span>Carregando...</div></main>;
   }
 
   return (
-    <div className='w-full min-w-0 flex min-h-screen flex-col items-center overflow-y-auto bg-backgroundMy pb-9'>
-      <div className='w-11/12 flex items-center justify-between mt-7'><BackLink /><h1>Histórico de Empréstimos</h1><OpenSearch /></div>
+    <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
+      <div className='flex flex-wrap items-center justify-between gap-4 pt-8'><BackLink /><h1 className='min-w-0 break-words font-rajdhani-medium text-2xl uppercase text-clt-2 md:text-3xl'>Histórico de Empréstimos</h1><OpenSearch /></div>
       {error !== null ? (
-        <div className='w-11/12 mt-7'><ErrorFeedback error={error} operationId={OPERATION_IDS.loansByDependents} onRetry={loadLoans} /></div>
+        <div className='mt-7'><ErrorFeedback error={error} operationId={OPERATION_IDS.loansByDependents} onRetry={loadLoans} /></div>
       ) : (
-        <div className='w-11/12 mt-7'>
+        <section aria-label='Histórico da turma' className='mt-7 rounded-xl border border-borderMy bg-surface p-4 sm:p-6'>
           <SearchInput name='search' onChange={(event) => { setSearchTerm(event.target.value); setPage(1); }} value={searchTerm} />
           <ResponsiveTable label='Histórico da turma' columns={columns}>
             <HeaderTable />
             <div className='w-full min-h-72'>
-              {current.length === 0 ? <p className='p-10 text-center'>Nenhum empréstimo encontrado.</p> : current.map((loan, index) => (
+              {current.length === 0 ? <p className='p-10 text-center text-clt-1'>Nenhum empréstimo encontrado.</p> : current.map((loan, index) => (
                  <ClickableItemTable key={loan.id} data={[String(loan.id), getRequesterName(loan.solicitante), formatDateTime(loan.dataRealizacao), String(loan.produtos.length), loan.status]} rowIndex={index} id={loan.id} destinationRoute='/mentor/history/loan' />
               ))}
             </div>
           </ResponsiveTable>
           {current.length > 0 ? <Pagination totalItems={filtered.length} itemsPerPage={itemsPerPage} currentPage={page} onPageChange={setPage} /> : null}
-        </div>
+        </section>
       )}
       <span className='sr-only'>{location.pathname}</span>
-    </div>
+    </main>
   );
 }
 

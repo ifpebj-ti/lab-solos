@@ -7,12 +7,8 @@ import TopDown from '@/components/global/table/TopDown';
 import HeaderTable from '@/components/global/table/Header';
 import Pagination from '@/components/global/table/Pagination';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  useInRouterContext,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
-import { SquareCheck, SquareX } from 'lucide-react';
+import { useInRouterContext, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, SquareCheck, SquareX } from 'lucide-react';
 import Cookie from 'js-cookie';
 import {
   getDependentesForApproval,
@@ -48,7 +44,7 @@ type PendingAction = Readonly<{
 }>;
 
 const actionButtonClassName =
-  'flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11';
+  'flex min-h-11 min-w-11 items-center justify-center rounded-md text-clt-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas hover:bg-surface-selected disabled:cursor-not-allowed disabled:opacity-50 md:min-h-8 md:min-w-8 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11';
 
 const successNotifications: Record<
   RegistrationAction,
@@ -80,9 +76,11 @@ function RegistrationBackButtonInRouter() {
     <button
       type='button'
       onClick={() => navigate(resolveParentPath(location.pathname))}
-      className='mt-3 inline-flex items-center justify-center rounded-md border border-borderMy px-4 py-2'
+      aria-label='Voltar'
+      title='Voltar'
+      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
     >
-      Voltar
+      <ArrowLeft aria-hidden='true' className='h-5 w-5' />
     </button>
   );
 }
@@ -95,9 +93,11 @@ function RegistrationBackButton() {
   return (
     <button
       type='button'
-      className='mt-3 inline-flex items-center justify-center rounded-md border border-borderMy px-4 py-2'
+      aria-label='Voltar'
+      title='Voltar'
+      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
     >
-      Voltar
+      <ArrowLeft aria-hidden='true' className='h-5 w-5' />
     </button>
   );
 }
@@ -114,7 +114,7 @@ function RegistrationRequestRow({
   const isApproving =
     pendingAction?.id === request.id && pendingAction.action === 'approve';
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
 
   return (
     <ResponsiveRecord className={`${backgroundColor} hover:bg-cl-table`}>
@@ -136,7 +136,12 @@ function RegistrationRequestRow({
             className={actionButtonClassName}
           >
             <span aria-hidden='true'>
-              <SquareX width={20} height={20} stroke='#dd1313' />
+              <SquareX
+                className='text-danger'
+                width={20}
+                height={20}
+                stroke='currentColor'
+              />
             </span>
           </button>
           <button
@@ -147,7 +152,12 @@ function RegistrationRequestRow({
             className={actionButtonClassName}
           >
             <span aria-hidden='true'>
-              <SquareCheck width={20} height={20} stroke='#16a34a' />
+              <SquareCheck
+                className='text-primaryMy'
+                width={20}
+                height={20}
+                stroke='currentColor'
+              />
             </span>
           </button>
         </div>
@@ -225,16 +235,23 @@ function RegistrationRequest() {
   );
 
   return (
-    <>
+    <main
+      id='main-content'
+      aria-busy={isLoading || pendingAction !== null}
+      className='min-h-svh bg-canvas text-clt-2'
+    >
       {isLoading ? (
-        <div role='status' className='flex justify-center flex-row w-full min-h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div
+          role='status'
+          className='flex min-h-svh w-full items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'
+        >
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : loadError ? (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full flex-col items-center justify-center gap-3 bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={loadError}
             operationId={OPERATION_IDS.dependentsForApproval}
@@ -243,8 +260,8 @@ function RegistrationRequest() {
           <RegistrationBackButton />
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+        <div className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 sm:px-6 lg:px-8'>
+          <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
             <h1 className='min-w-0 [overflow-wrap:anywhere] uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Solicitações de Cadastro
             </h1>
@@ -253,7 +270,7 @@ function RegistrationRequest() {
             </div>
           </div>
 
-          <div className='w-11/12 h-32 mt-7 flex items-center justify-center gap-x-8'>
+          <div className='flex min-h-28 w-full items-stretch justify-start pt-8'>
             <FollowUpCard
               title='Mentores'
               number={approval.length}
@@ -261,26 +278,32 @@ function RegistrationRequest() {
             />
           </div>
 
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
-              <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
-                <div className='w-auto flex items-center justify-evenly'>
+          <section
+            aria-label='Solicitações de cadastro'
+            className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'
+          >
+            <div className='flex w-full flex-col-reverse items-stretch justify-between gap-4 lg:flex-row lg:items-center'>
+              <div className='flex w-full min-w-0 items-start justify-start gap-2 lg:w-1/2'>
+                <div className='flex w-auto items-center justify-evenly'>
                   <TopDown
                     onClick={() => toggleSortOrder(!isAscending)}
                     top={isAscending}
                   />
                 </div>
-                <div className='w-full flex items-center justify-evenly'>
+                <div className='flex w-full items-center justify-evenly'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     value={searchTerm}
                   />
                 </div>
               </div>
             </div>
 
-            <div className='w-full min-w-0 mt-4'>
+            <div className='mt-4 w-full min-w-0'>
               <ResponsiveTable
                 label='Solicitações de cadastro'
                 columns={requestColumns}
@@ -289,14 +312,17 @@ function RegistrationRequest() {
                 <div className='w-full items-center flex flex-col justify-center min-h-72'>
                   <div className='w-full'>
                     {currentData.length === 0 ? (
-                      <div role='status' className='flex min-w-0 flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
+                      <div
+                        role='status'
+                        className='flex min-w-0 flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'
+                      >
                         <p className='text-lg text-center'>
                           {approval.length === 0
                             ? 'Nenhuma solicitação de cadastro pendente.'
                             : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
                         </p>
                         {approval.length === 0 && (
-                          <p className='text-sm text-gray-500 text-center'>
+                          <p className='text-center text-sm text-clt-1'>
                             As solicitações de cadastro aparecerão aqui quando
                             usuários solicitarem acesso.
                           </p>
@@ -332,10 +358,10 @@ function RegistrationRequest() {
                 </div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       )}
-    </>
+    </main>
   );
 }
 

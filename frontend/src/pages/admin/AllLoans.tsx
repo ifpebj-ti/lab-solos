@@ -100,24 +100,24 @@ function AllLoans() {
       {isLoading && loan === null ? (
         <div
           role='status'
-          className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+          className='flex min-h-svh w-full items-center justify-center gap-x-3 bg-canvas font-inter-medium text-clt-2'
         >
-          <div className='animate-spin'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : loan === null ? (
-        <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy p-6'>
+        <main className='flex min-h-svh w-full items-center justify-center bg-canvas p-6 text-clt-2'>
           <ErrorFeedback
             error={loadError}
             operationId={OPERATION_IDS.allLoans}
             onRetry={fetchAllLoans}
             onNavigate={() => navigate('/admin')}
           />
-        </div>
+        </main>
       ) : (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+        <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
           {loadError !== null && (
             <div className='w-11/12 mt-6'>
               <ErrorFeedback
@@ -128,7 +128,7 @@ function AllLoans() {
               />
             </div>
           )}
-          <div className='w-11/12 min-w-0 flex flex-col md:flex-row items-center justify-between mt-7 gap-5'>
+          <div className='flex min-w-0 flex-col items-start justify-between gap-5 pt-8 md:flex-row md:items-center'>
             <div>
               <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
                 Histórico de Empréstimos
@@ -145,25 +145,25 @@ function AllLoans() {
             </div>
           </div>
 
-          <div className='w-11/12 min-w-0 mt-7 flex items-center justify-center flex-wrap gap-4'>
+          <div className='mt-7 flex min-w-0 flex-wrap items-center justify-center gap-4'>
             <FollowUpCard
               title='Aprovados'
               number={getUserCountText('Aprovado')}
-              icon={<Check stroke='#A9A9A9' width={20} />}
+              icon={<Check className='text-clt-1' width={20} />}
             />
             <FollowUpCard
               title='Pendentes'
               number={getUserCountText('Pendente')}
-              icon={<Timer stroke='#A9A9A9' width={20} />}
+              icon={<Timer className='text-clt-1' width={20} />}
             />
             <FollowUpCard
               title='Rejeitados'
               number={getUserCountText('Rejeitado')}
-              icon={<ShieldAlert stroke='#A9A9A9' width={20} />}
+              icon={<ShieldAlert className='text-clt-1' width={20} />}
             />
           </div>
 
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+          <section aria-label='Todos os empréstimos' className='mt-10 mb-11 flex min-h-96 min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm'>
             <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
               <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>
@@ -175,7 +175,7 @@ function AllLoans() {
                 <div className='w-full flex items-center justify-evenly'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     value={searchTerm}
                   />
                 </div>
@@ -202,14 +202,14 @@ function AllLoans() {
                   <div className='w-full min-w-0'>
                     {currentData.length === 0 ? (
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                        <div className='text-6xl text-gray-300'>📦</div>
+                        <div aria-hidden='true' className='h-12 w-12 rounded-full border-4 border-borderMy' />
                         <p className='text-lg text-center'>
                           {loans.length === 0
                             ? 'Nenhum empréstimo registrado no sistema.'
                             : 'Nenhum empréstimo encontrado para os filtros aplicados.'}
                         </p>
                         {loans.length === 0 && (
-                          <p className='text-sm text-gray-500 text-center'>
+                          <p className='text-center text-sm text-clt-1'>
                             Os empréstimos aparecerão aqui quando usuários
                             realizarem solicitações.
                           </p>
@@ -250,8 +250,8 @@ function AllLoans() {
                 />
               </div>
             )}
-          </div>
-        </div>
+          </section>
+        </main>
       )}
     </>
   );

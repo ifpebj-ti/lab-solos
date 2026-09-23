@@ -62,7 +62,8 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size='lg'
-              className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+              aria-label={`Abrir menu de ${user.name}`}
+              className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-focus'
             >
               <Avatar className='h-8 w-8 rounded-lg'>
                 <AvatarFallback className='rounded-lg text-black'>
@@ -82,7 +83,7 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className='w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg'
+            className='w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg border-borderMy bg-surface text-clt-2'
             side={isMobile ? 'bottom' : 'right'}
             align='end'
             sideOffset={4}

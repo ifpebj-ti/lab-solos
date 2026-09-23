@@ -11,7 +11,7 @@ type HeaderTableProps = {
 
 Font.register({
   family: 'fontPadrao',
-  src: '../../../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf', // Caminho da fonte dentro do projeto
+  src: '/fonts/Rajdhani/Rajdhani-SemiBold.ttf',
 });
 
 const styles = StyleSheet.create({
