@@ -99,7 +99,7 @@ function LoanHistoryMentee() {
     return (
       <div
         role='status'
-        className='flex min-h-screen flex-col justify-center items-center gap-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas font-inter-medium text-foreground'
       >
         <div className='animate-spin'>
           <LoadingIcon />
@@ -112,7 +112,7 @@ function LoanHistoryMentee() {
 
   if (!hasValidQueryId || loan === null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <div className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6'>
         {loadError !== null ? (
           <ErrorFeedback
             error={loadError}
@@ -130,7 +130,7 @@ function LoanHistoryMentee() {
 
   return (
     <>
-      <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+      <div className='flex min-h-svh w-full min-w-0 flex-col items-center justify-start overflow-y-auto bg-canvas pb-9'>
         {loadError !== null && (
           <div className='w-11/12 mt-6'>
             <ErrorFeedback
@@ -152,16 +152,18 @@ function LoanHistoryMentee() {
             <OpenSearch />
           </div>
         </div>
-        <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-          <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-4'>
+        <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface'>
+          <div className='flex w-full min-w-0 flex-wrap items-center justify-between gap-3 rounded-t-xl border-b border-border p-4'>
             <p className='font-rajdhani-medium text-clt-2 text-xl'>
               Mentorado Vinculado
             </p>
           </div>
           <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
             <ResponsiveTable label='Mentorado vinculado' columns={studentColumns}>
-              <HeaderTable />
-              <div className='w-full min-w-0 items-center flex flex-col min-h-14'>
+              <div role='presentation'>
+                <HeaderTable />
+              </div>
+              <div role='presentation' className='w-full min-w-0 items-center flex flex-col min-h-14'>
                 <ItemOnly
                   data={[
                     userName(loan.solicitante),
@@ -173,8 +175,8 @@ function LoanHistoryMentee() {
             </ResponsiveTable>
           </div>
         </div>
-        <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-          <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-4'>
+        <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface'>
+          <div className='flex w-full min-w-0 flex-wrap items-center justify-between gap-3 rounded-t-xl border-b border-border p-4'>
             <p className='font-rajdhani-medium text-clt-2 text-xl'>
               Produtos Selecionados
             </p>
@@ -194,30 +196,30 @@ function LoanHistoryMentee() {
               />
             </div>
             <ResponsiveTable label='Produtos selecionados' columns={productColumns}>
-              <HeaderTable />
-              <div className='w-full min-w-0 items-center flex flex-col min-h-40'>
-                {sortedUsers.length === 0 ? (
-                  <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                    Nenhum dado disponível para exibição.
-                  </div>
-                ) : (
-                  sortedUsers.map((rowData, index) => (
-                    <ItemTable
-                      key={`${rowData.emprestimoId}-${rowData.produto.id}`}
-                      data={[
-                        String(rowData.produto.id),
-                        rowData.produto.nomeProduto || 'Não informado',
-                        rowData.produto.tipoProduto || 'Não informado',
-                        rowData.produto.quantidade
-                          ? String(rowData.produto.quantidade)
-                          : 'Não informado',
-                        rowData.produto.lote?.codigoLote ?? 'Não informado',
-                      ]}
-                      rowIndex={index}
-                    />
-                  ))
-                )}
+              <div role='presentation'>
+                <HeaderTable />
               </div>
+              {sortedUsers.length === 0 ? (
+                <div role='listitem' className='flex h-40 w-full items-center justify-center font-inter-regular text-muted-foreground'>
+                  Nenhum dado disponível para exibição.
+                </div>
+              ) : (
+                sortedUsers.map((rowData, index) => (
+                  <ItemTable
+                    key={`${rowData.emprestimoId}-${rowData.produto.id}`}
+                    data={[
+                      String(rowData.produto.id),
+                      rowData.produto.nomeProduto || 'Não informado',
+                      rowData.produto.tipoProduto || 'Não informado',
+                      rowData.produto.quantidade
+                        ? String(rowData.produto.quantidade)
+                        : 'Não informado',
+                      rowData.produto.lote?.codigoLote ?? 'Não informado',
+                    ]}
+                    rowIndex={index}
+                  />
+                ))
+              )}
             </ResponsiveTable>
           </div>
         </div>

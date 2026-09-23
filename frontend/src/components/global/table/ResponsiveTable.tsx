@@ -50,7 +50,7 @@ export function ResponsiveTable({
         role='list'
         aria-label={label}
         style={style}
-        className='w-full min-w-0'
+      className='w-full min-w-0 text-clt-2'
       >
         {children}
       </div>
@@ -68,7 +68,7 @@ export const ResponsiveRecord = forwardRef<
       {...props}
       ref={ref}
       role='listitem'
-      className={`w-full min-w-0 mb-3 rounded-sm px-3 py-3 md:mb-1 md:py-2 ${className}`}
+      className={`mb-3 w-full min-w-0 rounded-lg border border-borderMy bg-surface px-3 py-3 transition-colors md:mb-1 md:py-2 ${className}`}
     >
       <dl className='grid min-w-0 grid-cols-1 gap-3 md:grid-cols-[var(--responsive-columns)] md:gap-2'>
         {children}
@@ -83,8 +83,10 @@ export function ResponsiveCell({ columnKey, children }: ResponsiveCellProps) {
   if (!column) throw new Error(`Coluna responsiva desconhecida: ${columnKey}`);
   return (
     <div className='min-w-0 text-sm text-clt-2 [overflow-wrap:anywhere]'>
-      <dt className='font-inter-semibold mb-1 md:sr-only'>{column.label}</dt>
-      <dd className='min-w-0 min-h-0 h-auto font-inter-regular'>{children}</dd>
+      <dt className='mb-1 font-inter-semibold text-clt-1 md:sr-only'>
+        {column.label}
+      </dt>
+      <dd className='min-h-0 min-w-0 h-auto font-inter-regular'>{children}</dd>
     </div>
   );
 }

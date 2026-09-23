@@ -73,6 +73,19 @@ beforeEach(() => {
 });
 
 describe('Profile', () => {
+  it('apresenta erro recuperável quando não carrega os dados do perfil', async () => {
+    getUserByIdMock.mockRejectedValue({ response: { status: 503 } });
+
+    renderProfile();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /Não foi possível carregar o usuário/
+    );
+    expect(
+      screen.getByRole('button', { name: 'Tentar novamente' })
+    ).toBeInTheDocument();
+  });
+
   it('carrega os dados da conta sem importação ou comunicação InterLab', async () => {
     renderProfile();
 
@@ -83,6 +96,20 @@ describe('Profile', () => {
       screen.queryByText(/Importar Planilha de Cadastro de Bens/i)
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('alinha os dados do perfil em painéis consistentes e não duplica telefone', async () => {
+    renderProfile();
+
+    await screen.findByText('Ada Lovelace');
+
+    const identityPanel = screen.getByText('Nome').parentElement?.parentElement;
+    const detailsPanel =
+      screen.getByText('Telefone').parentElement?.parentElement;
+
+    expect(identityPanel).toHaveClass('sm:grid-cols-2', 'lg:w-full');
+    expect(detailsPanel).toHaveClass('sm:grid-cols-2', 'lg:w-full');
+    expect(screen.getAllByText('Telefone')).toHaveLength(1);
   });
 
   it('preserva o estado pendente e a notificação de sucesso dos empréstimos vencidos', async () => {

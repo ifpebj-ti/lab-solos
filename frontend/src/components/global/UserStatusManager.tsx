@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
-import { updateUserStatus, getCurrentUser } from '@/integration/Users';
+import { useEffect, useState } from 'react';
+
+import { getCurrentUser, updateUserStatus } from '@/integration/Users';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+
 import StatusConfirmationDialog from './StatusConfirmationDialog';
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 
 interface UserStatusManagerProps {
@@ -24,46 +28,50 @@ const statusOptions = [
 export default function UserStatusManager({
   userId,
   currentStatus,
-  userName = 'Usuário',
+  userName = 'Usuario',
   onStatusUpdate,
 }: UserStatusManagerProps) {
   const [status, setStatus] = useState(currentStatus);
   const [isLoading, setIsLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<string>('');
+  const [pendingStatus, setPendingStatus] = useState('');
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUserId(user.id);
-      } catch (error) {
-        console.error('Erro ao obter usuário atual:', error);
-      }
+    setStatus(currentStatus);
+  }, [currentStatus]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void getCurrentUser()
+      .then((user) => {
+        if (isMounted) setCurrentUserId(user.id);
+      })
+      .catch(() => {
+        // The status control remains usable; the API still enforces ownership.
+      });
+
+    return () => {
+      isMounted = false;
     };
-    fetchCurrentUser();
   }, []);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = (newStatus: string) => {
     if (userId === currentUserId) {
-      alert('Você não pode alterar seu próprio status!');
-      // Reverte a seleção no dropdown
       setStatus(currentStatus);
       return;
     }
 
-    // Se o status é o mesmo, não faz nada
-    if (newStatus === currentStatus) {
-      return;
-    }
+    if (newStatus === currentStatus || newStatus === status) return;
 
-    // Abrir popup de confirmação
     setPendingStatus(newStatus);
     setShowConfirmation(true);
   };
 
   const handleConfirmStatusChange = async () => {
+    if (!pendingStatus || isLoading) return;
+
     setIsLoading(true);
     try {
       await updateUserStatus({ userId, status: pendingStatus });
@@ -71,9 +79,7 @@ export default function UserStatusManager({
       onStatusUpdate?.(pendingStatus);
       setShowConfirmation(false);
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
-      alert('Erro ao atualizar status do usuário');
-      // Reverte o status em caso de erro
+      notifyError(error, OPERATION_IDS.updateUserStatus);
       setStatus(currentStatus);
     } finally {
       setIsLoading(false);
@@ -84,18 +90,14 @@ export default function UserStatusManager({
   const handleCancelStatusChange = () => {
     setShowConfirmation(false);
     setPendingStatus('');
-    // Reverte a seleção no dropdown
     setStatus(currentStatus);
   };
 
-  // Se o usuário está tentando alterar seu próprio status, mostrar apenas o status atual
-  const isOwnProfile = userId === currentUserId;
-
-  if (isOwnProfile) {
+  if (userId === currentUserId) {
     return (
-      <div className='flex items-center gap-2'>
+      <div className='flex min-h-11 items-center gap-2 md:min-h-8'>
         <span className='text-sm font-inter-regular text-clt-2'>{status}</span>
-        <span className='text-xs text-gray-500'></span>
+        <span className='text-xs text-clt-1'>Seu usuário</span>
       </div>
     );
   }
@@ -107,15 +109,18 @@ export default function UserStatusManager({
         onValueChange={handleStatusChange}
         disabled={isLoading}
       >
-        <SelectTrigger className='w-32 h-8 text-xs border border-borderMy rounded-sm'>
+        <SelectTrigger
+          aria-label={`Status de ${userName}`}
+          className='min-h-11 w-full rounded-md border-borderMy text-sm md:min-h-8 md:w-36 md:text-xs'
+        >
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className='border border-borderMy rounded-md font-inter-regular bg-backgroundMy'>
+        <SelectContent className='rounded-md border border-borderMy bg-surface font-inter-regular'>
           {statusOptions.map((option) => (
             <SelectItem
               key={option.value}
               value={option.value}
-              className='hover:bg-cl-table-item font-inter-regular text-xs'
+              className='font-inter-regular text-xs hover:bg-surface-selected'
             >
               {option.label}
             </SelectItem>

@@ -10,25 +10,28 @@ interface IInfoCardProps {
 }
 
 function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
-  const notifyProp = notify;
+  const notificationLabel = quant === undefined
+    ? 'Notificações pendentes'
+    : `${quant} notificações pendentes`;
 
   return (
     <Link
       to={link}
-      className='w-[45%] h-[30%] lg:w-[30%] landscape:w-[40%] max-h-32 rounded-md flex items-center justify-between px-5 hover:bg-green-100 transition-all ease-in-out duration-200 shadow-md gap-2'
+      className='group flex min-h-20 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-borderMy bg-surface px-4 py-3 text-clt-2 shadow-sm transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-[45%] lg:w-[30%] landscape:w-[40%]'
     >
-      <div className='relative min-w-7 flex items-center justify-center'>
+      <div className='relative flex min-w-7 shrink-0 items-center justify-center text-cl-icon'>
         {icon}
-        {/* Bolinha vermelha para notificação em cima do ícone */}
-        {notifyProp && (
-          <span className='absolute -top-1 -left-1 flex items-center justify-center bg-red-500 rounded-full min-w-[20px] min-h-[20px] border-white border'>
-            <span className='font-rajdhani-bold text-white text-xs mt-[2px]'>
-              {quant}
-            </span>
+        {notify && (
+          <span
+            role='status'
+            aria-label={notificationLabel}
+            className='absolute -left-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full border-2 border-surface bg-danger px-1 text-[rgb(var(--color-action-foreground))]'
+          >
+            <span className='font-rajdhani-bold text-xs'>{quant}</span>
           </span>
         )}
       </div>
-      <p className='font-inter-medium uppercase text-clt-2 text-xs line-clamp-2 landscape:px-0'>
+      <p className='min-w-0 flex-1 break-words font-inter-medium text-xs uppercase leading-tight text-clt-2 landscape:px-0'>
         {text}
       </p>
     </Link>

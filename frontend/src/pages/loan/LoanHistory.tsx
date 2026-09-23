@@ -28,10 +28,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import FileSaver from 'file-saver';
-import ExcelJS from 'exceljs';
-import { LoanDoc } from '@/components/pdf/LoanDoc';
 import BackLink from '@/components/global/BackLink';
 import type { Emprestimo } from '@/contracts/loan';
 import type { Usuario } from '@/contracts/user';
@@ -55,7 +51,8 @@ const productColumns: readonly ResponsiveColumn[] = [
   { key: 'batch', label: 'Lote ID', weight: 2 },
 ];
 
-const userName = (user: Usuario | null) => user?.nomeCompleto ?? 'Não informado';
+const userName = (user: Usuario | null) =>
+  user?.nomeCompleto ?? 'Não informado';
 
 export type {
   Emprestimo as IEmprestimo,
@@ -73,12 +70,15 @@ function LoanHistoryMentee() {
   const [pendingAction, setPendingAction] = useState<
     'approve' | 'reject' | 'return' | null
   >(null);
+  const [isExporting, setIsExporting] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const idResolution = readIdFromLocation(location);
   const requestSequence = useRef(0);
-  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
-  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+  const hasValidQueryId =
+    idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId =
+    idResolution.source === 'state' && idResolution.id !== null;
   const navigateToParent = useCallback(
     () => navigate(resolveParentPath(location.pathname)),
     [location.pathname, navigate]
@@ -99,7 +99,13 @@ function LoanHistoryMentee() {
       buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
       { replace: true, state: null }
     );
-  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+  }, [
+    hasLegacyId,
+    idResolution.id,
+    location.pathname,
+    location.search,
+    navigate,
+  ]);
 
   const fetchGetLoan = useCallback(async (): Promise<boolean> => {
     if (!hasValidQueryId || idResolution.id === null) {
@@ -138,7 +144,10 @@ function LoanHistoryMentee() {
   const runAction = async (
     action: 'approve' | 'reject' | 'return',
     mutation: (loanId: number) => Promise<unknown>,
-    operation: typeof OPERATION_IDS.approveLoan | typeof OPERATION_IDS.rejectLoan | typeof OPERATION_IDS.returnLoan,
+    operation:
+      | typeof OPERATION_IDS.approveLoan
+      | typeof OPERATION_IDS.rejectLoan
+      | typeof OPERATION_IDS.returnLoan,
     successToast: { title: string; description: string },
     refreshAfterSuccess = false
   ) => {
@@ -191,37 +200,97 @@ function LoanHistoryMentee() {
     ? [...filteredUsers]
     : [...filteredUsers].reverse();
   const exportToExcel = async () => {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Dados de Empréstimo');
+    setIsExporting(true);
 
-    // Definir os cabeçalhos da planilha
-    worksheet.columns = [
-      { header: 'ID', key: 'id', width: 10 },
-      { header: 'Item', key: 'item', width: 45 },
-      { header: 'Quantidade', key: 'quant', width: 15 },
-      { header: 'Lote', key: 'lote', width: 15 },
-      { header: 'Tipo', key: 'tipo', width: 15 },
-    ];
+    try {
+      const [{ default: ExcelJS }, { default: FileSaver }] = await Promise.all([
+        import('exceljs'),
+        import('file-saver'),
+      ]);
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Dados de Empréstimo');
 
-    // Adicionar os dados da tabela
-    sortedUsers.forEach((loan) => {
-      worksheet.addRow({
-        id: loan.produto.id,
-        item: loan.produto.nomeProduto,
-        quant: loan.produto.quantidade,
-        lote: loan.produto.lote?.codigoLote ?? 'Sem lote',
-        tipo: loan.produto.tipoProduto,
+      // Definir os cabeçalhos da planilha
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'Item', key: 'item', width: 45 },
+        { header: 'Quantidade', key: 'quant', width: 15 },
+        { header: 'Lote', key: 'lote', width: 15 },
+        { header: 'Tipo', key: 'tipo', width: 15 },
+      ];
+
+      // Adicionar os dados da tabela
+      sortedUsers.forEach((loan) => {
+        worksheet.addRow({
+          id: loan.produto.id,
+          item: loan.produto.nomeProduto,
+          quant: loan.produto.quantidade,
+          lote: loan.produto.lote?.codigoLote ?? 'Sem lote',
+          tipo: loan.produto.tipoProduto,
+        });
       });
-    });
 
-    // Criar o arquivo Excel
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+      // Criar o arquivo Excel
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
 
-    // Baixar o arquivo
-    FileSaver.saveAs(blob, 'emprestimo.xlsx');
+      // Baixar o arquivo
+      FileSaver.saveAs(blob, 'emprestimo.xlsx');
+    } catch (error) {
+      notifyError(error, OPERATION_IDS.loanById);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToPdf = async () => {
+    setIsExporting(true);
+
+    try {
+      const [{ pdf }, { LoanDoc }, { default: FileSaver }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/components/pdf/LoanDoc'),
+        import('file-saver'),
+      ]);
+      const blob = await pdf(
+        <LoanDoc
+          name={
+            loan?.solicitante?.nomeCompleto
+              ? userName(loan.solicitante)
+              : 'Não encontrado'
+          }
+          nivel={
+            loan?.solicitante?.nivelUsuario
+              ? loan.solicitante.nivelUsuario
+              : 'Não encontrado'
+          }
+          data={
+            loan?.produtos?.map(({ quantidade, produto }) => [
+              String(produto.id),
+              produto.nomeProduto,
+              String(quantidade),
+              produto.lote?.codigoLote || 'Sem lote',
+              produto.tipoProduto,
+            ]) ?? []
+          }
+          title={'Dados de Empréstimo N° ' + loan?.id}
+          columnWidths={columnWidthsExport}
+          columns={columnsExport}
+          signer={
+            loan?.solicitante?.nomeCompleto
+              ? userName(loan.solicitante)
+              : 'Não encontrado'
+          }
+        />
+      ).toBlob();
+      FileSaver.saveAs(blob, 'emprestimo_view.pdf');
+    } catch (error) {
+      notifyError(error, OPERATION_IDS.loanById);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const showLoading =
@@ -233,9 +302,9 @@ function LoanHistoryMentee() {
     return (
       <div
         role='status'
-        className='flex min-h-screen flex-col justify-center items-center gap-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas font-inter-medium text-clt-2'
       >
-        <div className='animate-spin'>
+        <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
           <LoadingIcon />
         </div>
         Carregando...
@@ -246,7 +315,7 @@ function LoanHistoryMentee() {
 
   if (!hasValidQueryId || loan === null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         {loadError !== null ? (
           <ErrorFeedback
             error={loadError}
@@ -258,15 +327,15 @@ function LoanHistoryMentee() {
           <p>Selecione um registro para consultar</p>
         )}
         <BackLink />
-      </div>
+      </main>
     );
   }
 
   return (
     <>
-      <div className='w-full min-w-0 flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+      <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col items-center overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
         {loadError !== null && (
-          <div className='w-11/12 mt-6'>
+          <div className='mt-6 w-full'>
             <ErrorFeedback
               error={loadError}
               operationId={OPERATION_IDS.loanById}
@@ -275,92 +344,109 @@ function LoanHistoryMentee() {
             />
           </div>
         )}
-          <div className='w-11/12 mt-5'>
-            <BackLink />
+        <div className='mt-5 w-full'>
+          <BackLink />
+        </div>
+        <div className='mt-7 flex w-full min-w-0 flex-wrap items-center justify-between gap-4'>
+          <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
+            Histórico de Empréstimo - {loan?.status}
+          </h1>
+          <div className='flex items-center justify-between gap-x-6'>
+            <OpenSearch />
           </div>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
-              Histórico de Empréstimo - {loan?.status}
-            </h1>
-            <div className='flex items-center justify-between gap-x-6'>
-              <OpenSearch />
-            </div>
+        </div>
+        <section
+          aria-label='Mentorado vinculado'
+          className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'
+        >
+          <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-4'>
+            <p className='font-rajdhani-medium text-clt-2 text-xl'>
+              Mentorado Vinculado
+            </p>
           </div>
-          <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-            <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-4'>
-              <p className='font-rajdhani-medium text-clt-2 text-xl'>
-                Mentorado Vinculado
-              </p>
-            </div>
-            <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
-              <ResponsiveTable label='Mentorado vinculado' columns={studentColumns}>
-                <HeaderTable />
-                <div className='w-full min-w-0 items-center flex flex-col min-h-14'>
-                  <ItemOnly
-                    data={[
-                      userName(loan?.solicitante ?? null),
-                      loan?.solicitante?.email ?? 'Não informado',
-                      loan?.solicitante?.telefone ?? 'Não informado',
-                    ]}
-                  />
-                </div>
-              </ResponsiveTable>
-            </div>
-          </div>
-          <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-            <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-3'>
-              <p className='font-rajdhani-medium text-clt-2 text-xl'>
-                Produtos Selecionados
-              </p>
-              {loan?.status === 'Aprovado' && !loan?.dataDevolucao && (
-                <button
-                  type='button'
-                  onClick={handleReturn}
-                  disabled={pendingAction === 'return'}
-                  className='font-rajdhani-semibold text-green-600 text-xl h-10 border border-green-600 px-4 rounded-md hover:bg-green-50 flex gap-x-3 items-center justify-center transition-all ease-in-out duration-150'
-                >
-                  Registrar Devolução
-                  <RefreshCw stroke='#16a34a' width={20} />
-                </button>
-              )}
-              {loan?.status === 'Aprovado' && loan?.dataDevolucao && (
-                <div className='flex items-center gap-x-2 text-green-600'>
-                  <RefreshCw stroke='#16a34a' width={16} />
-                  <span className='font-rajdhani-semibold text-lg'>
-                    Empréstimo Devolvido
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
-              <div className='flex min-w-0 flex-wrap items-center justify-start gap-3 mt-5 w-full'>
-                <div className='w-full min-w-0 md:w-[40%]'>
-                  <SearchInput
-                    name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                    value={searchTerm}
-                  />
-                </div>
-                <TopDown
-                  onClick={() => toggleSortOrder(!isAscending)}
-                  top={isAscending}
+          <div className='flex w-full min-w-0 flex-col items-center justify-center px-4'>
+            <ResponsiveTable
+              label='Mentorado vinculado'
+              columns={studentColumns}
+            >
+              <HeaderTable />
+              <div className='w-full min-w-0 items-center flex flex-col min-h-14'>
+                <ItemOnly
+                  data={[
+                    userName(loan?.solicitante ?? null),
+                    loan?.solicitante?.email ?? 'Não informado',
+                    loan?.solicitante?.telefone ?? 'Não informado',
+                  ]}
                 />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type='button'
-                      aria-label='Exportar empréstimo'
-                      className='border border-borderMy rounded-sm min-h-11 min-w-11 md:h-9 md:w-9 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200'
-                    >
-                      <FileText stroke='#232323' width={21} strokeWidth={1.5} />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className='w-32 shadow-lg border border-borderMy bg-backgroundMy p-2'>
-                    <ul className='w-full flex flex-col items-start gap-y-1'>
-                      <li className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center'>
-                        <PDFDownloadLink
-                          document={
-                            <LoanDoc
+              </div>
+            </ResponsiveTable>
+          </div>
+        </section>
+        <section
+          aria-label='Produtos selecionados'
+          className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'
+        >
+          <div className='w-full min-w-0 rounded-t-md border-b border-b-borderMy flex flex-wrap items-center justify-between gap-3 p-3'>
+            <p className='font-rajdhani-medium text-clt-2 text-xl'>
+              Produtos Selecionados
+            </p>
+            {loan?.status === 'Aprovado' && !loan?.dataDevolucao && (
+              <button
+                type='button'
+                onClick={handleReturn}
+                disabled={pendingAction === 'return'}
+                className='flex h-11 items-center justify-center gap-x-3 rounded-md border border-success px-4 font-rajdhani-semibold text-xl text-success transition-colors hover:bg-surface-selected'
+              >
+                Registrar Devolução
+                <RefreshCw className='text-success' width={20} />
+              </button>
+            )}
+            {loan?.status === 'Aprovado' && loan?.dataDevolucao && (
+              <div className='flex items-center gap-x-2 text-success'>
+                <RefreshCw className='text-success' width={16} />
+                <span className='font-rajdhani-semibold text-lg'>
+                  Empréstimo Devolvido
+                </span>
+              </div>
+            )}
+          </div>
+          <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+            <div className='flex min-w-0 flex-wrap items-center justify-start gap-3 mt-5 w-full'>
+              <div className='w-full min-w-0 md:w-[40%]'>
+                <SearchInput
+                  name='search'
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                />
+              </div>
+              <TopDown
+                onClick={() => toggleSortOrder(!isAscending)}
+                top={isAscending}
+              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type='button'
+                    aria-label='Exportar empréstimo'
+                    className='flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected md:h-9 md:w-9'
+                  >
+                    <FileText
+                      className='text-clt-2'
+                      width={21}
+                      strokeWidth={1.5}
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className='w-32 border border-borderMy bg-surface p-2 shadow-lg'>
+                  <ul className='w-full flex flex-col items-start gap-y-1'>
+                    <li className='flex w-full items-center rounded py-1 px-2 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
+                      <button
+                        type='button'
+                        onClick={() => void exportToPdf()}
+                        disabled={isExporting}
+                        aria-busy={isExporting}
+                        className='flex items-center justify-center disabled:cursor-wait disabled:opacity-60'
+                        /* <LoanDoc
                               name={
                                 loan?.solicitante?.nomeCompleto
                                   ? userName(loan.solicitante)
@@ -391,91 +477,96 @@ function LoanHistoryMentee() {
                                   : 'Não encontrado'
                               }
                             />
-                          }
-                          fileName='emprestimo_view.pdf'
-                          className='flex items-center justify-center'
-                        >
-                          <FileText
-                            stroke='#232323'
-                            width={18}
-                            strokeWidth={1.5}
-                            className='mr-1 mt-[2px]'
-                          />
-                          PDF
-                        </PDFDownloadLink>
-                      </li>
-                      <li
-                        className='w-full hover:bg-gray-300 rounded py-1 flex px-2 font-inter-regular bg-cl-table-item text-sm items-center cursor-pointer'
-                        onClick={exportToExcel}
+                          } */
                       >
                         <FileText
-                          stroke='#232323'
                           width={18}
                           strokeWidth={1.5}
-                          className='mr-1 mt-[2px]'
+                          className='mr-1 mt-[2px] text-clt-2'
+                        />
+                        PDF
+                      </button>
+                    </li>
+                    <li className='flex w-full items-center rounded py-1 px-2 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
+                      <button
+                        type='button'
+                        aria-label='Exportar Excel'
+                        aria-busy={isExporting}
+                        disabled={isExporting}
+                        onClick={() => void exportToExcel()}
+                        className='flex w-full items-center disabled:cursor-wait disabled:opacity-60'
+                      >
+                        <FileText
+                          width={18}
+                          strokeWidth={1.5}
+                          className='mr-1 mt-[2px] text-clt-2'
                         />
                         Excel
-                      </li>
-                    </ul>
-                  </PopoverContent>
-                </Popover>
+                      </button>
+                    </li>
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <ResponsiveTable
+              label='Produtos selecionados'
+              columns={productColumns}
+            >
+              <HeaderTable />
+              <div className='flex min-h-40 w-full min-w-0 flex-col items-center'>
+                {sortedUsers.length === 0 ? (
+                  <div className='flex h-40 w-full items-center justify-center font-inter-regular text-clt-1'>
+                    Nenhum dado disponível para exibição.
+                  </div>
+                ) : (
+                  sortedUsers.map((rowData, index) => (
+                    <ItemTable
+                      key={`${rowData.emprestimoId}-${rowData.produto.id}`}
+                      data={[
+                        rowData.produto.id
+                          ? String(rowData.produto.id)
+                          : 'Não informado',
+                        rowData.produto.nomeProduto || 'Não informado',
+                        rowData.produto.tipoProduto || 'Não informado',
+                        rowData.quantidade
+                          ? rowData.produto.unidadeMedida
+                            ? `${rowData.quantidade} ${getUnidadePlural(
+                                rowData.produto.unidadeMedida,
+                                rowData.quantidade
+                              )}`
+                            : `${rowData.quantidade} (unidade não informada)`
+                          : 'Não informado',
+                        rowData.produto.lote?.codigoLote || 'Não informado',
+                      ]}
+                      rowIndex={index}
+                    />
+                  ))
+                )}
               </div>
-              <ResponsiveTable label='Produtos selecionados' columns={productColumns}>
-                <HeaderTable />
-                <div className='w-full min-w-0 items-center flex flex-col min-h-40'>
-                  {sortedUsers.length === 0 ? (
-                    <div className='w-full h-40 flex items-center justify-center font-inter-regular'>
-                      Nenhum dado disponível para exibição.
-                    </div>
-                  ) : (
-                    sortedUsers.map((rowData, index) => (
-                      <ItemTable
-                        key={`${rowData.emprestimoId}-${rowData.produto.id}`}
-                        data={[
-                          rowData.produto.id
-                            ? String(rowData.produto.id)
-                            : 'Não informado',
-                          rowData.produto.nomeProduto || 'Não informado',
-                          rowData.produto.tipoProduto || 'Não informado',
-                          rowData.quantidade
-                            ? rowData.produto.unidadeMedida
-                              ? `${rowData.quantidade} ${getUnidadePlural(
-                                  rowData.produto.unidadeMedida,
-                                  rowData.quantidade
-                                )}`
-                              : `${rowData.quantidade} (unidade não informada)`
-                            : 'Não informado',
-                          rowData.produto.lote?.codigoLote || 'Não informado',
-                        ]}
-                        rowIndex={index}
-                      />
-                    ))
-                  )}
-                </div>
-              </ResponsiveTable>
-            </div>
+            </ResponsiveTable>
           </div>
-          {loan?.status != 'Aprovado' ? (
-            <div className='w-11/12 min-w-0 gap-3 h-10 mt-6 flex flex-wrap items-center justify-end'>
-              <button
-                type='button'
-                onClick={handleReject}
-                disabled={pendingAction === 'reject'}
-                className='h-full w-28 rounded-md border border-red-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-red-600 hover:bg-red-600 hover:text-white'
-              >
-                Rejeitar
-              </button>
-              <button
-                type='button'
-                onClick={handleApprove}
-                disabled={pendingAction === 'approve'}
-                className='h-full w-28 rounded-md border border-green-600 font-inter-medium transition-all ease-in-out hover:scale-[1.02] text-green-600 hover:bg-green-600 hover:text-white'
-              >
-                Aceitar
-              </button>
-            </div>
-          ) : null}
-        </div>
+        </section>
+        {loan?.status != 'Aprovado' ? (
+          <div className='mt-6 flex h-11 w-full min-w-0 flex-wrap items-center justify-end gap-3'>
+            <button
+              type='button'
+              onClick={handleReject}
+              disabled={pendingAction === 'reject'}
+              className='h-11 w-28 rounded-md border border-danger font-inter-medium text-danger transition-colors hover:bg-danger hover:text-on-danger'
+            >
+              Rejeitar
+            </button>
+            <button
+              type='button'
+              onClick={handleApprove}
+              disabled={pendingAction === 'approve'}
+              className='h-11 w-28 rounded-md border border-success font-inter-medium text-success transition-colors hover:bg-success hover:text-on-success'
+            >
+              Aceitar
+            </button>
+          </div>
+        ) : null}
+      </main>
     </>
   );
 }

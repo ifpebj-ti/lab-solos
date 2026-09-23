@@ -119,15 +119,15 @@ function FollowUp() {
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div className='flex min-h-[50vh] w-full flex-row items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
-          <div className='w-11/12 mt-5 flex items-center justify-between'>
+        <div className='flex min-h-screen w-full min-w-0 flex-col items-center overflow-y-auto bg-canvas pb-10 text-clt-2 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full'>
+          <div className='mt-5 flex w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8'>
             <BackLink pathname='/admin/follow-up' />
             {loadError !== null ? (
               <ErrorFeedback
@@ -137,15 +137,15 @@ function FollowUp() {
               />
             ) : null}
           </div>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+          <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'>
+            <h1 className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
               Acompanhamento
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-w-0 mt-7 flex items-center justify-center flex-wrap gap-4'>
+          <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap justify-center gap-4 px-4 sm:px-6 lg:px-8'>
             <FollowUpCard
               title='Produtos com Alertas'
               number={(alert ?? []).length}
@@ -168,7 +168,7 @@ function FollowUp() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='bg-white shadow-sm rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+          <div className='mt-10 mb-11 flex min-h-96 w-full max-w-6xl min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
             <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
               <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>

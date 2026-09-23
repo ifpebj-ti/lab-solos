@@ -230,7 +230,9 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
     await expect(page).toHaveURL(/\/admin\/?$/);
 
     await page
-      .getByRole('button', { name: new RegExp(e2eScenario.administrator.email, 'i') })
+      .getByRole('button', {
+        name: /Abrir menu de E2E Administrator/i,
+      })
       .click();
     await page.getByRole('menuitem', { name: 'Sair' }).click();
     await expect(page).toHaveURL(/\/$/);

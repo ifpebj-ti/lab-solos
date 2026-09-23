@@ -125,4 +125,45 @@ describe('produtos responsivos', () => {
       await screen.findByText('Nenhum dado disponível para exibição.')
     ).toBeInTheDocument();
   });
+
+  it('indexa nome, categoria, quantidade, unidade e status no campo de busca', async () => {
+    mount();
+    await screen.findByText('Produto 1');
+
+    const search = screen.getByRole('textbox');
+    fireEvent.change(search, { target: { value: 'ml' } });
+    expect(screen.getByText('Produto 1')).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: 'Disponivel' } });
+    expect(screen.getByText('Produto 1')).toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: '3' } });
+    expect(screen.getByText('Produto 1')).toBeInTheDocument();
+  });
+
+  it('mantém produtos e diferencia falha dos indicadores do sistema', async () => {
+    vi.mocked(getSystemQuantities).mockRejectedValue(new Error('Falha nos indicadores'));
+    mount();
+
+    await screen.findByText('Produto 1');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'carregar os indicadores do sistema'
+    );
+    expect(screen.getAllByText('+—')).toHaveLength(3);
+  });
+
+  it('mantém container e busca do catálogo em superfícies tokenizadas', async () => {
+    mount();
+    await screen.findByText('Produto 1');
+
+    const products = screen.getByRole('list', { name: 'Produtos' });
+    const catalogSurface = products.closest('div.mt-10');
+    const search = screen.getByRole('textbox', { name: 'Pesquisar' });
+    const searchSurface = search.parentElement;
+
+    expect(catalogSurface).toHaveClass('bg-surface', 'border-borderMy');
+    expect(catalogSurface).not.toHaveClass('bg-white');
+    expect(searchSurface).toHaveClass('bg-surface', 'border-borderMy');
+    expect(searchSurface).not.toHaveClass('bg-white');
+  });
 });

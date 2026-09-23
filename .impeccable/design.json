@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T00:00:00-03:00",
+  "title": "Design System: LabOn",
+  "extensions": {
+    "colorMeta": {
+      "action-light": {
+        "role": "primary",
+        "displayName": "Verde ação claro",
+        "canonical": "rgb(23 107 73)",
+        "tonalRamp": ["rgb(228 242 234)", "rgb(23 107 73)", "rgb(10 54 37)"]
+      },
+      "navigation-light": {
+        "role": "primary",
+        "displayName": "Verde navegação",
+        "canonical": "rgb(18 75 56)",
+        "tonalRamp": ["rgb(214 236 225)", "rgb(18 75 56)", "rgb(7 37 27)"]
+      },
+      "canvas-light": {
+        "role": "neutral",
+        "displayName": "Canvas claro",
+        "canonical": "rgb(246 247 244)",
+        "tonalRamp": ["rgb(255 255 255)", "rgb(246 247 244)", "rgb(232 237 233)"]
+      },
+      "canvas-dark": {
+        "role": "neutral",
+        "displayName": "Canvas escuro",
+        "canonical": "rgb(18 27 23)",
+        "tonalRamp": ["rgb(43 60 50)", "rgb(18 27 23)", "rgb(8 13 11)"]
+      },
+      "focus-light": {
+        "role": "tertiary",
+        "displayName": "Foco violeta claro",
+        "canonical": "rgb(93 47 113)",
+        "tonalRamp": ["rgb(239 231 242)", "rgb(93 47 113)", "rgb(49 24 60)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Rajdhani",
+        "purpose": "Títulos de marca e hierarquia de página."
+      },
+      "body": {
+        "displayName": "Inter",
+        "purpose": "Leitura, formulários, tabelas e feedbacks."
+      }
+    },
+    "shadows": [
+      {
+        "name": "surface-lift",
+        "value": "0 4px 16px rgba(18, 27, 23, 0.12)",
+        "purpose": "Elevar popovers, gavetas e superfícies interativas sem dominar o conteúdo."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Transições curtas de estado em controles e navegação."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Respeitar a preferência do usuário e remover movimento não essencial."
+      }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "320px" },
+      { "name": "navigation", "value": "768px" },
+      { "name": "wide", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação principal com estado de foco e feedback preservados.",
+      "html": "<button class=\"bg-primaryMy text-white rounded-md px-4 py-2\">Confirmar</button>",
+      "css": ".ds-primary { background: rgb(23 107 73); color: white; border-radius: .5rem; padding: .5rem 1rem; } .ds-primary:focus-visible { outline: 3px solid rgb(93 47 113); outline-offset: 2px; }"
+    },
+    {
+      "name": "Responsive Record",
+      "kind": "custom",
+      "refersTo": "table-record",
+      "description": "Registro de lista/detalhe com colunas responsivas, estado e retorno.",
+      "html": "<article class=\"record\"><h3>Empréstimo</h3><p>Status: Aprovado</p></article>",
+      "css": ".record { background: rgb(255 255 255); border: 1px solid rgb(183 198 188); border-radius: .5rem; padding: 1rem; } @media (max-width: 767px) { .record { width: 100%; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Laboratório Vivo",
+    "overview": "LabOn é um sistema operacional de laboratório: preciso, responsivo e orientado a decisões seguras. Inter sustenta a leitura e Rajdhani assina títulos e marca; verde institucional, superfícies tonais e estados tokenizados mantêm a interface coerente entre perfis.",
+    "keyCharacteristics": ["operacional", "responsivo", "verde institucional", "token-first"],
+    "rules": [
+      { "name": "The Token-First Rule", "body": "Estados e temas consomem tokens de tokens.css; não use cores ad hoc.", "section": "colors" },
+      { "name": "The Readable-First Rule", "body": "Inter é padrão para dados e instruções; Rajdhani fica em títulos e marca.", "section": "typography" }
+    ],
+    "dos": ["Do manter foco visível e rótulos associados.", "Do validar claro, escuro, teclado e largura estreita."],
+    "donts": ["Don't forçar rolagem horizontal de página.", "Don't documentar ação ausente no runtime."]
+  }
+}

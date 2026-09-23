@@ -4,11 +4,11 @@ Esta página cobre as variantes administrativas das jornadas J03, J06, J07, J09 
 
 Para entrar no sistema e cumprir a troca obrigatória de senha, consulte [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso). Para situações de sessão expirada, acesso negado, erro de serviço ou registro ausente, consulte [Solução de problemas](solucao-de-problemas.md#j11-falhas). O [índice do manual](README.md#j01-acesso) reúne o percurso dos três perfis.
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -523,10 +523,13 @@ Abra **Empréstimos > Histórico**. A página se chama **Histórico de Emprésti
 4. Abra uma linha para consultar o solicitante, o responsável, os itens e o status do empréstimo.
 5. Se a linha estiver pendente e precisar de decisão, retorne a **Empréstimos > Solicitações** para aprovar ou reprovar.
 6. Se o empréstimo aprovado ainda não tiver devolução, siga [registrar devolução](#j09-registrar-devolucao).
+7. Quando o controle estiver disponível, use **Exportar PDF** ou **Exportar Excel** para gerar uma cópia dos registros exibidos; aguarde o download terminar antes de sair da tela.
 
 **Resultado esperado**
 
 O histórico apresenta os empréstimos do escopo administrativo e permite consultar seus status e detalhes. Uma lista vazia é um resultado de consulta somente quando a resposta do serviço foi carregada com sucesso.
+
+O PDF é a saída documental equivalente de impressão validada para esta versão. A planilha mantém as colunas e os tipos dos dados apresentados; não há uma ação separada de impressão no runtime atual.
 
 **Erros comuns**
 

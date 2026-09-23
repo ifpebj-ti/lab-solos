@@ -7,16 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        primaryMy: '#16A34A',
-        backgroundMy: '#F4F4F5',
-        borderMy: '#B5B5B5',
-        'clt-1': '#333333',
-        'clt-2': '#232323',
-        'cl-icon': '#474747',
-        'cl-icon2': '#A9A9A9',
-        'cl-table': '#f1f1f1',
-        'cl-table-item': '#EBEBEB',
-        danger: '#DD1313',
+        primaryMy: 'rgb(var(--color-action) / <alpha-value>)',
+        backgroundMy: 'rgb(var(--color-canvas) / <alpha-value>)',
+        borderMy: 'rgb(var(--color-border) / <alpha-value>)',
+        'clt-1': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'clt-2': 'rgb(var(--color-text-primary) / <alpha-value>)',
+        'cl-icon': 'rgb(var(--color-icon) / <alpha-value>)',
+        'cl-icon2': 'rgb(var(--color-icon-muted) / <alpha-value>)',
+        'cl-table': 'rgb(var(--color-surface-muted) / <alpha-value>)',
+        'cl-table-item': 'rgb(var(--color-table-row) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        canvas: 'rgb(var(--color-canvas) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        'surface-selected': 'rgb(var(--color-surface-selected) / <alpha-value>)',
+        'text-primary': 'rgb(var(--color-text-primary) / <alpha-value>)',
+        focus: 'rgb(var(--color-focus) / <alpha-value>)',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -58,14 +63,18 @@ export default {
           5: 'hsl(var(--chart-5))',
         },
         sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
+          DEFAULT: 'rgb(var(--color-navigation) / <alpha-value>)',
+          foreground:
+            'rgb(var(--color-navigation-foreground) / <alpha-value>)',
+          primary:
+            'rgb(var(--color-navigation-foreground) / <alpha-value>)',
+          'primary-foreground':
+            'rgb(var(--color-navigation) / <alpha-value>)',
+          accent: 'rgb(var(--color-surface-selected) / <alpha-value>)',
+          'accent-foreground':
+            'rgb(var(--color-text-primary) / <alpha-value>)',
+          border: 'rgb(var(--color-border) / <alpha-value>)',
+          ring: 'rgb(var(--color-focus) / <alpha-value>)',
         },
       },
       fontFamily: {

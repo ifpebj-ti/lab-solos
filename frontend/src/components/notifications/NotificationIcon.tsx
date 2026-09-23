@@ -13,6 +13,8 @@ import {
   marcarVariasNotificacoesComoLidas,
 } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
 // import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -96,7 +98,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
       setNotificacoes(notifs);
       setCountNaoLidas(count.count);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      notifyError(error, OPERATION_IDS.notifications);
     } finally {
       setLoading(false);
     }
@@ -114,7 +116,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
       await marcarNotificacaoComoLida(notificacaoId);
       await fetchNotificacoes();
     } catch (error) {
-      console.error('Erro ao marcar notificação como lida:', error);
+      notifyError(error, OPERATION_IDS.markNotificationRead);
     }
   };
 
@@ -127,7 +129,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
         await fetchNotificacoes();
       }
     } catch (error) {
-      console.error('Erro ao marcar todas as notificações como lidas:', error);
+      notifyError(error, OPERATION_IDS.markNotificationsRead);
     }
   };
 
@@ -166,18 +168,18 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
         >
           <Bell className='h-5 w-5' />
           {countNaoLidas > 0 && (
-            <span className='absolute -top-1 -right-1 flex items-center justify-center bg-red-500 rounded-full min-w-[18px] min-h-[18px] text-xs font-bold text-white'>
+            <span className='absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-xs font-bold text-white'>
               {countNaoLidas > 99 ? '99+' : countNaoLidas}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className='w-80 p-0 bg-backgroundMy border-borderMy'
+        className='w-80 border-borderMy bg-surface p-0 text-clt-2'
         align='end'
         sideOffset={5}
       >
-        <div className='flex items-center justify-between p-4 border-b border-borderMy'>
+        <div className='flex items-center justify-between border-b border-borderMy p-4'>
           <h3 className='font-rajdhani-medium text-lg text-clt-2'>
             Notificações
           </h3>
@@ -207,25 +209,31 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
         <div className='max-h-96 overflow-y-auto'>
           {loading ? (
             <div className='flex items-center justify-center p-8'>
-              <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primaryMy'></div>
+              <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
             </div>
           ) : notificacoes.length === 0 ? (
             <div className='flex flex-col items-center justify-center p-8 text-center'>
               <Bell className='h-12 w-12 text-gray-300 mb-3' />
               <p className='text-sm text-clt-1'>Nenhuma notificação</p>
-              <p className='text-xs text-gray-500'>
-                Você está em dia com tudo!
-              </p>
+              <p className='text-xs text-clt-1'>Você está em dia com tudo!</p>
             </div>
           ) : (
             <div className='divide-y divide-borderMy'>
               {notificacoes.map((notificacao) => (
                 <div
                   key={notificacao.id}
-                  className={`p-3 hover:bg-cl-table-item transition-colors cursor-pointer ${
-                    !notificacao.lida ? 'bg-blue-50/30' : ''
+                  className={`cursor-pointer p-3 text-left transition-colors hover:bg-surface-selected ${
+                    !notificacao.lida ? 'bg-surface-selected' : ''
                   }`}
                   onClick={() => handleNotificacaoClick(notificacao)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      void handleNotificacaoClick(notificacao);
+                    }
+                  }}
+                  role='button'
+                  tabIndex={0}
                 >
                   <div className='flex items-start gap-3'>
                     <div className='flex-shrink-0 text-lg mt-0.5'>
@@ -242,18 +250,10 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
                         </p>
                         {!notificacao.lida && (
                           <div className='flex-shrink-0'>
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMarcarComoLida(notificacao.id);
-                              }}
-                              className='h-6 w-6 p-0 text-primaryMy hover:text-primaryMy/80'
-                              title='Marcar como lida'
-                            >
-                              <Check className='h-3 w-3' />
-                            </Button>
+                            <Check
+                              className='h-3 w-3 text-primaryMy'
+                              aria-label='Lida'
+                            />
                           </div>
                         )}
                       </div>
@@ -268,7 +268,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
                         >
                           {notificacao.tipoTexto}
                         </span>
-                        <span className='text-xs text-gray-500'>
+                        <span className='text-xs text-clt-1'>
                           {formatarData(notificacao.dataCriacao)}
                         </span>
                       </div>

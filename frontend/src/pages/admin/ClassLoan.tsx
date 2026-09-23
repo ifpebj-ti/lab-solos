@@ -154,26 +154,26 @@ function ClassLoan() {
 
   if (hasLegacyId || (hasValidQueryId && isLoading && loans === null && loadError === null)) {
     return (
-      <div role='status' className='flex min-h-screen flex-col justify-center items-center gap-4 bg-backgroundMy'>
-        <LoadingIcon />
+      <main className='min-h-svh bg-canvas text-clt-2'><div role='status' className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas'>
+        <span className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'><LoadingIcon /></span>
         Carregando...
         <BackLink pathname='/admin/view-class-mentor' />
-      </div>
+      </div></main>
     );
   }
 
   if (!hasValidQueryId) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         <p>Selecione um registro para consultar</p>
         <BackLink pathname='/admin/view-class-mentor' />
-      </div>
+      </main>
     );
   }
 
   if (loadError !== null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         <ErrorFeedback
           error={loadError}
           operationId={OPERATION_IDS.loansByClass}
@@ -181,22 +181,22 @@ function ClassLoan() {
           onNavigate={() => navigate('/admin/users')}
         />
         <BackLink pathname='/admin/view-class-mentor' />
-      </div>
+      </main>
     );
   }
 
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div className='flex min-h-svh w-full items-center justify-center gap-x-3 bg-canvas font-inter-medium text-clt-2'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+        <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
+          <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Histórico de Empréstimos
             </h1>
@@ -204,7 +204,7 @@ function ClassLoan() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-w-0 min-h-32 mt-7 flex flex-wrap items-center gap-4'>
+          <div className='mt-7 flex min-h-32 min-w-0 flex-wrap items-center gap-4'>
             <FollowUpCard
               title='Devolvidos'
               number={getLoanCountText('devolvido')}
@@ -216,13 +216,13 @@ function ClassLoan() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='w-11/12 min-w-0 min-h-32 mt-8 rounded-md border border-borderMy flex flex-col'>
+          <section aria-label='Histórico de empréstimos da turma' className='mt-8 flex min-h-32 min-w-0 flex-col rounded-xl border border-borderMy bg-surface'>
             <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
               <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
                 <div className='w-full min-w-0 md:w-[40%]'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     value={searchTerm}
                   />
                 </div>
@@ -276,8 +276,8 @@ function ClassLoan() {
                 />
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+        </main>
       )}
     </>
   );

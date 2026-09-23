@@ -37,27 +37,27 @@ function InputPassword<T extends FieldValues>({
       >
         {label}
       </label>
-      <div className='w-full min-w-0 flex border border-stone-500 rounded-sm hover:border-stone-600'>
+      <div className='flex min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface hover:border-focus'>
         <input
           id={inputId}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           type={showPassword ? 'text' : 'password'}
           {...register(name)}
-          className='w-full min-w-0 px-3 bg-white min-h-11 text-base md:text-sm shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+          className='min-h-11 w-full min-w-0 rounded-l-md bg-surface px-3 text-base text-clt-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
         />
         <button
           type='button'
           aria-label={`${showPassword ? 'Ocultar' : 'Mostrar'} ${label}`}
           onClick={togglePasswordVisibility}
-          className='min-w-11 min-h-11 shrink-0 flex items-center justify-center bg-backgroundMy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+          className='flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-r-md bg-backgroundMy text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
         >
           {showPassword ? <EyeIcon2 /> : <EyeIcon />}
         </button>
       </div>
       <p
         id={errorId}
-        className={`text-red-700 text-sm [overflow-wrap:anywhere] ${error ? '' : 'hidden'}`}
+        className={`min-h-5 text-danger text-sm [overflow-wrap:anywhere] ${error ? '' : 'sr-only'}`}
       >
         {typeof error === 'string' ? error : error?.message}
       </p>

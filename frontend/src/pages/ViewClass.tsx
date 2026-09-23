@@ -178,29 +178,29 @@ function ViewClass() {
       ]
     : [];
   return (
-    <>
+    <main aria-busy={isLoading || hasLegacyId} className='min-h-svh bg-canvas text-clt-2'>
       {hasLegacyId ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div role='status' className='flex min-h-svh w-full items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
           <BackLink pathname='/admin/view-class' />
         </div>
       ) : !hasValidQueryId ? (
-        <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <div className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6'>
           <p>Selecione um registro para consultar</p>
           <BackLink pathname='/admin/view-class' />
         </div>
       ) : isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div role='status' className='flex min-h-svh w-full items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : dependentsError ? (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={dependentsError}
             operationId={OPERATION_IDS.dependentsById}
@@ -209,7 +209,7 @@ function ViewClass() {
           />
         </div>
       ) : userError ? (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={userError}
             operationId={OPERATION_IDS.userById}
@@ -218,8 +218,8 @@ function ViewClass() {
           />
         </div>
       ) : user ? (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+        <div className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 sm:px-6 lg:px-8'>
+          <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Visualização de Turmas
             </h1>
@@ -227,21 +227,24 @@ function ViewClass() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-w-0 mt-7'>
+          <div className='mt-8 w-full min-w-0'>
             <InfoContainer items={infoItems} />
-            <div className='w-full min-w-0 flex flex-wrap gap-3 mt-5'>
+            <div className='mt-5 flex w-full min-w-0 flex-wrap gap-3'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
               <InfoContainer items={infoItems5} />
             </div>
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+          <section aria-label='Usuários da turma' className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
             <div className='w-full min-w-0 flex flex-wrap justify-between items-center gap-3 mt-2'>
               <div className='w-full min-w-0 md:w-2/4'>
                 <SearchInput
                   name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   value={searchTerm}
                 />
               </div>
@@ -252,7 +255,7 @@ function ViewClass() {
                     top={isAscending}
                   />
                 </div>
-                <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
+                <div className='flex w-1/2 items-center justify-between rounded-md border border-borderMy bg-surface-muted px-4 font-inter-medium text-sm text-clt-2'>
                   <p>TOTAL:</p>
                   <p>{currentData.length}</p>
                 </div>
@@ -260,18 +263,18 @@ function ViewClass() {
             </div>
             <ResponsiveTable label='Usuários da turma' columns={classColumns}>
               <HeaderTable />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
+              <div className='flex min-h-72 w-full flex-col items-center justify-center'>
               <div className='w-full min-w-0'>
                 {currentData.length === 0 ? (
                   <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                    <div className='text-6xl text-gray-300'>👥</div>
+                    <div aria-hidden='true' className='h-1 w-12 rounded-full bg-borderMy' />
                     <p className='text-lg text-center'>
                       {sortedUsers.length === 0
                         ? 'Nenhum usuário encontrado nesta turma.'
                         : 'Nenhum usuário encontrado para os filtros aplicados.'}
                     </p>
                     {sortedUsers.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
+                      <p className='text-center text-sm text-clt-1'>
                         Os membros da turma aparecerão aqui quando forem
                         cadastrados.
                       </p>
@@ -308,10 +311,10 @@ function ViewClass() {
               )}
             </div>
             </ResponsiveTable>
-          </div>
+          </section>
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={new Error('Usuário da turma indisponível.')}
             operationId={OPERATION_IDS.userById}
@@ -320,7 +323,7 @@ function ViewClass() {
           />
         </div>
       )}
-    </>
+    </main>
   );
 }
 

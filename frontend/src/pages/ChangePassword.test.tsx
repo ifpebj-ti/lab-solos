@@ -25,9 +25,10 @@ vi.mock('@/errors/presentError', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>(
-    'react-router-dom'
-  );
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
 
   return {
     ...actual,
@@ -70,15 +71,19 @@ describe('ChangePassword', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
 
     await waitFor(() => {
-      expect(mocks.post).toHaveBeenCalledWith('Auth/change-password', {
-        currentPassword: 'senha-atual-valida',
-        newPassword: 'nova-senha-valida',
-        confirmation: 'nova-senha-valida',
-      }, {
-        headers: {
-          Authorization: 'Bearer door-key',
+      expect(mocks.post).toHaveBeenCalledWith(
+        'Auth/change-password',
+        {
+          currentPassword: 'senha-atual-valida',
+          newPassword: 'nova-senha-valida',
+          confirmation: 'nova-senha-valida',
         },
-      });
+        {
+          headers: {
+            Authorization: 'Bearer door-key',
+          },
+        }
+      );
     });
 
     await waitFor(() => {
@@ -134,6 +139,10 @@ describe('ChangePassword', () => {
       );
       expect(mocks.clearSession).toHaveBeenCalledOnce();
       expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
+      expect(mocks.notifyError).toHaveBeenCalledWith(
+        expect.objectContaining({ category: 'authentication' }),
+        'auth.changePassword'
+      );
     });
   });
 

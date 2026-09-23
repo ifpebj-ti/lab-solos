@@ -62,7 +62,10 @@ const removedSurfaceText =
 
 async function getSidebar(page: Page, viewport: number) {
   if (viewport < 768) {
-    const toggle = page.getByRole('button', { name: 'Abrir/Fechar Menu' });
+    const toggle = page.getByRole('button', {
+      name: 'Abrir menu de navegação',
+      exact: true,
+    });
     await toggle.focus();
     await expect(toggle).toBeFocused();
     await page.keyboard.press('Enter');
@@ -268,7 +271,9 @@ for (const viewport of viewports) {
     ).toHaveCount(0);
 
     await openRouteSearch(page, main.getByRole('button').first());
-    await page.getByRole('option', { name: /Solicita.*Cadastro/ }).click();
+    await page
+      .getByRole('option', { name: 'Solicitações de cadastro', exact: true })
+      .click();
     await expect(page).toHaveURL(/\/admin\/register-request$/);
     await expect(
       page.getByRole('heading', { name: /Solicita.*cadastro/i })

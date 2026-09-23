@@ -31,7 +31,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit } from 'lucide-react';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
-import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
+import {
+  buildDetailUrl,
+  readIdFromLocation,
+} from '@/navigation/profileNavigation';
 
 const verificationHistoryColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data', weight: 15 },
@@ -142,8 +145,10 @@ function VerificationPage({ userType }: VerificationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const idResolution = readIdFromLocation(location);
-  const hasValidQueryId = idResolution.source === 'query' && idResolution.id !== null;
-  const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
+  const hasValidQueryId =
+    idResolution.source === 'query' && idResolution.id !== null;
+  const hasLegacyId =
+    idResolution.source === 'state' && idResolution.id !== null;
   const requestSequence = useRef(0);
   const [loadError, setLoadError] = useState<unknown | null>(null);
 
@@ -314,7 +319,13 @@ function VerificationPage({ userType }: VerificationProps) {
       buildDetailUrl(`${location.pathname}${location.search}`, idResolution.id),
       { replace: true, state: null }
     );
-  }, [hasLegacyId, idResolution.id, location.pathname, location.search, navigate]);
+  }, [
+    hasLegacyId,
+    idResolution.id,
+    location.pathname,
+    location.search,
+    navigate,
+  ]);
 
   const fetchData = useCallback(async () => {
     if (!hasValidQueryId || idResolution.id === null) {
@@ -330,24 +341,31 @@ function VerificationPage({ userType }: VerificationProps) {
     setProductsById(undefined);
     setHistoricoData(null);
     setLoadError(null);
-      try {
-        const productResponse = await getProductById({ id: idResolution.id });
-        if (sequence !== requestSequence.current) return;
-        setProductsById(productResponse);
+    try {
+      const productResponse = await getProductById({ id: idResolution.id });
+      if (sequence !== requestSequence.current) return;
+      setProductsById(productResponse);
 
-        // Busca histórico para admin (tabela detalhada e gráfico)
-        if (showHistoricoDetalhado || needsHistoricoForChart) {
-          const historicoResponse = await getProductHistoricoSaida({ id: idResolution.id });
-          if (sequence !== requestSequence.current) return;
-          setHistoricoData(historicoResponse);
-          setFilteredHistorico(historicoResponse.historico);
-        }
-      } catch (error) {
-        if (sequence === requestSequence.current) setLoadError(error);
-      } finally {
-        if (sequence === requestSequence.current) setIsLoading(false);
+      // Busca histórico para admin (tabela detalhada e gráfico)
+      if (showHistoricoDetalhado || needsHistoricoForChart) {
+        const historicoResponse = await getProductHistoricoSaida({
+          id: idResolution.id,
+        });
+        if (sequence !== requestSequence.current) return;
+        setHistoricoData(historicoResponse);
+        setFilteredHistorico(historicoResponse.historico);
       }
-  }, [hasValidQueryId, idResolution.id, needsHistoricoForChart, showHistoricoDetalhado]);
+    } catch (error) {
+      if (sequence === requestSequence.current) setLoadError(error);
+    } finally {
+      if (sequence === requestSequence.current) setIsLoading(false);
+    }
+  }, [
+    hasValidQueryId,
+    idResolution.id,
+    needsHistoricoForChart,
+    showHistoricoDetalhado,
+  ]);
 
   useEffect(() => {
     void fetchData();
@@ -398,7 +416,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
   if (isLoading) {
     return (
-      <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+      <div className='flex min-h-[50vh] w-full flex-row items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
         <div className='animate-spin'>
           <LoadingIcon />
         </div>
@@ -409,9 +427,16 @@ function VerificationPage({ userType }: VerificationProps) {
 
   if (!hasValidQueryId || (!productsById && loadError === null)) {
     return (
-      <div className='flex justify-center items-center h-screen bg-backgroundMy'>
+      <div className='flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-canvas p-6 text-clt-2'>
         <p>Selecione um registro para consultar</p>
-        <Link to={getBackRoute()} aria-label='Voltar'>Voltar</Link>
+        <Link
+          to={getBackRoute()}
+          aria-label='Voltar'
+          title='Voltar'
+          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+        >
+          <ArrowLeft aria-hidden='true' className='h-5 w-5' />
+        </Link>
         <p className='text-clt-2 font-inter-medium'>Produto não encontrado.</p>
       </div>
     );
@@ -420,8 +445,19 @@ function VerificationPage({ userType }: VerificationProps) {
   if (loadError !== null && !productsById) {
     return (
       <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
-        <ErrorFeedback error={loadError} operationId={OPERATION_IDS.productById} onRetry={fetchData} />
-        <Link to={getBackRoute()} aria-label='Voltar'>Voltar</Link>
+        <ErrorFeedback
+          error={loadError}
+          operationId={OPERATION_IDS.productById}
+          onRetry={fetchData}
+        />
+        <Link
+          to={getBackRoute()}
+          aria-label='Voltar'
+          title='Voltar'
+          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+        >
+          <ArrowLeft aria-hidden='true' className='h-5 w-5' />
+        </Link>
       </div>
     );
   }
@@ -479,17 +515,17 @@ function VerificationPage({ userType }: VerificationProps) {
   );
 
   return (
-    <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
-      <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+    <main className='flex min-h-screen w-full min-w-0 flex-col items-center overflow-y-auto bg-canvas pb-10 text-clt-2 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full'>
+      <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center gap-4'>
           <Link
             to={getBackRoute()}
             aria-label='Voltar'
-            className='flex items-center justify-center w-10 h-10 rounded-md border border-borderMy hover:bg-cl-table-item transition-colors'
+            className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
           >
             <ArrowLeft className='w-5 h-5 text-clt-2' />
           </Link>
-          <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+          <h1 className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
             {getPageTitle()}
           </h1>
         </div>
@@ -497,7 +533,7 @@ function VerificationPage({ userType }: VerificationProps) {
       </div>
 
       {/* Informações do Produto */}
-      <div className='w-11/12 min-w-0 mt-7'>
+      <section className='mt-7 w-full max-w-6xl min-w-0 px-4 sm:px-6 lg:px-8'>
         <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
           <h2 className='text-xl font-rajdhani-medium text-clt-2'>
             Informações do Produto
@@ -514,11 +550,14 @@ function VerificationPage({ userType }: VerificationProps) {
             </Button>
           )}
         </div>
-        <ResponsiveTable label='Informações do Produto' columns={productInfoColumns}>
+        <ResponsiveTable
+          label='Informações do Produto'
+          columns={productInfoColumns}
+        >
           <HeaderTable />
           <ItemOnly data={productInfo.map((item) => item.value)} />
         </ResponsiveTable>
-      </div>
+      </section>
 
       {/* Seção de Histórico - apenas para admin */}
       {showHistoricoDetalhado && historicoData && (
@@ -527,7 +566,9 @@ function VerificationPage({ userType }: VerificationProps) {
           <div className='w-11/12 min-w-0 mt-7 grid grid-cols-1 md:grid-cols-3 gap-4'>
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>Total de Empréstimos</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>
+                  Total de Empréstimos
+                </CardTitle>
               </CardHeader>
               <CardContent className='min-w-0'>
                 <p className='text-2xl font-bold text-primaryMy'>
@@ -538,7 +579,9 @@ function VerificationPage({ userType }: VerificationProps) {
 
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>Quantidade Emprestada</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>
+                  Quantidade Emprestada
+                </CardTitle>
               </CardHeader>
               <CardContent className='min-w-0'>
                 <p className='text-2xl font-bold text-primaryMy'>
@@ -553,7 +596,9 @@ function VerificationPage({ userType }: VerificationProps) {
 
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>Status Atual</CardTitle>
+                <CardTitle className='min-w-0 break-words text-lg'>
+                  Status Atual
+                </CardTitle>
               </CardHeader>
               <CardContent className='min-w-0'>
                 <p className='text-lg font-medium text-clt-2'>
@@ -702,7 +747,7 @@ function VerificationPage({ userType }: VerificationProps) {
           onSuccess={handleProductUpdate}
         />
       )}
-    </div>
+    </main>
   );
 }
 

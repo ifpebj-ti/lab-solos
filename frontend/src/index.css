@@ -1,3 +1,5 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -108,14 +110,6 @@
     --chart-4: 43, 74%, 66%;
     --chart-5: 27, 87%, 67%;
     --radius: 0.5rem;
-    --sidebar-background: 142, 76%, 36%;
-    --sidebar-foreground: 0, 0%, 100%;
-    --sidebar-primary: 0, 0%, 100%;
-    --sidebar-primary-foreground: 0, 0%, 98%;
-    --sidebar-accent: 240, 4.8%, 95.9%;
-    --sidebar-accent-foreground: 240, 5.9%, 10%;
-    --sidebar-border: 220, 13%, 91%;
-    --sidebar-ring: 217.2, 91.2%, 59.8%;
     --header-height: 0px;
   }
 
@@ -144,14 +138,6 @@
     --chart-3: 30, 80%, 55%;
     --chart-4: 280, 65%, 60%;
     --chart-5: 340, 75%, 55%;
-    --sidebar-background: 240, 5.9%, 10%;
-    --sidebar-foreground: 240, 4.8%, 95.9%;
-    --sidebar-primary: 224.3, 76.3%, 48%;
-    --sidebar-primary-foreground: 0, 0%, 100%;
-    --sidebar-accent: 240, 3.7%, 15.9%;
-    --sidebar-accent-foreground: 240, 4.8%, 95.9%;
-    --sidebar-border: 240, 3.7%, 15.9%;
-    --sidebar-ring: 217.2, 91.2%, 59.8%;
   }
 }
 
@@ -162,6 +148,52 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 80 14% 96%;
+    --foreground: 150 21% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 21% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 21% 12%;
+    --primary: 151 65% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 130 14% 92%;
+    --secondary-foreground: 150 21% 12%;
+    --muted: 130 14% 92%;
+    --muted-foreground: 146 18% 32%;
+    --accent: 286 28% 93%;
+    --accent-foreground: 150 21% 12%;
+    --destructive: 4 76% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 144 15% 75%;
+    --input: 144 15% 75%;
+    --ring: 286 41% 31%;
+  }
+
+  .dark {
+    --background: 150 21% 8%;
+    --foreground: 135 24% 95%;
+    --card: 150 20% 12%;
+    --card-foreground: 135 24% 95%;
+    --popover: 150 20% 12%;
+    --popover-foreground: 135 24% 95%;
+    --primary: 151 56% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 145 17% 20%;
+    --secondary-foreground: 135 24% 95%;
+    --muted: 145 17% 20%;
+    --muted-foreground: 143 17% 71%;
+    --accent: 286 23% 27%;
+    --accent-foreground: 135 24% 95%;
+    --destructive: 5 86% 53%;
+    --destructive-foreground: 150 21% 8%;
+    --border: 147 14% 33%;
+    --input: 147 14% 33%;
+    --ring: 286 57% 75%;
   }
 }
 
@@ -176,20 +208,20 @@
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  background: rgb(var(--color-surface-muted));
   /* Cor do track */
   border-radius: 4px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: #888;
+  background-color: rgb(var(--color-icon-muted));
   /* Cor do thumb */
   border-radius: 4px;
-  border: 2px solid #f0f0f0;
+  border: 2px solid rgb(var(--color-surface-muted));
   /* Espaçamento ao redor */
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+  background-color: rgb(var(--color-text-muted));
   /* Cor ao passar o mouse */
 }

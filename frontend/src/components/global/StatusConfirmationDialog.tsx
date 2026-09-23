@@ -28,77 +28,68 @@ export default function StatusConfirmationDialog({
   newStatus,
   isLoading = false,
 }: StatusConfirmationDialogProps) {
-  const getStatusColor = (status: string) => {
-    return status === 'Habilitado' ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getActionText = () => {
-    return newStatus === 'Habilitado' ? 'Habilitar' : 'Desabilitar';
-  };
+  const actionText = newStatus === 'Habilitado' ? 'Habilitar' : 'Desabilitar';
+  const actionClassName =
+    newStatus === 'Habilitado'
+      ? 'bg-primaryMy text-[rgb(var(--color-action-foreground))] hover:bg-primaryMy/90'
+      : 'bg-danger text-[rgb(var(--color-action-foreground))] hover:bg-danger/90';
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className='bg-backgroundMy border border-borderMy max-w-md'>
+      <AlertDialogContent className='max-h-[min(80vh,40rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto border-borderMy bg-surface'>
         <AlertDialogHeader className='space-y-4'>
-          <AlertDialogTitle className='font-rajdhani-medium text-2xl text-clt-2 text-center'>
-            Alterar Status do Usuário
+          <AlertDialogTitle className='text-center font-rajdhani-medium text-2xl text-clt-2'>
+            Alterar status do usuário
           </AlertDialogTitle>
-          <AlertDialogDescription className='font-inter-regular text-clt-1 space-y-4'>
+          <AlertDialogDescription className='space-y-4 font-inter-regular text-clt-1'>
             <div className='text-center'>
-              <p className='text-base mb-2'>
+              <p className='mb-2 text-base'>
                 Você está prestes a{' '}
-                <span className={`font-semibold ${getStatusColor(newStatus)}`}>
-                  {getActionText()}
+                <span
+                  className={
+                    newStatus === 'Habilitado'
+                      ? 'font-semibold text-primaryMy'
+                      : 'font-semibold text-danger'
+                  }
+                >
+                  {actionText}
                 </span>{' '}
                 o usuário:
               </p>
-              <div className='bg-cl-table-item rounded-lg p-4 border border-borderMy'>
-                <p className='font-rajdhani-medium text-lg text-clt-2 mb-3'>
+              <div className='rounded-lg border border-borderMy bg-surface-muted p-4'>
+                <p className='mb-3 break-words font-rajdhani-medium text-lg text-clt-2'>
                   {userName}
                 </p>
-                <div className='flex justify-between items-center text-sm'>
-                  <div className='text-center flex-1'>
-                    <p className='text-clt-1 mb-1'>Status Atual</p>
-                    <span
-                      className={`font-semibold px-3 py-1 rounded-full text-xs ${
-                        currentStatus === 'Habilitado'
-                          ? 'bg-green-100 text-green-700 border border-green-200'
-                          : 'bg-red-100 text-red-700 border border-red-200'
-                      }`}
-                    >
+                <div className='flex flex-col items-stretch gap-4 text-sm sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='flex-1 text-center'>
+                    <p className='mb-1 text-clt-1'>Status atual</p>
+                    <span className='rounded-full border border-borderMy bg-surface px-3 py-1 text-xs font-semibold text-clt-2'>
                       {currentStatus}
                     </span>
                   </div>
-                  <div className='mx-4'>
-                    <div className='w-8 h-0.5 bg-borderMy'></div>
-                    <div className='w-2 h-2 bg-borderMy rounded-full mx-auto mt-1'></div>
+                  <div className='hidden items-center gap-2 sm:flex' aria-hidden='true'>
+                    <div className='h-0.5 w-8 bg-borderMy' />
+                    <div className='h-2 w-2 rounded-full bg-borderMy' />
                   </div>
-                  <div className='text-center flex-1'>
-                    <p className='text-clt-1 mb-1'>Novo Status</p>
-                    <span
-                      className={`font-semibold px-3 py-1 rounded-full text-xs ${
-                        newStatus === 'Habilitado'
-                          ? 'bg-green-100 text-green-700 border border-green-200'
-                          : 'bg-red-100 text-red-700 border border-red-200'
-                      }`}
-                    >
+                  <div className='flex-1 text-center'>
+                    <p className='mb-1 text-clt-1'>Novo status</p>
+                    <span className='rounded-full border border-borderMy bg-surface px-3 py-1 text-xs font-semibold text-clt-2'>
                       {newStatus}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-            <div className='bg-blue-50 border border-blue-200 rounded-lg p-3'>
-              <p className='text-sm text-blue-800 text-center'>
-                💡 Esta ação irá alterar as permissões de acesso do usuário ao
-                sistema.
+            <div className='rounded-lg border border-borderMy bg-surface-muted p-3'>
+              <p className='text-center text-sm text-clt-1'>
+                Esta ação altera as permissões de acesso do usuário ao sistema.
               </p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className='gap-3 pt-2'>
+        <AlertDialogFooter className='flex-col gap-3 pt-2 sm:flex-row'>
           <AlertDialogCancel
-            className='flex-1 border border-borderMy bg-backgroundMy text-clt-2 hover:bg-cl-table-item font-inter-medium transition-colors'
+            className='min-h-11 flex-1 border-borderMy bg-surface text-clt-2 hover:bg-surface-selected'
             disabled={isLoading}
           >
             Cancelar
@@ -106,19 +97,15 @@ export default function StatusConfirmationDialog({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 font-inter-medium transition-colors ${
-              newStatus === 'Habilitado'
-                ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg'
-                : 'bg-red-600 hover:bg-red-700 text-white shadow-lg'
-            }`}
+            className={`min-h-11 flex-1 ${actionClassName}`}
           >
             {isLoading ? (
-              <div className='flex items-center gap-2'>
-                <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin'></div>
+              <span className='flex items-center gap-2'>
+                <span className='h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white' />
                 Alterando...
-              </div>
+              </span>
             ) : (
-              `${getActionText()}`
+              actionText
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

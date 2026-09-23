@@ -5,11 +5,11 @@ Esta página orienta as jornadas de solicitação de cadastro, primeiro acesso, 
 O endereço da aplicação é fornecido pela instituição. Não registre senhas, tokens, links de redefinição ou outros segredos em chamados, documentos ou capturas. A presença de uma conta no sistema não significa que ela já esteja habilitada.
 Volte ao [índice do manual](README.md#visao-geral) para escolher outra jornada ou perfil.
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 

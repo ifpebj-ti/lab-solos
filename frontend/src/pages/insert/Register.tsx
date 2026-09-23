@@ -10,62 +10,62 @@ function Index() {
   return (
     <>
       {isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <div className='flex min-h-[50vh] w-full flex-row items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : (
-        <div className='h-full w-full flex justify-start items-center flex-col overflow-y-auto bg-backgroundMy min-h-screen pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+        <main className='flex min-h-screen w-full flex-col items-center overflow-y-auto bg-canvas pb-10 text-clt-2'>
+          <div className='mt-7 w-full max-w-6xl px-4 sm:px-6 lg:px-8'>
+            <h1 className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
               Adicionar Bens
             </h1>
           </div>
-          <div className='w-11/12 min-h-96 mt-6'>
+          <div className='mt-6 w-full max-w-6xl px-4 sm:px-6 lg:px-8'>
             <Tabs defaultValue='quimicos' className='w-full'>
-              <TabsList className='w-full flex items-center justify-between h-[52px] border border-borderMy rounded-md px-2'>
+              <TabsList className='grid h-auto w-full grid-cols-3 gap-2 rounded-xl border border-borderMy bg-surface p-2'>
                 <TabsTrigger
                   value='quimicos'
-                  className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Químicos
                 </TabsTrigger>
                 <TabsTrigger
                   value='vidrarias'
-                  className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Vidrarias
                 </TabsTrigger>
                 <TabsTrigger
                   value='outros'
-                  className='font-inter-medium rounded-sm border border-borderMy w-[30%] h-9'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Outros
                 </TabsTrigger>
               </TabsList>
               <TabsContent
                 value='quimicos'
-                className='w-full mt-10 rounded-md border border-borderMy p-4'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
               >
                 <FormQuimicos />
               </TabsContent>
               <TabsContent
                 value='vidrarias'
-                className='w-full mt-10 rounded-md border border-borderMy p-4'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
               >
                 <FormVidrarias />
               </TabsContent>
               <TabsContent
                 value='outros'
-                className='w-full mt-10 rounded-md border border-borderMy p-4'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
               >
                 <FormOutros />
               </TabsContent>
             </Tabs>
           </div>
-        </div>
+        </main>
       )}
     </>
   );

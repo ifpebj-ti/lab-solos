@@ -62,7 +62,7 @@ function LoanRequestRow({
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const detailUrl = buildDetailUrl('/admin/history/loan', id);
   const backgroundColor =
-    rowIndex % 2 === 0 ? 'bg-backgroundMy' : 'bg-cl-table-item';
+    rowIndex % 2 === 0 ? 'bg-surface' : 'bg-surface-muted';
 
   if (columns.length !== data.length + 1) {
     throw new Error(
@@ -72,7 +72,7 @@ function LoanRequestRow({
 
   return (
     <ResponsiveRecord
-      className={`${backgroundColor} cursor-pointer hover:bg-cl-table`}
+      className={`${backgroundColor} cursor-pointer hover:bg-surface-selected`}
       onClick={(event) => {
         if (
           (event.target as HTMLElement).closest(
@@ -202,7 +202,7 @@ function LoansRequest() {
 
   if (isLoading && loan === null) {
     return (
-      <div role='status' className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+      <div role='status' className='flex min-h-svh w-full flex-row items-center justify-center gap-x-4 bg-canvas font-inter-medium text-foreground'>
         <div className='animate-spin'>
           <LoadingIcon />
         </div>
@@ -213,7 +213,7 @@ function LoansRequest() {
 
   if (loan === null) {
     return (
-      <div className='w-full flex min-h-screen justify-center items-center flex-col overflow-y-auto bg-backgroundMy p-6'>
+      <div className='flex min-h-svh w-full flex-col items-center justify-center overflow-y-auto bg-canvas p-6'>
         {loadError !== null && (
           <ErrorFeedback
             error={loadError}
@@ -248,7 +248,7 @@ function LoansRequest() {
   };
 
   return (
-    <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+    <div className='flex min-h-svh w-full flex-col items-center justify-start overflow-y-auto bg-canvas pb-9'>
       {loadError !== null && (
         <div className='w-11/12 mt-6'>
           <ErrorFeedback
@@ -274,7 +274,7 @@ function LoansRequest() {
           icon={<UserIcon />}
         />
       </div>
-      <div className='bg-white shadow-sm rounded-md w-11/12 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
+      <div className='mt-10 mb-11 flex min-h-96 w-11/12 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-sm'>
         <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
           <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
             <div className='w-auto flex items-center justify-evenly'>
@@ -297,46 +297,45 @@ function LoansRequest() {
             label='Solicitações de empréstimo'
             columns={loanRequestColumns}
           >
-            <HeaderTable />
-            <div className='w-full items-center flex flex-col justify-start min-h-72'>
-              <div className='w-full'>
-                {currentData.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                    <div className='text-6xl text-gray-300'>📋</div>
-                    <p className='text-lg text-center'>
-                      {loan.length === 0
-                        ? 'Nenhuma solicitação de empréstimo pendente.'
-                        : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
-                    </p>
-                    {loan.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        As solicitações de empréstimo aparecerão aqui quando usuários enviarem pedidos para aprovação.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <LoanRequestRow
-                      key={rowData.id}
-                      data={[
-                        formatDateTime(String(rowData.dataRealizacao)) ||
-                          'Não corresponde',
-                        requesterName(rowData.solicitante),
-                        rowData.solicitante?.email || 'Não corresponde',
-                      ]}
-                      rowIndex={index}
-                      id={rowData.id}
-                      itemLabel={
-                        requesterName(rowData.solicitante)
-                      }
-                      pending={pendingLoanId === rowData.id}
-                      onReject={() => handleReject(rowData.id)}
-                      onApprove={() => handleApprove(rowData.id)}
-                    />
-                  ))
+            <div role='presentation'>
+              <HeaderTable />
+            </div>
+            {currentData.length === 0 ? (
+              <div
+                role='listitem'
+                className='flex min-h-72 flex-col items-center justify-center gap-3 font-inter-regular text-muted-foreground'
+              >
+                <div aria-hidden='true' className='text-6xl'>📋</div>
+                <p className='text-center text-lg'>
+                  {loan.length === 0
+                    ? 'Nenhuma solicitação de empréstimo pendente.'
+                    : 'Nenhuma solicitação encontrada para os filtros aplicados.'}
+                </p>
+                {loan.length === 0 && (
+                  <p className='text-center text-sm'>
+                    As solicitações de empréstimo aparecerão aqui quando usuários enviarem pedidos para aprovação.
+                  </p>
                 )}
               </div>
-            </div>
+            ) : (
+              currentData.map((rowData, index) => (
+                <LoanRequestRow
+                  key={rowData.id}
+                  data={[
+                    formatDateTime(String(rowData.dataRealizacao)) ||
+                      'Não corresponde',
+                    requesterName(rowData.solicitante),
+                    rowData.solicitante?.email || 'Não corresponde',
+                  ]}
+                  rowIndex={index}
+                  id={rowData.id}
+                  itemLabel={requesterName(rowData.solicitante)}
+                  pending={pendingLoanId === rowData.id}
+                  onReject={() => handleReject(rowData.id)}
+                  onApprove={() => handleApprove(rowData.id)}
+                />
+              ))
+            )}
           </ResponsiveTable>
         </div>
         {currentData.length > 0 && loan.length > 0 && (

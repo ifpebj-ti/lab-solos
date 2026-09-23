@@ -1,8 +1,8 @@
 {
   "versaoEsquema": 1,
-  "versaoManual": "2026-09-14.2",
-  "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
-  "atualizadoEm": "2026-09-14",
+  "versaoManual": "2026-09-23.1",
+  "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
+  "atualizadoEm": "2026-09-23",
   "responsavelRevisao": "nathannmvr",
   "paginas": [
     {
@@ -174,90 +174,90 @@
       "arquivo": "imagens/j01-acesso-login.png",
       "jornada": "J01",
       "descricao": "Tela inicial de login com os campos de email e senha vazios.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j03-administrador-solicitacoes.png",
       "jornada": "J03",
       "descricao": "Solicitações de cadastro administrativas com registro de demonstração e ações de aprovar ou recusar.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j06-administrador-adicionar-bens.png",
       "jornada": "J06",
       "descricao": "Formulário de Adicionar Bens com os campos vazios no ambiente administrativo.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j06-administrador-home.png",
       "jornada": "J06",
       "descricao": "Área inicial do Administrador com atalhos de usuários, produtos e empréstimos.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j07-mentor-home.png",
       "jornada": "J07",
       "descricao": "Área inicial do Mentor com atalhos de turma, empréstimo e pesquisa de material.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j08-mentor-criacao-emprestimo.png",
       "jornada": "J08",
       "descricao": "Tela de criação de empréstimo do Mentor com seleções vazias e envio desabilitado sem itens.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j08-mentorado-historico.png",
       "jornada": "J08",
       "descricao": "Histórico pessoal do Mentorado com dados sintéticos e nenhum empréstimo registrado.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j10-mentorado-perfil.png",
       "jornada": "J10",
       "descricao": "Perfil do Mentorado com vínculo habilitado e dados de demonstração.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     },
     {
       "arquivo": "imagens/j11-mentor-acesso-negado.png",
       "jornada": "J11",
       "descricao": "Mensagem de acesso negado para uma sessão de Mentor ao tentar abrir uma área administrativa.",
-      "produtoValidado": "2c78dbe1c3ec41f4004f53c42be8fed556080192",
+      "produtoValidado": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
       "revisaoPrivacidade": {
         "responsavel": "nathannmvr",
-        "data": "2026-09-14"
+        "data": "2026-09-23"
       }
     }
   ]

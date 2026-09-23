@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 // import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
 
 const getTipoIcon = (tipo: string) => {
   switch (tipo) {
@@ -62,7 +64,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
       setNotificacoes(notifs);
       setCountNaoLidas(countData.count);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      notifyError(error, OPERATION_IDS.notifications);
     } finally {
       setLoading(false);
     }
@@ -86,7 +88,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
       await marcarNotificacaoComoLida(notificacaoId);
       await fetchNotificacoes();
     } catch (error) {
-      console.error('Erro ao marcar notificação como lida:', error);
+      notifyError(error, OPERATION_IDS.markNotificationRead);
     }
   };
 
@@ -128,17 +130,21 @@ export function SidebarNotificationButton(): React.JSX.Element {
           >
             <Bell className='h-4 w-4' />
             {countNaoLidas > 0 && (
-              <span className='absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-red-500 text-white rounded-full font-medium'>
+              <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger p-0 text-xs font-medium text-white'>
                 {countNaoLidas > 99 ? '99+' : countNaoLidas}
               </span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-80 p-0' align='end' sideOffset={8}>
-          <div className='flex items-center justify-between p-4 border-b'>
+        <PopoverContent
+          className='w-80 border-borderMy bg-surface p-0 text-clt-2'
+          align='end'
+          sideOffset={8}
+        >
+          <div className='flex items-center justify-between border-b border-borderMy p-4'>
             <h3 className='font-semibold text-sm'>Notificações</h3>
             {countNaoLidas > 0 && (
-              <span className='text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full'>
+              <span className='rounded-full bg-surface-selected px-2 py-1 text-xs text-clt-1'>
                 {countNaoLidas} não lida{countNaoLidas !== 1 ? 's' : ''}
               </span>
             )}
@@ -147,7 +153,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
           <div className='max-h-96 overflow-y-auto'>
             {loading ? (
               <div className='flex items-center justify-center p-8'>
-                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
+                <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
               </div>
             ) : notificacoes.length === 0 ? (
               <div className='flex flex-col items-center justify-center p-8 text-center'>
@@ -162,10 +168,18 @@ export function SidebarNotificationButton(): React.JSX.Element {
                 {notificacoes.slice(0, 10).map((notificacao) => (
                   <div
                     key={notificacao.id}
-                    className={`p-3 hover:bg-accent transition-colors cursor-pointer ${
-                      !notificacao.lida ? 'bg-muted/30' : ''
+                    className={`cursor-pointer p-3 text-left transition-colors hover:bg-surface-selected ${
+                      !notificacao.lida ? 'bg-surface-selected' : ''
                     }`}
                     onClick={() => handleNotificacaoClick(notificacao)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        void handleNotificacaoClick(notificacao);
+                      }
+                    }}
+                    role='button'
+                    tabIndex={0}
                   >
                     <div className='flex items-start gap-3'>
                       <div className='flex-shrink-0 text-sm mt-0.5'>
@@ -186,10 +200,10 @@ export function SidebarNotificationButton(): React.JSX.Element {
                             <div className='w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1'></div>
                           )}
                         </div>
-                        <p className='text-xs text-muted-foreground mt-1 line-clamp-2'>
+                        <p className='mt-1 line-clamp-2 text-xs text-clt-1'>
                           {notificacao.mensagem}
                         </p>
-                        <span className='text-xs text-muted-foreground mt-2 block'>
+                        <span className='mt-2 block text-xs text-clt-1'>
                           {formatarData(notificacao.dataCriacao)}
                         </span>
                       </div>
@@ -201,7 +215,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
           </div>
 
           {notificacoes.length > 10 && (
-            <div className='p-3 border-t'>
+            <div className='border-t border-borderMy p-3'>
               <Button
                 variant='ghost'
                 className='w-full text-sm'

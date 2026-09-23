@@ -19,54 +19,59 @@ function Page404() {
   };
 
   return (
-    <div className='h-screen w-full flex justify-center items-center flex-col bg-gradient-to-tr from-[#f4f4f5] to-[#f4f4f5] min-h-screen pb-9'>
-      <img src={img404} alt='Página não encontrada' className='w-96'></img>
-      <div className='w-full flex justify-center items-center flex-col overflow-y-auto bg-backgroundMy font-inter-regular text-lg'>
-        {isUnsupportedSession ? (
-          <>
-            <h1>Acesso indisponível</h1>
-            <p>Nível de acesso não suportado para esta sessão.</p>
-            <button
-              type='button'
-              onClick={handleExplicitLogout}
-              className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
-            >
-              Sair
-            </button>
-          </>
-        ) : (
-          <>
-            <p>Página não encontrada</p>
-            {session?.requiresPasswordChange ? (
-              <Link
-                to='/change-password-required'
-                className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
+    <main className='flex min-h-svh w-full flex-col items-center justify-center bg-canvas px-4 py-8 text-clt-2'>
+      <div className='w-full max-w-md overflow-hidden rounded-xl border border-borderMy bg-surface shadow-lg'>
+        <img
+          src={img404}
+          alt='Página não encontrada'
+          className='mx-auto w-full max-w-xs object-contain p-6'
+        ></img>
+        <div className='flex w-full flex-col items-center justify-center gap-2 border-t border-borderMy px-5 py-6 text-center font-inter-regular text-lg sm:px-7'>
+          {isUnsupportedSession ? (
+            <>
+              <h1>Acesso indisponível</h1>
+              <p>Nível de acesso não suportado para esta sessão.</p>
+              <button
+                type='button'
+                onClick={handleExplicitLogout}
+                className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
               >
-                <ArrowLeft className='mt-[2px]' />
-                Voltar
-              </Link>
-            ) : session ? (
-              <BackLink
-                pathname={location.pathname}
-                role={session.role}
-                className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
-              >
-                <ArrowLeft className='mt-[2px]' />
-                Voltar
-              </BackLink>
-            ) : (
-              <Link
-                to='/'
-                className='px-5 py-2 mt-3 rounded-md bg-primaryMy text-white flex gap-x-2'
-              >
-                <ArrowLeft className='mt-[2px]' />
-                Voltar
-              </Link>
-            )}
-          </>
-        )}
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <p>Página não encontrada</p>
+              {session?.requiresPasswordChange ? (
+                <Link
+                  to='/change-password-required'
+                  aria-label='Voltar'
+                  title='Voltar'
+                  className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                >
+                  <ArrowLeft aria-hidden='true' className='h-5 w-5' />
+                </Link>
+              ) : session ? (
+                <BackLink
+                  pathname={location.pathname}
+                  role={session.role}
+                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                />
+              ) : (
+                <Link
+                  to='/'
+                  aria-label='Voltar'
+                  title='Voltar'
+                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                >
+                  <ArrowLeft aria-hidden='true' className='h-5 w-5' />
+                </Link>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
 

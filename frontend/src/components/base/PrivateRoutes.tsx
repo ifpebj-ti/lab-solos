@@ -15,10 +15,8 @@ interface PrivateRouteProps {
 }
 
 // Função para verificar se o usuário possui o rank necessário
-const hasRequiredRank = (
-  requiredRank: RequiredRank,
-  role: string
-): boolean => requiredRank.includes(role);
+const hasRequiredRank = (requiredRank: RequiredRank, role: string): boolean =>
+  requiredRank.includes(role);
 
 const SUPPORTED_ROLES = new Set(['Administrador', 'Mentor', 'Mentorado']);
 
@@ -53,9 +51,11 @@ const AccessDenied = ({ pathname, role }: AccessDeniedProps) => {
       <h1>Acesso negado</h1>
       <p>{ERROR_CATALOG.authorization.message}</p>
       <p>{ERROR_CATALOG.authorization.suggestedAction}</p>
-      <BackLink pathname={pathname} role={role}>
-        Voltar para minha área
-      </BackLink>
+      <BackLink
+        pathname={pathname}
+        role={role}
+        label='Voltar para minha área'
+      />
     </main>
   );
 };

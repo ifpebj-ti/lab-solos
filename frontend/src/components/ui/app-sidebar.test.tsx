@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { getUserById } from '@/integration/Users';
+import { ThemeProvider } from '@/theme/ThemeProvider';
 import { AppSidebar } from './app-sidebar';
 import { SidebarProvider } from './sidebar';
 
@@ -14,6 +15,7 @@ vi.mock('@/integration/Notifications', () => ({
   getMinhasNotificacoes: vi.fn().mockResolvedValue([]),
   getCountNotificacoesNaoLidas: vi.fn().mockResolvedValue({ count: 0 }),
   marcarNotificacaoComoLida: vi.fn().mockResolvedValue(undefined),
+  marcarVariasNotificacoesComoLidas: vi.fn().mockResolvedValue(undefined),
 }));
 
 const getUserByIdMock = vi.mocked(getUserById);
@@ -38,7 +40,9 @@ function renderSidebar(nivelUsuario: 'Administrador' | 'Comum') {
   return render(
     <MemoryRouter initialEntries={['/']}>
       <SidebarProvider>
-        <AppSidebar />
+        <ThemeProvider>
+          <AppSidebar />
+        </ThemeProvider>
       </SidebarProvider>
     </MemoryRouter>
   );
@@ -77,10 +81,42 @@ describe('AppSidebar', () => {
 
     expect(screen.queryByText('Extras')).not.toBeInTheDocument();
     expect(screen.queryByText(/InterLab/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /view-info/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /view-info/i })
+    ).not.toBeInTheDocument();
     expect(screen.getByText('Produtos')).toBeInTheDocument();
     expect(screen.getByText('Usuários')).toBeInTheDocument();
     expect(screen.getByText('Emprestimos')).toBeInTheDocument();
+  });
+
+  it('mostra uma mensagem e permite repetir quando falha ao carregar a conta', async () => {
+    getUserByIdMock.mockRejectedValue({ response: { status: 503 } });
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <SidebarProvider>
+          <ThemeProvider>
+            <AppSidebar />
+          </ThemeProvider>
+        </SidebarProvider>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /Não foi possível carregar o usuário/
+    );
+    expect(
+      screen.getByRole('button', { name: 'Tentar novamente' })
+    ).toBeInTheDocument();
+  });
+
+  it('exibe o alternador de tema dentro da navegaÃ§Ã£o', async () => {
+    renderSidebar('Administrador');
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /Mudar para tema/i })
+      ).toBeInTheDocument()
+    );
   });
 
   it('não expõe links órfãos nem ações administrativas para Comum', async () => {
@@ -98,7 +134,9 @@ describe('AppSidebar', () => {
     expect(screen.queryByText('Auditoria')).not.toBeInTheDocument();
 
     openUserMenu();
-    expect(screen.queryByRole('menuitem', { name: 'Conta' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: 'Conta' })
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Sair' })).toBeInTheDocument();
   });
 });

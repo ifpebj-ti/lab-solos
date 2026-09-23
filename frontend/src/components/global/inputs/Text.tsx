@@ -34,7 +34,7 @@ function InputText<T extends FieldValues>({
         className='font-inter-regular text-sm text-clt-2'
       >
         {label}
-        {required && <span className='text-red-700 ml-1'>*</span>}
+        {required && <span className='ml-1 text-danger'>*</span>}
       </label>
       <input
         id={inputId}
@@ -44,11 +44,11 @@ function InputText<T extends FieldValues>({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         {...register(name)}
-        className='w-full min-w-0 px-3 bg-white min-h-11 text-base md:text-sm border shadow-sm border-stone-500 rounded-sm hover:border-stone-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+        className='min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface px-3 text-base text-clt-2 shadow-sm hover:border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
       />
       <p
         id={errorId}
-        className={`text-red-700 text-sm [overflow-wrap:anywhere] ${error ? '' : 'hidden'}`}
+        className={`min-h-5 text-danger text-sm [overflow-wrap:anywhere] ${error ? '' : 'sr-only'}`}
       >
         {typeof error === 'string' ? error : error?.message}
       </p>

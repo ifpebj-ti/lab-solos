@@ -25,7 +25,7 @@ type TableProps = {
 
 Font.register({
   family: 'fontPadrao',
-  src: '../../../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf', // Caminho da fonte dentro do projeto
+  src: '/fonts/Rajdhani/Rajdhani-SemiBold.ttf',
 });
 
 // Create styles
@@ -89,7 +89,7 @@ export const MyDocument = ({
           />
         ))}
       </View>
-      <View style={styles.sign}>
+      <View style={styles.sign} wrap={false}>
         <ToSign name={signer} />
       </View>
     </Page>

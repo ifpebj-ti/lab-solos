@@ -24,5 +24,8 @@ describe('InfoCard', () => {
     expect(link).toHaveAttribute('href', '/admin/loans-request');
     expect(link).toHaveProperty('tabIndex', 0);
     expect(link).toHaveTextContent('3');
+    expect(
+      screen.getByRole('status', { name: '3 notificações pendentes' })
+    ).toBeInTheDocument();
   });
 });

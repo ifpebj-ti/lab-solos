@@ -16,6 +16,8 @@ const uiTestFiles = [
   '**/post-auth-navigation.spec.ts',
   '**/responsive-layout.spec.ts',
   '**/user-data-contract.spec.ts',
+  '**/design-system.spec.ts',
+  '**/design-pilots.spec.ts',
 ];
 
 export default defineConfig({
