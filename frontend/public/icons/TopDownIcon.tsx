@@ -2,7 +2,7 @@ interface ITopDownIcon {
   fill?: string;
 }
 
-export default function TopDownIcon({ fill = '#474747' }: ITopDownIcon) {
+export default function TopDownIcon({ fill = 'currentColor' }: ITopDownIcon) {
   return (
     <svg
       width='18'

@@ -5,11 +5,11 @@ Este guia descreve as ações disponíveis ao perfil `Mentorado`: consultar mate
 Para entrar ou resolver problemas de credencial, consulte [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso). Para encerrar a sessão, use [senha e saída](acesso-e-conta.md#j05-senha-saida).
 Volte ao [índice do manual](README.md#visao-geral) para escolher outra jornada ou perfil.
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 

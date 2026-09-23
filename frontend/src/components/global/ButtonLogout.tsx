@@ -12,20 +12,20 @@ function ButtonLogout() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Link
             to={'/'}
             onClick={() => clearSession({ discardAuthContext: true })}
-            className='border border-borderMy h-11 w-11 rounded-md flex items-center justify-center hover:border-red-600 transition-all ease-in-out duration-150 hover:bg-cl-table-item group'
+            aria-label='Sair'
+            className='group flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:border-danger hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
           >
             <LogOutIcon
-              stroke='#232323'
               width={18}
-              className='group-hover:stroke-red-700'
+              className='text-clt-2 group-hover:text-danger'
             />
           </Link>
         </TooltipTrigger>
-        <TooltipContent className='bg-red-600'>
+        <TooltipContent className='bg-surface text-clt-2'>
           <p className='font-inter-medium'>Logout</p>
         </TooltipContent>
       </Tooltip>

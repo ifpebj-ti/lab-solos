@@ -1,20 +1,13 @@
 import OpenSearch from '@/components/global/OpenSearch';
 import LoadingIcon from '../../public/icons/LoadingIcon';
-import SearchInput from '@/components/global/inputs/SearchInput';
-import TopDown from '@/components/global/table/TopDown';
-import HeaderTable from '@/components/global/table/Header';
-import Pagination from '@/components/global/table/Pagination';
 import { useCallback, useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
+import ClassMemberList from '@/components/screens/ClassMemberList';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getDependentesID } from '@/integration/Class';
 import { getUserById } from '@/integration/Users';
 import { displayUserValue, formatCivilDate } from '@/function/date';
-import ClickableItemTable from '@/components/global/table/ItemClickable';
-import {
-  ResponsiveTable,
-  type ResponsiveColumn,
-} from '@/components/global/table/ResponsiveTable';
+import type { ResponsiveColumn } from '@/components/global/table/ResponsiveTable';
 import { academicoSchema } from '@/contracts/user';
 import type { Academico, Dependente } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
@@ -33,28 +26,28 @@ const classColumns: readonly ResponsiveColumn[] = [
   { key: 'status', label: 'Status', weight: 15 },
 ];
 
+const hasQueryId = (resolution: ReturnType<typeof readIdFromLocation>) =>
+  resolution.source === 'query' && resolution.id !== null;
+
+const hasLegacyStateId = (resolution: ReturnType<typeof readIdFromLocation>) =>
+  resolution.source === 'state' && resolution.id !== null;
+
+const isClassViewBusy = (loading: boolean, hasLegacyId: boolean) =>
+  loading || hasLegacyId;
+
 // aqui virá a listagem dos integrantes da turma
 function ViewClass() {
   const [isDependentsLoading, setIsDependentsLoading] = useState(false);
   const [isUserLoading, setIsUserLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7;
   const location = useLocation();
   const navigate = useNavigate();
   const idResolution = readIdFromLocation(location);
-  const hasValidQueryId =
-    idResolution.source === 'query' && idResolution.id !== null;
-  const hasLegacyId =
-    idResolution.source === 'state' && idResolution.id !== null;
+  const hasValidQueryId = hasQueryId(idResolution);
+  const hasLegacyId = hasLegacyStateId(idResolution);
   const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [user, setUser] = useState<Academico>();
   const [dependentsError, setDependentsError] = useState<unknown>();
   const [userError, setUserError] = useState<unknown>();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAscending, setIsAscending] = useState(true); // Novo estado para a ordem
-  const toggleSortOrder = (ascending: boolean) => {
-    setIsAscending(ascending);
-  };
 
   useEffect(() => {
     if (!hasLegacyId || idResolution.id === null) return;
@@ -116,46 +109,25 @@ function ViewClass() {
 
   const isLoading = isDependentsLoading || isUserLoading;
 
-  const filteredUsers = dependentes.filter((user) =>
-    user.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const sortedUsers = isAscending
-    ? [...filteredUsers]
-    : [...filteredUsers].reverse();
-
-  // Cálculo das páginas
-  const currentData = sortedUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const infoItems = user
-    ? [
-        { title: 'Nome', value: user?.nomeCompleto, width: '50%' },
-        {
-          title: 'Email',
-          value: user?.email,
-          width: '30%',
-        },
-        {
-          title: 'Instituição',
-          value: displayUserValue(user.instituicao),
-          width: '20%',
-        },
-      ]
-    : [];
-  const infoItems5 = user
-    ? [{ title: 'Status', value: user?.status, width: '100%' }]
-    : [];
-  const infoItems3 = user
-    ? [
-        {
-          title: 'Número para Contato',
-          value: displayUserValue(user.telefone),
-          width: '100%',
-        },
-      ]
-    : [];
+  const infoItems = [
+    { title: 'Nome', value: user?.nomeCompleto ?? '', width: '50%' },
+    { title: 'Email', value: user?.email ?? '', width: '30%' },
+    {
+      title: 'Instituição',
+      value: displayUserValue(user?.instituicao),
+      width: '20%',
+    },
+  ];
+  const infoItems5 = [
+    { title: 'Status', value: user?.status ?? '', width: '100%' },
+  ];
+  const infoItems3 = [
+    {
+      title: 'Número para Contato',
+      value: displayUserValue(user?.telefone),
+      width: '100%',
+    },
+  ];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
@@ -163,44 +135,42 @@ function ViewClass() {
       width: '100%',
     },
   ];
-  const infoItems2 = user
-    ? [
-        {
-          title: 'Curso',
-          value: displayUserValue(user.curso),
-          width: '50%',
-        },
-        {
-          title: 'Cidade',
-          value: displayUserValue(user.cidade),
-          width: '50%',
-        },
-      ]
-    : [];
+  const infoItems2 = [
+    {
+      title: 'Curso',
+      value: displayUserValue(user?.curso),
+      width: '50%',
+    },
+    {
+      title: 'Cidade',
+      value: displayUserValue(user?.cidade),
+      width: '50%',
+    },
+  ];
   return (
-    <>
+    <main aria-busy={isClassViewBusy(isLoading, hasLegacyId)} className='min-h-svh bg-canvas text-clt-2'>
       {hasLegacyId ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div role='status' className='flex min-h-svh w-full items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
           <BackLink pathname='/admin/view-class' />
         </div>
       ) : !hasValidQueryId ? (
-        <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+        <div className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6'>
           <p>Selecione um registro para consultar</p>
           <BackLink pathname='/admin/view-class' />
         </div>
       ) : isLoading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
-          <div className='animate-spin'>
+        <div role='status' className='flex min-h-svh w-full items-center justify-center gap-x-4 bg-canvas font-inter-medium text-clt-2'>
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
             <LoadingIcon />
           </div>
           Carregando...
         </div>
       ) : dependentsError ? (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={dependentsError}
             operationId={OPERATION_IDS.dependentsById}
@@ -209,7 +179,7 @@ function ViewClass() {
           />
         </div>
       ) : userError ? (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={userError}
             operationId={OPERATION_IDS.userById}
@@ -218,8 +188,8 @@ function ViewClass() {
           />
         </div>
       ) : user ? (
-        <div className='w-full min-w-0 md:w-[calc(100vw-var(--sidebar-width))] md:max-w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+        <div className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 sm:px-6 lg:px-8'>
+          <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
             <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Visualização de Turmas
             </h1>
@@ -227,91 +197,28 @@ function ViewClass() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-w-0 mt-7'>
+          <div className='mt-8 w-full min-w-0'>
             <InfoContainer items={infoItems} />
-            <div className='w-full min-w-0 flex flex-wrap gap-3 mt-5'>
+            <div className='mt-5 flex w-full min-w-0 flex-wrap gap-3'>
               <InfoContainer items={infoItems2} />
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
               <InfoContainer items={infoItems5} />
             </div>
           </div>
-          <div className='border border-borderMy rounded-md w-11/12 min-w-0 min-h-96 flex flex-col items-center mt-10 p-4 mb-11'>
-            <div className='w-full min-w-0 flex flex-wrap justify-between items-center gap-3 mt-2'>
-              <div className='w-full min-w-0 md:w-2/4'>
-                <SearchInput
-                  name='search'
-                  onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
-                  value={searchTerm}
-                />
-              </div>
-              <div className='w-full min-w-0 md:w-2/4 flex justify-between'>
-                <div className='w-1/2 flex items-center justify-evenly'>
-                  <TopDown
-                    onClick={() => toggleSortOrder(!isAscending)}
-                    top={isAscending}
-                  />
-                </div>
-                <div className='w-1/2 flex border border-borderMy rounded-sm items-center justify-between px-4 font-inter-medium text-clt-2 text-sm'>
-                  <p>TOTAL:</p>
-                  <p>{currentData.length}</p>
-                </div>
-              </div>
-            </div>
-            <ResponsiveTable label='Usuários da turma' columns={classColumns}>
-              <HeaderTable />
-            <div className='w-full items-center flex flex-col justify-center min-h-72'>
-              <div className='w-full min-w-0'>
-                {currentData.length === 0 ? (
-                  <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
-                    <div className='text-6xl text-gray-300'>👥</div>
-                    <p className='text-lg text-center'>
-                      {sortedUsers.length === 0
-                        ? 'Nenhum usuário encontrado nesta turma.'
-                        : 'Nenhum usuário encontrado para os filtros aplicados.'}
-                    </p>
-                    {sortedUsers.length === 0 && (
-                      <p className='text-sm text-gray-500 text-center'>
-                        Os membros da turma aparecerão aqui quando forem
-                        cadastrados.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <ClickableItemTable
-                      key={index}
-                      data={[
-                        rowData.nomeCompleto,
-                        rowData.email,
-                        displayUserValue(rowData.instituicao),
-                        displayUserValue(rowData.curso),
-                        rowData.status,
-                      ]}
-                      rowIndex={index}
-                      id={rowData.id}
-                      destinationRoute='/admin/view-class-mentor'
-                    />
-                  ))
-                )}
-              </div>
-              {/* Componente de Paginação - só aparece quando há dados */}
-              {currentData.length > 0 && sortedUsers.length > 0 && (
-                <div className='mt-auto'>
-                  <Pagination
-                    totalItems={sortedUsers.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
-            </div>
-            </ResponsiveTable>
-          </div>
+          <ClassMemberList
+            label='Usuários da turma'
+            columns={classColumns}
+            members={dependentes}
+            destinationRoute='/admin/view-class-mentor'
+            emptyMessage='Nenhum usuário encontrado nesta turma.'
+            filteredMessage='Nenhum usuário encontrado para os filtros aplicados.'
+            helperMessage='Os membros da turma aparecerão aqui quando forem cadastrados.'
+            includeStatus
+          />
         </div>
       ) : (
-        <div className='w-full flex min-h-screen justify-center items-center bg-backgroundMy px-4'>
+        <div className='flex min-h-svh w-full items-center justify-center bg-canvas px-4 py-8'>
           <ErrorFeedback
             error={new Error('Usuário da turma indisponível.')}
             operationId={OPERATION_IDS.userById}
@@ -320,7 +227,7 @@ function ViewClass() {
           />
         </div>
       )}
-    </>
+    </main>
   );
 }
 

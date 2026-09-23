@@ -46,7 +46,7 @@ function ClickableItemTable({
   const navigate = useNavigate();
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
   const recordDestination = getRecordDestination(destinationRoute, id);
 
   const handleClick = () => {
@@ -56,7 +56,7 @@ function ClickableItemTable({
     throw new Error('Cada valor deve corresponder a uma coluna responsiva.');
   return (
       <ResponsiveRecord
-        className={`${backgroundColor} hover:bg-cl-table cursor-pointer`}
+        className={`${backgroundColor} hover:bg-surface-selected cursor-pointer`}
         onClick={(event) => {
           if (
             (event.target as HTMLElement).closest(
@@ -76,7 +76,7 @@ function ClickableItemTable({
               <Link
                 to={recordDestination}
                 state={{ id }}
-                className='inline-flex min-h-11 min-w-11 max-w-full items-center underline underline-offset-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 [@media(pointer:coarse)]:min-h-11'
+        className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-md underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-0 [@media(pointer:coarse)]:min-h-11'
               >
                 {value}
               </Link>

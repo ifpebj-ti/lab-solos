@@ -25,7 +25,7 @@ function ItemTableButton({
 }: ITableItem) {
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
 
   const actions = (
     <div className='flex min-w-0 flex-wrap items-center gap-3'>
@@ -35,7 +35,7 @@ function ItemTableButton({
           itemLabel && actionLabels ? `${actionLabels[0]} ${itemLabel}` : undefined
         }
         onClick={onClick1}
-        className='flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+        className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
       >
         <span aria-hidden='true'>{icon1}</span>
       </button>
@@ -48,7 +48,7 @@ function ItemTableButton({
               : undefined
           }
           onClick={onClick2}
-          className='flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+          className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
         >
           <span aria-hidden='true'>{icon2}</span>
         </button>
@@ -64,7 +64,7 @@ function ItemTableButton({
     throw new Error('Acoes responsivas exigem nomes e identificacao do registro.');
   return (
       <ResponsiveRecord
-        className={`${backgroundColor} hover:bg-cl-table`}
+        className={`${backgroundColor} hover:bg-surface-selected`}
       >
         {data.map((value, index) => (
           <ResponsiveCell

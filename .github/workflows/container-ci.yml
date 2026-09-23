@@ -33,6 +33,11 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
       - name: Install dependencies from lockfile
         run: npm ci
 
@@ -44,6 +49,14 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+      - name: Run design validator tests
+        working-directory: ${{ github.workspace }}
+        run: python -m unittest discover -s scripts/tests -p 'test_check_design_coverage.py' -v
+
+      - name: Validate design coverage inventory
+        working-directory: ${{ github.workspace }}
+        run: python scripts/check_design_coverage.py --spec .codex/docs/specs/reformulacao-design --final
 
   backend-quality:
     name: Backend quality
@@ -109,7 +122,7 @@ jobs:
           set-host: true
 
       - name: Set up Docker Compose
-        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
           version: "v5.3.1"
 
@@ -211,7 +224,7 @@ jobs:
           set-host: true
 
       - name: Set up Docker Compose
-        uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.0.0
+        uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
           version: "v5.3.1"
 
@@ -316,13 +329,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Build local OCI image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./${{ matrix.component }}
           file: ./${{ matrix.component }}/Dockerfile
@@ -368,7 +381,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event.pull_request.head.repo.full_name == github.repository &&
           github.actor != 'dependabot[bot]')
-        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
           sarif_file: ${{ runner.temp }}/trivy.sarif
           category: container-${{ matrix.component }}-${{ matrix.platform }}

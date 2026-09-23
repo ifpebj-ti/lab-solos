@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -30,9 +29,7 @@ vi.mock('exceljs', () => ({
   },
 }));
 vi.mock('@react-pdf/renderer', () => ({
-  PDFDownloadLink: ({ children }: { children: ReactNode }) => (
-    <a href='#'>{children}</a>
-  ),
+  pdf: vi.fn(() => ({ toBlob: vi.fn().mockResolvedValue(new Blob(['pdf'])) })),
 }));
 vi.mock('@/components/pdf/LoanDoc', () => ({ LoanDoc: () => null }));
 

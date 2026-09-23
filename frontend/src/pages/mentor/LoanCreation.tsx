@@ -15,6 +15,8 @@ import { toast } from '@/components/hooks/use-toast';
 import ItemDelete from '@/components/global/table/ItemDelete';
 import type { Dependente } from '@/contracts/user';
 import { ResponsiveTable } from '@/components/global/table/ResponsiveTable';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 const loanCreationColumns = [
   { key: 'codigo', label: 'Código', weight: 2 },
@@ -63,6 +65,7 @@ type SelectItemFormData = z.infer<typeof selectProductSchema>;
 
 function LoanCreation() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [group, setGroup] = useState('');
   const [item, setItem] = useState('');
   const [userSelected, setUserSelected] = useState('');
@@ -73,6 +76,9 @@ function LoanCreation() {
   >([]);
   const [dependentes, setDependentes] = useState<Dependente[]>([]);
   const [unidadeMedida, setUnidadeMedida] = useState<string>('');
+  const [productsError, setProductsError] = useState<unknown | null>(null);
+  const [dependentesError, setDependentesError] = useState<unknown | null>(null);
+  const [submitError, setSubmitError] = useState<unknown | null>(null);
 
   const unidadesMedidaOptions = [
     { value: 'Litro', label: 'Litro' },
@@ -98,29 +104,38 @@ function LoanCreation() {
     resolver: zodResolver(selectProductSchema),
   });
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getAllProducts();
-        const responseDependentes = await getDependentes();
-        const habilitados = responseDependentes.filter(
+  const loadReferences = async () => {
+    setIsLoading(true);
+    const [productsResult, dependentesResult] = await Promise.allSettled([
+      getAllProducts(),
+      getDependentes(),
+    ]);
+
+    if (productsResult.status === 'fulfilled') {
+      setProducts(productsResult.value);
+      setProductsError(null);
+    } else {
+      setProducts([]);
+      setProductsError(productsResult.reason);
+    }
+
+    if (dependentesResult.status === 'fulfilled') {
+      setDependentes(
+        dependentesResult.value.filter(
           (user: { status: string }) => user.status === 'Habilitado'
-        );
-        setDependentes(habilitados);
-        setProducts(response);
-        setFilteredProducts(response); // Inicialmente, todos os produtos são exibidos
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-        }
-        setProducts([]);
-        setDependentes([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchAllProducts();
+        )
+      );
+      setDependentesError(null);
+    } else {
+      setDependentes([]);
+      setDependentesError(dependentesResult.reason);
+    }
+
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    void loadReferences();
   }, []);
 
   useEffect(() => {
@@ -160,7 +175,7 @@ function LoanCreation() {
   };
 
   const handleSubmitLoan = async () => {
-    if (!userSelected || selectedProducts.length === 0) {
+    if (!userSelected || selectedProducts.length === 0 || isSubmitting) {
       return;
     }
 
@@ -173,7 +188,8 @@ function LoanCreation() {
     };
 
     try {
-      setIsLoading(true);
+      setSubmitError(null);
+      setIsSubmitting(true);
       await createLoan(loanData);
       toast({
         title: 'Solicitação de empréstimo bem sucessida!',
@@ -181,14 +197,15 @@ function LoanCreation() {
       });
       setUserSelected('');
       setSelectedProducts([]);
-    } catch {
+    } catch (error) {
+      setSubmitError(error);
       toast({
         title: 'Erro na criação do empréstimo',
         description:
           'Verifique disponibilidade dos produtos selecionados e tente novamente...',
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -209,7 +226,7 @@ function LoanCreation() {
         <div
           role='status'
           aria-live='polite'
-          className='flex h-screen w-full flex-row items-center justify-center gap-x-4 bg-backgroundMy font-inter-medium text-clt-2'
+          className='flex min-h-svh w-full flex-row items-center justify-center gap-x-4 bg-canvas font-inter-medium text-foreground'
         >
           <div className='animate-spin'>
             <LoadingIcon />
@@ -217,7 +234,7 @@ function LoanCreation() {
           Carregando...
         </div>
       ) : (
-        <main className='flex min-h-screen w-full min-w-0 flex-col items-center justify-start overflow-y-auto bg-backgroundMy pb-9'>
+        <main className='flex min-h-svh w-full min-w-0 flex-col items-center justify-start overflow-y-auto bg-canvas pb-9'>
           <div className='mt-7 flex w-11/12 min-w-0 flex-col items-start justify-between gap-4 md:flex-row md:items-center'>
             <h1 className='min-w-0 uppercase font-rajdhani-medium text-3xl text-clt-2 [overflow-wrap:anywhere]'>
               Criação de Empréstimo
@@ -227,9 +244,26 @@ function LoanCreation() {
             </div>
           </div>
 
+          <div className='mt-5 flex w-11/12 min-w-0 flex-col gap-2'>
+            {productsError ? (
+              <ErrorFeedback
+                error={productsError}
+                operationId={OPERATION_IDS.products}
+                onRetry={() => void loadReferences()}
+              />
+            ) : null}
+            {dependentesError ? (
+              <ErrorFeedback
+                error={dependentesError}
+                operationId={OPERATION_IDS.dependents}
+                onRetry={() => void loadReferences()}
+              />
+            ) : null}
+          </div>
+
           {/* Utilizadores */}
-          <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-md bg-white shadow-sm'>
-            <div className='w-full rounded-t-md border-b flex items-center justify-between p-4'>
+          <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-sm'>
+            <div className='flex w-full items-center justify-between rounded-t-xl border-b border-border p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Utilizadores
               </p>
@@ -259,8 +293,8 @@ function LoanCreation() {
             </form>
           </div>
 
-          <div className='mt-9 flex min-h-32 w-11/12 min-w-0 flex-col rounded-md border bg-white shadow-sm'>
-            <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+          <div className='mt-9 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-sm'>
+            <div className='flex w-full items-center justify-between rounded-t-xl border-b border-border p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos
               </p>
@@ -336,49 +370,68 @@ function LoanCreation() {
                 label='Produtos selecionados'
                 columns={loanCreationColumns}
               >
-                <HeaderTable />
-                <div className='w-full items-center flex flex-col min-h-14'>
-                  {selectedProducts.length === 0 ? (
-                    <div className='w-full h-24 flex items-center justify-center font-inter-regular'>
-                      Nenhum dado disponível para exibição.
-                    </div>
-                  ) : (
-                    selectedProducts.map((rowData, index) => (
-                      <ItemDelete
-                        key={`${rowData.produtoId}-${index}`}
-                        data={[
-                          String(rowData.produtoId),
-                          getProductNameById(rowData.produtoId),
-                          String(rowData.quantidade + ' ' + rowData.um),
-                        ]}
-                        rowIndex={index}
-                        icon1={
-                          <SquareX width={20} height={20} stroke='#dd1313' />
-                        }
-                        itemLabel={getProductNameById(rowData.produtoId)}
-                        actionLabel='Remover'
-                        onClick={() => {
-                          setSelectedProducts((prev) =>
-                            prev.filter(
-                              (p) => p.produtoId !== rowData.produtoId
-                            )
-                          );
-                        }}
-                      />
-                    ))
-                  )}
+                <div role='presentation'>
+                  <HeaderTable />
                 </div>
+                {selectedProducts.length === 0 ? (
+                  <div
+                    role='listitem'
+                    className='flex h-24 w-full items-center justify-center font-inter-regular text-muted-foreground'
+                  >
+                    Nenhum dado disponível para exibição.
+                  </div>
+                ) : (
+                  selectedProducts.map((rowData, index) => (
+                    <ItemDelete
+                      key={`${rowData.produtoId}-${index}`}
+                      data={[
+                        String(rowData.produtoId),
+                        getProductNameById(rowData.produtoId),
+                        String(rowData.quantidade + ' ' + rowData.um),
+                      ]}
+                      rowIndex={index}
+                      icon1={
+                        <SquareX width={20} height={20} stroke='#dd1313' />
+                      }
+                      itemLabel={getProductNameById(rowData.produtoId)}
+                      actionLabel='Remover'
+                      onClick={() => {
+                        setSelectedProducts((prev) =>
+                          prev.filter(
+                            (p) => p.produtoId !== rowData.produtoId
+                          )
+                        );
+                      }}
+                    />
+                  ))
+                )}
               </ResponsiveTable>
             </div>
           </div>
+          {submitError ? (
+            <div className='mt-5 flex w-11/12 min-w-0'>
+              <ErrorFeedback
+                error={submitError}
+                operationId={OPERATION_IDS.createLoan}
+                onRetry={() => void handleSubmitLoan()}
+                className='w-full'
+              />
+            </div>
+          ) : null}
           <div className='mt-9 flex w-11/12 min-w-0 items-center justify-end'>
             <button
               type='button'
               onClick={handleSubmitLoan}
-              disabled={selectedProducts.length === 0 || !userSelected}
+              disabled={selectedProducts.length === 0 || !userSelected || isSubmitting}
               className='flex min-h-11 w-full items-center justify-center rounded-sm bg-green-700 px-5 font-rajdhani-semibold text-base text-white transition-colors duration-150 ease-in-out hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800 disabled:cursor-not-allowed disabled:opacity-50 md:w-96'
             >
-              Solicitar Empréstimo
+              {isSubmitting ? (
+                <span role='status' aria-live='polite'>
+                  Carregando...
+                </span>
+              ) : (
+                'Solicitar Empréstimo'
+              )}
             </button>
           </div>
         </main>

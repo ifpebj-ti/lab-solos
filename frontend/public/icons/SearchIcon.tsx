@@ -3,7 +3,7 @@ interface ISearchIcon {
   tam?: string;
 }
 
-export default function SearchIcon({ fill = '#fff', tam = '15' }: ISearchIcon) {
+export default function SearchIcon({ fill = 'currentColor', tam = '15' }: ISearchIcon) {
   return (
     <svg
       width={tam}

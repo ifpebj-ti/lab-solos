@@ -2,10 +2,14 @@ import ChangePassword from '../ChangePassword';
 
 function Settings() {
   return (
-    <div className='flex flex-col items-center justify-center h-full w-full p-8'>
-      <h1 className='text-3xl font-bold mb-4'>Configurações</h1>
-      <ChangePassword />
-    </div>
+    <main className='min-h-svh bg-canvas px-4 py-8 text-clt-2 sm:px-6 lg:px-8'>
+      <div className='mx-auto flex w-full max-w-3xl flex-col items-center gap-6'>
+        <h1 className='text-center font-rajdhani-medium text-3xl uppercase text-clt-2'>Configurações</h1>
+        <section aria-label='Alterar senha' className='w-full rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+          <ChangePassword />
+        </section>
+      </div>
+    </main>
   );
 }
 

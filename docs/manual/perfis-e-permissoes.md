@@ -4,11 +4,11 @@ Esta página resume as áreas e opções que aparecem para cada perfil. O menu �
 
 Volte ao [índice do manual](README.md#visao-geral), consulte [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso) ou abra [Solução de problemas](solucao-de-problemas.md#j11-falhas) quando uma opção não puder ser usada.
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 

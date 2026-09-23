@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Cookie from 'js-cookie';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
 
 const getTipoIcon = (tipo: string) => {
   switch (tipo) {
@@ -56,7 +58,7 @@ const isUserAdmin = (): boolean => {
       );
     }
   } catch (error) {
-    console.error('Erro ao verificar nível do usuário:', error);
+    notifyError(error, OPERATION_IDS.notifications);
   }
   return false;
 };
@@ -107,7 +109,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
       setNotificacoes(filteredNotifs);
       setCountNaoLidas(filteredCount);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      notifyError(error, OPERATION_IDS.notifications);
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
       await marcarNotificacaoComoLida(notificacaoId);
       await fetchNotificacoes();
     } catch (error) {
-      console.error('Erro ao marcar notificação como lida:', error);
+      notifyError(error, OPERATION_IDS.markNotificationRead);
     }
   };
 
@@ -164,27 +166,32 @@ export function SimpleNotificationIcon(): React.JSX.Element {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div className='flex items-center justify-between w-full cursor-pointer p-0'>
+        <Button
+          type='button'
+          variant='ghost'
+          className='flex h-11 w-full items-center justify-between rounded-md p-0 focus-visible:ring-2 focus-visible:ring-focus'
+          aria-label='Notificações'
+        >
           <div className='flex items-center gap-3'>
             <Bell className='h-4 w-4' />
             <span>Notificações</span>
           </div>
           {countNaoLidas > 0 && (
-            <span className='flex items-center justify-center bg-red-500 rounded-full min-w-[18px] min-h-[18px] text-xs font-bold text-white'>
+            <span className='flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-xs font-bold text-white'>
               {countNaoLidas > 99 ? '99+' : countNaoLidas}
             </span>
           )}
-        </div>
+        </Button>
       </PopoverTrigger>
       <PopoverContent
-        className='w-80 p-0 bg-white border'
+        className='w-80 border-borderMy bg-surface p-0 text-clt-2'
         align='end'
         sideOffset={5}
       >
-        <div className='flex items-center justify-between p-4 border-b'>
+        <div className='flex items-center justify-between border-b border-borderMy p-4'>
           <h3 className='font-semibold text-sm'>Notificações</h3>
           {countNaoLidas > 0 && (
-            <span className='text-xs text-gray-500'>
+            <span className='text-xs text-clt-1'>
               {countNaoLidas} não lida{countNaoLidas !== 1 ? 's' : ''}
             </span>
           )}
@@ -193,25 +200,31 @@ export function SimpleNotificationIcon(): React.JSX.Element {
         <div className='max-h-96 overflow-y-auto'>
           {loading ? (
             <div className='flex items-center justify-center p-8'>
-              <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600'></div>
+              <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
             </div>
           ) : notificacoes.length === 0 ? (
             <div className='flex flex-col items-center justify-center p-8 text-center'>
-              <Bell className='h-12 w-12 text-gray-300 mb-3' />
-              <p className='text-sm text-gray-600'>Nenhuma notificação</p>
-              <p className='text-xs text-gray-400'>
-                Você está em dia com tudo!
-              </p>
+              <Bell className='mb-3 h-12 w-12 text-clt-1' />
+              <p className='text-sm text-clt-1'>Nenhuma notificação</p>
+              <p className='text-xs text-clt-1'>Você está em dia com tudo!</p>
             </div>
           ) : (
-            <div className='divide-y'>
+            <div className='divide-y divide-borderMy'>
               {notificacoes.slice(0, 10).map((notificacao) => (
                 <div
                   key={notificacao.id}
-                  className={`p-3 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notificacao.lida ? 'bg-blue-50' : ''
+                  className={`cursor-pointer border-0 bg-transparent p-3 text-left transition-colors hover:bg-surface-selected ${
+                    !notificacao.lida ? 'bg-surface-selected' : ''
                   }`}
                   onClick={() => handleNotificacaoClick(notificacao)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      void handleNotificacaoClick(notificacao);
+                    }
+                  }}
+                  role='button'
+                  tabIndex={0}
                 >
                   <div className='flex items-start gap-3'>
                     <div className='flex-shrink-0 text-sm mt-0.5'>
@@ -221,21 +234,19 @@ export function SimpleNotificationIcon(): React.JSX.Element {
                       <div className='flex items-start justify-between gap-2'>
                         <p
                           className={`text-sm font-medium ${
-                            !notificacao.lida
-                              ? 'text-gray-900'
-                              : 'text-gray-600'
+                            !notificacao.lida ? 'text-clt-2' : 'text-clt-1'
                           }`}
                         >
                           {notificacao.titulo}
                         </p>
                         {!notificacao.lida && (
-                          <div className='w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1'></div>
+                          <div className='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primaryMy'></div>
                         )}
                       </div>
-                      <p className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                      <p className='mt-1 line-clamp-2 text-xs text-clt-1'>
                         {notificacao.mensagem}
                       </p>
-                      <span className='text-xs text-gray-400 mt-2 block'>
+                      <span className='mt-2 block text-xs text-clt-1'>
                         {formatarData(notificacao.dataCriacao)}
                       </span>
                     </div>
@@ -247,10 +258,10 @@ export function SimpleNotificationIcon(): React.JSX.Element {
         </div>
 
         {notificacoes.length > 10 && (
-          <div className='p-3 border-t'>
+          <div className='border-t border-borderMy p-3'>
             <Button
               variant='ghost'
-              className='w-full text-sm text-blue-600 hover:text-blue-800'
+              className='w-full text-sm text-primaryMy hover:text-primaryMy/80'
               onClick={() => setIsOpen(false)}
             >
               Ver todas as notificações ({notificacoes.length})

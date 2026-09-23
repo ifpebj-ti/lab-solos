@@ -10,11 +10,11 @@ O endereço da aplicação é fornecido pela instituição. Para entrar, use uma
 
 ### Metadados deste manual
 
-Versão do manual: `2026-09-14.2`
+Versão do manual: `2026-09-23.1`
 
-Produto validado: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
+Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-14`
+Atualizado em: `2026-09-23`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -129,6 +129,8 @@ As seções abaixo são pontos de partida. As opções podem depender do estado 
 5. Para falhas ou retorno à sua área, siga [J11 — Recuperar-se de falhas](solucao-de-problemas.md#j11-falhas).
 
 O Mentorado consulta e acompanha seus registros. Este manual não apresenta uma ação de criação, aprovação, recusa ou devolução de empréstimo para esse perfil.
+
+As exportações documentais de usuários e empréstimos ficam disponíveis nos controles **Exportar Excel** e **Exportar PDF** das telas que os exibem. O PDF é a saída equivalente de impressão validada para o produto; não existe uma ação separada de impressão no runtime atual.
 
 ## Jornadas comuns
 

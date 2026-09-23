@@ -10,6 +10,8 @@ import CardFunction from '@/components/screens/CardFunction';
 import { verificarEmprestimosVencidos } from '@/integration/Notifications';
 import { toast } from '@/components/hooks/use-toast';
 import type { Academico, Usuario } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 
 export type IUser = Usuario | Academico;
 
@@ -47,6 +49,8 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<IUser>();
   const [verificandoEmprestimos, setVerificandoEmprestimos] = useState(false);
+  const [profileError, setProfileError] = useState<unknown>();
+  const [retryToken, setRetryToken] = useState(0);
   const id = Cookie.get('rankID')!;
 
   const handleVerificarEmprestimosVencidos = async () => {
@@ -71,20 +75,20 @@ function Profile() {
 
   useEffect(() => {
     const fetchGetUserById = async () => {
+      setLoading(true);
+      setProfileError(undefined);
       try {
         const response = await getUserById({ id });
         setUser(response);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
-        }
+        setProfileError(error);
         setUser(undefined);
       } finally {
         setLoading(false);
       }
     };
     fetchGetUserById();
-  }, [id]);
+  }, [id, retryToken]);
 
   const infoItems = [
     {
@@ -111,13 +115,6 @@ function Profile() {
       width: '100%',
     },
   ];
-  const infoItems3 = [
-    {
-      title: 'Telefone',
-      value: displayUserValue(user?.telefone),
-      width: '100%',
-    },
-  ];
   const infoItems4 = [
     {
       title: 'Data de Ingresso',
@@ -136,58 +133,72 @@ function Profile() {
   return (
     <>
       {loading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <main className='flex min-h-svh w-full items-center justify-center gap-4 bg-canvas px-4 font-inter-medium text-clt-2'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
-        </div>
+        </main>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+        <main className='flex min-h-svh w-full flex-col items-center overflow-y-auto bg-canvas pb-9'>
+          <div className='mt-7 flex w-[min(92%,72rem)] items-center justify-between gap-4'>
+            <h1 className='font-rajdhani-medium text-2xl uppercase text-clt-2 sm:text-3xl'>
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
-            <div className='w-full'>
-              <InfoContainer items={infoItems} />
-              <div className='w-full flex gap-x-8 mt-5'>
-                <InfoContainer items={infoItems2} />
-                <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
-                <InfoContainer items={infoItems5} />
-              </div>
-            </div>
+          <div className='mt-7 w-[min(92%,72rem)]'>
+            {profileError ? (
+              <ErrorFeedback
+                error={profileError}
+                operationId={OPERATION_IDS.userById}
+                onRetry={() => setRetryToken((token) => token + 1)}
+              />
+            ) : user ? (
+              <>
+                <div className='grid w-full gap-5'>
+                  <InfoContainer
+                    items={infoItems}
+                    columns={2}
+                    className='lg:w-full'
+                  />
+                  <InfoContainer
+                    items={[...infoItems2, ...infoItems4, ...infoItems5]}
+                    columns={2}
+                    className='lg:w-full'
+                  />
+                </div>
+                <div className='mt-9 min-h-3 w-full border-t border-borderMy py-4 pt-6'>
+                  <p className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
+                    Funcionalidades
+                  </p>
+                  <div className='mt-7 flex min-h-6 w-full flex-wrap items-start justify-start gap-6'>
+                    <div onClick={handleVerificarEmprestimosVencidos}>
+                      <CardFunction
+                        link='#'
+                        text={
+                          verificandoEmprestimos
+                            ? 'Verificando...'
+                            : 'Verificar Empréstimos Vencidos'
+                        }
+                        icon={
+                          <AlertTriangle
+                            className='text-danger'
+                            width={35}
+                            height={35}
+                          />
+                        }
+                        notify={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
-          <div className='w-11/12 min-h-3 mt-9 border-t border-borderMy py-4 pt-6'>
-            <p className='font-rajdhani-medium text-clt-2 text-3xl'>
-              Funcionalidades
-            </p>
-            <div className='w-full min-h-6 flex flex-wrap items-start justify-start gap-10 mt-7'>
-              <div
-                onClick={handleVerificarEmprestimosVencidos}
-                className='cursor-pointer'
-              >
-                <CardFunction
-                  link='#'
-                  text={
-                    verificandoEmprestimos
-                      ? 'Verificando...'
-                      : 'Verificar Empréstimos Vencidos'
-                  }
-                  icon={
-                    <AlertTriangle stroke='#dc2626' width={35} height={35} />
-                  }
-                  notify={false}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        </main>
       )}
     </>
   );

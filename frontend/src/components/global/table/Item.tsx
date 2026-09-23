@@ -9,13 +9,13 @@ type ITableItem = {
 function ItemTable({ data, rowIndex }: ITableItem) {
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
 
   if (columns.length !== data.length)
     throw new Error('Cada valor deve corresponder a uma coluna responsiva.');
 
   return (
-    <ResponsiveRecord className={`${backgroundColor} hover:bg-cl-table`}>
+    <ResponsiveRecord className={`${backgroundColor} hover:bg-surface-selected`}>
       {data.map((value, index) => (
         <ResponsiveCell key={columns[index].key} columnKey={columns[index].key}>
           {value || 'Não corresponde'}

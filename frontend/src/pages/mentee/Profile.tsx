@@ -10,6 +10,8 @@ import { displayUserValue, formatCivilDate } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import ButtonLogout from '@/components/global/ButtonLogout';
 import { academicoSchema, type Academico } from '@/contracts/user';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
+import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
 
 export interface IProduto {
   id: number;
@@ -41,20 +43,42 @@ export interface IEmprestimo {
   aprovador: unknown | null;
 }
 
+function ResponsibleInfo({
+  visible,
+  items,
+}: {
+  visible: boolean;
+  items: Array<{ title: string; value: string; width: string }>;
+}) {
+  if (!visible) return null;
+  return <InfoContainer items={items} columns={2} className='lg:w-full' />;
+}
+
 function ProfileMentee() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<Academico>();
   const id = Cookie.get('rankID')!;
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
+  const [loadError, setLoadError] = useState<unknown>();
+  const [errorOperationId, setErrorOperationId] = useState<OperationId>(
+    OPERATION_IDS.userById
+  );
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     const fetchGetUserById = async () => {
+      setLoading(true);
+      setLoadError(undefined);
+      setErrorOperationId(OPERATION_IDS.userById);
       try {
         const response = await getUserById({ id });
         const academicResult = academicoSchema.safeParse(response);
-        setUser(academicResult.success ? academicResult.data : undefined);
+        if (!academicResult.success)
+          throw new Error('Dados do perfil inválidos.');
+        setUser(academicResult.data);
 
         // Tentar buscar empréstimos, mas tratar 404 como caso normal (sem empréstimos)
+        setErrorOperationId(OPERATION_IDS.loansByUser);
         try {
           const responseLoans = await getLoansByUserId({ id });
           setLoans(responseLoans);
@@ -69,9 +93,7 @@ function ProfileMentee() {
           }
         }
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar usuários', error);
-        }
+        setLoadError(error);
         setUser(undefined);
         setLoans([]);
       } finally {
@@ -79,7 +101,7 @@ function ProfileMentee() {
       }
     };
     fetchGetUserById();
-  }, [id]);
+  }, [id, retryToken]);
 
   const infoItems = [
     {
@@ -155,16 +177,16 @@ function ProfileMentee() {
   return (
     <>
       {loading ? (
-        <div className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'>
+        <main className='flex min-h-svh w-full items-center justify-center gap-4 bg-canvas px-4 font-inter-medium text-clt-2'>
           <div className='animate-spin'>
             <LoadingIcon />
           </div>
           Carregando...
-        </div>
+        </main>
       ) : (
-        <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
-          <div className='w-11/12 flex items-center justify-between mt-7'>
-            <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
+        <main className='flex min-h-svh w-full flex-col items-center overflow-y-auto bg-canvas pb-9'>
+          <div className='mt-7 flex w-[min(92%,72rem)] flex-wrap items-center justify-between gap-4'>
+            <h1 className='font-rajdhani-medium text-2xl uppercase text-clt-2 sm:text-3xl'>
               Perfil
             </h1>
             <div className='flex items-center justify-between gap-x-6'>
@@ -172,33 +194,57 @@ function ProfileMentee() {
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 mt-7'>
-            <div className='flex gap-x-5 h-32'>
-              <FollowUpCard
-                title='Empréstimos Realizados'
-                number={String(loans.length)}
-                icon={<LayersIcon />}
-              />
-              <FollowUpCard
-                title='Itens Utilizados'
-                number={String(totalItens)}
-                icon={<LayersIcon />}
-              />
-            </div>
-            <div className='w-full mt-7'>
-              <InfoContainer items={infoItems} />
-              <div className='w-full flex gap-x-8 mt-5'>
-                <InfoContainer items={infoItems2} />
-                <InfoContainer items={infoItems3} />
-                <InfoContainer items={infoItems4} />
-                <InfoContainer items={infoItems5} />
+          <div className='mt-7 w-[min(92%,72rem)]'>
+            {loadError ? (
+              <div className='mb-5 w-full'>
+                <ErrorFeedback
+                  error={loadError}
+                  operationId={errorOperationId}
+                  onRetry={() => setRetryToken((token) => token + 1)}
+                />
               </div>
-              <div className='w-full mt-5'>
-                <InfoContainer items={infoItemsProf} />
-              </div>
-            </div>
+            ) : null}
+            {user ? (
+              <>
+                <div className='grid gap-4 sm:grid-cols-2'>
+                  <FollowUpCard
+                    title='Empréstimos Realizados'
+                    number={String(loans.length)}
+                    icon={<LayersIcon />}
+                    className='md:w-full'
+                  />
+                  <FollowUpCard
+                    title='Itens Utilizados'
+                    number={String(totalItens)}
+                    icon={<LayersIcon />}
+                    className='md:w-full'
+                  />
+                </div>
+                <div className='mt-7 grid w-full gap-5'>
+                  <InfoContainer
+                    items={infoItems}
+                    columns={2}
+                    className='lg:w-full'
+                  />
+                  <InfoContainer
+                    items={[
+                      ...infoItems2,
+                      ...infoItems3,
+                      ...infoItems4,
+                      ...infoItems5,
+                    ]}
+                    columns={2}
+                    className='lg:w-full'
+                  />
+                  <ResponsibleInfo
+                    visible={Boolean(user.responsavel)}
+                    items={infoItemsProf}
+                  />
+                </div>
+              </>
+            ) : null}
           </div>
-        </div>
+        </main>
       )}
     </>
   );

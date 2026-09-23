@@ -17,7 +17,7 @@ import {
   type UserRegistrationFormData,
 } from '@/contracts/userRegistration';
 import { toast } from '@/components/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { clearSession } from '@/auth/session';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import type { ApplicationError } from '@/errors/applicationError';
@@ -27,6 +27,8 @@ import {
   presentError,
   type ErrorPresentation,
 } from '@/errors/presentError';
+import { ThemeSwitch } from '@/theme/ThemeSwitch';
+import { ThemeContext } from '@/theme/themeContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Sheet,
@@ -70,6 +72,7 @@ const applyCreateAccountFieldErrors = (
 };
 
 function CreateAccount() {
+  const themeContext = useContext(ThemeContext);
   const [loading, setLoading] = useState(false);
   const [errorPresentation, setErrorPresentation] =
     useState<ErrorPresentation>();
@@ -130,18 +133,20 @@ function CreateAccount() {
   }, []);
 
   return (
-    <main className='min-h-screen w-full min-w-0 flex justify-center items-center flex-col bg-backgroundMy p-4'>
-      <div className='w-full max-w-[750px] min-w-0 bg-backgroundMy border border-borderMy rounded-md shadow-lg'>
-        <div className='w-full bg-green-800 flex flex-col md:flex-row items-start md:items-center justify-start gap-2 p-4 rounded-t-[5px]'>
-          <img alt='Logo' src={logo} className='w-20 max-w-full shrink-0' />
+    <main className='flex min-h-svh w-full min-w-0 flex-col items-center justify-center bg-canvas px-4 py-8 text-clt-2 sm:px-6'>
+      {themeContext ? <ThemeSwitch /> : null}
+      <div className='w-full max-w-3xl min-w-0 overflow-hidden rounded-xl border border-borderMy bg-surface shadow-lg'>
+        <div className='flex w-full flex-col items-start justify-start gap-2 bg-primaryMy p-5 text-white sm:flex-row sm:items-center sm:px-7'>
+          <img alt='LabOn' src={logo} className='h-16 w-16 max-w-full shrink-0 object-contain' />
           <div className='min-w-0 text-white gap-y-1 [overflow-wrap:anywhere]'>
-            <h1 className='font-rajdhani-semibold text-3xl'>LabON</h1>
-            <p className='font-rajdhani-medium text-base'>
-              Gerenciamento de Laboratórios Químicos Online
+            <p className='font-inter-medium text-sm uppercase tracking-[0.12em]'>IFPE</p>
+            <h1 className='font-rajdhani-semibold text-3xl'>Crie seu acesso</h1>
+            <p className='font-inter-regular text-sm text-white/90'>
+              Laboratórios e Sustentabilidade Ambiental
             </p>
           </div>
         </div>
-        <div className='w-full bg-backgroundMy rounded-b-md p-4 flex items-center flex-col justify-between'>
+        <div className='flex w-full flex-col items-center justify-between rounded-b-xl px-5 py-6 sm:px-7'>
           <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-3 w-full min-w-0'>
             <p className='font-inter-regular text-clt-2 w-full'>
               Selecione seu tipo de usuário e crie sua conta.
@@ -158,15 +163,15 @@ function CreateAccount() {
                 >
                   <SelectValue placeholder='Tipo' />
                 </SelectTrigger>
-                <SelectContent className='border border-borderMy rounded-md font-inter-regular bg-backgroundMy'>
+                <SelectContent className='rounded-md border border-borderMy bg-surface font-inter-regular'>
                   <SelectItem
-                    className='min-h-11 hover:bg-cl-table-item font-inter-regular'
+                    className='min-h-11 font-inter-regular hover:bg-surface-selected'
                     value='mentor'
                   >
                     Mentor
                   </SelectItem>
                   <SelectItem
-                    className='min-h-11 hover:bg-cl-table-item font-inter-regular'
+                    className='min-h-11 font-inter-regular hover:bg-surface-selected'
                     value='mentorado'
                   >
                     Mentorado
@@ -467,7 +472,7 @@ function CreateAccount() {
                     <SheetClose asChild>
                       <button
                         type='button'
-                        className='bg-green-800 font-rajdhani-semibold text-white shadow-md min-h-11 px-6 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+                        className='min-h-11 rounded-md bg-primaryMy px-6 font-rajdhani-semibold text-white shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaryMy'
                       >
                         Fechar
                       </button>
@@ -479,7 +484,7 @@ function CreateAccount() {
             <button
               type='submit'
               disabled={loading}
-              className='font-rajdhani-semibold text-white text-base bg-green-800 min-h-11 mt-2 w-full min-w-0 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+              className='mt-2 min-h-11 w-full min-w-0 rounded-md bg-primaryMy text-base font-rajdhani-semibold text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
             >
               {loading ? 'Enviando...' : 'Criar Conta'}
             </button>

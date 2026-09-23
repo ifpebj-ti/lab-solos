@@ -1,0 +1,51 @@
+:root {
+  color-scheme: light;
+  --color-canvas: 246 247 244;
+  --color-surface: 255 255 255;
+  --color-surface-raised: 250 252 249;
+  --color-surface-selected: 239 231 242;
+  --color-surface-muted: 232 237 233;
+  --color-text-primary: 24 37 32;
+  --color-text-secondary: 62 78 68;
+  --color-text-muted: 83 99 89;
+  --color-text-inverse: 255 255 255;
+  --color-border: 183 198 188;
+  --color-focus: 93 47 113;
+  --color-action: 23 107 73;
+  --color-action-foreground: 255 255 255;
+  --color-navigation: 18 75 56;
+  --color-navigation-foreground: 255 255 255;
+  --color-success: 22 101 52;
+  --color-warning: 133 78 13;
+  --color-danger: 180 35 24;
+  --color-info: 28 79 130;
+  --color-table-row: 239 243 239;
+  --color-icon: 53 72 61;
+  --color-icon-muted: 108 125 114;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-canvas: 18 27 23;
+  --color-surface: 26 39 32;
+  --color-surface-raised: 34 51 42;
+  --color-surface-selected: 61 45 70;
+  --color-surface-muted: 43 60 50;
+  --color-text-primary: 241 246 242;
+  --color-text-secondary: 205 219 208;
+  --color-text-muted: 172 191 178;
+  --color-text-inverse: 18 27 23;
+  --color-border: 72 96 81;
+  --color-focus: 207 157 224;
+  --color-action: 31 111 71;
+  --color-action-foreground: 255 255 255;
+  --color-navigation: 13 57 42;
+  --color-navigation-foreground: 241 246 242;
+  --color-success: 107 204 132;
+  --color-warning: 244 190 93;
+  --color-danger: 248 126 115;
+  --color-info: 130 192 244;
+  --color-table-row: 31 47 38;
+  --color-icon: 206 223 211;
+  --color-icon-muted: 155 177 163;
+}

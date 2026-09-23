@@ -10,6 +10,7 @@ import { toast } from '@/components/hooks/use-toast';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 import { applyRecognizedFieldErrors } from './formErrors';
+import CreateFormActions from './CreateFormActions';
 
 const submitCreateVidrariaSchema = z.object({
   nome: z
@@ -132,6 +133,10 @@ function FormVidrarias() {
         description: 'Verifique o estoque para validação...',
       });
       reset();
+      setFormato('');
+      setMaterial('');
+      setAltura('');
+      setGraduada(false);
     } catch (error) {
       const presentation = notifyError(error, OPERATION_IDS.createProduct);
       applyRecognizedFieldErrors(
@@ -142,12 +147,20 @@ function FormVidrarias() {
     }
   }
 
+  const resetForm = () => {
+    reset();
+    setFormato('');
+    setMaterial('');
+    setAltura('');
+    setGraduada(false);
+  };
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className='w-full gap-y-3 flex flex-col'
+      className='flex w-full flex-col gap-6'
     >
-      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
+      <div className='grid w-full grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3'>
         <input type='hidden' {...register('formato')} />
         <input type='hidden' {...register('material')} />
         <input type='hidden' {...register('altura')} />
@@ -239,21 +252,7 @@ function FormVidrarias() {
           title='Graduada'
         />
       </div>
-      <div className='flex gap-x-5'>
-        <button
-          type='button'
-          className='font-rajdhani-semibold text-primaryMy text-base bg-backgroundMy h-9 mt-8 w-full rounded-sm border border-primaryMy hover:bg-cl-table-item'
-        >
-          Cancelar
-        </button>
-        <button
-          type='submit'
-          disabled={isSubmitting}
-          className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
-        >
-          Adicionar
-        </button>
-      </div>
+      <CreateFormActions isSubmitting={isSubmitting} onCancel={resetForm} />
     </form>
   );
 }

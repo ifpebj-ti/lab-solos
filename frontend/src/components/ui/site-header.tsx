@@ -6,13 +6,17 @@ export function SiteHeader() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className='flex sticky top-0 z-50 w-full h-full items-center border-b bg-background px-4'>
+    <header
+      className='flex sticky top-0 z-50 w-full h-full items-center border-b bg-background px-4'
+      aria-label='Cabeçalho da aplicação'
+    >
       {/* Botão Hambúrguer para o MOBILE */}
       <Button
         className='h-8 w-8'
         variant='ghost'
         size='icon'
         onClick={toggleSidebar}
+        aria-label='Abrir menu de navegação'
       >
         <Menu className='h-5 w-5' /> {/* Usamos o ícone 'Menu' */}
         <span className='sr-only'>Abrir/Fechar Menu</span>

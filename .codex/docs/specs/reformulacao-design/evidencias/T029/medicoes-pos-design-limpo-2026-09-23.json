@@ -1,0 +1,1281 @@
+{
+  "generatedAt": "2026-09-23T13:52:42.557Z",
+  "baselineCommit": "8c2a8bd173723b8b154aad03da2f511499fbb83b",
+  "baseURL": "http://127.0.0.1:14273",
+  "scenario": "t029-post-design",
+  "fixture": {
+    "productName": "E2E Product 52427a150e55",
+    "borrowerName": "E2E Borrower 52427a150e55",
+    "quantity": 1
+  },
+  "buildIdentity": "isolated clean Compose lab-solos-quality-t029-post-design; frontend image sha256:03813af7e082a793b83a8f645b018de6ca2dab6faa202888d7f59b859d03fa1e; backend image sha256:7714e1c86e747085680512cc40daaa3e85b9ec5d2e2ff15935a590407bd2bddd; dirty working tree",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "iterations": 5,
+  "browserVersion": "151.0.7922.34",
+  "cacheProtocol": "context novo por repetição; login de preparação executado para cenários autenticados; rota medida em navegação direta com o cache da sessão aquecido pelo login; service workers bloqueados",
+  "scenarios": [
+    {
+      "name": "login-administrador",
+      "path": "/",
+      "role": "Administrador",
+      "runs": [
+        {
+          "scenario": "login-administrador",
+          "run": 1,
+          "path": "/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 219.3809999972582,
+          "readyMs": 820.1510000005364,
+          "actionMs": 553.6299000009894,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "preencher email sintético",
+              "completed": true
+            },
+            {
+              "action": "preencher senha sintética",
+              "completed": true
+            },
+            {
+              "action": "submeter login",
+              "completed": true
+            }
+          ],
+          "completedSteps": 3,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 213.70000000298023,
+            "loadEventMs": 213.80000000447035,
+            "resourceCount": 12,
+            "transferBytes": 3364179,
+            "encodedBytes": 3360579
+          },
+          "responseCount": 13,
+          "apiResponseCount": 1,
+          "responseBytesByHeader": 2817466,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /public/images/laboratory.png"
+            ],
+            "apiStatuses": {
+              "200": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "login-administrador",
+          "run": 2,
+          "path": "/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 129.77340000122786,
+          "readyMs": 716.1622000038624,
+          "actionMs": 262.84730000048876,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "preencher email sintético",
+              "completed": true
+            },
+            {
+              "action": "preencher senha sintética",
+              "completed": true
+            },
+            {
+              "action": "submeter login",
+              "completed": true
+            }
+          ],
+          "completedSteps": 3,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 127.5,
+            "loadEventMs": 127.60000000149012,
+            "resourceCount": 12,
+            "transferBytes": 3364179,
+            "encodedBytes": 3360579
+          },
+          "responseCount": 13,
+          "apiResponseCount": 1,
+          "responseBytesByHeader": 2817466,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /public/images/laboratory.png"
+            ],
+            "apiStatuses": {
+              "200": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "login-administrador",
+          "run": 3,
+          "path": "/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 143.89880000054836,
+          "readyMs": 722.4491999968886,
+          "actionMs": 274.5608999952674,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "preencher email sintético",
+              "completed": true
+            },
+            {
+              "action": "preencher senha sintética",
+              "completed": true
+            },
+            {
+              "action": "submeter login",
+              "completed": true
+            }
+          ],
+          "completedSteps": 3,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 141.29999999701977,
+            "loadEventMs": 141.39999999850988,
+            "resourceCount": 18,
+            "transferBytes": 3364179,
+            "encodedBytes": 3360579
+          },
+          "responseCount": 19,
+          "apiResponseCount": 7,
+          "responseBytesByHeader": 2817741,
+          "unknownLengthResponses": 6,
+          "blockers": {
+            "httpErrors": [
+              "404 /public/images/laboratory.png",
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 6,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "login-administrador",
+          "run": 4,
+          "path": "/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 149.28999999910593,
+          "readyMs": 733.3583999946713,
+          "actionMs": 269.945199996233,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "preencher email sintético",
+              "completed": true
+            },
+            {
+              "action": "preencher senha sintética",
+              "completed": true
+            },
+            {
+              "action": "submeter login",
+              "completed": true
+            }
+          ],
+          "completedSteps": 3,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 146.09999999403954,
+            "loadEventMs": 146.29999999701977,
+            "resourceCount": 18,
+            "transferBytes": 3364179,
+            "encodedBytes": 3360579
+          },
+          "responseCount": 19,
+          "apiResponseCount": 7,
+          "responseBytesByHeader": 2817741,
+          "unknownLengthResponses": 6,
+          "blockers": {
+            "httpErrors": [
+              "404 /public/images/laboratory.png",
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 6,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "login-administrador",
+          "run": 5,
+          "path": "/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 177.15689999610186,
+          "readyMs": 781.208400003612,
+          "actionMs": 265.6043999940157,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "preencher email sintético",
+              "completed": true
+            },
+            {
+              "action": "preencher senha sintética",
+              "completed": true
+            },
+            {
+              "action": "submeter login",
+              "completed": true
+            }
+          ],
+          "completedSteps": 3,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 174.79999999701977,
+            "loadEventMs": 175,
+            "resourceCount": 18,
+            "transferBytes": 3364179,
+            "encodedBytes": 3360579
+          },
+          "responseCount": 19,
+          "apiResponseCount": 7,
+          "responseBytesByHeader": 2817741,
+          "unknownLengthResponses": 6,
+          "blockers": {
+            "httpErrors": [
+              "404 /public/images/laboratory.png",
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 6,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        }
+      ],
+      "successfulRuns": 5,
+      "medians": {
+        "navigationMs": 149.28999999910593,
+        "readyMs": 733.3583999946713,
+        "actionMs": 269.945199996233,
+        "transferBytes": 3364179,
+        "encodedBytes": 3360579,
+        "responseBytesByHeader": 2817741
+      }
+    },
+    {
+      "name": "inicio-administrador",
+      "path": "/admin/",
+      "role": "Administrador",
+      "runs": [
+        {
+          "scenario": "inicio-administrador",
+          "run": 1,
+          "path": "/admin/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 23.252499997615814,
+          "readyMs": 592.6686000004411,
+          "actionMs": 592.6686000004411,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "abrir início após autenticação",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 21.5,
+            "loadEventMs": 22.19999999552965,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2817211,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 5,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "inicio-administrador",
+          "run": 2,
+          "path": "/admin/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 28.455900005996227,
+          "readyMs": 602.3439999967813,
+          "actionMs": 602.3439999967813,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "abrir início após autenticação",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 26.5,
+            "loadEventMs": 27,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2817211,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 5,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "inicio-administrador",
+          "run": 3,
+          "path": "/admin/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 25.173600003123283,
+          "readyMs": 598.9112000018358,
+          "actionMs": 598.9112000018358,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "abrir início após autenticação",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 23.30000000447035,
+            "loadEventMs": 23.899999998509884,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2817211,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 5,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "inicio-administrador",
+          "run": 4,
+          "path": "/admin/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 40.98709999769926,
+          "readyMs": 622.3127999976277,
+          "actionMs": 622.3127999976277,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "abrir início após autenticação",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 38.29999999701977,
+            "loadEventMs": 39.29999999701977,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2817211,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 5,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "inicio-administrador",
+          "run": 5,
+          "path": "/admin/",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 24.726000003516674,
+          "readyMs": 600.7965999990702,
+          "actionMs": 600.7965999990702,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "abrir início após autenticação",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.700000002980232,
+            "loadEventMs": 23.5,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2817211,
+          "unknownLengthResponses": 5,
+          "blockers": {
+            "httpErrors": [
+              "404 /api/Usuarios/149061/dependentes/aprovacao"
+            ],
+            "apiStatuses": {
+              "200": 5,
+              "404": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "pageErrors": []
+          },
+          "error": null
+        }
+      ],
+      "successfulRuns": 5,
+      "medians": {
+        "navigationMs": 25.173600003123283,
+        "readyMs": 600.7965999990702,
+        "actionMs": 600.7965999990702,
+        "transferBytes": 821,
+        "encodedBytes": 3360024,
+        "responseBytesByHeader": 2817211
+      }
+    },
+    {
+      "name": "catalogo-administrador",
+      "path": "/admin/search-material",
+      "role": "Administrador",
+      "runs": [
+        {
+          "scenario": "catalogo-administrador",
+          "run": 1,
+          "path": "/admin/search-material",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 25.80849999934435,
+          "readyMs": 655.151399999857,
+          "actionMs": 12.843800000846386,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "pesquisar fixture sintética",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 23.200000002980232,
+            "loadEventMs": 24.200000002980232,
+            "resourceCount": 15,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 16,
+          "apiResponseCount": 5,
+          "responseBytesByHeader": 2817779,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "catalogo-administrador",
+          "run": 2,
+          "path": "/admin/search-material",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 25.02359999716282,
+          "readyMs": 590.2963000014424,
+          "actionMs": 16.177000001072884,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "pesquisar fixture sintética",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.600000001490116,
+            "loadEventMs": 23.19999999552965,
+            "resourceCount": 15,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 16,
+          "apiResponseCount": 5,
+          "responseBytesByHeader": 2817779,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "catalogo-administrador",
+          "run": 3,
+          "path": "/admin/search-material",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 27.204599998891354,
+          "readyMs": 592.3417000025511,
+          "actionMs": 14.040299996733665,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "pesquisar fixture sintética",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 24.80000000447035,
+            "loadEventMs": 25.600000001490116,
+            "resourceCount": 15,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 16,
+          "apiResponseCount": 5,
+          "responseBytesByHeader": 2817779,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "catalogo-administrador",
+          "run": 4,
+          "path": "/admin/search-material",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 25.333500005304813,
+          "readyMs": 594.6096000000834,
+          "actionMs": 13.528300002217293,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "pesquisar fixture sintética",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 23.100000001490116,
+            "loadEventMs": 23.799999997019768,
+            "resourceCount": 15,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 16,
+          "apiResponseCount": 5,
+          "responseBytesByHeader": 2817779,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "catalogo-administrador",
+          "run": 5,
+          "path": "/admin/search-material",
+          "role": "Administrador",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 22.987999998033047,
+          "readyMs": 586.4870999976993,
+          "actionMs": 17.168200001120567,
+          "responseStatus": 200,
+          "actionResponseStatus": null,
+          "steps": [
+            {
+              "action": "pesquisar fixture sintética",
+              "completed": true
+            }
+          ],
+          "completedSteps": 1,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 21,
+            "loadEventMs": 21.5,
+            "resourceCount": 15,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 16,
+          "apiResponseCount": 5,
+          "responseBytesByHeader": 2817779,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        }
+      ],
+      "successfulRuns": 5,
+      "medians": {
+        "navigationMs": 25.333500005304813,
+        "readyMs": 592.3417000025511,
+        "actionMs": 14.040299996733665,
+        "transferBytes": 821,
+        "encodedBytes": 3360024,
+        "responseBytesByHeader": 2817779
+      }
+    },
+    {
+      "name": "criacao-mentor",
+      "path": "/mentor/loan/creation",
+      "role": "Mentor",
+      "runs": [
+        {
+          "scenario": "criacao-mentor",
+          "run": 1,
+          "path": "/mentor/loan/creation",
+          "role": "Mentor",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 24.865000002086163,
+          "readyMs": 603.472199998796,
+          "actionMs": 1486.4098000004888,
+          "responseStatus": 200,
+          "actionResponseStatus": 201,
+          "steps": [
+            {
+              "action": "selecionar usuário sintético",
+              "completed": true
+            },
+            {
+              "action": "selecionar grupo Outro",
+              "completed": true
+            },
+            {
+              "action": "selecionar produto sintético",
+              "completed": true
+            },
+            {
+              "action": "informar quantidade 1",
+              "completed": true
+            },
+            {
+              "action": "selecionar unidade Unidade",
+              "completed": true
+            },
+            {
+              "action": "adicionar produto à solicitação",
+              "completed": true
+            },
+            {
+              "action": "solicitar empréstimo",
+              "completed": true
+            }
+          ],
+          "completedSteps": 7,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.5,
+            "loadEventMs": 23.5,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2818869,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5,
+              "201": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "criacao-mentor",
+          "run": 2,
+          "path": "/mentor/loan/creation",
+          "role": "Mentor",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 24.06309999525547,
+          "readyMs": 596.4400999993086,
+          "actionMs": 1352.0663999989629,
+          "responseStatus": 200,
+          "actionResponseStatus": 201,
+          "steps": [
+            {
+              "action": "selecionar usuário sintético",
+              "completed": true
+            },
+            {
+              "action": "selecionar grupo Outro",
+              "completed": true
+            },
+            {
+              "action": "selecionar produto sintético",
+              "completed": true
+            },
+            {
+              "action": "informar quantidade 1",
+              "completed": true
+            },
+            {
+              "action": "selecionar unidade Unidade",
+              "completed": true
+            },
+            {
+              "action": "adicionar produto à solicitação",
+              "completed": true
+            },
+            {
+              "action": "solicitar empréstimo",
+              "completed": true
+            }
+          ],
+          "completedSteps": 7,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.100000001490116,
+            "loadEventMs": 22.600000001490116,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2818869,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5,
+              "201": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "criacao-mentor",
+          "run": 3,
+          "path": "/mentor/loan/creation",
+          "role": "Mentor",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 25.08609999716282,
+          "readyMs": 598.9947999939322,
+          "actionMs": 1278.6563999950886,
+          "responseStatus": 200,
+          "actionResponseStatus": 201,
+          "steps": [
+            {
+              "action": "selecionar usuário sintético",
+              "completed": true
+            },
+            {
+              "action": "selecionar grupo Outro",
+              "completed": true
+            },
+            {
+              "action": "selecionar produto sintético",
+              "completed": true
+            },
+            {
+              "action": "informar quantidade 1",
+              "completed": true
+            },
+            {
+              "action": "selecionar unidade Unidade",
+              "completed": true
+            },
+            {
+              "action": "adicionar produto à solicitação",
+              "completed": true
+            },
+            {
+              "action": "solicitar empréstimo",
+              "completed": true
+            }
+          ],
+          "completedSteps": 7,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.700000002980232,
+            "loadEventMs": 23.30000000447035,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2818868,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5,
+              "201": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "criacao-mentor",
+          "run": 4,
+          "path": "/mentor/loan/creation",
+          "role": "Mentor",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 37.21829999983311,
+          "readyMs": 621.5058999955654,
+          "actionMs": 1298.5608999952674,
+          "responseStatus": 200,
+          "actionResponseStatus": 201,
+          "steps": [
+            {
+              "action": "selecionar usuário sintético",
+              "completed": true
+            },
+            {
+              "action": "selecionar grupo Outro",
+              "completed": true
+            },
+            {
+              "action": "selecionar produto sintético",
+              "completed": true
+            },
+            {
+              "action": "informar quantidade 1",
+              "completed": true
+            },
+            {
+              "action": "selecionar unidade Unidade",
+              "completed": true
+            },
+            {
+              "action": "adicionar produto à solicitação",
+              "completed": true
+            },
+            {
+              "action": "solicitar empréstimo",
+              "completed": true
+            }
+          ],
+          "completedSteps": 7,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 32.899999998509884,
+            "loadEventMs": 33.899999998509884,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2818869,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5,
+              "201": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        },
+        {
+          "scenario": "criacao-mentor",
+          "run": 5,
+          "path": "/mentor/loan/creation",
+          "role": "Mentor",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "ok": true,
+          "navigationMs": 23.852800004184246,
+          "readyMs": 590.9100999981165,
+          "actionMs": 1332.6087999939919,
+          "responseStatus": 200,
+          "actionResponseStatus": 201,
+          "steps": [
+            {
+              "action": "selecionar usuário sintético",
+              "completed": true
+            },
+            {
+              "action": "selecionar grupo Outro",
+              "completed": true
+            },
+            {
+              "action": "selecionar produto sintético",
+              "completed": true
+            },
+            {
+              "action": "informar quantidade 1",
+              "completed": true
+            },
+            {
+              "action": "selecionar unidade Unidade",
+              "completed": true
+            },
+            {
+              "action": "adicionar produto à solicitação",
+              "completed": true
+            },
+            {
+              "action": "solicitar empréstimo",
+              "completed": true
+            }
+          ],
+          "completedSteps": 7,
+          "help": {
+            "visibleInAppAffordances": 0,
+            "humanAssistanceObserved": null,
+            "note": "execução automatizada; assistência humana não foi instrumentada"
+          },
+          "pageMetrics": {
+            "domContentLoadedMs": 22.100000001490116,
+            "loadEventMs": 22.600000001490116,
+            "resourceCount": 16,
+            "transferBytes": 821,
+            "encodedBytes": 3360024
+          },
+          "responseCount": 17,
+          "apiResponseCount": 6,
+          "responseBytesByHeader": 2818869,
+          "unknownLengthResponses": 4,
+          "blockers": {
+            "httpErrors": [],
+            "apiStatuses": {
+              "200": 5,
+              "201": 1
+            },
+            "requestFailures": [],
+            "consoleErrors": [],
+            "pageErrors": []
+          },
+          "error": null
+        }
+      ],
+      "successfulRuns": 5,
+      "medians": {
+        "navigationMs": 24.865000002086163,
+        "readyMs": 598.9947999939322,
+        "actionMs": 1332.6087999939919,
+        "transferBytes": 821,
+        "encodedBytes": 3360024,
+        "responseBytesByHeader": 2818869
+      }
+    }
+  ]
+}

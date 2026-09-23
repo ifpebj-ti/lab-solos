@@ -5,7 +5,7 @@ interface ContainerI {
 }
 
 function Container({ children }: ContainerI) {
-  return <section className='overflow-auto w-full'>{children}</section>;
+  return <section className='w-full min-w-0 overflow-x-auto'>{children}</section>;
 }
 
 export default Container;

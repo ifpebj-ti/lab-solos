@@ -21,7 +21,7 @@ function ItemDelete({
 }: ITableItem) {
   const columns = requireResponsiveColumns(useResponsiveColumns());
   const isOdd = rowIndex % 2 === 0;
-  const backgroundColor = isOdd ? 'bg-backgroundMy' : 'bg-cl-table-item';
+  const backgroundColor = isOdd ? 'bg-surface' : 'bg-surface-muted';
 
   const action = (
     <button
@@ -30,7 +30,7 @@ function ItemDelete({
         itemLabel && actionLabel ? `${actionLabel} ${itemLabel}` : undefined
       }
       onClick={onClick}
-      className='flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+      className='flex min-h-11 min-w-11 items-center justify-center rounded-md text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
     >
       <span aria-hidden='true'>{icon1}</span>
     </button>
@@ -43,7 +43,7 @@ function ItemDelete({
   if (!itemLabel || !actionLabel)
     throw new Error('A ação responsiva exige nome e identificação do registro.');
   return (
-      <ResponsiveRecord className={`${backgroundColor} hover:bg-cl-table`}>
+      <ResponsiveRecord className={`${backgroundColor} hover:bg-surface-selected`}>
         {data.map((value, index) => (
           <ResponsiveCell
             key={columns[index].key}

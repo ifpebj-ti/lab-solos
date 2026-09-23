@@ -12,6 +12,7 @@ import { toast } from '@/components/hooks/use-toast';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 import { applyRecognizedFieldErrors } from './formErrors';
+import CreateFormActions from './CreateFormActions';
 
 const submitCreateQuimicoSchema = z.object({
   nome: z
@@ -60,6 +61,7 @@ const QUIMICO_ERROR_FIELDS = new Set<keyof CreateQuimicoFormData>([
 
 function FormQuimicos() {
   const [medida, setMedida] = useState('');
+  const [grupo, setGrupo] = useState('');
   const {
     register,
     handleSubmit,
@@ -140,6 +142,8 @@ function FormQuimicos() {
         description: 'Verifique o estoque para validação...',
       });
       reset();
+      setMedida('');
+      setGrupo('');
     } catch (error) {
       const presentation = notifyError(error, OPERATION_IDS.createProduct);
       applyRecognizedFieldErrors(
@@ -150,12 +154,18 @@ function FormQuimicos() {
     }
   }
 
+  const resetForm = () => {
+    reset();
+    setMedida('');
+    setGrupo('');
+  };
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className='w-full gap-y-3 flex flex-col'
+      className='flex w-full flex-col gap-6'
     >
-      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3'>
+      <div className='grid w-full grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3'>
         <input type='hidden' {...register('grupo')} />
         <input type='hidden' {...register('medida')} />
         <input type='hidden' {...register('dataFabricacao')} />
@@ -217,9 +227,12 @@ function FormQuimicos() {
         <SelectInput
           label='Grupo'
           options={categoriasQuimicas}
-          onValueChange={(value) => setValue('grupo', value)}
+          onValueChange={(value) => {
+            setGrupo(value);
+            setValue('grupo', value);
+          }}
           error={errors.grupo?.message}
-          value={''}
+          value={grupo}
           required={true}
         />
         <PopoverInput
@@ -248,21 +261,7 @@ function FormQuimicos() {
           required={true}
         />
       </div>
-      <div className='flex gap-x-5'>
-        <button
-          type='button'
-          className='font-rajdhani-semibold text-primaryMy text-base bg-backgroundMy h-9 mt-8 w-full rounded-sm border border-primaryMy hover:bg-cl-table-item'
-        >
-          Cancelar
-        </button>
-        <button
-          type='submit'
-          disabled={isSubmitting}
-          className='font-rajdhani-semibold text-white text-base bg-primaryMy h-9 mt-8 w-full rounded-sm hover:bg-opacity-90'
-        >
-          Adicionar
-        </button>
-      </div>
+      <CreateFormActions isSubmitting={isSubmitting} onCancel={resetForm} />
     </form>
   );
 }

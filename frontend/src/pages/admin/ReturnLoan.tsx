@@ -178,9 +178,9 @@ function ReturnLoan() {
     return (
       <div
         role='status'
-        className='flex justify-center flex-row w-full h-screen items-center gap-x-4 font-inter-medium text-clt-2 bg-backgroundMy'
+        className='flex min-h-svh w-full items-center justify-center gap-x-3 bg-canvas font-inter-medium text-clt-2'
       >
-        <div className='animate-spin'>
+        <div className='h-5 w-5 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'>
           <LoadingIcon />
         </div>
         Carregando...
@@ -191,7 +191,7 @@ function ReturnLoan() {
 
   if (!hasValidQueryId || loans === null) {
     return (
-      <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
+      <main className='flex min-h-svh flex-col items-center justify-center gap-4 bg-canvas p-6 text-clt-2'>
         {loadError !== null ? (
           <ErrorFeedback
             error={loadError}
@@ -203,15 +203,15 @@ function ReturnLoan() {
           <p>Selecione um registro para consultar</p>
         )}
         <BackLink pathname='/admin/return' />
-      </div>
+      </main>
     );
   }
 
   return (
     <>
-      <div className='w-full flex min-h-screen justify-start items-center flex-col overflow-y-auto bg-backgroundMy pb-9'>
+      <main className='mx-auto flex min-h-svh w-full max-w-7xl flex-col items-center overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
         {loadError !== null && (
-          <div className='w-11/12 mt-6'>
+          <div className='mt-6 w-full'>
             <ErrorFeedback
               error={loadError}
               operationId={OPERATION_IDS.loanById}
@@ -220,10 +220,10 @@ function ReturnLoan() {
             />
           </div>
         )}
-          <div className='w-11/12 mt-5'>
+          <div className='mt-5 w-full'>
             <BackLink pathname='/admin/return' />
           </div>
-          <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
+          <div className='mt-7 flex w-full min-w-0 flex-wrap items-center justify-between gap-4'>
             <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Devolução de Empréstimo
             </h1>
@@ -233,39 +233,39 @@ function ReturnLoan() {
                   type='button'
                   onClick={handleReturn}
                   disabled={isReturning}
-                  className='font-rajdhani-semibold text-white bg-green-600 text-base h-10 px-4 rounded-md hover:bg-green-700 flex gap-x-2 items-center justify-center transition-all ease-in-out duration-150'
+                  className='flex min-h-11 items-center justify-center gap-x-2 rounded-md bg-success px-4 text-base font-rajdhani-semibold text-on-success transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
                 >
-                  <RefreshCw width={18} />
+                  <RefreshCw className='text-on-success' width={18} />
                   Registrar Devolução
                 </button>
               )}
               {loans?.status === 'Aprovado' && loans?.dataDevolucao && (
-                <div className='flex items-center gap-x-2 text-green-600 font-rajdhani-semibold'>
-                  <RefreshCw width={18} />
+                <div className='flex items-center gap-x-2 font-rajdhani-semibold text-success'>
+                  <RefreshCw className='text-success' width={18} />
                   Devolvido
                 </div>
               )}
               <OpenSearch />
             </div>
           </div>
-          <div className='w-11/12 min-w-0 mt-7'>
+          <div className='mt-7 w-full min-w-0'>
             <InfoContainer items={infoItems} />
-            <div className='w-full min-w-0 flex flex-col md:flex-row gap-5 mt-5'>
+            <div className='mt-5 flex w-full min-w-0 flex-col gap-5 md:flex-row'>
               <InfoContainer items={infoItems3} />
               <InfoContainer items={infoItems4} />
             </div>
           </div>
           {produtosQuimicos.length > 0 && (
-            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-              <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+            <section aria-label='QuÃ­micos' className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'>
+              <div className='flex w-full items-center justify-between rounded-t-md border-b border-borderMy p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Químicos
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+              <div className='flex w-full min-w-0 flex-col items-center justify-center px-4'>
                 <ResponsiveTable label='Químicos' columns={readOnlyColumns}>
                   <HeaderTable />
-                  <div className='w-full items-center flex flex-col min-h-14'>
+                  <div className='flex min-h-14 w-full flex-col items-center'>
                     {produtosQuimicos.map((row, rowIndex) => (
                       <ItemTable
                         key={`${row.emprestimoId}-${row.produto.id}`}
@@ -281,19 +281,19 @@ function ReturnLoan() {
                   </div>
                 </ResponsiveTable>
               </div>
-            </div>
+            </section>
           )}
           {produtosVidraria.length > 0 && (
-            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-              <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+            <section aria-label='Vidrarias' className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'>
+              <div className='flex w-full items-center justify-between rounded-t-md border-b border-borderMy p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Vidrarias
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+              <div className='flex w-full min-w-0 flex-col items-center justify-center px-4'>
                 <ResponsiveTable label='Vidrarias' columns={glasswareColumns}>
                   <HeaderTable />
-                  <div className='w-full items-center flex flex-col min-h-14'>
+                  <div className='flex min-h-14 w-full flex-col items-center'>
                     {produtosVidraria.map((row, rowIndex) => (
                       <ItemReturn
                         key={`${row.emprestimoId}-${row.produto.id}`}
@@ -308,19 +308,19 @@ function ReturnLoan() {
                   </div>
                 </ResponsiveTable>
               </div>
-            </div>
+            </section>
           )}
           {produtosOutros.length > 0 && (
-            <div className='w-11/12 min-w-0 min-h-32 mt-7 rounded-md border border-borderMy flex flex-col'>
-              <div className='w-full rounded-t-md border-b border-b-borderMy flex items-center justify-between p-4'>
+            <section aria-label='Outros' className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'>
+              <div className='flex w-full items-center justify-between rounded-t-md border-b border-borderMy p-4'>
                 <p className='font-rajdhani-medium text-clt-2 text-xl'>
                   Outros
                 </p>
               </div>
-              <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
+              <div className='flex w-full min-w-0 flex-col items-center justify-center px-4'>
                 <ResponsiveTable label='Outros' columns={otherReturnColumns}>
                   <HeaderTable />
-                  <div className='w-full items-center flex flex-col min-h-14'>
+                  <div className='flex min-h-14 w-full flex-col items-center'>
                     {produtosOutros.map((row, rowIndex) => (
                       <ItemReturn
                         key={`${row.emprestimoId}-${row.produto.id}`}
@@ -337,9 +337,9 @@ function ReturnLoan() {
                   </div>
                 </ResponsiveTable>
               </div>
-            </div>
+            </section>
           )}
-        </div>
+        </main>
     </>
   );
 }

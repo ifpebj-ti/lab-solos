@@ -17,6 +17,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
@@ -36,6 +37,7 @@ export function NavMain({
   }[];
 }) {
   const location = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   // Carregar estado salvo do localStorage e inicializar estado correto
@@ -118,11 +120,13 @@ export function NavMain({
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    className='hover:text-black/70'
+                    className='hover:text-sidebar-accent-foreground'
                   >
                     <CollapsibleTrigger className='w-full'>
-                      <item.icon />
-                      <span>{item.title}</span>
+                      <item.icon className='transition-colors group-hover/menu-item:text-sidebar-accent-foreground' />
+                      <span className='transition-colors group-hover/menu-item:text-sidebar-accent-foreground'>
+                        {item.title}
+                      </span>
                       <ChevronRightIcon className='ml-auto data-[state=open]:rotate-90 transition-transform' />
                     </CollapsibleTrigger>
                   </SidebarMenuButton>
@@ -135,11 +139,21 @@ export function NavMain({
                             isActive={location.pathname === subItem.url}
                             className={
                               location.pathname === subItem.url
-                                ? 'text-black font-medium'
-                                : 'hover:text-black/70'
+                                ? 'font-medium text-sidebar-accent-foreground'
+                                : 'hover:text-sidebar-accent-foreground'
                             }
                           >
-                            <Link to={subItem.url}>
+                            <Link
+                              to={subItem.url}
+                              aria-current={
+                                location.pathname === subItem.url
+                                  ? 'page'
+                                  : undefined
+                              }
+                              onClick={() => {
+                                if (isMobile) setOpenMobile(false);
+                              }}
+                            >
                               <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
@@ -156,13 +170,23 @@ export function NavMain({
                   isActive={location.pathname === item.url}
                   className={
                     location.pathname === item.url
-                      ? 'text-black font-medium'
-                      : 'hover:text-black/70'
+                      ? 'font-medium text-sidebar-accent-foreground'
+                      : 'hover:text-sidebar-accent-foreground'
                   }
                 >
-                  <Link to={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
+                  <Link
+                    to={item.url}
+                    aria-current={
+                      location.pathname === item.url ? 'page' : undefined
+                    }
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false);
+                    }}
+                  >
+                    <item.icon className='transition-colors group-hover/menu-item:text-sidebar-accent-foreground' />
+                    <span className='transition-colors group-hover/menu-item:text-sidebar-accent-foreground'>
+                      {item.title}
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               )}

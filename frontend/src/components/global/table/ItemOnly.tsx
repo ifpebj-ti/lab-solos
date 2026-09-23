@@ -12,7 +12,7 @@ function ItemOnly({ data }: ITableItem) {
     throw new Error('Cada valor deve corresponder a uma coluna responsiva.');
 
   return (
-    <ResponsiveRecord className='bg-backgroundMy hover:bg-cl-table'>
+    <ResponsiveRecord className='bg-surface hover:bg-surface-selected'>
       {data.map((value, index) => (
         <ResponsiveCell key={columns[index].key} columnKey={columns[index].key}>
           {value || 'Não informado'}

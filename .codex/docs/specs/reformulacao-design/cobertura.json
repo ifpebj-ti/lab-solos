@@ -1,0 +1,3165 @@
+{
+  "versao": 1,
+  "atualizado_em": "2026-09-23",
+  "status": "aceite final local registrado sob limitações documentadas",
+  "fontes": [
+    "frontend/src/routes.tsx",
+    ".codex/docs/specs/reformulacao-design/prd.md",
+    ".codex/docs/specs/reformulacao-design/techspec.md",
+    ".codex/docs/specs/reformulacao-design/diagnostico/inventario.md"
+  ],
+  "decisoes_confirmadas": [
+    {
+      "id": "direcao-664f68eb",
+      "referencia": ".codex/docs/specs/reformulacao-design/direcao-visual.md",
+      "alcance": "Índice de amostras; exceção code nesta rodada; referência assigned.png; não equivale a aceite dos pilotos."
+    },
+    {
+      "id": "organizacao-e-temas",
+      "referencia": ".codex/docs/specs/reformulacao-design/organizacao-experiencia.md",
+      "alcance": "Organização por perfil, computador principal, claro/escuro; confirmação posterior registrada na techspec."
+    },
+    {
+      "id": "aceite-final-2026-09-23",
+      "referencia": ".codex/docs/specs/reformulacao-design/aceites/final/aceite-final-2026-09-23.md",
+      "autor": "Nathan",
+      "resposta": "aceito sob limitações documentadas",
+      "versao": "2026-09-23.1",
+      "alcance": "Todas as 63 superfícies aplicáveis e 44 rotas do inventário; limitações de E2E compartilhado, audit/critique, leitor de tela e Wiki registradas explicitamente.",
+      "data": "2026-09-23"
+    }
+  ],
+  "regras": {
+    "evidencias": "Caminhos relativos à raiz do repositório; registrar versão, superfície, perfil, estado, largura, tema, referência e resultado. Listas vazias significam ausência de validação, não sucesso.",
+    "decisao": "Nulo enquanto não houver decisão sobre esta superfície. Aceite deve apontar registro existente com autor, resposta, versão, alcance e data.",
+    "status_permitidos": [
+      "pendente",
+      "em execução",
+      "aguardando aceite",
+      "redesenhada e validada",
+      "compartilhada e validada",
+      "exclusão aprovada"
+    ],
+    "aplicabilidade": "T001 confirma estados preliminares e acrescenta largura usada por Nathan. Não remover superfície sem decisão; não aplicabilidade exige justificativa. Matriz por arrays admite evidência compartilhada sem dispensar consumidor/perfil.",
+    "validacao_progressiva": "Estrutura e honestidade das pendências; o modo final exige todas as superfícies aplicáveis aceitas, evidências existentes e decisões correspondentes.",
+    "coordenacao": "Tarefas entregam evidências isoladas; T001 e marcos de aceite atualizam este arquivo serialmente."
+  },
+  "superficies": [
+    {
+      "id": "SUP-001",
+      "tipo": "rota",
+      "rota": "/admin",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "início",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 9,
+      "tarefa": "T010",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-003",
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-003",
+        "CA-004",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-002",
+      "tipo": "rota",
+      "rota": "/admin/profile",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-003",
+      "tipo": "rota",
+      "rota": "/admin/insert",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "formulários de materiais",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 17,
+      "tarefa": "T018",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-004",
+      "tipo": "rota",
+      "rota": "/admin/follow-up",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "detalhes e histórico de materiais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 18,
+      "tarefa": "T019",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-005",
+      "tipo": "rota",
+      "rota": "/admin/users",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "pessoas e solicitações",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 20,
+      "tarefa": "T021",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-006",
+      "tipo": "rota",
+      "rota": "/admin/search-material",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "catálogo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 10,
+      "tarefa": "T011",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-003",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-007",
+      "tipo": "rota",
+      "rota": "/admin/products/:id/history",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "detalhes e histórico de materiais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 18,
+      "tarefa": "T019",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-008",
+      "tipo": "rota",
+      "rota": "/admin/view-class",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "turmas e vínculos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 21,
+      "tarefa": "T022",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RNF-003",
+        "CA-004",
+        "CA-008",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-009",
+      "tipo": "rota",
+      "rota": "/admin/view-class-mentor",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "turmas e vínculos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 21,
+      "tarefa": "T022",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RNF-003",
+        "CA-004",
+        "CA-008",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-010",
+      "tipo": "rota",
+      "rota": "/admin/view-history-class-by-id",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-011",
+      "tipo": "rota",
+      "rota": "/admin/verification",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "detalhes e histórico de materiais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 18,
+      "tarefa": "T019",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-012",
+      "tipo": "rota",
+      "rota": "/admin/history/mentoring",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-013",
+      "tipo": "rota",
+      "rota": "/admin/history/loan",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-014",
+      "tipo": "rota",
+      "rota": "/admin/register-request",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "pessoas e solicitações",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 20,
+      "tarefa": "T021",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-015",
+      "tipo": "rota",
+      "rota": "/admin/all-loans",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-016",
+      "tipo": "rota",
+      "rota": "/admin/loans-request",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "análise e consulta de empréstimo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 12,
+      "tarefa": "T013",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-003",
+        "CA-007",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-017",
+      "tipo": "rota",
+      "rota": "/admin/return",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "devolução",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 25,
+      "tarefa": "T026",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-007",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-018",
+      "tipo": "rota",
+      "rota": "/admin/settings",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "auditoria e configurações",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 22,
+      "tarefa": "T023",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-008",
+        "CA-009",
+        "CA-010"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-019",
+      "tipo": "rota",
+      "rota": "/admin/auditoria",
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "auditoria e configurações",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 22,
+      "tarefa": "T023",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-008",
+        "CA-009",
+        "CA-010"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-020",
+      "tipo": "rota",
+      "rota": "/mentor",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "início",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 9,
+      "tarefa": "T010",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-003",
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-003",
+        "CA-004",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-021",
+      "tipo": "rota",
+      "rota": "/mentor/profile",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-022",
+      "tipo": "rota",
+      "rota": "/mentor/my-class",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "turmas e vínculos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 21,
+      "tarefa": "T022",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RNF-003",
+        "CA-004",
+        "CA-008",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-023",
+      "tipo": "rota",
+      "rota": "/mentor/verification",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "detalhes e histórico de materiais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 18,
+      "tarefa": "T019",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-024",
+      "tipo": "rota",
+      "rota": "/mentor/history/class",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-025",
+      "tipo": "rota",
+      "rota": "/mentor/loan/creation",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "criação de empréstimo",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 11,
+      "tarefa": "T012",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-003",
+        "CA-007",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-026",
+      "tipo": "rota",
+      "rota": "/mentor/users-request",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "pessoas e solicitações",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 20,
+      "tarefa": "T021",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-027",
+      "tipo": "rota",
+      "rota": "/mentor/search-material",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "catálogo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 10,
+      "tarefa": "T011",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-003",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-028",
+      "tipo": "alias",
+      "rota": "/mentor/history/mentee",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "navegação",
+      "estados_aplicaveis": [
+        "destino autorizado",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 7,
+      "tarefa": "T008",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-004",
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "RNF-003",
+        "CA-004",
+        "CA-010",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-029",
+      "tipo": "rota",
+      "rota": "/mentor/history/mentoring",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-030",
+      "tipo": "rota",
+      "rota": "/mentor/history/loan",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-031",
+      "tipo": "rota",
+      "rota": "/mentor/loan/histories",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "históricos de empréstimos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 24,
+      "tarefa": "T025",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-004",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-032",
+      "tipo": "rota",
+      "rota": "/mentor/my-class/disabled",
+      "perfil": [
+        "Mentor"
+      ],
+      "familia": "turmas e vínculos",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 21,
+      "tarefa": "T022",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-004",
+        "RF-007",
+        "RNF-003",
+        "CA-004",
+        "CA-008",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-033",
+      "tipo": "rota",
+      "rota": "/mentee",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "início",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 9,
+      "tarefa": "T010",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-003",
+        "RF-004",
+        "RF-007",
+        "RF-008",
+        "CA-003",
+        "CA-004",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-034",
+      "tipo": "rota",
+      "rota": "/mentee/search-material",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "catálogo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 10,
+      "tarefa": "T011",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-003",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-035",
+      "tipo": "rota",
+      "rota": "/mentee/profile",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-036",
+      "tipo": "rota",
+      "rota": "/mentee/history/mentoring",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "análise e consulta de empréstimo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 12,
+      "tarefa": "T013",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-003",
+        "CA-007",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-037",
+      "tipo": "rota",
+      "rota": "/mentee/history/loan",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "análise e consulta de empréstimo",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 12,
+      "tarefa": "T013",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-003",
+        "CA-007",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-038",
+      "tipo": "rota",
+      "rota": "/mentee/verification",
+      "perfil": [
+        "Mentorado"
+      ],
+      "familia": "detalhes e histórico de materiais",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "carregamento",
+        "vazio inicial",
+        "filtro sem resultado",
+        "erro",
+        "indisponibilidade",
+        "recuperação",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 18,
+      "tarefa": "T019",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-039",
+      "tipo": "rota",
+      "rota": "/",
+      "perfil": [
+        "Visitante"
+      ],
+      "familia": "acesso",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 8,
+      "tarefa": "T009",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-002",
+        "RF-003",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-002",
+        "CA-003",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-040",
+      "tipo": "rota",
+      "rota": "/change-password-required",
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "acesso",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade",
+        "acesso negado",
+        "sessão expirada"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 14,
+      "tarefa": "T015",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-005",
+        "CA-009",
+        "CA-011"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Protegida por troca obrigatória apesar de estar fora das bases por perfil; cobrir tentativa de contorno."
+    },
+    {
+      "id": "SUP-041",
+      "tipo": "rota",
+      "rota": "/forgot-your-password",
+      "perfil": [
+        "Visitante"
+      ],
+      "familia": "acesso",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 14,
+      "tarefa": "T015",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-005",
+        "CA-009",
+        "CA-011"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-042",
+      "tipo": "rota",
+      "rota": "/reset-password",
+      "perfil": [
+        "Visitante"
+      ],
+      "familia": "acesso",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 14,
+      "tarefa": "T015",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-005",
+        "CA-009",
+        "CA-011"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-043",
+      "tipo": "rota",
+      "rota": "/create-account",
+      "perfil": [
+        "Visitante"
+      ],
+      "familia": "acesso",
+      "estados_aplicaveis": [
+        "inicial",
+        "preenchimento",
+        "validação de campo",
+        "envio",
+        "sucesso",
+        "erro",
+        "indisponibilidade"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 14,
+      "tarefa": "T015",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-005",
+        "CA-009",
+        "CA-011"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-044",
+      "tipo": "rota",
+      "rota": "*",
+      "perfil": [
+        "Visitante",
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": [
+        "rota não encontrada",
+        "retorno autorizado"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração."
+    },
+    {
+      "id": "SUP-045",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Navegação desktop/móvel, cabeçalho, conta e busca",
+      "estados_aplicaveis": [
+        "aberta",
+        "fechada",
+        "destino ativo",
+        "busca sem resultado",
+        "acesso negado"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 7,
+      "tarefa": "T008",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-004",
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "RNF-003",
+        "CA-004",
+        "CA-010",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Navegação desktop/móvel, cabeçalho, conta e busca",
+      "caminho": "frontend/src/components/ui/layout.tsx"
+    },
+    {
+      "id": "SUP-046",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Tema, inicialização e alternância pública/protegida",
+      "estados_aplicaveis": [
+        "preferência ausente",
+        "claro",
+        "escuro",
+        "armazenamento indisponível",
+        "valor inválido",
+        "mudança de aba",
+        "mudança de sistema"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 4,
+      "tarefa": "T005",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-003",
+        "RF-009",
+        "RNF-001",
+        "RNF-003",
+        "CA-003",
+        "CA-010",
+        "CA-011"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Tema, inicialização e alternância pública/protegida",
+      "caminho": "frontend/src/theme/"
+    },
+    {
+      "id": "SUP-047",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Primitivas, portais, toast, tooltip e diálogos",
+      "estados_aplicaveis": [
+        "aberto",
+        "fechado",
+        "foco",
+        "sucesso",
+        "erro",
+        "movimento reduzido"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 5,
+      "tarefa": "T006",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "CA-003",
+        "CA-010",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Primitivas, portais, toast, tooltip e diálogos",
+      "caminho": "frontend/src/components/ui/"
+    },
+    {
+      "id": "SUP-048",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Tabelas/listas rotuladas, filtros e paginação",
+      "estados_aplicaveis": [
+        "conteúdo típico",
+        "conteúdo longo",
+        "vazio",
+        "página inicial",
+        "página final",
+        "ação por teclado"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 5,
+      "tarefa": "T006",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "CA-003",
+        "CA-010",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Tabelas/listas rotuladas, filtros e paginação",
+      "caminho": "frontend/src/components/global/table/"
+    },
+    {
+      "id": "SUP-049",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Campos e seletores reais",
+      "estados_aplicaveis": [
+        "preenchimento",
+        "erro associado",
+        "seleção",
+        "desabilitado",
+        "conteúdo longo"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 6,
+      "tarefa": "T007",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-008",
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "CA-009",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Campos e seletores reais",
+      "caminho": "frontend/src/components/global/inputs/"
+    },
+    {
+      "id": "SUP-050",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Coleções, feedback e composição lista-detalhe",
+      "estados_aplicaveis": [
+        "carregamento",
+        "vazio inicial",
+        "filtro vazio",
+        "erro",
+        "dados antigos em atualização",
+        "seleção",
+        "retorno móvel"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 6,
+      "tarefa": "T007",
+      "marco_aceite": "T014",
+      "requisitos": [
+        "RF-008",
+        "RF-009",
+        "RNF-001",
+        "RNF-002",
+        "CA-009",
+        "CA-011",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Coleções, feedback e composição lista-detalhe",
+      "caminho": "frontend/src/components/layout/"
+    },
+    {
+      "id": "SUP-051",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "Formulário de químicos",
+      "estados_aplicaveis": [
+        "preenchimento",
+        "validação",
+        "envio",
+        "erro",
+        "sucesso"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 17,
+      "tarefa": "T018",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Formulário de químicos",
+      "caminho": "frontend/src/components/global/forms/create/FormQuimicos.tsx"
+    },
+    {
+      "id": "SUP-052",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "Formulário de vidrarias",
+      "estados_aplicaveis": [
+        "preenchimento",
+        "validação",
+        "envio",
+        "erro",
+        "sucesso"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 17,
+      "tarefa": "T018",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Formulário de vidrarias",
+      "caminho": "frontend/src/components/global/forms/create/FormVidraria.tsx"
+    },
+    {
+      "id": "SUP-053",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "Formulário de outros materiais",
+      "estados_aplicaveis": [
+        "preenchimento",
+        "validação",
+        "envio",
+        "erro",
+        "sucesso"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 17,
+      "tarefa": "T018",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Formulário de outros materiais",
+      "caminho": "frontend/src/components/global/forms/create/FormOutros.tsx"
+    },
+    {
+      "id": "SUP-054",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "Edição de produto em diálogo",
+      "estados_aplicaveis": [
+        "aberto",
+        "fechado",
+        "validação",
+        "envio",
+        "erro",
+        "sucesso"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 17,
+      "tarefa": "T018",
+      "marco_aceite": "T020",
+      "requisitos": [
+        "RF-006",
+        "RF-008",
+        "RNF-002",
+        "CA-006",
+        "CA-009",
+        "CA-012"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Edição de produto em diálogo",
+      "caminho": "frontend/src/components/modals/ProductEditModal.tsx"
+    },
+    {
+      "id": "SUP-055",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "Confirmações de status e ações de usuários",
+      "estados_aplicaveis": [
+        "confirmação",
+        "cancelamento",
+        "envio",
+        "erro",
+        "sucesso",
+        "falha de recarga"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 20,
+      "tarefa": "T021",
+      "marco_aceite": "T024",
+      "requisitos": [
+        "RF-007",
+        "RF-008",
+        "RNF-003",
+        "CA-007",
+        "CA-008",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Confirmações de status e ações de usuários",
+      "caminho": "frontend/src/components/global/StatusConfirmationDialog.tsx"
+    },
+    {
+      "id": "SUP-056",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Notificações",
+      "estados_aplicaveis": [
+        "carregamento",
+        "vazio",
+        "conteúdo",
+        "erro",
+        "aberto",
+        "fechado"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Notificações",
+      "caminho": "frontend/src/components/notifications/"
+    },
+    {
+      "id": "SUP-057",
+      "tipo": "compartilhada",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor",
+        "Mentorado"
+      ],
+      "familia": "Saída de sessão",
+      "estados_aplicaveis": [
+        "acionamento",
+        "sessão encerrada",
+        "retorno ao acesso"
+      ],
+      "larguras": [
+        320,
+        375,
+        767,
+        768,
+        1440
+      ],
+      "temas": [
+        "claro",
+        "escuro"
+      ],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": [
+        "RF-004",
+        "RF-005",
+        "RF-008",
+        "RNF-003",
+        "CA-004",
+        "CA-005",
+        "CA-009"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Saída de sessão",
+      "caminho": "frontend/src/components/global/ButtonLogout.tsx"
+    },
+    {
+      "id": "SUP-058",
+      "tipo": "documento",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor"
+      ],
+      "familia": "documentos e exportações",
+      "estados_aplicaveis": [
+        "geração",
+        "falha",
+        "documento curto",
+        "documento longo",
+        "impressão"
+      ],
+      "larguras": [],
+      "temas": [
+        "claro para impressão ou arquivo"
+      ],
+      "onda": 26,
+      "tarefa": "T027",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-010",
+        "RNF-003",
+        "RNF-004",
+        "CA-013",
+        "CA-015"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema do arquivo e largura de viewport",
+          "justificativa": "PDF é claro para impressão; planilha preserva conteúdo. Acionadores e estados web continuam cobertos nos dois temas e larguras das rotas consumidoras."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "PDF de empréstimo",
+      "caminho": "frontend/src/components/pdf/LoanDoc.tsx"
+    },
+    {
+      "id": "SUP-059",
+      "tipo": "documento",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "documentos e exportações",
+      "estados_aplicaveis": [
+        "geração",
+        "falha",
+        "documento curto",
+        "documento longo",
+        "impressão"
+      ],
+      "larguras": [],
+      "temas": [
+        "claro para impressão ou arquivo"
+      ],
+      "onda": 26,
+      "tarefa": "T027",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-010",
+        "RNF-003",
+        "RNF-004",
+        "CA-013",
+        "CA-015"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema do arquivo e largura de viewport",
+          "justificativa": "PDF é claro para impressão; planilha preserva conteúdo. Acionadores e estados web continuam cobertos nos dois temas e larguras das rotas consumidoras."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "PDF de usuários",
+      "caminho": "frontend/src/components/pdf/MyDocument.tsx"
+    },
+    {
+      "id": "SUP-060",
+      "tipo": "documento",
+      "rota": null,
+      "perfil": [
+        "Administrador",
+        "Mentor"
+      ],
+      "familia": "documentos e exportações",
+      "estados_aplicaveis": [
+        "geração",
+        "falha",
+        "conteúdo típico",
+        "conteúdo longo"
+      ],
+      "larguras": [],
+      "temas": [
+        "claro para impressão ou arquivo"
+      ],
+      "onda": 26,
+      "tarefa": "T027",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-010",
+        "RNF-003",
+        "RNF-004",
+        "CA-013",
+        "CA-015"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema do arquivo e largura de viewport",
+          "justificativa": "PDF é claro para impressão; planilha preserva conteúdo. Acionadores e estados web continuam cobertos nos dois temas e larguras das rotas consumidoras."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Planilha de empréstimo",
+      "caminho": "frontend/src/pages/loan/LoanHistory.tsx"
+    },
+    {
+      "id": "SUP-061",
+      "tipo": "documento",
+      "rota": null,
+      "perfil": [
+        "Administrador"
+      ],
+      "familia": "documentos e exportações",
+      "estados_aplicaveis": [
+        "geração",
+        "falha",
+        "conteúdo típico",
+        "conteúdo longo"
+      ],
+      "larguras": [],
+      "temas": [
+        "claro para impressão ou arquivo"
+      ],
+      "onda": 26,
+      "tarefa": "T027",
+      "marco_aceite": "T028",
+      "requisitos": [
+        "RF-010",
+        "RNF-003",
+        "RNF-004",
+        "CA-013",
+        "CA-015"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema do arquivo e largura de viewport",
+          "justificativa": "PDF é claro para impressão; planilha preserva conteúdo. Acionadores e estados web continuam cobertos nos dois temas e larguras das rotas consumidoras."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Planilha de usuários",
+      "caminho": "frontend/src/pages/RegisteredUsers.tsx"
+    },
+    {
+      "id": "SUP-062",
+      "tipo": "documentação",
+      "rota": null,
+      "perfil": [
+        "Leitor do manual"
+      ],
+      "familia": "documentação",
+      "estados_aplicaveis": [
+        "jornadas atualizadas",
+        "links",
+        "capturas sintéticas",
+        "versão identificada"
+      ],
+      "larguras": [],
+      "temas": [],
+      "onda": 29,
+      "tarefa": "T030",
+      "marco_aceite": "T031",
+      "requisitos": [
+        "RF-003",
+        "RF-009",
+        "RF-010",
+        "RNF-005",
+        "CA-003",
+        "CA-010",
+        "CA-014"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema e viewport da aplicação",
+          "justificativa": "Artefato documental; conferir legibilidade e capturas da aplicação nos temas/tamanhos aplicáveis."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Manual, capítulos e capturas",
+      "caminho": "docs/manual/"
+    },
+    {
+      "id": "SUP-063",
+      "tipo": "documentação",
+      "rota": null,
+      "perfil": [
+        "Leitor do manual"
+      ],
+      "familia": "documentação",
+      "estados_aplicaveis": [
+        "coerência com implementação",
+        "decisões rastreadas"
+      ],
+      "larguras": [],
+      "temas": [],
+      "onda": 29,
+      "tarefa": "T030",
+      "marco_aceite": "T031",
+      "requisitos": [
+        "RF-003",
+        "RF-009",
+        "RF-010",
+        "RNF-005",
+        "CA-003",
+        "CA-010",
+        "CA-014"
+      ],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "aceite-final-2026-09-23",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [
+        {
+          "dimensao": "tema e viewport da aplicação",
+          "justificativa": "Artefato documental; conferir legibilidade e capturas da aplicação nos temas/tamanhos aplicáveis."
+        }
+      ],
+      "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
+      "superficie": "Sistema visual documentado",
+      "caminho": "DESIGN.md"
+    }
+  ]
+}
