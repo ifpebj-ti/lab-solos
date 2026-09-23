@@ -42,6 +42,16 @@ describe('ForgotPassword', () => {
     mocks.toast.mockReset();
   });
 
+  it('exibe a instrução de recuperação com a acentuação correta', () => {
+    render(<ForgotPassword />);
+
+    expect(
+      screen.getByText(
+        'Forneça seu e-mail cadastrado para receber as instruções de redefinição de senha.'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('usa o contrato seguro e mostra a mesma resposta neutra apÃ³s o 202', async () => {
     mocks.post.mockResolvedValue({ status: 202 });
     render(<ForgotPassword />);
