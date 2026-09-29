@@ -746,13 +746,14 @@ def _apply_publication(wiki: Path, prepared: dict[str, bytes], stale: list[str])
             target.parent.mkdir(parents=True, exist_ok=True)
             os.replace(staging.joinpath(*PurePosixPath(relative).parts), target)
     except (OSError, RuntimeError) as exc:
+        rollback_errors: set[str] = set()
         for relative in affected:
             target = _safe_destination(wiki, relative)
             try:
                 if target.is_file() or target.is_symlink():
                     target.unlink()
             except OSError:
-                pass
+                rollback_errors.add(relative)
         for relative, content in snapshots.items():
             target = _safe_destination(wiki, relative)
             try:
@@ -764,12 +765,18 @@ def _apply_publication(wiki: Path, prepared: dict[str, bytes], stale: list[str])
                     rollback_path = Path(stream.name)
                 os.replace(rollback_path, target)
             except OSError:
-                pass
+                rollback_errors.add(relative)
         for directory in reversed(created_directories):
             try:
                 directory.rmdir()
             except OSError:
-                pass
+                # Pode conter arquivos de outro editor; a recuperação preserva o diretório.
+                continue
+        if rollback_errors:
+            raise PublicationInputError(
+                "wiki: falha ao gravar a publicação; recuperação incompleta de "
+                f"{len(rollback_errors)} arquivo(s) gerenciado(s); revisão manual necessária"
+            ) from exc
         raise PublicationInputError(
             "wiki: falha ao gravar a publicação; nenhum conjunto parcial foi mantido"
         ) from exc
