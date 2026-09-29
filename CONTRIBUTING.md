@@ -48,10 +48,12 @@ Este projeto usa uma variação da estratégia **trunk-based** com integração 
      git commit -m "Tipo: Descrição breve da mudança"
      ```
    - Tipos comuns de commit:
-     - **feature/nome-da-feature**: nova funcionalidade
-     - **bugfix/nome-do-bug**: correção de bug
-     - **refactor/nome-da-mudanca**: melhoria do código sem mudar a funcionalidade
-     - **test/tipo-de-teste**: adição ou atualização de testes
+     - **feat:** nova funcionalidade.
+     - **fix:** correção de bug.
+     - **docs:** documentação.
+     - **test:** adição ou atualização de testes.
+     - **refactor:** melhoria do código sem mudar a funcionalidade.
+     - **chore:** manutenção e configuração.
 
 6. **Push para o Repositório Remoto**
    - Envie suas alterações para o seu repositório no GitHub:
@@ -60,8 +62,10 @@ Este projeto usa uma variação da estratégia **trunk-based** com integração 
      ```
 
 7. **Criação de Pull Request**
+   - Abra uma issue antes do PR, usando o template do repositório. Preencha contexto, problema, resultado esperado, escopo e critérios de aceitação; defina labels, prioridade, responsável e sprint no Project quando aplicável.
    - Acesse seu repositório no GitHub e abra um Pull Request para a branch `develop` do repositório original. Nunca use `main` como base de uma contribuição.
    - Preserve a estrutura de `.github/pull_request_template.md`, marque exatamente um tipo de mudança e substitua o campo de descrição por um texto claro sobre contexto, propósito e impactos.
+   - Vincule a issue na descrição, por exemplo `Closes #425`, e registre testes, pipeline e demonstração quando aplicável.
 
 8. **Revisão de Código**
    - Aguarde que sua contribuição seja revisada. A equipe pode solicitar alterações, então, esteja atento às notificações.
@@ -70,6 +74,12 @@ Este projeto usa uma variação da estratégia **trunk-based** com integração 
    - Caso seja necessário, faça as mudanças solicitadas e envie novos commits para o mesmo Pull Request.
 
 ## Regras de Codificação e Estilo
+
+Use branches curtas com prefixo `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/` ou `hotfix/` e um nome que descreva a entrega. Por exemplo: `docs/correcoes-primeira-entrega`.
+
+Antes de iniciar uma issue, confira objetivo, critérios de aceitação, dependências, prioridade e responsável (Definition of Ready). Para concluir, execute a funcionalidade localmente, valide os testes e a pipeline, atualize a documentação, obtenha revisão do PR e confirme os critérios de aceitação (Definition of Done).
+
+Toda entrega relevante deve atualizar `CHANGELOG.md` e gerar tag e release conforme a esteira de publicação. Mantenha histórico e links para issues e PRs.
 
 - Siga o padrão de codificação definido nos documentos de estilo do projeto.
 - Realize testes das suas alterações sempre que possível, especialmente se impactarem funcionalidades críticas.

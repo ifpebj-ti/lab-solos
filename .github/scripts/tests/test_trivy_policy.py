@@ -20,7 +20,7 @@ class TrivyPolicyTests(unittest.TestCase):
         self.assertEqual(["vuln"], self.policy["scan"]["scanners"])
         self.assertEqual({"os", "library"}, set(self.policy["pkg"]["types"]))
         self.assertEqual({"HIGH", "CRITICAL"}, set(self.policy["severity"]))
-        self.assertIs(True, self.policy["vulnerability"]["ignore-unfixed"])
+        self.assertIs(False, self.policy["vulnerability"]["ignore-unfixed"])
         self.assertEqual(1, self.policy["exit-code"])
 
     def test_policy_does_not_use_ignored_legacy_top_level_keys(self) -> None:
