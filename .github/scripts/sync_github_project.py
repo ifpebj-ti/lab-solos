@@ -108,6 +108,16 @@ def gh_json_optional(*args: str) -> Any | None:
     return json.loads(result.stdout)
 
 
+def branch_is_protected(repository: str, branch: str) -> bool | None:
+    """Include effective rulesets, which the classic protection API omits."""
+    if gh_succeeds("api", f"repos/{repository}/branches/{branch}/protection"):
+        return True
+    rules = gh_json_optional("api", f"repos/{repository}/rules/branches/{branch}")
+    if rules is None:
+        return None
+    return bool(rules)
+
+
 def normalized(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value.lower())
     return "".join(character for character in decomposed if not unicodedata.combining(character))
@@ -450,8 +460,11 @@ class ProjectSync:
         success_rate = (successes / len(conclusions) * 100) if conclusions else 0
         success_rate_text = f"{success_rate:.1f}".replace(".", ",")
 
-        protected = gh_succeeds(
-            "api", f"repos/{self.repository}/branches/develop/protection"
+        protected = branch_is_protected(self.repository, "develop")
+        protection_text = (
+            "configurada" if protected else
+            "não configurada" if protected is False else
+            "indisponível para a credencial configurada"
         )
         secret_scan = gh_succeeds(
             "api", f"repos/{self.repository}/secret-scanning/alerts?per_page=1"
@@ -480,7 +493,7 @@ class ProjectSync:
             dependabot_line,
             f"- Taxa recente de sucesso da CI: {success_rate_text}% "
             f"({successes} sucessos em {len(conclusions)} execuções concluídas)",
-            f"- Proteção da branch `develop`: {'configurada' if protected else 'não configurada'}",
+            f"- Proteção da branch `develop`: {protection_text}",
             f"- Secret Scanning: {'habilitado' if secret_scan else 'desabilitado ou indisponível'}",
             f"- Code Scanning: {'disponível' if code_scan else 'sem análise disponível pela API'}",
             f"- Atualizado em: {local_date}",

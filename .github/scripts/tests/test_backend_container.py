@@ -2,6 +2,8 @@ import re
 import unittest
 from pathlib import Path
 
+import yaml
+
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DOCKERFILE = REPOSITORY_ROOT / "backend" / "Dockerfile"
@@ -19,7 +21,7 @@ class BackendContainerContractTests(unittest.TestCase):
         )
         self.assertRegex(
             self.dockerfile,
-            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.30-bookworm-slim@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
+            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.30-noble-chiseled-extra@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
         )
         self.assertRegex(
             self.dockerfile,
@@ -35,20 +37,26 @@ class BackendContainerContractTests(unittest.TestCase):
             r"(?m)^ENV\s+ASPNETCORE_URLS=http://\*:8080\s*$",
         )
 
-    def test_updates_runtime_pcre2_security_package(self) -> None:
+    def test_runtime_does_not_require_shell_or_package_manager(self) -> None:
         runtime = self.dockerfile.split(" AS runtime", 1)[1]
-        self.assertIn("apt-get update", runtime)
-        self.assertIn(
-            "apt-get install --no-install-recommends --yes libpcre2-8-0",
-            runtime,
-        )
-        self.assertIn("rm -rf /var/lib/apt/lists/*", runtime)
+        self.assertNotRegex(runtime, r"(?m)^RUN\s")
+        self.assertNotIn("apt-get", runtime)
+        self.assertNotIn("apk", runtime)
 
     def test_preserves_backend_entrypoint(self) -> None:
         entrypoint = re.compile(
             r'(?m)^ENTRYPOINT\s+\["dotnet",\s*"LabSolos-Server-DotNet8\.dll"\]\s*$'
         )
         self.assertRegex(self.dockerfile, entrypoint)
+
+    def test_e2e_readiness_checks_http_without_requiring_a_shell(self) -> None:
+        compose = yaml.safe_load((REPOSITORY_ROOT / "docker-compose-e2e.yml").read_text(encoding="utf-8"))
+        self.assertEqual(
+            ["CMD", "dotnet", "/health-probe/HealthProbe.dll", "http://127.0.0.1:8080/health"],
+            compose["services"]["backend"]["healthcheck"]["test"],
+        )
+        self.assertIn("COPY --from=build /app/health-probe/ /health-probe/", self.dockerfile)
+        self.assertTrue((REPOSITORY_ROOT / "backend/TestSupport/HealthProbe/HealthProbe.csproj").is_file())
 
     def test_restore_consumes_locked_project_and_quality_files_inside_context(self) -> None:
         self.assertIn(
