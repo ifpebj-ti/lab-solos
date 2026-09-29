@@ -2,6 +2,8 @@ import re
 import unittest
 from pathlib import Path
 
+import yaml
+
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DOCKERFILE = REPOSITORY_ROOT / "backend" / "Dockerfile"
@@ -46,6 +48,15 @@ class BackendContainerContractTests(unittest.TestCase):
             r'(?m)^ENTRYPOINT\s+\["dotnet",\s*"LabSolos-Server-DotNet8\.dll"\]\s*$'
         )
         self.assertRegex(self.dockerfile, entrypoint)
+
+    def test_e2e_readiness_checks_http_without_requiring_a_shell(self) -> None:
+        compose = yaml.safe_load((REPOSITORY_ROOT / "docker-compose-e2e.yml").read_text(encoding="utf-8"))
+        self.assertEqual(
+            ["CMD", "dotnet", "/health-probe/HealthProbe.dll", "http://127.0.0.1:8080/health"],
+            compose["services"]["backend"]["healthcheck"]["test"],
+        )
+        self.assertIn("COPY --from=build /app/health-probe/ /health-probe/", self.dockerfile)
+        self.assertTrue((REPOSITORY_ROOT / "backend/TestSupport/HealthProbe/HealthProbe.csproj").is_file())
 
     def test_restore_consumes_locked_project_and_quality_files_inside_context(self) -> None:
         self.assertIn(

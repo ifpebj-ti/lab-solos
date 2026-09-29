@@ -10,6 +10,7 @@ Data: 29/09/2026 · [Issue #425](https://github.com/ifpebj-ti/lab-solos/issues/4
 - Wiki com licença Apache 2.0, logos e fontes dos concorrentes, riscos/objetivos/critérios de sucesso e consulta atualizada de dependências.
 - Quatro rascunhos históricos do Project consolidados nas issues #352 e #353, com referências e estado Done. Itens preservados.
 - Indicador de proteção de develop corrigido para consultar regras efetivamente aplicadas à branch, incluindo rulesets, e diferenciar indisponibilidade da API.
+- Checagem de prontidão E2E substituída por uma consulta HTTP executada com .NET, sem depender de shell no runtime Chiseled.
 
 ## Validação local
 
@@ -22,9 +23,10 @@ python -m unittest discover -s .github/scripts/tests -p test_trivy_policy.py -q
 python -m unittest discover -s .github/scripts/tests -p test_sync_github_project.py -q
 python -m unittest discover -s .github/scripts/tests -p 'test_*container*.py' -q
 python -m unittest discover -s .github/scripts/tests -p 'test_delivery_docs*.py' -q
+python -m unittest discover -s .github/scripts/tests -p test_health_probe.py -q
 ```
 
-Resultados: 3 testes da política Trivy, 29 de sincronização/métrica do Project, 71 de contêineres e workflows e 24 de documentação (um ignorado por indisponibilidade de pré-requisito local). O validador documental também passou nos modos editorial e compose contra o commit da Wiki fixado no manifesto. Os comandos de teste usam PyYAML 6.0.3; a validação local usou Python 3.14 e Compose 5.5.1, enquanto a CI usa os pins do workflow.
+Resultados: 3 testes da política Trivy, 29 de sincronização/métrica do Project, 72 de contêineres e workflows, 4 da checagem HTTP e 24 de documentação (um ignorado por ausência de daemon Docker local). A checagem HTTP foi compilada e executada contra respostas 200/503, falha de conexão e configuração inválida. O validador documental também passou nos modos editorial e compose contra o commit da Wiki fixado no manifesto. Os comandos de teste usam PyYAML 6.0.3; a validação local usou Python 3.14, .NET SDK 8.0.419 e Compose 5.5.1, enquanto a CI usa os pins do workflow.
 
 ## Scan completo das imagens
 

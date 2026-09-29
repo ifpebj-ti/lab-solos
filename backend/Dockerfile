@@ -7,6 +7,10 @@ COPY Directory.Build.props Directory.Build.targets .editorconfig ./
 COPY LabSolos-Server-DotNet8/LabSolos-Server-DotNet8.csproj LabSolos-Server-DotNet8/
 COPY LabSolos-Server-DotNet8/packages.lock.json LabSolos-Server-DotNet8/
 COPY backend.sln .
+COPY TestSupport/HealthProbe/. TestSupport/HealthProbe/
+
+RUN dotnet restore TestSupport/HealthProbe/HealthProbe.csproj --locked-mode --force \
+    && dotnet publish TestSupport/HealthProbe/HealthProbe.csproj -c Release -o /app/health-probe --no-restore
 
 # Copiar o restante dos arquivos
 WORKDIR /src
@@ -26,6 +30,7 @@ WORKDIR /app
 USER app
 
 COPY --from=build /app/out ./
+COPY --from=build /app/health-probe/ /health-probe/
 
 # Expor a porta (portas > 1024 não exigem privilégio root)
 EXPOSE 8080
