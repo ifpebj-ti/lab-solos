@@ -690,6 +690,34 @@ class ProjectSyncTests(unittest.TestCase):
                 sync.sync_event.assert_called_once_with()
 
 
+class BranchProtectionTests(unittest.TestCase):
+    def test_classic_protection_is_detected(self):
+        with patch.object(MODULE, "gh_succeeds", return_value=True), patch.object(
+            MODULE, "gh_json_optional"
+        ) as rules:
+            self.assertIs(True, MODULE.branch_is_protected("owner/repo", "develop"))
+            rules.assert_not_called()
+
+    def test_effective_rulesets_protect_branch_without_classic_protection(self):
+        with patch.object(MODULE, "gh_succeeds", return_value=False), patch.object(
+            MODULE, "gh_json_optional", return_value=[{"type": "required_status_checks"}]
+        ) as rules:
+            self.assertIs(True, MODULE.branch_is_protected("owner/repo", "develop"))
+            rules.assert_called_once_with("api", "repos/owner/repo/rules/branches/develop")
+
+    def test_empty_effective_rules_mean_unprotected(self):
+        with patch.object(MODULE, "gh_succeeds", return_value=False), patch.object(
+            MODULE, "gh_json_optional", return_value=[]
+        ):
+            self.assertIs(False, MODULE.branch_is_protected("owner/repo", "develop"))
+
+    def test_unavailable_api_does_not_mean_unprotected(self):
+        with patch.object(MODULE, "gh_succeeds", return_value=False), patch.object(
+            MODULE, "gh_json_optional", return_value=None
+        ):
+            self.assertIsNone(MODULE.branch_is_protected("owner/repo", "develop"))
+
+
 class WorkflowTests(unittest.TestCase):
     def setUp(self):
         self.workflow = (SCRIPT.parents[1] / "workflows" / "project-metrics.yml").read_text(

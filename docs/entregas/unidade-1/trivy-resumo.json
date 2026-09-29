@@ -1,0 +1,167 @@
+{
+  "data": "2026-09-29",
+  "issue": "https://github.com/ifpebj-ti/lab-solos/issues/425",
+  "ferramenta": "Trivy 0.72.0",
+  "severidades": [
+    "HIGH",
+    "CRITICAL"
+  ],
+  "ignoreUnfixed": false,
+  "scans": [
+    {
+      "arquivoOrigem": "frontend-amd64",
+      "imagem": "ghcr.io/ifpebj-ti/lab-solos-frontend:2.7.1",
+      "criadoEm": "2026-09-29T10:44:20.1631598-03:00",
+      "sistema": {
+        "Family": "alpine",
+        "Name": "3.22.2"
+      },
+      "digests": [
+        "ghcr.io/ifpebj-ti/lab-solos-frontend@sha256:adaa58e6cf37c3c972b80a1875f405998a3dd985c63e450e67e4796dd4136df8"
+      ],
+      "criticas": 0,
+      "altas": 0,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": []
+    },
+    {
+      "arquivoOrigem": "frontend-arm64",
+      "imagem": "ghcr.io/ifpebj-ti/lab-solos-frontend:2.7.1",
+      "criadoEm": "2026-09-29T10:45:34.1668515-03:00",
+      "sistema": {
+        "Family": "alpine",
+        "Name": "3.22.2"
+      },
+      "digests": [
+        "ghcr.io/ifpebj-ti/lab-solos-frontend@sha256:adaa58e6cf37c3c972b80a1875f405998a3dd985c63e450e67e4796dd4136df8"
+      ],
+      "criticas": 0,
+      "altas": 0,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": []
+    },
+    {
+      "arquivoOrigem": "backend-amd64",
+      "imagem": "ghcr.io/ifpebj-ti/lab-solos-backend:2.7.1",
+      "criadoEm": "2026-09-29T10:43:27.4269893-03:00",
+      "sistema": {
+        "Family": "debian",
+        "Name": "12.15"
+      },
+      "digests": [
+        "ghcr.io/ifpebj-ti/lab-solos-backend@sha256:c85803003d307cb98a03e27e2255e31064fffc58b543b2ae62fc7292c774d1d8"
+      ],
+      "criticas": 4,
+      "altas": 52,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": [
+        {
+          "id": "CVE-2026-13221",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-13221"
+        },
+        {
+          "id": "CVE-2026-42496",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-42496"
+        },
+        {
+          "id": "CVE-2026-8376",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-8376"
+        },
+        {
+          "id": "CVE-2023-45853",
+          "pacote": "zlib1g",
+          "versao": "1:1.2.13.dfsg-1",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2023-45853"
+        }
+      ]
+    },
+    {
+      "arquivoOrigem": "backend-arm64",
+      "imagem": "ghcr.io/ifpebj-ti/lab-solos-backend:2.7.1",
+      "criadoEm": "2026-09-29T10:45:14.5817614-03:00",
+      "sistema": {
+        "Family": "debian",
+        "Name": "12.15"
+      },
+      "digests": [
+        "ghcr.io/ifpebj-ti/lab-solos-backend@sha256:c85803003d307cb98a03e27e2255e31064fffc58b543b2ae62fc7292c774d1d8"
+      ],
+      "criticas": 4,
+      "altas": 52,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": [
+        {
+          "id": "CVE-2026-13221",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-13221"
+        },
+        {
+          "id": "CVE-2026-42496",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-42496"
+        },
+        {
+          "id": "CVE-2026-8376",
+          "pacote": "perl-base",
+          "versao": "5.36.0-7+deb12u3",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2026-8376"
+        },
+        {
+          "id": "CVE-2023-45853",
+          "pacote": "zlib1g",
+          "versao": "1:1.2.13.dfsg-1",
+          "correcao": null,
+          "fonte": "https://avd.aquasec.com/nvd/cve-2023-45853"
+        }
+      ]
+    },
+    {
+      "arquivoOrigem": "noble-base",
+      "imagem": "mcr.microsoft.com/dotnet/aspnet:8.0.30-noble-chiseled-extra",
+      "criadoEm": "2026-09-29T10:47:37.6951503-03:00",
+      "sistema": {
+        "Family": "ubuntu",
+        "Name": "24.04"
+      },
+      "digests": [
+        "mcr.microsoft.com/dotnet/aspnet@sha256:43f48a2ce0eda19c01b2bb079c3f02d49b24a1fadafcf546790297db74ede4bf"
+      ],
+      "criticas": 0,
+      "altas": 0,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": []
+    },
+    {
+      "arquivoOrigem": "noble-base-arm64",
+      "imagem": "mcr.microsoft.com/dotnet/aspnet:8.0.30-noble-chiseled-extra@sha256:43f48a2ce0eda19c01b2bb079c3f02d49b24a1fadafcf546790297db74ede4bf",
+      "criadoEm": "2026-09-29T10:49:04.1130864-03:00",
+      "sistema": {
+        "Family": "ubuntu",
+        "Name": "24.04"
+      },
+      "digests": [
+        "mcr.microsoft.com/dotnet/aspnet@sha256:43f48a2ce0eda19c01b2bb079c3f02d49b24a1fadafcf546790297db74ede4bf"
+      ],
+      "criticas": 0,
+      "altas": 0,
+      "altasComCorrecao": 0,
+      "ocorrenciasCriticas": []
+    }
+  ],
+  "limite": "Scans remotos da release 2.7.1 e da nova imagem base. A imagem final candidata deve ser construída e analisada na CI antes de aprovação."
+}

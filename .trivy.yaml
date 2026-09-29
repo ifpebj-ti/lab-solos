@@ -10,5 +10,5 @@ severity:
   - HIGH
   - CRITICAL
 vulnerability:
-  ignore-unfixed: true
+  ignore-unfixed: false
 exit-code: 1

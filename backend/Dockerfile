@@ -18,12 +18,9 @@ WORKDIR /src/LabSolos-Server-DotNet8
 RUN dotnet publish LabSolos-Server-DotNet8.csproj -c Release -o /app/out --no-restore
 
 # Runtime (usa apenas para rodar a aplicação)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.30-bookworm-slim@sha256:787c228ea85457bec43c8b084e6ac360b26ea43b5c2fcbe861f721f2e8670dd3 AS runtime
+# Chiseled-extra mantém ICU/fusos horários e dispensa shell e gerenciador de pacotes.
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.30-noble-chiseled-extra@sha256:43f48a2ce0eda19c01b2bb079c3f02d49b24a1fadafcf546790297db74ede4bf AS runtime
 WORKDIR /app
-
-RUN apt-get update \
-    && apt-get install --no-install-recommends --yes libpcre2-8-0 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Mudar para o usuário não-root
 USER app
