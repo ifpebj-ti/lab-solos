@@ -6,8 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-import unittest
-from unittest import mock
+import unittest.mock
 
 
 SCRIPT = Path(__file__).parents[1] / "audit_dependencies.py"
@@ -480,10 +479,10 @@ class CliTests(unittest.TestCase):
 
     def test_subprocess_uses_argument_list_without_shell(self):
         audit = load_module()
-        with mock.patch("shutil.which", return_value=None), mock.patch.object(
+        with unittest.mock.patch("shutil.which", return_value=None), unittest.mock.patch.object(
             audit.subprocess, "run"
         ) as run:
-            run.return_value = mock.Mock(returncode=0, stdout="{}", stderr="")
+            run.return_value = unittest.mock.Mock(returncode=0, stdout="{}", stderr="")
             audit.run_json_command(["npm", "audit", "--json"], Path("."), "npm")
 
         run.assert_called_once()
@@ -494,10 +493,10 @@ class CliTests(unittest.TestCase):
     def test_subprocess_resolves_windows_command_shim_without_shell(self):
         audit = load_module()
         npm_cmd = r"C:\Program Files\nodejs\npm.CMD"
-        with mock.patch("shutil.which", return_value=npm_cmd), mock.patch.object(
+        with unittest.mock.patch("shutil.which", return_value=npm_cmd), unittest.mock.patch.object(
             audit.subprocess, "run"
         ) as run:
-            run.return_value = mock.Mock(returncode=0, stdout="{}", stderr="")
+            run.return_value = unittest.mock.Mock(returncode=0, stdout="{}", stderr="")
             audit.run_json_command(["npm", "audit", "--json"], Path("."), "npm")
 
         args, kwargs = run.call_args

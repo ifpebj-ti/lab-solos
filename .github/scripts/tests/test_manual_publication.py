@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import unittest
+import unittest.mock
 from pathlib import Path
 
 
@@ -828,6 +828,83 @@ class ManualPublicationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--ref", result.stdout)
         self.assertIn("--mode", result.stdout)
+
+
+class PublicationRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        with unittest.mock.patch.object(sys, "path", [str(SCRIPT.parent), *sys.path]):
+            specification = importlib.util.spec_from_file_location("manual_publication_recovery", SCRIPT)
+            self.publisher = importlib.util.module_from_spec(specification)
+            specification.loader.exec_module(self.publisher)
+
+    def test_failed_publication_restores_all_previous_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            wiki = Path(temporary)
+            previous = {"a.md": b"old a", "b.md": b"old b"}
+            for relative, content in previous.items():
+                (wiki / relative).write_bytes(content)
+            replace = os.replace
+            calls = 0
+
+            def fail_second_write(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    raise OSError("publication failed")
+                return replace(source, target)
+
+            with (
+                unittest.mock.patch.object(self.publisher.os, "replace", side_effect=fail_second_write),
+                self.assertRaisesRegex(self.publisher.PublicationInputError, "nenhum conjunto parcial"),
+            ):
+                self.publisher._apply_publication(wiki, {"a.md": b"new a", "b.md": b"new b"}, [])
+
+            self.assertEqual({name: (wiki / name).read_bytes() for name in previous}, previous)
+            self.assertFalse(list(wiki.glob(".manual-publicacao-*")))
+
+    def test_failed_restoration_reports_incomplete_recovery(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            wiki = Path(temporary)
+            (wiki / "a.md").write_bytes(b"old a")
+            (wiki / "b.md").write_bytes(b"old b")
+            replace = os.replace
+            calls = 0
+
+            def fail_write_and_restore(source, target):
+                nonlocal calls
+                calls += 1
+                if calls in {2, 3}:
+                    raise OSError("disk unavailable")
+                return replace(source, target)
+
+            with (
+                unittest.mock.patch.object(self.publisher.os, "replace", side_effect=fail_write_and_restore),
+                self.assertRaisesRegex(
+                    self.publisher.PublicationInputError,
+                    "recuperação incompleta de 1 arquivo.*revisão manual necessária",
+                ),
+            ):
+                self.publisher._apply_publication(wiki, {"a.md": b"new a", "b.md": b"new b"}, [])
+
+            self.assertFalse((wiki / "a.md").exists())
+            self.assertEqual((wiki / "b.md").read_bytes(), b"old b")
+
+    def test_recovery_preserves_another_editors_file_in_created_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            wiki = Path(temporary)
+
+            def fail_with_concurrent_file(source, target):
+                (wiki / "nested" / "foreign.md").write_bytes(b"other editor")
+                raise OSError("publication failed")
+
+            with (
+                unittest.mock.patch.object(self.publisher.os, "replace", side_effect=fail_with_concurrent_file),
+                self.assertRaisesRegex(self.publisher.PublicationInputError, "nenhum conjunto parcial"),
+            ):
+                self.publisher._apply_publication(wiki, {"nested/new.md": b"new"}, [])
+
+            self.assertEqual((wiki / "nested" / "foreign.md").read_bytes(), b"other editor")
+            self.assertFalse((wiki / "nested" / "new.md").exists())
 
 
 if __name__ == "__main__":
