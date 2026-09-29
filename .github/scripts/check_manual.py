@@ -505,7 +505,7 @@ def _validate_markdown_links(
                         try:
                             external_urls.setdefault(_canonical_external_url(destination), origin)
                         except ValueError:
-                            pass
+                            errors.append(_issue(origin, "destino de link possui URL inválida"))
                 else:
                     errors.append(_issue(origin, "links externos devem usar HTTPS"))
                 continue
@@ -573,6 +573,7 @@ def _close_response(response: object) -> None:
         try:
             close()
         except OSError:
+            # A falha ao fechar a resposta não altera o resultado da verificação HTTP.
             pass
 
 

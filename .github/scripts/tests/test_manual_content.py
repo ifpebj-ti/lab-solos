@@ -5,8 +5,7 @@ import os
 import subprocess
 import sys
 import tempfile
-import unittest
-from unittest import mock
+import unittest.mock
 from pathlib import Path
 
 
@@ -93,19 +92,6 @@ def _manifest():
         "J09": "administrador.md",
         "J10": "mentor.md",
         "J11": "solucao-de-problemas.md",
-    }
-    titles = {
-        "J01": "Entender o acesso",
-        "J02": "Solicitar cadastro",
-        "J03": "Avaliar cadastro e vínculos",
-        "J04": "Entrar e concluir primeiro acesso",
-        "J05": "Alterar ou recuperar senha e sair",
-        "J06": "Preparar a operação",
-        "J07": "Gerir materiais",
-        "J08": "Solicitar e acompanhar empréstimo",
-        "J09": "Decidir e concluir empréstimo",
-        "J10": "Gerir e consultar turma ou perfil",
-        "J11": "Recuperar-se de falhas",
     }
     return {
         "versaoEsquema": 1,
@@ -271,9 +257,9 @@ def _external_fixture(root, links):
 def _run_external_main(source, transport):
     output = io.StringIO()
     errors = io.StringIO()
-    with mock.patch.object(VALIDATOR, "_default_transport", side_effect=transport), mock.patch.object(
+    with unittest.mock.patch.object(VALIDATOR, "_default_transport", side_effect=transport), unittest.mock.patch.object(
         sys, "stdout", output
-    ), mock.patch.object(sys, "stderr", errors):
+    ), unittest.mock.patch.object(sys, "stderr", errors):
         code = VALIDATOR.main(["--source", str(source), "--external"])
     return code, output.getvalue(), errors.getvalue()
 
@@ -870,7 +856,7 @@ class ManualContentContractTests(unittest.TestCase):
                 encoding="utf-8",
                 newline="\n",
             )
-            with mock.patch("urllib.request.urlopen", side_effect=AssertionError("rede aberta")):
+            with unittest.mock.patch("urllib.request.urlopen", side_effect=AssertionError("rede aberta")):
                 errors = VALIDATOR.validate_source(source)
 
         self.assertEqual(errors, [])

@@ -94,8 +94,8 @@ def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
             "# Product Requirements Document (PRD)",
             "",
             "Esta página reúne os documentos de requisitos do produto do LabOn. "
-            "As seções são publicadas automaticamente a partir dos PRDs versionados "
-            "no repositório principal.",
+            + "As seções são publicadas automaticamente a partir dos PRDs versionados "
+            + "no repositório principal.",
             "",
             "| PRD | Status | Atualizado em |",
             "| --- | --- | --- |",

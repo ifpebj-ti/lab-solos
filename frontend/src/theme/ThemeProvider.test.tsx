@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { THEME_STORAGE_KEY } from './themePreference';
@@ -103,15 +103,19 @@ describe('ThemeProvider', () => {
       </ThemeProvider>
     );
 
-    act(() => {
-      window.dispatchEvent(
-        new StorageEvent('storage', {
+    fireEvent(
+      window,
+      createEvent(
+        'storage',
+        window,
+        {
           key: THEME_STORAGE_KEY,
           newValue: 'dark',
           storageArea: window.localStorage,
-        })
-      );
-    });
+        },
+        { EventType: 'StorageEvent' }
+      )
+    );
 
     expect(screen.getByTestId('theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
