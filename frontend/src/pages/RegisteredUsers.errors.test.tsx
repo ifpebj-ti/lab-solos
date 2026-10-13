@@ -78,7 +78,7 @@ describe('RegisteredUsers: estados de consulta', () => {
     server.use(
       http.get(`${API_ORIGIN}/Usuarios`, () => HttpResponse.json([])),
       http.get(`${API_ORIGIN}/Usuarios/42/dependentes/aprovacao`, () =>
-        new HttpResponse(null, { status: 404 })
+        HttpResponse.json([])
       )
     );
 
@@ -88,6 +88,22 @@ describe('RegisteredUsers: estados de consulta', () => {
       await screen.findByText('Nenhum usuário cadastrado.')
     ).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('propaga 404 da consulta protegida de pendências', async () => {
+    server.use(
+      http.get(`${API_ORIGIN}/Usuarios`, () => HttpResponse.json(users)),
+      http.get(`${API_ORIGIN}/Usuarios/42/dependentes/aprovacao`, () =>
+        new HttpResponse(null, { status: 404 })
+      )
+    );
+
+    renderPage();
+
+    const feedback = await screen.findByRole('alert');
+    expect(feedback).toHaveTextContent('Não foi possível carregar os cadastros para aprovação');
+    expect(feedback).toHaveTextContent('O recurso solicitado não foi encontrado.');
+    expect(screen.getByText('Ana Silva')).toBeInTheDocument();
   });
 
   it('exibe falha persistente contextual sem transformá-la em coleção vazia', async () => {

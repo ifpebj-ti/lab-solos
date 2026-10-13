@@ -112,6 +112,24 @@ describe('fronteiras de usuario e dependentes', () => {
 
     await expect(getUserById({ id: 7 })).rejects.toThrow();
   });
+
+  it('mantém getUserById estrito para DTOs mínimos de acompanhamento', async () => {
+    const accompaniment = {
+      id: academicUser.id,
+      nomeCompleto: academicUser.nomeCompleto,
+      email: academicUser.email,
+      telefone: academicUser.telefone,
+      dataIngresso: academicUser.dataIngresso,
+      instituicao: academicUser.instituicao,
+      cidade: academicUser.cidade,
+      curso: academicUser.curso,
+      status: academicUser.status,
+      nivelUsuario: 'Mentorado',
+    };
+    vi.mocked(api).mockResolvedValue({ data: accompaniment });
+
+    await expect(getUserById({ id: 7 })).rejects.toThrow();
+  });
 });
 
 describe.each([

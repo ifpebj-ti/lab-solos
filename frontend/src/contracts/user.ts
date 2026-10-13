@@ -61,11 +61,17 @@ export const academicoSchema = usuarioSchema.extend({
   instituicao: z.string(),
 });
 
+export const usuarioAcompanhamentoSchema = usuarioComumSchema.extend({
+  ...vinculoAcademicoSchema.shape,
+  instituicao: z.string().nullable(),
+});
+
 export type StatusUsuario = z.infer<typeof statusUsuarioSchema>;
 export type NivelUsuario = z.infer<typeof nivelUsuarioSchema>;
 export type TipoUsuario = z.infer<typeof tipoUsuarioSchema>;
 export type UsuarioComum = z.infer<typeof usuarioComumSchema>;
 export type Usuario = z.infer<typeof usuarioSchema>;
 export type Academico = z.infer<typeof academicoSchema>;
+export type UsuarioAcompanhamento = z.infer<typeof usuarioAcompanhamentoSchema>;
 export type Responsavel = z.infer<typeof responsavelSchema>;
 export type Dependente = z.infer<typeof dependenteSchema>;

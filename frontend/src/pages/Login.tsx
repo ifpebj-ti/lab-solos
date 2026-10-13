@@ -8,8 +8,13 @@ import { consumeAuthNotice, SESSION_EXPIRED_NOTICE } from '@/auth/intendedRoute'
 import { clearSession } from '@/auth/session';
 import { createApplicationError } from '@/errors/applicationError';
 import { ERROR_CATALOG, OPERATION_IDS } from '@/errors/errorCatalog';
+import { normalizeError } from '@/errors/normalizeError';
 import { notifyError } from '@/errors/presentError';
 import { authenticate } from '@/integration/Auth';
+import {
+  AuthenticationWaitFeedback,
+  useAuthenticationWait,
+} from '@/components/auth/AuthenticationWaitFeedback';
 import InputText from '@/components/global/inputs/Text';
 import InputPassword from '@/components/global/inputs/Password';
 import { toast } from '@/components/hooks/use-toast';
@@ -25,6 +30,7 @@ type LoginFormData = z.infer<typeof submitLoginSchema>;
 
 function Login() {
   const [loading, setLoading] = useState(false);
+  const authenticationWait = useAuthenticationWait();
   const {
     register,
     handleSubmit,
@@ -49,6 +55,9 @@ function Login() {
   }, []);
 
   async function postLogin(data: LoginFormData) {
+    if (loading || authenticationWait.isWaiting) return;
+
+    authenticationWait.clearWait();
     setLoading(true);
     try {
       await authenticate({ method: 'POST', params: data }, navigate);
@@ -57,7 +66,12 @@ function Login() {
         description: 'Bem-vindo de volta!',
       });
     } catch (error: unknown) {
-      notifyError(error, OPERATION_IDS.login);
+      const normalizedError = normalizeError(error);
+      if (normalizedError.category === 'rate_limited') {
+        authenticationWait.startWait(normalizedError.retryAfterSeconds);
+      } else {
+        notifyError(error, OPERATION_IDS.login);
+      }
     } finally {
       setLoading(false);
     }
@@ -85,6 +99,12 @@ function Login() {
 
         <div className='px-5 py-6 sm:px-7'>
           <p className='mb-4 text-sm text-clt-1'>Acesse sua conta institucional.</p>
+          <AuthenticationWaitFeedback
+            isWaiting={authenticationWait.isWaiting}
+            waitSeconds={authenticationWait.waitSeconds}
+            isReady={authenticationWait.isReady}
+            className='mb-3'
+          />
           <form onSubmit={handleSubmit(postLogin)} className='flex w-full flex-col gap-1'>
             <InputText
               label='Email'
@@ -121,7 +141,7 @@ function Login() {
 
             <button
               type='submit'
-              disabled={loading}
+              disabled={loading || authenticationWait.isWaiting}
               className='mt-4 min-h-11 w-full rounded-md bg-primaryMy px-4 font-rajdhani-semibold text-lg text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
             >
               {loading ? 'Carregando...' : 'Submeter Login'}

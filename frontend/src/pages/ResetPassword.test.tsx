@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createApplicationError } from '@/errors/applicationError';
@@ -231,5 +231,85 @@ describe('ResetPassword', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Atualizar senha' })).toBeEnabled();
     });
+  });
+
+  it('bloqueia a redefinicao por Retry-After sem repetir a requisicao automaticamente', async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.post
+        .mockRejectedValueOnce(
+          createApplicationError({
+            category: 'rate_limited',
+            message: 'Aguarde para tentar novamente.',
+            status: 429,
+            retryAfterSeconds: 7,
+            retryable: false,
+          })
+        )
+        .mockResolvedValueOnce({ status: 204 });
+      render(<ResetPassword />);
+      fillValidForm();
+      const form = screen.getByRole('button', { name: 'Atualizar senha' }).closest('form');
+
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+
+      expect(mocks.post).toHaveBeenCalledOnce();
+      expect(screen.getByRole('status')).toHaveTextContent(/aguarde 7 segundos/i);
+      expect(screen.getByRole('button', { name: 'Atualizar senha' })).toBeDisabled();
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+      expect(mocks.post).toHaveBeenCalledOnce();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(7000);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/voc[eê] pode tentar novamente/i);
+      expect(screen.getByRole('button', { name: 'Atualizar senha' })).toBeEnabled();
+      expect(mocks.post).toHaveBeenCalledOnce();
+
+      vi.useRealTimers();
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+      await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(2));
+      expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('usa a espera generica quando o 429 nao tem prazo valido', async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.post.mockRejectedValue(
+        createApplicationError({
+          category: 'rate_limited',
+          message: 'Aguarde para tentar novamente.',
+          status: 429,
+          retryAfterSeconds: 0,
+          retryable: false,
+        })
+      );
+      render(<ResetPassword />);
+      fillValidForm();
+      const form = screen.getByRole('button', { name: 'Atualizar senha' }).closest('form');
+
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+
+      expect(screen.getByRole('status')).toHaveTextContent(/aguarde 30 segundos/i);
+      expect(screen.getByRole('button', { name: 'Atualizar senha' })).toBeDisabled();
+      expect(mocks.post).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

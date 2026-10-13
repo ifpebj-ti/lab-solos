@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import MentoringHistory from './MentoringHistory';
 
-const usersApi = vi.hoisted(() => ({ getUserById: vi.fn() }));
+const usersApi = vi.hoisted(() => ({ getUserForMentoring: vi.fn() }));
 const loansApi = vi.hoisted(() => ({ getLoansByUserId: vi.fn() }));
 
 vi.mock('@/integration/Users', () => usersApi);
@@ -19,11 +19,9 @@ const user = {
   dataIngresso: '2026-09-01',
   status: 'Habilitado',
   nivelUsuario: 'Mentorado',
-  tipoUsuario: 'Academico',
   cidade: 'Belo Jardim',
   curso: 'ES',
   instituicao: 'IFPE',
-  responsavel: null,
 };
 
 const loan = {
@@ -40,7 +38,7 @@ const loan = {
 describe('histórico de mentorados responsivo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    usersApi.getUserById.mockResolvedValue(user);
+    usersApi.getUserForMentoring.mockResolvedValue(user);
     loansApi.getLoansByUserId.mockResolvedValue([loan]);
   });
 
@@ -51,6 +49,7 @@ describe('histórico de mentorados responsivo', () => {
       </MemoryRouter>
     );
     const list = await screen.findByRole('list', { name: 'Histórico de mentorados' });
+    expect(usersApi.getUserForMentoring).toHaveBeenCalledWith({ id: 4101 });
     const record = within(list).getByRole('listitem');
     expect(Array.from(record.querySelectorAll('dt')).map((node) => node.textContent)).toEqual([
       'Id',

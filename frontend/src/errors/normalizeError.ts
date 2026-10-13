@@ -42,6 +42,7 @@ const categoryForStatus = (status: number): ErrorCategory => {
   if (status === 403) return 'authorization';
   if (status === 404) return 'not_found';
   if (status === 409) return 'conflict';
+  if (status === 429) return 'rate_limited';
   if (status >= 500 && status <= 599) return 'server';
   return 'unknown';
 };
@@ -167,6 +168,48 @@ const extractRequestId = (
   );
 };
 
+const isHttpDate = (value: string): boolean =>
+  /^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT|(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), \d{2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2} \d{2}:\d{2}:\d{2} GMT|(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (?: [1-9]|[12]\d|3[01]) \d{2}:\d{2}:\d{2} \d{4})$/.test(
+    value
+  );
+
+const positiveSafeInteger = (value: unknown): number | undefined =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+    ? value
+    : undefined;
+
+const safeIntegerAtLeastZero = (value: number): number | undefined =>
+  Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+
+const retryAfterFromHeader = (value: unknown): number | undefined => {
+  if (typeof value !== 'string') return undefined;
+
+  const candidate = value.trim();
+  if (/^\d+$/.test(candidate)) {
+    const seconds = safeIntegerAtLeastZero(Number(candidate));
+    return seconds === undefined ? undefined : Math.max(1, seconds);
+  }
+  if (!isHttpDate(candidate)) return undefined;
+
+  const retryAt = Date.parse(candidate);
+  if (!Number.isFinite(retryAt)) return undefined;
+
+  const seconds = Math.ceil((retryAt - Date.now()) / 1000);
+  const safeSeconds = safeIntegerAtLeastZero(seconds);
+  return safeSeconds === undefined ? undefined : Math.max(1, safeSeconds);
+};
+
+const extractRetryAfterSeconds = (
+  body: UnknownRecord | undefined,
+  response: UnknownRecord | undefined
+): number | undefined => {
+  const headers = isRecord(read(response, 'headers'))
+    ? (read(response, 'headers') as UnknownRecord)
+    : undefined;
+  const headerValue = retryAfterFromHeader(readHeader(headers, 'retry-after'));
+  return headerValue ?? positiveSafeInteger(read(body, 'retryAfterSeconds'));
+};
+
 const extractStatus = (
   record: UnknownRecord | undefined,
   response: UnknownRecord | undefined
@@ -213,6 +256,10 @@ export const normalizeError = (error: unknown): ApplicationError => {
     ]);
     const fieldErrors = category === 'validation' ? extractFieldErrors(body) : undefined;
     const requestId = extractRequestId(body, response);
+    const retryAfterSeconds =
+      category === 'rate_limited'
+        ? extractRetryAfterSeconds(body, response)
+        : undefined;
     const catalogEntry = ERROR_CATALOG[category];
 
     return createApplicationError({
@@ -220,6 +267,7 @@ export const normalizeError = (error: unknown): ApplicationError => {
       message: catalogEntry.message,
       retryable: catalogEntry.retryable,
       ...(status === undefined ? {} : { status }),
+      ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
       ...(code === undefined ? {} : { code }),
       ...(requestId === undefined ? {} : { requestId }),
       ...(fieldErrors === undefined ? {} : { fieldErrors }),

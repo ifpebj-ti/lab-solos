@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { createApplicationError } from '@/errors/applicationError';
 import Login from './Login';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
@@ -173,6 +174,101 @@ describe('Login', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeEnabled();
     });
+  });
+
+  it('bloqueia o login durante o Retry-After e aguarda uma nova acao do usuario', async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.authenticate.mockRejectedValue(
+        createApplicationError({
+          category: 'rate_limited',
+          message: 'Aguarde para tentar novamente.',
+          status: 429,
+          retryAfterSeconds: 5,
+          retryable: false,
+        })
+      );
+
+      renderLogin();
+      fireEvent.change(screen.getByLabelText('Email'), {
+        target: { value: 'user@example.org' },
+      });
+      fireEvent.change(screen.getByLabelText('Senha'), {
+        target: { value: 'senha-segura' },
+      });
+
+      const form = screen.getByRole('button', { name: 'Submeter Login' }).closest('form');
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+
+      expect(mocks.authenticate).toHaveBeenCalledOnce();
+      expect(screen.getByRole('status')).toHaveTextContent(/aguarde 5 segundos/i);
+      expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeDisabled();
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+      expect(mocks.authenticate).toHaveBeenCalledOnce();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(4999);
+      });
+      expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeDisabled();
+      expect(mocks.authenticate).toHaveBeenCalledOnce();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/voc[eê] pode tentar novamente/i);
+      expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeEnabled();
+      expect(mocks.authenticate).toHaveBeenCalledOnce();
+
+      await act(async () => {
+        fireEvent.submit(form!);
+        await Promise.resolve();
+      });
+      expect(mocks.authenticate).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('usa espera generica para metadado de 429 ausente ou invalido', async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.authenticate.mockRejectedValue(
+        createApplicationError({
+          category: 'rate_limited',
+          message: 'Aguarde para tentar novamente.',
+          status: 429,
+          retryAfterSeconds: Number.NaN,
+          retryable: false,
+        })
+      );
+
+      renderLogin();
+      fireEvent.change(screen.getByLabelText('Email'), {
+        target: { value: 'user@example.org' },
+      });
+      fireEvent.change(screen.getByLabelText('Senha'), {
+        target: { value: 'senha-segura' },
+      });
+
+      await act(async () => {
+        fireEvent.submit(
+          screen.getByRole('button', { name: 'Submeter Login' }).closest('form')!
+        );
+        await Promise.resolve();
+      });
+
+      expect(screen.getByRole('status')).toHaveTextContent(/aguarde 30 segundos/i);
+      expect(screen.getByRole('button', { name: 'Submeter Login' })).toBeDisabled();
+      expect(mocks.authenticate).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('apresenta a entrada LabOn/IFPE com acao principal e tema publico', () => {

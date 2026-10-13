@@ -12,6 +12,10 @@ import ButtonLogout from '@/components/global/ButtonLogout';
 import { academicoSchema, type Academico } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
+import ProfileContactForm, {
+  type ProfileContactFields,
+} from '@/components/auth/ProfileContactForm';
+import { Button } from '@/components/ui/button';
 
 export interface IProduto {
   id: number;
@@ -64,6 +68,7 @@ function ProfileMentee() {
     OPERATION_IDS.userById
   );
   const [retryToken, setRetryToken] = useState(0);
+  const [editingOwnProfile, setEditingOwnProfile] = useState(false);
 
   useEffect(() => {
     const fetchGetUserById = async () => {
@@ -240,6 +245,27 @@ function ProfileMentee() {
                     visible={Boolean(user.responsavel)}
                     items={infoItemsProf}
                   />
+                </div>
+                <div className='mt-5'>
+                  {editingOwnProfile ? (
+                    <ProfileContactForm
+                      user={user}
+                      onSaved={(fields: ProfileContactFields) =>
+                        setUser((current) =>
+                          current ? { ...current, ...fields } : current
+                        )
+                      }
+                      onCancel={() => setEditingOwnProfile(false)}
+                    />
+                  ) : (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={() => setEditingOwnProfile(true)}
+                    >
+                      Editar meus dados
+                    </Button>
+                  )}
                 </div>
               </>
             ) : null}

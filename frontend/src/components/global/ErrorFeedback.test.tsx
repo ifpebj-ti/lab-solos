@@ -91,4 +91,62 @@ describe('ErrorFeedback', () => {
     fireEvent.click(navigate);
     expect(onNavigate).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    ['authentication', 'Entrar novamente'],
+    ['authorization', 'Voltar'],
+    ['not_found', 'Voltar'],
+  ] as const)('offers safe navigation for %s', (category, label) => {
+    const onNavigate = vi.fn();
+    const presentation = presentError(
+      createApplicationError({
+        category,
+        message: 'SENTINELA_REMOTA',
+        retryable: false,
+      }),
+      OPERATION_IDS.products
+    );
+
+    render(<ErrorFeedback presentation={presentation} onNavigate={onNavigate} />);
+
+    fireEvent.click(screen.getByRole('button', { name: label }));
+    expect(onNavigate).toHaveBeenCalledOnce();
+  });
+
+  it('announces a 429 wait without retrying the operation automatically', () => {
+    const onRetry = vi.fn();
+    const presentation = presentError(
+      createApplicationError({
+        category: 'rate_limited',
+        message: 'SENTINELA_REMOTA',
+        retryAfterSeconds: 42,
+        retryable: false,
+      }),
+      OPERATION_IDS.login
+    );
+
+    render(<ErrorFeedback presentation={presentation} onRetry={onRetry} />);
+
+    const feedback = screen.getByRole('alert');
+    expect(feedback).toHaveTextContent('Aguarde 42 segundos');
+    expect(screen.queryByRole('button', { name: 'Tentar novamente' })).toBeNull();
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it('uses generic guidance when a 429 has no reliable wait', () => {
+    const presentation = presentError(
+      createApplicationError({
+        category: 'rate_limited',
+        message: 'SENTINELA_REMOTA',
+        retryable: false,
+      }),
+      OPERATION_IDS.login
+    );
+
+    render(<ErrorFeedback presentation={presentation} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Aguarde um pouco antes de tentar novamente.'
+    );
+  });
 });

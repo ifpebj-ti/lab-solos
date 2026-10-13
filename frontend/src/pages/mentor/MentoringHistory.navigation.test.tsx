@@ -6,7 +6,7 @@ import { createApplicationError } from '@/errors/applicationError';
 
 import MentoringHistory from './MentoringHistory';
 
-const usersApi = vi.hoisted(() => ({ getUserById: vi.fn() }));
+const usersApi = vi.hoisted(() => ({ getUserForMentoring: vi.fn() }));
 const loansApi = vi.hoisted(() => ({ getLoansByUserId: vi.fn() }));
 
 vi.mock('@/integration/Users', () => usersApi);
@@ -21,11 +21,9 @@ const user = {
   dataIngresso: '2026-09-01',
   status: 'Habilitado',
   nivelUsuario: 'Mentorado',
-  tipoUsuario: 'Academico',
   cidade: 'Belo Jardim',
   curso: 'ES',
   instituicao: 'IFPE',
-  responsavel: null,
 };
 
 const loan = {
@@ -42,7 +40,7 @@ const loan = {
 describe('MentoringHistory: navegação e falhas parciais', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    usersApi.getUserById.mockResolvedValue(user);
+    usersApi.getUserForMentoring.mockResolvedValue(user);
     loansApi.getLoansByUserId.mockResolvedValue([loan]);
   });
 
@@ -54,7 +52,7 @@ describe('MentoringHistory: navegação e falhas parciais', () => {
     );
 
     expect(await screen.findByText('Mentorado da turma')).toBeInTheDocument();
-    expect(usersApi.getUserById).toHaveBeenCalledWith({ id: 81 });
+    expect(usersApi.getUserForMentoring).toHaveBeenCalledWith({ id: 81 });
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/mentor/my-class');
     expect(screen.getByRole('link', { name: '801' })).toHaveAttribute('href', '/mentor/history/loan?id=801');
   });
@@ -66,8 +64,8 @@ describe('MentoringHistory: navegação e falhas parciais', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(usersApi.getUserById).toHaveBeenCalledWith({ id: 81 }));
-    expect(usersApi.getUserById).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(usersApi.getUserForMentoring).toHaveBeenCalledWith({ id: 81 }));
+    expect(usersApi.getUserForMentoring).toHaveBeenCalledTimes(1);
   });
 
   it('mantém a identidade carregada quando a lista retorna erro', async () => {

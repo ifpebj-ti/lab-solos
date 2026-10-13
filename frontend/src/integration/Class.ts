@@ -3,13 +3,13 @@ import Cookie from 'js-cookie';
 import { emprestimosSchema } from '@/contracts/loan';
 import { dependenteSchema } from '@/contracts/user';
 
-import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
+import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
 
 const dependentesResponseSchema = dependenteSchema.array();
 
-const emptyOnNotFound = (error: unknown, operation: OperationId): [] => {
-  const normalized = reportAppError(error, operation);
+const emptyOnAdminApprovalNotFound = (error: unknown): [] => {
+  const normalized = reportAppError(error, OPERATION_IDS.usersForApproval);
 
   if (normalized.category === 'not_found' && normalized.status === 404) {
     return [];
@@ -61,7 +61,6 @@ export const getDependentes = async () => {
   }
 };
 
-/** 404 nesta operação representa uma coleção de dependentes vazia. */
 export const getDependentesID = async (rankID: string) => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -77,11 +76,10 @@ export const getDependentesID = async (rankID: string) => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    return emptyOnNotFound(error, OPERATION_IDS.dependentsById);
+    throw reportAppError(error, OPERATION_IDS.dependentsById);
   }
 };
 
-/** 404 nesta operação representa uma coleção de cadastros vazia para aprovação. */
 export const getDependentesForApproval = async (rankID: string) => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -97,11 +95,11 @@ export const getDependentesForApproval = async (rankID: string) => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    return emptyOnNotFound(error, OPERATION_IDS.dependentsForApproval);
+    throw reportAppError(error, OPERATION_IDS.dependentsForApproval);
   }
 };
 
-/** 404 nesta operação representa uma coleção de usuários vazia para aprovação. */
+/** Mantém o fallback legado da aprovação administrativa sem estendê-lo a vínculos protegidos. */
 export const getAllUsersForApproval = async () => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -117,7 +115,7 @@ export const getAllUsersForApproval = async () => {
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    return emptyOnNotFound(error, OPERATION_IDS.usersForApproval);
+    return emptyOnAdminApprovalNotFound(error);
   }
 };
 

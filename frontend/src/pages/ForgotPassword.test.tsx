@@ -77,6 +77,7 @@ describe('ForgotPassword', () => {
       });
       expect(mocks.navigate).toHaveBeenCalledWith('/reset-password');
     });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('exibe resumo comum e associa validação ao email sem revelar resposta remota', async () => {

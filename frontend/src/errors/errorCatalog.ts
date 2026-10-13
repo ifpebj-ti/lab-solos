@@ -35,6 +35,11 @@ export const ERROR_CATALOG: Readonly<Record<ErrorCategory, ErrorCatalogEntry>> =
       suggestedAction: 'Atualizar os dados antes de tentar novamente.',
       retryable: false,
     },
+    rate_limited: {
+      message: 'As tentativas foram limitadas temporariamente.',
+      suggestedAction: 'Aguarde um pouco antes de tentar novamente.',
+      retryable: false,
+    },
     network: {
       message: 'Não foi possível conectar ao serviço.',
       suggestedAction: 'Conferir a conexão e tentar novamente.',
@@ -64,6 +69,8 @@ export const KNOWN_ERROR_CODES = [
   'password_common',
   'password_confirmation_mismatch',
   'current_password_invalid',
+  'profile_update_conflict',
+  'authentication_rate_limited',
   'password_reset_invalid',
   'credential_concurrency_conflict',
   'password_invalid',
@@ -111,6 +118,7 @@ const fieldByLowerCase = new Map<string, ExpectedErrorField>(
 
 const legacyFieldAliases = new Map<string, ExpectedErrorField>([
   ['code', 'token'],
+  ['senhaatual', 'currentPassword'],
 ]);
 
 export const normalizeErrorField = (
