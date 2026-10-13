@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { parseResourceId } from '@/contracts/identifier';
 import {
   academicoSchema,
   dependenteSchema,
@@ -66,7 +67,7 @@ export const getDependentesForApproval = async (rankID: string | number) => {
 
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${rankID}/dependentes/aprovacao`,
+      url: `Usuarios/${parseResourceId(rankID)}/dependentes/aprovacao`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -93,12 +94,12 @@ const mutateDependentApproval = async (
 
     const response = await api({
       method: 'PATCH',
-      url: `Usuarios/dependentes/${solicitanteId}/${action}`,
+      url: `Usuarios/dependentes/${parseResourceId(solicitanteId)}/${action}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
       data: {
-        aprovadorId: Number(rankID),
+        aprovadorId: parseResourceId(rankID),
       },
     });
 
@@ -151,7 +152,7 @@ export const getUserById = async ({ id }: IUserById) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${id}`,
+      url: `Usuarios/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -172,7 +173,7 @@ export const getUserForMentoring = async ({ id }: IUserById) => {
 
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${id}`,
+      url: `Usuarios/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -196,7 +197,7 @@ export const updateUserStatus = async ({
 
     const response = await api({
       method: 'PATCH',
-      url: `Usuarios/${userId}`,
+      url: `Usuarios/${parseResourceId(userId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json-patch+json',
@@ -259,7 +260,7 @@ export const updateOwnUserProfile = async ({
 
     await api({
       method: 'PATCH',
-      url: `Usuarios/${userId}`,
+      url: `Usuarios/${parseResourceId(userId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json-patch+json',

@@ -83,7 +83,9 @@ const legacyAcademicUser = {
 } as const;
 
 beforeEach(() => {
-  cookieGetMock.mockReturnValue('token');
+  cookieGetMock.mockImplementation((name: string) =>
+    name === 'rankID' ? String(academicUser.id) : 'token'
+  );
   vi.mocked(api).mockReset();
 });
 
