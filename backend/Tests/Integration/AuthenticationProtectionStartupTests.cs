@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services.Security;
@@ -192,7 +192,3 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
         }
     }
 }
-
-
-
-
