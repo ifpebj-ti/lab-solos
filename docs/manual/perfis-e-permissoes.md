@@ -4,11 +4,11 @@ Esta página resume as áreas e opções que aparecem para cada perfil. O menu �
 
 Volte ao [índice do manual](README.md#visao-geral), consulte [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso) ou abra [Solução de problemas](solucao-de-problemas.md#j11-falhas) quando uma opção não puder ser usada.
 
-Versão do manual: `2026-09-23.1`
+Versão do manual: `2026-10-13.1`
 
 Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-23`
+Atualizado em: `2026-10-13`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -44,6 +44,20 @@ As linhas abaixo consolidam o que cada perfil pode encontrar no menu e nas telas
 | Mentorado | **Pesquisar Material** | Pesquisar e consultar os detalhes disponíveis | Não há ação de cadastro ou edição de material para este perfil. Veja [consultar materiais](mentorado.md#j07-consulta-materiais-mentorado). |
 | Mentorado | **Histórico Pessoal** | Consultar o próprio histórico e acompanhar registros associados | O título exibido pode usar uma descrição diferente, mas o acesso é pessoal. Veja [acompanhar empréstimos](mentorado.md#j08-acompanhamento-mentorado). |
 | Mentorado | **Meu perfil** ou **Conta** | Consultar os próprios dados e o vínculo disponível; selecionar **Sair** | O perfil não oferece **Aprovar**, **Recusar**, **Aceitar**, **Rejeitar** ou **Registrar Devolução** para empréstimos. Veja [perfil do Mentorado](mentorado.md#j10-perfil-mentorado). |
+
+<a id="matriz-de-acesso-aos-dados"></a>
+
+## Matriz de acesso aos dados protegidos
+
+O servidor verifica a sessão, o perfil e o vínculo em cada consulta protegida. Uma rota ou um identificador de outra pessoa não amplia o alcance da conta.
+
+| Perfil autenticado | Perfil de usuário consultável | Empréstimos consultáveis | Limites adicionais |
+| --- | --- | --- | --- |
+| Administrador | Todos os perfis | Todos os empréstimos | Ações administrativas continuam disponíveis somente nos controles e estados autorizados. |
+| Mentor | O próprio perfil e os Mentorados ligados a ele | Registros em que é solicitante/aprovador e registros dos seus Mentorados vinculados | A projeção do Mentorado contém apenas dados necessários ao acompanhamento; não inclui credenciais ou estado de sessão. |
+| Mentorado | O próprio perfil | Registros em que é solicitante/aprovador | O resumo de vínculo que aparece no próprio perfil não concede acesso ao perfil completo do responsável. |
+
+Sem sessão válida, os recursos protegidos exigem novo login. Em consultas individuais, um identificador inexistente e um registro fora do alcance podem apresentar o mesmo resultado. Isso evita revelar se o recurso de outra pessoa existe. Para uma recusa, use o retorno visível em vez de tentar outros identificadores.
 
 <a id="j03-aprovacao"></a>
 

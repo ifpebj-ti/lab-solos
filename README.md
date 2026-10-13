@@ -81,6 +81,8 @@ Com as portas do exemplo, o frontend está em `http://localhost:8081` e a API em
 
 Em produção, copie [.env.prod.example](.env.prod.example) para `.env.prod`, configure credenciais, domínio/DNS e uma versão existente no GHCR. Consulte o [guia de execução, configuração e operação](https://github.com/ifpebj-ti/lab-solos/wiki/Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose) e o [procedimento OCI](infra/oci/README.md) antes do deploy. Na VM, o atualizador usa `/opt/labon/.env`; use esse caminho para a configuração de produção quando adotar o timer.
 
+A API também precisa dos arquivos secretos indicados por `AUTHENTICATION_THROTTLE_KEY_FILE` e `RECOVERY_ENCRYPTION_KEYS_FILE`. Eles não são placeholders: gere-os fora do repositório, mantenha uma cópia protegida junto ao backup do banco e disponibilize os mesmos valores a todas as instâncias. A aplicação valida essa configuração ao iniciar e falha fechada se estiver ausente ou inválida. A política CORS de produção não autoriza clientes de outra origem; a CSP do frontend é entregue pelo Caddy. Consulte o [runbook de proteção e autenticação](.codex/docs/specs/protecao-acesso-autenticacao/operacao.md) para limites, rotação, migração, saturação e reversão.
+
 ```bash
 docker compose --env-file .env.prod -f docker-compose-prod.yml config --quiet
 docker compose --env-file .env.prod -f docker-compose-prod.yml up -d

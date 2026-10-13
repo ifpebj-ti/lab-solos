@@ -7,9 +7,9 @@ gerada como uma página da Wiki.
 
 ## Registro da revisão
 
-- Versão do manual de referência: `2026-09-23.1`
+- Versão do manual de referência: `2026-10-13.1`
 - Produto validado pelas páginas atuais: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
-- Data desta revisão do procedimento: `2026-09-23`
+- Data desta revisão do procedimento: `2026-10-13`
 - Responsável pela revisão: `nathannmvr`
 
 `versaoManual` é uma revisão editorial e deve avançar quando o conteúdo ou as

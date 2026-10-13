@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  LabSolos-Server-DotNet8 -> C:\Users\Nathan\AppData\Local\Temp\lab-solos-orchestrator-20261013\T003\backend\LabSolos-Server-DotNet8\bin\Release\net8.0\LabSolos-Server-DotNet8.dll
+  E2ESeed -> C:\Users\Nathan\AppData\Local\Temp\lab-solos-orchestrator-20261013\T003\backend\TestSupport\E2ESeed\bin\Release\net8.0\E2ESeed.dll
+  Tests -> C:\Users\Nathan\AppData\Local\Temp\lab-solos-orchestrator-20261013\T003\backend\Tests\bin\Release\net8.0\Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.95

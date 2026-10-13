@@ -5,11 +5,11 @@ Esta página orienta as jornadas de solicitação de cadastro, primeiro acesso, 
 O endereço da aplicação é fornecido pela instituição. Não registre senhas, tokens, links de redefinição ou outros segredos em chamados, documentos ou capturas. A presença de uma conta no sistema não significa que ela já esteja habilitada.
 Volte ao [índice do manual](README.md#visao-geral) para escolher outra jornada ou perfil.
 
-Versão do manual: `2026-09-23.1`
+Versão do manual: `2026-10-13.1`
 
 Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-23`
+Atualizado em: `2026-10-13`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -132,6 +132,14 @@ Uma credencial válida de uma conta habilitada leva à área correspondente ao p
 - Sessão expirada ou acesso negado ao tentar abrir uma área de outro perfil.
 - Tentar continuar com a tela protegida aberta depois que a troca de senha encerrou a sessão.
 
+### Tentativas e espera temporária
+
+O padrão operacional limita o login a 5 falhas por identificador e 30 falhas por endereço IP em uma janela fixa de 15 minutos. As duas cotas são independentes e configuráveis pelo operador. A cota por IP pode ser compartilhada por pessoas que usam a mesma saída de rede ou NAT. A conta não é desativada por atingir o limite e um login bem-sucedido não apaga uma cota de IP ainda ativa.
+
+Quando a tela informar uma espera, aguarde o tempo mostrado em vez de reenviar o formulário ou atualizar a página repetidamente. A interface não envia o login outra vez automaticamente. A cota renova quando sua janela termina; o tempo `Retry-After`, quando recebido, é a referência para a tentativa seguinte.
+
+O sistema normaliza espaços externos e caixa apenas para agrupar a cota de tentativas. Isso não muda a busca da conta: use o endereço exatamente como foi cadastrado. Pontos, sufixos `+` e outras diferenças do provedor não são removidos nem tratados como equivalentes.
+
 ### Saída segura
 
 Se o login falhar, permaneça na tela inicial e use recuperação de senha somente para uma conta que você controla. Se a sessão expirar durante o primeiro acesso, volte ao login e autentique-se novamente. Não compartilhe credenciais, não tente trocar o prefixo de uma rota e não use a aprovação de outro perfil como contorno.
@@ -197,6 +205,10 @@ A senha é alterada somente se a senha atual, a nova senha, a confirmação e as
 
 Não repita a senha atual em campos de confirmação nem a cole em chamados. Se a sessão expirar, volte ao login. Se a opção autenticada não aparecer para o seu perfil, não force uma rota interna; use a recuperação de senha ou procure o responsável pela aplicação.
 
+#### Trocar o email do próprio perfil
+
+Quando o formulário de perfil permitir alterar seu email, informe a senha atual junto com o novo endereço. A senha confirma a alteração. O fluxo atual não solicita confirmação por link enviado ao endereço novo; confira a digitação e use uma caixa a que você tenha acesso. Depois de salva, a conta usa o novo endereço para login e recuperação. Um endereço já usado por outra conta é recusado sem salvar os outros campos enviados junto.
+
 ### Recuperação de senha
 
 #### Quem pode executar
@@ -225,6 +237,8 @@ Na tela de login, selecione `Esqueceu sua senha?`. A tela seguinte solicita o `E
 #### Resultado esperado
 
 Quando a solicitação for elegível, as instruções são enviadas sem revelar a existência da conta. Com um token válido e uma senha aceita, a aplicação informa `Senha atualizada!`, orienta `Faça login com sua nova senha`, limpa a sessão e retorna ao login.
+
+O pedido é aceito com uma resposta neutra e a entrega ocorre em segundo plano; essa resposta não confirma a existência da conta nem garante que a mensagem já chegou. No padrão operacional, pedidos de recuperação têm cotas independentes de até 3 por destinatário e 20 por IP em uma hora, além de pelo menos 60 segundos entre emissões efetivas. Pedidos limitados continuam recebendo a orientação neutra. Aguarde a mensagem antes de solicitar outra; não alterne aliases para contornar os limites.
 
 #### Erros comuns
 

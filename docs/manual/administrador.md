@@ -4,11 +4,11 @@ Esta página cobre as variantes administrativas das jornadas J03, J06, J07, J09 
 
 Para entrar no sistema e cumprir a troca obrigatória de senha, consulte [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso). Para situações de sessão expirada, acesso negado, erro de serviço ou registro ausente, consulte [Solução de problemas](solucao-de-problemas.md#j11-falhas). O [índice do manual](README.md#j01-acesso) reúne o percurso dos três perfis.
 
-Versão do manual: `2026-09-23.1`
+Versão do manual: `2026-10-13.1`
 
 Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-23`
+Atualizado em: `2026-10-13`
 
 Responsável pela revisão: `nathannmvr`
 
