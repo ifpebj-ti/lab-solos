@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { parseResourceId } from '@/contracts/identifier';
 import { emprestimosSchema } from '@/contracts/loan';
 import { dependenteSchema } from '@/contracts/user';
 
@@ -69,7 +70,7 @@ export const getDependentesID = async (rankID: string) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${rankID}/dependentes`,
+      url: `Usuarios/${parseResourceId(rankID)}/dependentes`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -184,7 +185,7 @@ export const getLoansByClass = async ({ id }: IIdMentorClass) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${id}/dependentes/emprestimos`,
+      url: `Usuarios/${parseResourceId(id)}/dependentes/emprestimos`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },

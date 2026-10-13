@@ -54,6 +54,10 @@ Correções adicionais:
 
 No candidato 735d2da, a análise remota confirmou zero alertas novos error/warning. O job Backend quality passou 434/434; no job NuGet, um teste de auditoria encontrou `123` na fração do timestamp (`2026-10-13T23:10:06.6845123Z`) ao serializar a entidade inteira. A falha era uma colisão de metadados gerados, sem vazamento de ID. O teste passou a varrer todos os campos serializados exceto Id/DataHora, mantendo as asserções de IDs, canários e IPs. Um teste determinístico reproduziu a colisão no RED; os dez testes da classe passaram no GREEN, incluindo uma garantia de que o filtro preserva o conteúdo auditável. A suite remota passa a ter 435 casos.
 
+O candidato 80f1f4c completou 19 checks com sucesso, incluindo backend 435/435 e autenticação real/UI 239/239. A área de merge revelou dois alertas históricos adicionais bloqueantes: #4 e #5, em Class.ts (getDependentesID e getLoansByClass). O GitHub informou que a comparação de uma alteração grande pode incluir alertas anteriores no código alterado. A existência de zero números de alerta novos não basta para declarar a PR liberada: o estado de merge e as anotações do check CodeQL também são conferidos. As duas rotas passaram a usar parseResourceId antes da montagem do caminho, com RED de 28 casos adversariais e GREEN de 48 testes direcionados; nenhum alerta foi descartado e nenhuma regra de proteção foi alterada.
+
+Após a correção das rotas de Class, a suíte frontend completa passou 852/852 em 149 arquivos, além de lint, build e diff-check. O teste de privacidade adicional eleva a suíte backend remota a 435 casos, já aprovada no candidato 80f1f4c. A confirmação final deve conferir os checks do novo HEAD e a liberação das regras de merge.
+
 ## Limites e encerramento
 
 As evidências acima são locais e sintéticas. O aceite publicado T030/CA-027 continua exigindo uma versão publicada identificável, URL confirmada e contas dedicadas. Aprovação dos checks de PR permite avaliar o merge; não comprova a aceitação do ambiente publicado nem substitui os critérios de encerramento das issues #436–#440. A revisão remota das correções deve ser registrada na PR #441 após o push.
