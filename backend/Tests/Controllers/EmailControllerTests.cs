@@ -54,16 +54,24 @@ public sealed class EmailControllerTests
     }
 
     [Fact]
-    public async Task RequestPasswordResetSmtpFailureRemainsNeutral()
+    public async Task RequestPasswordResetDoesNotSendSmtpInTheHttpRequest()
     {
         var email = CreateEmailServiceFailure<SmtpException>();
-        var controller = CreateController(email.Object, CreateEligibleCredentials().Object);
+        var reset = new Mock<IPasswordResetService>();
+        var admissions = new Mock<IPasswordRecoveryRequestService>();
+        var controller = CreateController(email.Object, reset.Object, admissions.Object);
 
         var result = await controller.RequestPasswordReset(
             new PasswordResetRequestDTO { Email = "eligible@example.org" },
             CancellationToken.None);
 
         Assert.IsType<AcceptedResult>(result);
+        email.VerifyNoOtherCalls();
+        reset.VerifyNoOtherCalls();
+        admissions.Verify(service => service.AdmitAsync(
+            "eligible@example.org",
+            It.IsAny<System.Net.IPAddress?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -71,7 +79,14 @@ public sealed class EmailControllerTests
     {
         var expected = new ArgumentException("Falha inesperada");
         var email = CreateEmailServiceFailure(expected);
-        var controller = CreateController(email.Object, CreateEligibleCredentials().Object);
+        var reset = new Mock<IPasswordResetService>();
+        var admissions = new Mock<IPasswordRecoveryRequestService>();
+        admissions.Setup(service => service.AdmitAsync(
+                It.IsAny<string?>(),
+                It.IsAny<System.Net.IPAddress?>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(expected);
+        var controller = CreateController(email.Object, reset.Object, admissions.Object);
 
         var actual = await Assert.ThrowsAsync<ArgumentException>(() =>
             controller.RequestPasswordReset(
@@ -79,6 +94,7 @@ public sealed class EmailControllerTests
                 CancellationToken.None));
 
         Assert.Same(expected, actual);
+        reset.VerifyNoOtherCalls();
     }
 
     private static Mock<IEmailService> CreateEmailServiceFailure<TException>()
@@ -96,24 +112,17 @@ public sealed class EmailControllerTests
         return email;
     }
 
-    private static Mock<ICredentialService> CreateEligibleCredentials()
-    {
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.RequestPasswordResetAsync(
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(PasswordResetRequestResult.Eligible(
-                "eligible@example.org",
-                "Eligible",
-                "synthetic-reset-token"));
-        return credentials;
-    }
-
     private static EmailController CreateController(
         IEmailService emailService,
-        ICredentialService? credentialService = null) =>
-        new(
+        IPasswordResetService? passwordResetService = null,
+        IPasswordRecoveryRequestService? admissions = null)
+    {
+        var controller = new EmailController(
             emailService,
-            credentialService ?? Mock.Of<ICredentialService>(),
+            passwordResetService ?? Mock.Of<IPasswordResetService>(),
+            admissions ?? Mock.Of<IPasswordRecoveryRequestService>(),
             NullLogger<EmailController>.Instance);
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        return controller;
+    }
 }

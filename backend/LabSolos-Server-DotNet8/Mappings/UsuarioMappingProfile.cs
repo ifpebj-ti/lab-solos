@@ -43,6 +43,7 @@ namespace Core.DTOs.Mappings
             CreateMap<UsuarioDTOPatchRequest, Usuario>(MemberList.None)
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
                     src.Status != null ? Enum.Parse<StatusUsuario>(src.Status) : (StatusUsuario?)null))
+                .ForSourceMember(src => src.SenhaAtual, opt => opt.DoNotValidate())
                 .ReverseMap()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<UsuarioDTOPatchRequest, Administrador>(MemberList.None)
@@ -72,6 +73,15 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
 
             // Mapeamento de Usuarios para DependenteDTO
+            CreateMap<Usuario, UsuarioAcompanhamentoDTO>(MemberList.None)
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()));
+            CreateMap<Academico, UsuarioAcompanhamentoDTO>(MemberList.None)
+                .IncludeBase<Usuario, UsuarioAcompanhamentoDTO>()
+                .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
+                .ForMember(dest => dest.Cidade, opt => opt.MapFrom(src => src.Cidade))
+                .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
+
             CreateMap<Usuario, DependenteDTO>(MemberList.None)
                 .ForMember(dest => dest.DataIngresso, opt => opt.MapFrom(src => src.DataIngresso))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))

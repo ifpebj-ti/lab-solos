@@ -10,6 +10,7 @@ using Moq;
 
 namespace Tests.Security;
 
+[Collection("CredentialTelemetryGlobalMeter")]
 public class CredentialServiceTests
 {
     [Fact]

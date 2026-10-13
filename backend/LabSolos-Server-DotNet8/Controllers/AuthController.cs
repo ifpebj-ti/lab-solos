@@ -1,12 +1,20 @@
+using System.Data.Common;
+using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using LabSolos_Server_DotNet8.DTOs.Auth;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -17,43 +25,175 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly JwtService _jwtService;
         private readonly IUnitOfWork _uow;
         private readonly ICredentialService _credentialService;
+        private readonly IPasswordHasher<Usuario> _passwordHasher;
+        private readonly IOptions<AuthenticationProtectionOptions> _protectionOptions;
+        private readonly ISecretFileReader _secretFileReader;
+        private readonly IHostEnvironment _hostEnvironment;
+        private readonly AuthenticationProtectionTelemetry _telemetry;
 
         public AuthController(
             JwtService jwtService,
             IUnitOfWork uow,
-            ICredentialService credentialService)
+            ICredentialService credentialService,
+            IPasswordHasher<Usuario> passwordHasher,
+            IOptions<AuthenticationProtectionOptions> protectionOptions,
+            ISecretFileReader secretFileReader,
+            IHostEnvironment hostEnvironment,
+            AuthenticationProtectionTelemetry telemetry)
         {
-            _jwtService = jwtService;
-            _uow = uow;
-            _credentialService = credentialService;
+            _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _credentialService = credentialService ?? throw new ArgumentNullException(nameof(credentialService));
+            _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+            _protectionOptions = protectionOptions ?? throw new ArgumentNullException(nameof(protectionOptions));
+            _secretFileReader = secretFileReader ?? throw new ArgumentNullException(nameof(secretFileReader));
+            _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
+            _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO requestDto)
+        public async Task<IActionResult> Login(
+            [FromBody] LoginDTO? requestDto,
+            CancellationToken cancellationToken)
         {
-            if (requestDto == null)
+            AuthenticationProtectionResponses.ApplyNoStore(Response);
+            if (requestDto is null)
             {
                 return BadRequest("Requisição inválida.");
             }
 
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Email == requestDto.Email);
-
-            if (usuario == null || !usuario.VerificarSenha(requestDto.Password))
+            AuthenticationThrottleAttempt? attempt = null;
+            var attemptCompleted = false;
+            try
             {
-                return Unauthorized("Credenciais inválidas.");
+                var options = _protectionOptions.Value;
+                var secret = ReadThrottleSecret(options.KeyHashSecretFile);
+                try
+                {
+                    using var keyFactory = new ThrottleKeyFactory(secret, _hostEnvironment.EnvironmentName);
+                    var rules = CreateLoginRules(requestDto.Email, options.Login, keyFactory);
+                    var throttle = HttpContext.RequestServices.GetRequiredService<PostgresAuthenticationThrottle>();
+                    var admissionStarted = Stopwatch.GetTimestamp();
+                    var admission = await throttle.TryBeginAsync(rules, cancellationToken);
+                    var admissionDuration = Stopwatch.GetElapsedTime(admissionStarted);
+
+                    switch (admission.State)
+                    {
+                        case AuthenticationThrottleState.RateLimited:
+                            _telemetry.RecordAuthenticationAdmission(
+                                admissionDuration,
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionResult.Throttled);
+                            _telemetry.RecordAuthenticationThrottled(
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionReason.RateLimited);
+                            return AuthenticationProtectionResponses.RateLimited(Response, admission.RetryAfterSeconds);
+
+                        case AuthenticationThrottleState.CapacityExceeded:
+                            _telemetry.RecordAuthenticationAdmission(
+                                admissionDuration,
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionResult.Throttled);
+                            _telemetry.RecordAuthenticationThrottled(
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionReason.CapacityExhausted);
+                            return AuthenticationProtectionResponses.RateLimited(Response, admission.RetryAfterSeconds);
+
+                        case AuthenticationThrottleState.Unavailable:
+                            _telemetry.RecordAuthenticationAdmission(
+                                admissionDuration,
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionResult.Failure);
+                            _telemetry.RecordFailure(
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionReason.DependencyUnavailable);
+                            return AuthenticationProtectionResponses.Unavailable(Response);
+
+                        case AuthenticationThrottleState.Allowed when admission.Attempt is not null:
+                            attempt = admission.Attempt;
+                            break;
+
+                        default:
+                            _telemetry.RecordFailure(
+                                AuthenticationProtectionOperation.Login,
+                                AuthenticationProtectionReason.Unexpected);
+                            return AuthenticationProtectionResponses.Unavailable(Response);
+                    }
+
+                    var user = CanUseAccountIdentifier(requestDto.Email)
+                        ? await _uow.UsuarioRepository.ObterAsync(candidate => candidate.Email == requestDto.Email)
+                        : null;
+                    var passwordValid = user is not null
+                        && !string.IsNullOrEmpty(requestDto.Password)
+                        && _passwordHasher.VerifyHashedPassword(
+                            user,
+                            user.SenhaHash,
+                            requestDto.Password) == PasswordVerificationResult.Success;
+                    var authenticationSucceeded = !cancellationToken.IsCancellationRequested
+                        && user is not null
+                        && passwordValid
+                        && user.Status == StatusUsuario.Habilitado;
+
+                    await attempt.CompleteAsync(
+                        authenticationSucceeded
+                            ? AuthenticationThrottleOutcome.Accepted
+                            : AuthenticationThrottleOutcome.Failure,
+                        CancellationToken.None);
+                    attemptCompleted = true;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!authenticationSucceeded || user is null)
+                    {
+                        _telemetry.RecordAuthenticationAdmission(
+                            admissionDuration,
+                            AuthenticationProtectionOperation.Login,
+                            AuthenticationProtectionResult.Denied);
+                        return Unauthorized("Credenciais inválidas.");
+                    }
+
+                    _telemetry.RecordAuthenticationAdmission(
+                        admissionDuration,
+                        AuthenticationProtectionOperation.Login,
+                        AuthenticationProtectionResult.Success);
+                    var token = _jwtService.GenerateToken(user);
+                    return Ok(new
+                    {
+                        token,
+                        requiresPasswordChange = user.ExigeTrocaSenha
+                    });
+                }
+                finally
+                {
+                    CryptographicOperations.ZeroMemory(secret);
+                }
             }
-
-            if (usuario.Status != StatusUsuario.Habilitado)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                return Unauthorized("Credenciais inválidas.");
+                if (attempt is not null && !attemptCompleted)
+                {
+                    await attempt.CompleteAsync(AuthenticationThrottleOutcome.Failure, CancellationToken.None);
+                    attemptCompleted = true;
+                }
+
+                throw;
             }
-
-            var token = _jwtService.GenerateToken(usuario);
-            return Ok(new
+            catch (Exception exception) when (IsProtectionFailure(exception))
             {
-                token,
-                requiresPasswordChange = usuario.ExigeTrocaSenha
-            });
+                _telemetry.RecordFailure(
+                    AuthenticationProtectionOperation.Login,
+                    IsConfigurationFailure(exception)
+                        ? AuthenticationProtectionReason.InvalidConfiguration
+                        : AuthenticationProtectionReason.DependencyUnavailable);
+                return AuthenticationProtectionResponses.Unavailable(Response);
+            }
+            finally
+            {
+                if (attempt is not null && !attemptCompleted)
+                {
+                    await attempt.DisposeAsync();
+                }
+            }
         }
 
         [HttpPost("change-password")]
@@ -62,6 +202,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             [FromBody] ChangePasswordDTO? requestDto,
             CancellationToken cancellationToken)
         {
+            AuthenticationProtectionResponses.ApplyNoStore(Response);
             var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(subject, out var userId))
@@ -83,6 +224,94 @@ namespace LabSolos_Server_DotNet8.Controllers
                 CredentialChangeStatus.Conflict => ConflictProblem(),
                 _ => ValidationProblem(result.Code ?? "password_invalid")
             };
+        }
+
+        private List<AuthenticationThrottleRule> CreateLoginRules(
+            string? email,
+            LoginThrottleOptions options,
+            ThrottleKeyFactory keyFactory)
+        {
+            var window = TimeSpan.FromSeconds(options.WindowSeconds);
+            var rules = new List<AuthenticationThrottleRule>(capacity: 2)
+            {
+                new(
+                    AuthenticationProtectionCapacity.LoginIp,
+                    keyFactory.CreateIpQuotaKey(ThrottlePurpose.Login, HttpContext.Connection.RemoteIpAddress),
+                    options.IpFailures,
+                    window)
+            };
+
+            if (CanUseAccountIdentifier(email))
+            {
+                rules.Add(new AuthenticationThrottleRule(
+                    AuthenticationProtectionCapacity.LoginAccount,
+                    keyFactory.CreateRecipientQuotaKey(ThrottlePurpose.Login, email!),
+                    options.AccountFailures,
+                    window));
+            }
+
+            return rules;
+        }
+
+        private byte[] ReadThrottleSecret(string? secretPath)
+        {
+            if (!string.IsNullOrWhiteSpace(secretPath))
+            {
+                return _secretFileReader.ReadAllBytes(secretPath);
+            }
+
+            if (!string.Equals(
+                    _hostEnvironment.EnvironmentName,
+                    "IntegrationTesting",
+                    StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Authentication protection secret is not configured.");
+            }
+
+            return SHA256.HashData(Encoding.UTF8.GetBytes(
+                "LabSolos IntegrationTesting only synthetic throttle key; never deploy"));
+        }
+
+        private static bool CanUseAccountIdentifier(string? email) =>
+            !string.IsNullOrWhiteSpace(email)
+            && email.Length <= 254
+            && email.Trim().Length > 0
+            && !email.Any(char.IsControl);
+
+        private static bool IsProtectionFailure(Exception exception)
+        {
+            for (Exception? current = exception; current is not null; current = current.InnerException)
+            {
+                if (current is OptionsValidationException
+                    or DbException
+                    or IOException
+                    or UnauthorizedAccessException
+                    or ArgumentException
+                    or CryptographicException
+                    or InvalidOperationException
+                    or TimeoutException)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsConfigurationFailure(Exception exception)
+        {
+            for (Exception? current = exception; current is not null; current = current.InnerException)
+            {
+                if (current is OptionsValidationException
+                    or IOException
+                    or UnauthorizedAccessException
+                    or ArgumentException)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static ObjectResult ValidationProblem(string code)

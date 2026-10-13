@@ -17,6 +17,7 @@ public sealed class E2ESeedSafetyTests
         Assert.Equal("scenario-a", options.Scenario);
         Assert.Equal("E2E", options.EnvironmentName);
         Assert.Equal("db", new Npgsql.NpgsqlConnectionStringBuilder(options.ConnectionString).Host);
+        Assert.Equal("second-mentor@example.invalid", options.Credentials.SecondMentorEmail);
     }
 
     [Fact]
@@ -50,6 +51,31 @@ public sealed class E2ESeedSafetyTests
     }
 
     [Fact]
+    public void ParserRequiresCredentialsForBothLinkedScenarios()
+    {
+        var values = Environment("E2E");
+        values.Remove(SeedOptions.SecondBorrowerPasswordVariable);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            SeedOptions.Parse(ScenarioArguments, values));
+    }
+
+    [Fact]
+    public void ParserDerivesSyntheticCredentialsWhenTheSecondPairIsNotOverridden()
+    {
+        var values = Environment("E2E");
+        values.Remove(SeedOptions.SecondMentorEmailVariable);
+        values.Remove(SeedOptions.SecondMentorPasswordVariable);
+        values.Remove(SeedOptions.SecondBorrowerEmailVariable);
+        values.Remove(SeedOptions.SecondBorrowerPasswordVariable);
+
+        var options = SeedOptions.Parse(ScenarioArguments, values);
+
+        Assert.Equal("synthetic-second-mentor-scenario-a@example.invalid", options.Credentials.SecondMentorEmail);
+        Assert.Equal("synthetic-second-borrower-scenario-a-password", options.Credentials.SecondBorrowerPassword);
+    }
+
+    [Fact]
     public void HelpIsAvailableWithoutDatabaseCredentials()
     {
         var options = SeedOptions.Parse(HelpArguments, new Dictionary<string, string?>());
@@ -66,6 +92,10 @@ public sealed class E2ESeedSafetyTests
         [SeedOptions.MentorEmailVariable] = "mentor@example.invalid",
         [SeedOptions.MentorPasswordVariable] = "synthetic-mentor-password",
         [SeedOptions.BorrowerEmailVariable] = "borrower@example.invalid",
-        [SeedOptions.BorrowerPasswordVariable] = "synthetic-borrower-password"
+        [SeedOptions.BorrowerPasswordVariable] = "synthetic-borrower-password",
+        [SeedOptions.SecondMentorEmailVariable] = "second-mentor@example.invalid",
+        [SeedOptions.SecondMentorPasswordVariable] = "synthetic-second-mentor-password",
+        [SeedOptions.SecondBorrowerEmailVariable] = "second-borrower@example.invalid",
+        [SeedOptions.SecondBorrowerPasswordVariable] = "synthetic-second-borrower-password"
     };
 }

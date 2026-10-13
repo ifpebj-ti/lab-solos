@@ -1,91 +1,121 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
-using LabSolos_Server_DotNet8.Controllers;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
-using LabSolos_Server_DotNet8.Repositories;
-using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Moq;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Tests.Infrastructure;
 
 namespace Tests.Controllers;
 
-public sealed class AuthLoginContractTests
+[Collection(PostgreSql15IntegrationGroup.Name)]
+public sealed class AuthLoginContractTests(PostgreSql15ContainerFixture database)
 {
+    private const string Email = "login-contract@example.invalid";
+    private const string ValidPassword = "valid current password 2026";
+    private static readonly DateTimeOffset InitialTime =
+        new(2026, 10, 13, 12, 0, 0, TimeSpan.Zero);
+
     [Theory]
     [InlineData(StatusUsuario.Pendente)]
     [InlineData(StatusUsuario.Bloqueado)]
     [InlineData(StatusUsuario.Desabilitado)]
-    public async Task Login_UnavailableAccount_UsesSameGenericUnauthorizedResponse(StatusUsuario status)
+    public async Task LoginUnavailableAccountUsesSameGenericUnauthorizedResponse(StatusUsuario status)
     {
-        var user = CreateUser(status, requiresPasswordChange: false);
-        var controller = CreateController(user);
+        var factory = await CreateScenarioAsync(status, requiresPasswordChange: false);
+        await using (factory)
+        using (var client = factory.CreateClient())
+        {
+            using var response = await LoginAsync(client, Email, ValidPassword);
+            var body = await response.Content.ReadAsStringAsync();
 
-        var result = await controller.Login(new() { Email = user.Email, Password = ValidPassword });
-
-        var unauthorized = Assert.IsType<UnauthorizedObjectResult>(result);
-        Assert.Equal("Credenciais inválidas.", unauthorized.Value);
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal("Credenciais inválidas.", body);
+            Assert.True(response.Headers.CacheControl?.NoStore);
+        }
     }
 
     [Fact]
-    public async Task Login_ValidAccount_ReturnsFlagAndVersionedClaims()
+    public async Task LoginValidAccountReturnsPasswordChangeFlagAndVersionedClaims()
     {
-        var user = CreateUser(StatusUsuario.Habilitado, requiresPasswordChange: true);
-        user.VersaoSessao = 17;
-        var controller = CreateController(user);
-
-        var result = await controller.Login(new() { Email = user.Email, Password = ValidPassword });
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        using var document = JsonDocument.Parse(JsonSerializer.Serialize(ok.Value));
-        Assert.True(document.RootElement.GetProperty("requiresPasswordChange").GetBoolean());
-        var token = document.RootElement.GetProperty("token").GetString();
-        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-        Assert.Equal("17", jwt.Claims.Single(c => c.Type == "session_version").Value);
-        Assert.Equal("true", jwt.Claims.Single(c => c.Type == "password_change_required").Value);
-    }
-
-    private static AuthController CreateController(Usuario user)
-    {
-        var repository = new Mock<IRepository<Usuario>>();
-        repository.Setup(r => r.ObterAsync(
-                It.IsAny<System.Linq.Expressions.Expression<Func<Usuario, bool>>>(),
-                It.IsAny<Func<IQueryable<Usuario>, IQueryable<Usuario>>?>()))
-            .ReturnsAsync(user);
-        var uow = new Mock<IUnitOfWork>();
-        uow.SetupGet(unit => unit.UsuarioRepository).Returns(repository.Object);
-
-        return new AuthController(CreateJwtService(), uow.Object, Mock.Of<ICredentialService>());
-    }
-
-    private static JwtService CreateJwtService() => new(new ConfigurationBuilder()
-        .AddInMemoryCollection(new Dictionary<string, string?>
+        var factory = await CreateScenarioAsync(StatusUsuario.Habilitado, requiresPasswordChange: true);
+        await using (factory)
+        using (var client = factory.CreateClient())
+        using (var response = await LoginAsync(client, Email, ValidPassword))
         {
-            ["Jwt:Key"] = "synthetic-controller-test-key-with-thirty-two-bytes",
-            ["Jwt:Issuer"] = "controller-tests",
-            ["Jwt:Audience"] = "controller-tests",
-            ["Jwt:ExpiresInMinutes"] = "5"
-        })
-        .Build());
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(response.Headers.CacheControl?.NoStore);
 
-    private static Usuario CreateUser(StatusUsuario status, bool requiresPasswordChange)
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.True(document.RootElement.GetProperty("requiresPasswordChange").GetBoolean());
+            var token = document.RootElement.GetProperty("token").GetString();
+            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            Assert.Equal("17", jwt.Claims.Single(claim => claim.Type == "session_version").Value);
+            Assert.Equal("true", jwt.Claims.Single(claim => claim.Type == "password_change_required").Value);
+        }
+    }
+
+    private async Task<IntegrationWebApplicationFactory> CreateScenarioAsync(
+        StatusUsuario status,
+        bool requiresPasswordChange)
     {
+        var clock = new ControlledTimeProvider(InitialTime);
+        var options = new AuthenticationProtectionOptions
+        {
+            KeyHashSecretFile = "/synthetic/authentication-key-hash.secret"
+        };
+        var factory = new IntegrationWebApplicationFactory(
+            database,
+            new IntegrationApplicationOptions
+            {
+                TimeProvider = clock,
+                ConfigureServices = services =>
+                {
+                    services.RemoveAll<IOptions<AuthenticationProtectionOptions>>();
+                    services.AddSingleton<IOptions<AuthenticationProtectionOptions>>(
+                        Options.Create(options));
+                    services.RemoveAll<ISecretFileReader>();
+                    services.AddSingleton<ISecretFileReader>(new SyntheticSecretFileReader());
+                    services.RemoveAll<IAuthenticationThrottleClock>();
+                    services.AddSingleton<IAuthenticationThrottleClock>(
+                        new TimeProviderAuthenticationThrottleClock(clock));
+                }
+            });
+        await factory.RecreateDatabaseAsync();
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var user = new Usuario
         {
-            Id = 42,
             NomeCompleto = "Usuário de teste",
-            Email = "user@example.test",
+            Email = Email,
             SenhaHash = string.Empty,
             NivelUsuario = NivelUsuario.Comum,
             TipoUsuario = TipoUsuario.Comum,
             Status = status,
-            ExigeTrocaSenha = requiresPasswordChange
+            ExigeTrocaSenha = requiresPasswordChange,
+            VersaoSessao = 17
         };
         user.DefinirSenha(ValidPassword);
-        return user;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        return factory;
     }
 
-    private const string ValidPassword = "valid current password 2026";
+    private static Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password) =>
+        client.PostAsJsonAsync("/api/Auth/login", new { email, password });
+
+    private sealed class SyntheticSecretFileReader : ISecretFileReader
+    {
+        private static readonly byte[] Secret = Enumerable.Range(0, 32).Select(value => (byte)value).ToArray();
+
+        public byte[] ReadAllBytes(string path) => Secret.ToArray();
+    }
 }

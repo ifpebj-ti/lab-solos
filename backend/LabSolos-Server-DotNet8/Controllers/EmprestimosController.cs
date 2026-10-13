@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,129 +29,141 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IMapper _mapper;
         private readonly INotificacaoService _notificacaoService;
         private readonly TimeProvider _timeProvider;
+        private readonly AppDbContext? _dbContext;
+        private readonly UserResourceAccessService _userResourceAccess;
 
         public EmprestimosController(
             IUnitOfWork uow,
             IMapper mapper,
             INotificacaoService notificacaoService,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            AppDbContext? dbContext = null,
+            UserResourceAccessService? userResourceAccess = null)
         {
             _uow = uow;
             _mapper = mapper;
             _notificacaoService = notificacaoService;
             _timeProvider = timeProvider;
+            _dbContext = dbContext;
+            _userResourceAccess = userResourceAccess ?? new UserResourceAccessService();
         }
 
         [HttpGet("usuario/{userId}")]
         [Authorize]
         public async Task<IActionResult> ObterEmprestimosUsuario(int userId)
         {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
-            if (usuario == null)
+            if (!await UsuarioVisivelAsync(userId))
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id || e.AprovadorId == usuario.Id,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
-            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
+            var emprestimos = await ProjectLoans(DbContext.Emprestimos
+                    .AsNoTracking()
+                    .Where(_userResourceAccess.ForLoans(User))
+                    .Where(emprestimo => emprestimo.SolicitanteId == userId || emprestimo.AprovadorId == userId))
+                .ToListAsync();
+            return Ok(emprestimos);
         }
 
         [HttpGet("solicitados/{userId}")]
         [Authorize]
         public async Task<IActionResult> ObterEmprestimosSolicitadosUsuario(int userId)
         {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
-            if (usuario == null)
+            if (!await UsuarioVisivelAsync(userId))
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == usuario.Id,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
-            if (!emprestimos.Any())
-            {
-                return NotFound("Nenhum empréstimo solicitado encontrado para este usuário.");
-            }
-
-            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
+            var emprestimos = await ProjectLoans(DbContext.Emprestimos
+                    .AsNoTracking()
+                    .Where(_userResourceAccess.ForLoans(User))
+                    .Where(emprestimo => emprestimo.SolicitanteId == userId))
+                .ToListAsync();
+            return Ok(emprestimos);
         }
 
         [HttpGet("aprovados/{userId}")]
         [Authorize]
         public async Task<IActionResult> ObterEmprestimosAprovadosUsuario(int userId)
         {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == userId);
-            if (usuario == null)
+            if (!PodeConsultarAprovados(userId))
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.AprovadorId == usuario.Id,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
-            if (!emprestimos.Any())
+            var usuarioExiste = await DbContext.Usuarios
+                .AsNoTracking()
+                .AnyAsync(usuario => usuario.Id == userId);
+            if (!usuarioExiste)
             {
-                return NotFound("Nenhum empréstimo aprovado encontrado para este usuário.");
+                return ResourceNotFound();
             }
 
-            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
+            var emprestimos = await ProjectLoans(DbContext.Emprestimos
+                    .AsNoTracking()
+                    .Where(_userResourceAccess.ForLoans(User))
+                    .Where(emprestimo => emprestimo.AprovadorId == userId))
+                .ToListAsync();
+            return Ok(emprestimos);
         }
 
         [HttpGet("{emprestimoId}")]
         [Authorize]
         public async Task<IActionResult> ObterEmprestimoPeloId(int emprestimoId)
         {
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
+            var emprestimo = await ProjectLoans(DbContext.Emprestimos
+                    .AsNoTracking()
+                    .Where(_userResourceAccess.ForLoans(User))
+                    .Where(candidate => candidate.Id == emprestimoId))
+                .FirstOrDefaultAsync();
 
-            if (emprestimo == null)
-            {
-                return NotFound("Empréstimo não encontrado.");
-            }
-
-            return Ok(_mapper.Map<EmprestimoDTO>(emprestimo));
-
+            return emprestimo is null
+                ? ResourceNotFound()
+                : Ok(emprestimo);
         }
 
         [HttpGet]
         [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterTodosEmprestimosAsync()
         {
-            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => true,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
-
-            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
+            var emprestimos = await ProjectLoans(DbContext.Emprestimos.AsNoTracking()).ToListAsync();
+            return Ok(emprestimos);
         }
+
+        private AppDbContext DbContext =>
+            _dbContext ?? throw new InvalidOperationException("Loan read queries require the application database context.");
+
+        private IQueryable<EmprestimoAcompanhamentoDTO> ProjectLoans(IQueryable<Emprestimo> loans) =>
+            loans.ProjectTo<EmprestimoAcompanhamentoDTO>(_mapper.ConfigurationProvider);
+
+        private Task<bool> UsuarioVisivelAsync(int userId) => DbContext.Usuarios
+            .AsNoTracking()
+            .Where(_userResourceAccess.ForProfiles(User))
+            .AnyAsync(usuario => usuario.Id == userId);
+
+        private bool PodeConsultarAprovados(int userId)
+        {
+            if (User.IsInRole(NivelUsuario.Administrador.ToString()))
+            {
+                return true;
+            }
+
+            var subjectValues = User.Claims
+                .Where(claim => claim.Type is ClaimTypes.NameIdentifier or JwtRegisteredClaimNames.Sub)
+                .Select(claim => claim.Value)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            return subjectValues.Length == 1 &&
+                int.TryParse(subjectValues[0], NumberStyles.None, CultureInfo.InvariantCulture, out var subjectId) &&
+                subjectId == userId;
+        }
+
+        private static NotFoundObjectResult ResourceNotFound() => new(new ProblemDetails
+        {
+            Type = "about:blank",
+            Title = "Recurso não encontrado.",
+            Status = StatusCodes.Status404NotFound
+        });
 
         [HttpPost]
         [Authorize]
@@ -167,7 +184,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
 
             // Verificar se o usuário tem o papel de administrador
             var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
@@ -238,7 +255,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Apenas administradores podem aprovar empréstimos.");
             }
 
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
 
             // Buscar o empréstimo pelo ID
             var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
@@ -320,7 +337,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
 
             // Verificar se o usuário tem o papel de admin
             var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
@@ -379,7 +396,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            var userId = int.Parse(userIdClaim.Value);
+            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
 
             // Verificar se o usuário tem o papel de admin ou mentor
             var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);

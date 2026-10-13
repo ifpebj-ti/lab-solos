@@ -13,9 +13,19 @@ public sealed class E2ESeedIsolationTests
 
         Assert.Equal(first, repeated);
         Assert.NotEqual(first.Token, second.Token);
+        var firstIds = new[]
+        {
+            first.AdministratorId, first.MentorId, first.BorrowerId,
+            first.SecondMentorId, first.SecondBorrowerId, first.ProductId
+        };
+        Assert.Equal(firstIds.Length, firstIds.Distinct().Count());
         Assert.DoesNotContain(
-            new[] { second.AdministratorId, second.MentorId, second.BorrowerId, second.ProductId },
-            value => value == first.AdministratorId || value == first.MentorId || value == first.BorrowerId || value == first.ProductId);
+            new[]
+            {
+                second.AdministratorId, second.MentorId, second.BorrowerId,
+                second.SecondMentorId, second.SecondBorrowerId, second.ProductId
+            },
+            firstIds.Contains);
     }
 
     [Fact]

@@ -6,6 +6,7 @@ using LabSolos_Server_DotNet8.DTOs.Emprestimos;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -15,6 +16,19 @@ namespace Tests.Contracts;
 public class UsuarioDataContractTests
 {
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
+    private static readonly string[] UserAccompanimentContractProperties =
+    [
+        "Cidade",
+        "Curso",
+        "DataIngresso",
+        "Email",
+        "Id",
+        "Instituicao",
+        "NivelUsuario",
+        "NomeCompleto",
+        "Status",
+        "Telefone"
+    ];
 
     public static TheoryData<Type> UserContractTypes => new()
     {
@@ -23,6 +37,7 @@ public class UsuarioDataContractTests
         typeof(AcademicoDTO),
         typeof(ResponsavelDTO),
         typeof(DependenteDTO),
+        typeof(UsuarioAcompanhamentoDTO),
         typeof(UsuarioDTOPatchResponse)
     };
 
@@ -41,6 +56,7 @@ public class UsuarioDataContractTests
     [InlineData(typeof(AcademicoDTO))]
     [InlineData(typeof(ResponsavelDTO))]
     [InlineData(typeof(DependenteDTO))]
+    [InlineData(typeof(UsuarioAcompanhamentoDTO))]
     [InlineData(typeof(UsuarioDTOPatchResponse))]
     public void DataIngresso_SerializesAsIsoCivilDateOrNull(Type dtoType)
     {
@@ -85,9 +101,10 @@ public class UsuarioDataContractTests
         var academic = mapper.Map<AcademicoDTO>(source);
         var responsible = mapper.Map<ResponsavelDTO>(source);
         var dependent = mapper.Map<DependenteDTO>(source);
+        var accompaniment = mapper.Map<UsuarioAcompanhamentoDTO>(source);
         var patch = mapper.Map<UsuarioDTOPatchResponse>(source);
 
-        foreach (var dto in new object[] { user, academic, responsible, dependent, patch })
+        foreach (var dto in new object[] { user, academic, responsible, dependent, accompaniment, patch })
         {
             Assert.Equal(new DateOnly(2026, 8, 31), ReadCivilDate(dto));
             Assert.Equal(StatusUsuario.Habilitado.ToString(), ReadString(dto, "Status"));
@@ -99,6 +116,11 @@ public class UsuarioDataContractTests
         Assert.Null(academic.Cidade);
         Assert.Null(responsible.Curso);
         Assert.Null(dependent.Cidade);
+        Assert.Null(accompaniment.Cidade);
+        Assert.Equal(source.Email, accompaniment.Email);
+        Assert.Equal(source.Instituicao, accompaniment.Instituicao);
+        Assert.Equal(source.Curso, accompaniment.Curso);
+        Assert.Equal(source.Telefone, accompaniment.Telefone);
     }
 
     [Fact]
@@ -140,11 +162,36 @@ public class UsuarioDataContractTests
         Assert.DoesNotContain("VersaoSessao", propertyNames);
     }
 
+    [Fact]
+    public void UserAccompanimentContractContainsOnlyApprovedProfileFields()
+    {
+        var propertyNames = typeof(UsuarioAcompanhamentoDTO)
+            .GetProperties()
+            .Select(property => property.Name)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(UserAccompanimentContractProperties, propertyNames);
+    }
+
+    [Fact]
+    public void SecurityServicesRegisterUserResourceAccessAsSingleton()
+    {
+        var services = new ServiceCollection();
+        services.AddPasswordSecurity();
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Same(
+            provider.GetRequiredService<UserResourceAccessService>(),
+            provider.GetRequiredService<UserResourceAccessService>());
+    }
+
     [Theory]
     [InlineData(typeof(UsuarioDTO))]
     [InlineData(typeof(AcademicoDTO))]
     [InlineData(typeof(ResponsavelDTO))]
     [InlineData(typeof(DependenteDTO))]
+    [InlineData(typeof(UsuarioAcompanhamentoDTO))]
     [InlineData(typeof(UsuarioDTOPatchResponse))]
     public void OpenApi_DescribesDataIngressoAsNullableDateString(Type dtoType)
     {

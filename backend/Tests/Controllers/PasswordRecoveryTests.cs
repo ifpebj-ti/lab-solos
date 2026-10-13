@@ -40,20 +40,10 @@ public class PasswordRecoveryTests
     public async Task RequestPasswordReset_AlwaysReturnsTheSameAcceptedResponseWithoutSecrets()
     {
         const string token = "sensitive-reset-token";
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.RequestPasswordResetAsync(
-                "eligible@example.org",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(PasswordResetRequestResult.Eligible(
-                "eligible@example.org",
-                "Eligible",
-                token));
-        credentials.Setup(service => service.RequestPasswordResetAsync(
-                "missing@example.org",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(PasswordResetRequestResult.Ineligible());
+        var credentials = new Mock<IPasswordResetService>();
+        var admissions = new Mock<IPasswordRecoveryRequestService>();
         var email = new Mock<IEmailService>();
-        var controller = CreateController(email.Object, credentials.Object);
+        var controller = CreateController(email.Object, credentials.Object, admissions.Object);
 
         var eligible = await controller.RequestPasswordReset(
             new PasswordResetRequestDTO { Email = "eligible@example.org" },
@@ -69,36 +59,36 @@ public class PasswordRecoveryTests
         Assert.Equal(missingResponse, eligibleResponse);
         Assert.DoesNotContain(token, eligibleResponse);
         Assert.DoesNotContain("eligible@example.org", eligibleResponse);
-        email.Verify(service => service.EnviarEmail(
+        admissions.Verify(service => service.AdmitAsync(
             "eligible@example.org",
-            It.IsAny<string>(),
-            It.Is<string>(body => body.Contains(token, StringComparison.Ordinal))), Times.Once);
+            It.IsAny<System.Net.IPAddress?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+        admissions.Verify(service => service.AdmitAsync(
+            "missing@example.org",
+            It.IsAny<System.Net.IPAddress?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+        email.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task RequestPasswordReset_SmtpFailureRemainsExternallyNeutral()
     {
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.RequestPasswordResetAsync(
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(PasswordResetRequestResult.Eligible(
-                "eligible@example.org",
-                "Eligible",
-                "sensitive-reset-token"));
+        var credentials = new Mock<IPasswordResetService>();
         var email = new Mock<IEmailService>();
         email.Setup(service => service.EnviarEmail(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>()))
             .Throws<InvalidOperationException>();
-        var controller = CreateController(email.Object, credentials.Object);
+        var admissions = new Mock<IPasswordRecoveryRequestService>();
+        var controller = CreateController(email.Object, credentials.Object, admissions.Object);
 
         var result = await controller.RequestPasswordReset(
             new PasswordResetRequestDTO { Email = "eligible@example.org" },
             CancellationToken.None);
 
         Assert.IsType<AcceptedResult>(result);
+        email.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -106,13 +96,14 @@ public class PasswordRecoveryTests
     {
         const string token = "sensitive-reset-token";
         const string password = "sensitive-new-password";
-        var credentials = new Mock<ICredentialService>();
+        var credentials = new Mock<IPasswordResetService>();
         credentials.Setup(service => service.ResetPasswordAsync(
                 "eligible@example.org",
                 token,
                 password,
                 password,
                 false,
+                It.IsAny<System.Net.IPAddress?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.ValidationFailed(
                 CredentialErrorCodes.PasswordResetInvalid));
@@ -160,13 +151,14 @@ public class PasswordRecoveryTests
         var boundCode = Assert.IsType<string>(codeProperty!.GetValue(request));
         Assert.Equal(code, boundCode);
 
-        var credentials = new Mock<ICredentialService>();
+        var credentials = new Mock<IPasswordResetService>();
         credentials.Setup(service => service.ResetPasswordAsync(
                 "eligible@example.org",
                 code,
                 password,
                 password,
                 false,
+                It.IsAny<System.Net.IPAddress?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.Success());
         credentials.Setup(service => service.ResetPasswordAsync(
@@ -175,6 +167,7 @@ public class PasswordRecoveryTests
                 password,
                 password,
                 true,
+                It.IsAny<System.Net.IPAddress?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.Success());
         var controller = CreateController(Mock.Of<IEmailService>(), credentials.Object);
@@ -208,9 +201,15 @@ public class PasswordRecoveryTests
 
     private static EmailController CreateController(
         IEmailService emailService,
-        ICredentialService credentialService) =>
-        new(
+        IPasswordResetService passwordResetService,
+        IPasswordRecoveryRequestService? admissions = null)
+    {
+        var controller = new EmailController(
             emailService,
-            credentialService,
+            passwordResetService,
+            admissions ?? Mock.Of<IPasswordRecoveryRequestService>(),
             NullLogger<EmailController>.Instance);
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        return controller;
+    }
 }

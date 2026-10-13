@@ -8,6 +8,7 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,8 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUsuarioService _usuarioService;
         private readonly IUtilitiesService _utilsService;
         private readonly INotificacaoService _notificacaoService;
+        private readonly UserResourceAccessService _userResourceAccess;
+        private readonly UserProfileUpdateService? _profileUpdateService;
         private readonly TimeProvider _timeProvider;
         private const string DependentDecisionUnauthorizedMessage =
             "Você não tem permissão para processar este usuário dependente.";
@@ -42,7 +45,9 @@ namespace LabSolos_Server_DotNet8.Controllers
             IMapper mapper,
             IUsuarioService usuarioService,
             INotificacaoService notificacaoService,
-            TimeProvider? timeProvider = null)
+            TimeProvider? timeProvider = null,
+            UserResourceAccessService? userResourceAccess = null,
+            UserProfileUpdateService? profileUpdateService = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _utilsService = utilsService ?? throw new ArgumentNullException(nameof(utilsService));
@@ -51,6 +56,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             _usuarioService = usuarioService ?? throw new ArgumentNullException(nameof(usuarioService));
             _notificacaoService = notificacaoService ?? throw new ArgumentNullException(nameof(notificacaoService));
             _timeProvider = timeProvider ?? TimeProvider.System;
+            _userResourceAccess = userResourceAccess ?? new UserResourceAccessService();
+            _profileUpdateService = profileUpdateService;
         }
 
         [HttpGet]
@@ -62,7 +69,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("tipo/{tipoUsuario}")]
-        [Authorize]
+        [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosPeloTipo(int tipoUsuario)
         {
             _logger.LogInformation("Iniciando operação para obter usuários do tipo {Tipo}.", (TipoUsuario)tipoUsuario);
@@ -91,8 +98,23 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize]
         public async Task<IActionResult> ObterPeloId(int id)
         {
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id, query => query.Include(u => u.Responsavel));
-            if (usuario == null) return NotFound();
+            var accessibleProfile = AndAlso(
+                _userResourceAccess.ForProfiles(User),
+                usuario => usuario.Id == id);
+            var usuario = await _uow.UsuarioRepository.ObterAsync(
+                accessibleProfile,
+                query => query.Include(u => u.Responsavel));
+            if (usuario is null)
+            {
+                return ResourceNotFound();
+            }
+
+            var isLinkedMentee = User.IsInRole(NivelUsuario.Mentor.ToString()) &&
+                _userResourceAccess.ForLinkedMentees(User).Compile()(usuario);
+            if (isLinkedMentee)
+            {
+                return Ok(_mapper.Map<UsuarioAcompanhamentoDTO>(usuario));
+            }
 
             // Mapeamento baseado no tipo do usuário
             return usuario.TipoUsuario switch
@@ -107,95 +129,71 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterEmprestimosDosDependentes(int usuarioId)
         {
-            // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
-            if (usuario == null)
+            var responsavel = await ObterResponsavelAutorizadoAsync(usuarioId);
+            if (responsavel is null)
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            // Obter todos os empréstimos dos dependentes
-            var emprestimosDependentesDTO = new List<EmprestimoDTO>();
-
-            foreach (var dependente in usuario.Dependentes ?? Enumerable.Empty<Usuario>())
+            var dependentes = await ObterDependentesAutorizadosAsync(responsavel.Id);
+            var idsDependentes = dependentes.Select(dependente => dependente.Id).ToArray();
+            if (idsDependentes.Length == 0)
             {
-                var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(e => e.SolicitanteId == dependente.Id,
-                    query => query
-                        .Include(e => e.Produtos)
-                        .ThenInclude(p => p.Produto)
-                        .ThenInclude(p => p.Lote)
-                        .Include(e => e.Solicitante)
-                        .Include(e => e.Aprovador)
-                );
-
-                var emprestimosDTO = _mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos);
-                emprestimosDependentesDTO.AddRange(emprestimosDTO);
+                return Ok(Array.Empty<EmprestimoDTO>());
             }
 
-            return Ok(emprestimosDependentesDTO);
+            var authorizedLoans = AndAlso(
+                _userResourceAccess.ForLoans(User),
+                emprestimo => idsDependentes.Contains(emprestimo.SolicitanteId));
+            var emprestimos = await _uow.EmprestimoRepository.ObterTodosAsync(
+                authorizedLoans,
+                query => query
+                    .Include(e => e.Produtos)
+                    .ThenInclude(p => p.Produto)
+                    .ThenInclude(p => p.Lote)
+                    .Include(e => e.Solicitante)
+                    .Include(e => e.Aprovador));
+
+            return Ok(_mapper.Map<IEnumerable<EmprestimoDTO>>(emprestimos));
         }
 
         [HttpGet("{usuarioId}/dependentes")]
         [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentes(int usuarioId)
         {
-            // Buscar o usuário principal para garantir que ele exista
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
-            if (usuario == null)
+            var responsavel = await ObterResponsavelAutorizadoAsync(usuarioId);
+            if (responsavel is null)
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            // Buscar os dependentes desse usuário
-            var dependentes = usuario.Dependentes;
-            if (dependentes == null || dependentes.Count == 0)
-            {
-                return NotFound("Este usuário não possui dependentes.");
-            }
-
-            var dependentesDto = _mapper.Map<IEnumerable<DependenteDTO>>(dependentes);
-
-            return Ok(dependentesDto);
+            var dependentes = await ObterDependentesAutorizadosAsync(responsavel.Id);
+            return Ok(_mapper.Map<IEnumerable<UsuarioAcompanhamentoDTO>>(dependentes));
         }
 
         [HttpGet("{usuarioId}/dependentes/aprovacao")]
         [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentesParaAprovacao(int usuarioId)
         {
-            // Buscar o usuário principal para garantir que ele existe
-            var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId, query => query.Include(u => u.Dependentes));
-            if (usuario == null)
+            var responsavel = await ObterResponsavelAutorizadoAsync(usuarioId);
+            if (responsavel is null)
             {
-                return NotFound("Usuário não encontrado.");
+                return ResourceNotFound();
             }
 
-            // Buscar os dependentes desse usuário que ainda estão pendentes de aprovação
-            var dependentesPendentes = usuario.Dependentes?
-                .Where(dependente => dependente.Status == StatusUsuario.Pendente)
-                .ToList();
-
-            if (dependentesPendentes is null || dependentesPendentes.Count == 0)
-            {
-                return NotFound("Nenhum dependente aguarda aprovação.");
-            }
-
-            // Mapear para DTO
-            var dependentesDto = _mapper.Map<IEnumerable<DependenteDTO>>(dependentesPendentes);
-
-            return Ok(dependentesDto);
+            var pendingMentees = AndAlso(
+                _userResourceAccess.ForLinkedMentees(User),
+                dependente => dependente.ResponsavelId == responsavel.Id &&
+                    dependente.Status == StatusUsuario.Pendente);
+            var dependentesPendentes = await _uow.UsuarioRepository.ObterTodosAsync(pendingMentees);
+            return Ok(_mapper.Map<IEnumerable<UsuarioAcompanhamentoDTO>>(dependentesPendentes));
         }
 
         [HttpGet("aprovacao")]
         [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
-            // Buscar o usuário principal para garantir que ele existe
             var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => u.Status == StatusUsuario.Pendente);
-            if (!usuarios.Any())
-            {
-                return NotFound("Nenhum usuário encontrado");
-            }
-
             var usuariosDto = _mapper.Map<IEnumerable<UsuarioDTO>>(usuarios);
 
             return Ok(usuariosDto);
@@ -348,48 +346,72 @@ namespace LabSolos_Server_DotNet8.Controllers
             if (patchUsuarioDto is null)
                 return BadRequest();
 
-            // Verificar se está tentando alterar o status
-            var isStatusPatch = patchUsuarioDto.Operations.Any(op =>
-                op.path.Equals("/status", StringComparison.OrdinalIgnoreCase));
+            var updateService = _profileUpdateService ??
+                throw new InvalidOperationException("The profile update service is not configured.");
+            var update = await updateService.UpdateAsync(
+                usuarioId,
+                User,
+                patchUsuarioDto,
+                HttpContext.RequestAborted);
 
-            // Se estiver alterando status, verificar se é administrador
-            if (isStatusPatch && !User.IsInRole("Administrador"))
+            return update.Status switch
             {
-                return Forbid("Apenas administradores podem alterar o status de usuários.");
-            }
-
-            //obtem o usuario pelo Id
-            var usuario = await _uow.UsuarioRepository.ObterAsync(f => f.Id == usuarioId);
-
-            //se não econtrou retorna
-            if (usuario is null)
-                return NotFound("Usuario não existe");
-
-            //mapeia usuario para usuarioDTOPatchRequest
-            var usuarioPatchRequest = _mapper.Map<UsuarioDTOPatchRequest>(usuario);
-
-            //aplica as alterações definidas no documento JSON Patch ao objeto usuarioDTOPatchRequest
-            patchUsuarioDto.ApplyTo(usuarioPatchRequest, ModelState);
-
-            if (!ModelState.IsValid || !TryValidateModel(usuarioPatchRequest))
-                return BadRequest(ModelState);
-
-            // Validar se o status é válido (se estiver sendo alterado)
-            if (isStatusPatch &&
-                !string.IsNullOrEmpty(usuarioPatchRequest.Status) &&
-                !Enum.TryParse<StatusUsuario>(usuarioPatchRequest.Status, out _))
-            {
-                return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusUsuario>())}");
-            }
-
-            _mapper.Map(usuarioPatchRequest, usuario);
-
-            _uow.UsuarioRepository.Atualizar(usuario);
-            await _uow.CommitAsync();
-
-            //retorna usuarioDTOPatchResponse
-            return Ok(_mapper.Map<UsuarioDTOPatchResponse>(usuario));
+                UserProfileUpdateStatus.Updated => Ok(_mapper.Map<UsuarioDTOPatchResponse>(update.UpdatedUser)),
+                UserProfileUpdateStatus.NotFound => ResourceNotFound(),
+                UserProfileUpdateStatus.Forbidden => StatusCode(StatusCodes.Status403Forbidden),
+                UserProfileUpdateStatus.Invalid => ProfileUpdateValidationProblem(update.Errors!),
+                UserProfileUpdateStatus.Conflict => ProfileUpdateConflictProblem(),
+                UserProfileUpdateStatus.Unavailable => ProfileUpdateUnavailableProblem(),
+                _ => StatusCode(StatusCodes.Status500InternalServerError)
+            };
         }
+
+        private static ObjectResult ProfileUpdateValidationProblem(
+            IReadOnlyDictionary<string, string[]> errors)
+        {
+            var details = new ValidationProblemDetails(errors.ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value))
+            {
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                Title = "Não foi possível atualizar o perfil.",
+                Status = StatusCodes.Status400BadRequest
+            };
+
+            return new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                ContentTypes = { "application/problem+json" }
+            };
+        }
+
+        private static ObjectResult ProfileUpdateConflictProblem()
+        {
+            var details = new ProblemDetails
+            {
+                Type = "about:blank",
+                Title = "Não foi possível atualizar o perfil.",
+                Status = StatusCodes.Status409Conflict
+            };
+            details.Extensions["code"] = "profile_update_conflict";
+
+            return new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status409Conflict,
+                ContentTypes = { "application/problem+json" }
+            };
+        }
+
+        private static ObjectResult ProfileUpdateUnavailableProblem() => new(new ProblemDetails
+        {
+            Type = "about:blank",
+            Title = "A alteração de e-mail está temporariamente indisponível.",
+            Status = StatusCodes.Status503ServiceUnavailable
+        })
+        {
+            StatusCode = StatusCodes.Status503ServiceUnavailable,
+            ContentTypes = { "application/problem+json" }
+        };
 
         [HttpPatch("dependentes/{dependenteId}/aprovar")]
         [Authorize(Policy = "ApenasResponsaveis")]
@@ -535,6 +557,51 @@ namespace LabSolos_Server_DotNet8.Controllers
                 User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
             return int.TryParse(subject, out var userId) ? userId : null;
+        }
+
+        private async Task<Usuario?> ObterResponsavelAutorizadoAsync(int usuarioId)
+        {
+            var authorizedResponsible = AndAlso(
+                _userResourceAccess.ForProfiles(User),
+                usuario => usuario.Id == usuarioId &&
+                    (usuario.NivelUsuario == NivelUsuario.Mentor ||
+                     usuario.NivelUsuario == NivelUsuario.Administrador));
+
+            return await _uow.UsuarioRepository.ObterAsync(authorizedResponsible);
+        }
+
+        private Task<IEnumerable<Usuario>> ObterDependentesAutorizadosAsync(int responsavelId)
+        {
+            var authorizedMentees = AndAlso(
+                _userResourceAccess.ForLinkedMentees(User),
+                dependente => dependente.ResponsavelId == responsavelId);
+
+            return _uow.UsuarioRepository.ObterTodosAsync(authorizedMentees);
+        }
+
+        private static NotFoundObjectResult ResourceNotFound() => new(new ProblemDetails
+        {
+            Type = "about:blank",
+            Title = "Recurso não encontrado.",
+            Status = StatusCodes.Status404NotFound
+        });
+
+        private static Expression<Func<T, bool>> AndAlso<T>(
+            Expression<Func<T, bool>> first,
+            Expression<Func<T, bool>> second)
+        {
+            var parameter = Expression.Parameter(typeof(T), "resource");
+            var firstBody = new ParameterReplacementVisitor(first.Parameters[0], parameter).Visit(first.Body)!;
+            var secondBody = new ParameterReplacementVisitor(second.Parameters[0], parameter).Visit(second.Body)!;
+            return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(firstBody, secondBody), parameter);
+        }
+
+        private sealed class ParameterReplacementVisitor(
+            ParameterExpression source,
+            ParameterExpression replacement) : ExpressionVisitor
+        {
+            protected override Expression VisitParameter(ParameterExpression node) =>
+                node == source ? replacement : base.VisitParameter(node);
         }
 
         [HttpDelete("{id}")]
