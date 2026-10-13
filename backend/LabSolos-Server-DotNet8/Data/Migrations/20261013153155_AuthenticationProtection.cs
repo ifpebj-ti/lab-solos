@@ -10,6 +10,10 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class AuthenticationProtection : Migration
     {
+        private static readonly string[] CapacityColumns = ["Scope", "Allocated"];
+        private static readonly string[] ThrottleCleanupColumns = ["WindowEndsAt", "NextAllowedAt", "NextEmissionAt"];
+        private static readonly string[] RecoverySelectionColumns = ["Status", "NextAttemptAt", "LeaseUntil"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -112,7 +116,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
             migrationBuilder.InsertData(
                 table: "AuthenticationProtectionCapacity",
-                columns: new[] { "Scope", "Allocated" },
+                columns: CapacityColumns,
                 values: new object[,]
                 {
                     { "login:account", 0 },
@@ -133,12 +137,12 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_AuthenticationThrottleBuckets_Cleanup",
                 table: "AuthenticationThrottleBuckets",
-                columns: new[] { "WindowEndsAt", "NextAllowedAt", "NextEmissionAt" });
+                columns: ThrottleCleanupColumns);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PasswordRecoveryJobs_Selection",
                 table: "PasswordRecoveryJobs",
-                columns: new[] { "Status", "NextAttemptAt", "LeaseUntil" });
+                columns: RecoverySelectionColumns);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PasswordRecoveryJobs_UserId",

@@ -1,4 +1,3 @@
-#pragma warning disable CA1707 // Keep the namespace aligned with the existing application assembly name.
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

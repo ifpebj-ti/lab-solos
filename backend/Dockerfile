@@ -23,7 +23,7 @@ RUN dotnet publish LabSolos-Server-DotNet8.csproj -c Release -o /app/out --no-re
 
 # Runtime (usa apenas para rodar a aplicação)
 # Chiseled-extra mantém ICU/fusos horários e dispensa shell e gerenciador de pacotes.
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.30-noble-chiseled-extra@sha256:43f48a2ce0eda19c01b2bb079c3f02d49b24a1fadafcf546790297db74ede4bf AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.31-noble-chiseled-extra@sha256:083152f868dc13215dd07856ced47701f707371c18d963d84caaac9795309f8c AS runtime
 WORKDIR /app
 
 # Mudar para o usuário não-root

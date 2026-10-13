@@ -22,7 +22,7 @@ using Tests.Infrastructure;
 namespace Tests.Integration;
 
 [Collection(PostgreSql15IntegrationGroup.Name)]
-public sealed class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFixture database)
+public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFixture database)
 {
     private const int UserId = 782_001;
     private const string Email = "recovery-worker@example.invalid";
@@ -512,9 +512,12 @@ public sealed class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFixture dat
 
     private static ControlledTimeProvider NewClock() => new(DateTimeOffset.UtcNow);
 
+    [GeneratedRegex("<strong>(?<token>[^<]+)</strong>", RegexOptions.CultureInvariant)]
+    private static partial Regex RecoveryCodeRegex();
+
     private static string ExtractToken(string body)
     {
-        var match = Regex.Match(body, "<strong>(?<token>[^<]+)</strong>", RegexOptions.CultureInvariant);
+        var match = RecoveryCodeRegex().Match(body);
         Assert.True(match.Success, "The recovery code should be present in the synthetic email body.");
         return match.Groups["token"].Value;
     }

@@ -174,7 +174,7 @@ namespace LabSolos_Server_DotNet8.Middlewares
                 };
 
                 var enderecoIP = rotaProtegida ? string.Empty : context.GetClientIpAddress();
-                var userAgent = rotaProtegida ? null : context.Request.Headers["User-Agent"].ToString();
+                var userAgent = rotaProtegida ? null : context.Request.Headers.UserAgent.ToString();
 
                 await auditoriaService.RegistrarLogAsync(logDto, userId, enderecoIP, userAgent);
             }

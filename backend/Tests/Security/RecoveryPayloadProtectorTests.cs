@@ -10,6 +10,7 @@ public sealed class RecoveryPayloadProtectorTests
     private static readonly byte[] PreviousKey = Enumerable.Range(33, 32).Select(value => (byte)value).ToArray();
     private const string CurrentKeyId = "recovery-2026-02";
     private const string PreviousKeyId = "recovery-2026-01";
+    private static readonly string SecretFilePath = Path.Combine(Path.GetTempPath(), "secrets", "recovery-keys.json");
 
     [Fact]
     public void ProtectsPayloadWithActiveKeyAndAuthenticatesRecoveryContext()
@@ -156,7 +157,7 @@ public sealed class RecoveryPayloadProtectorTests
     public void LoadsTheVersionedKeyMapFromTheConfiguredSecretFileReader()
     {
         var document = KeyFile(CurrentKeyId, (CurrentKeyId, CurrentKey), (PreviousKeyId, PreviousKey));
-        using var keyRing = RecoveryEncryptionKeyRing.Load("C:\\secrets\\recovery-keys.json", new FixedSecretFileReader(document));
+        using var keyRing = RecoveryEncryptionKeyRing.Load(SecretFilePath, new FixedSecretFileReader(document));
         var protector = new RecoveryPayloadProtector(keyRing);
 
         var payload = protector.Protect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, Encoding.UTF8.GetBytes("synthetic@example.test"));
@@ -170,7 +171,7 @@ public sealed class RecoveryPayloadProtectorTests
         var document = KeyFile("missing-active", (CurrentKeyId, CurrentKey));
 
         var error = Assert.Throws<CryptographicException>(
-            () => RecoveryEncryptionKeyRing.Load("C:\\secrets\\recovery-keys.json", new FixedSecretFileReader(document)));
+            () => RecoveryEncryptionKeyRing.Load(SecretFilePath, new FixedSecretFileReader(document)));
 
         Assert.DoesNotContain("missing-active", error.Message, StringComparison.Ordinal);
     }
@@ -191,7 +192,7 @@ public sealed class RecoveryPayloadProtectorTests
 
             var error = Assert.Throws<CryptographicException>(
                 () => RecoveryEncryptionKeyRing.Load(
-                    "C:\\secrets\\recovery-keys.json",
+                    SecretFilePath,
                     new FixedSecretFileReader(document)));
 
             Assert.DoesNotContain(invalidKey, error.Message, StringComparison.Ordinal);
@@ -216,7 +217,7 @@ public sealed class RecoveryPayloadProtectorTests
 
     private static RecoveryEncryptionKeyRing KeyRing(string activeKeyId, params (string Id, byte[] Key)[] keys) =>
         RecoveryEncryptionKeyRing.Load(
-            "C:\\secrets\\recovery-keys.json",
+            SecretFilePath,
             new FixedSecretFileReader(KeyFile(activeKeyId, keys)));
 
     private static byte[] KeyFile(string activeKeyId, params (string Id, byte[] Key)[] keys)

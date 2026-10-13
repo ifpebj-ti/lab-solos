@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Tests.Integration;
 
 [Collection(PostgreSql15IntegrationGroup.Name)]
-public sealed class AuthenticationProtectionCrossFlowTests(
+public sealed partial class AuthenticationProtectionCrossFlowTests(
     PostgreSql15ContainerFixture database,
     ITestOutputHelper output)
 {
@@ -350,9 +350,12 @@ public sealed class AuthenticationProtectionCrossFlowTests(
         clock,
         factory.Services.GetRequiredService<ILogger<PasswordRecoveryDeliveryWorker>>());
 
+    [GeneratedRegex("<strong>(?<code>[^<]+)</strong>", RegexOptions.CultureInvariant)]
+    private static partial Regex RecoveryCodeRegex();
+
     private static string ExtractCode(string body)
     {
-        var match = Regex.Match(body, "<strong>(?<code>[^<]+)</strong>", RegexOptions.CultureInvariant);
+        var match = RecoveryCodeRegex().Match(body);
         Assert.True(match.Success, "A recovery code must be present in the synthetic delivery.");
         return match.Groups["code"].Value;
     }
