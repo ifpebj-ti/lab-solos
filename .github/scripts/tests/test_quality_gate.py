@@ -17,20 +17,43 @@ from check_quality_gate import evaluate_gate  # noqa: E402
 class QualityGateTests(unittest.TestCase):
     def test_requires_every_job_to_be_successful(self):
         result, errors = evaluate_gate(
-            ["frontend", "backend", "e2e"],
-            {"frontend": "success", "backend": "success", "e2e": "success"},
+            ["frontend", "backend", "e2e", "browser-security"],
+            {
+                "frontend": "success",
+                "backend": "success",
+                "e2e": "success",
+                "browser-security": "success",
+            },
         )
         self.assertEqual(result, 0)
         self.assertEqual(errors, [])
 
     def test_rejects_failure_cancelled_skipped_and_missing(self):
         result, errors = evaluate_gate(
-            ["failure", "cancelled", "skipped", "missing"],
-            {"failure": "failure", "cancelled": "cancelled", "skipped": "skipped"},
+            ["failure", "cancelled", "skipped", "missing", "browser-security"],
+            {
+                "failure": "failure",
+                "cancelled": "cancelled",
+                "skipped": "skipped",
+                "browser-security": "failure",
+            },
         )
         self.assertEqual(result, 1)
-        self.assertEqual(len(errors), 4)
+        self.assertEqual(len(errors), 5)
         self.assertIn("missing", " ".join(errors))
+        self.assertIn("browser-security", " ".join(errors))
+
+    def test_browser_security_missing_skipped_or_failed_blocks_the_gate(self):
+        cases = (
+            {},
+            {"browser-security": "skipped"},
+            {"browser-security": "failure"},
+        )
+        for results in cases:
+            with self.subTest(results=results):
+                result, errors = evaluate_gate(["browser-security"], results)
+                self.assertEqual(result, 1)
+                self.assertTrue(errors)
 
     def test_json_input_supports_job_result_objects(self):
         with tempfile.TemporaryDirectory() as directory:

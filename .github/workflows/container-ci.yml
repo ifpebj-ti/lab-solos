@@ -72,7 +72,7 @@ jobs:
           dotnet-version: "8.0.419"
 
       - name: Restore backend solution
-        run: dotnet restore backend/backend.sln
+        run: dotnet restore backend/backend.sln --locked-mode
 
       - name: Build backend solution
         run: dotnet build backend/backend.sln --no-restore -c Release --nologo --disable-build-servers
@@ -145,6 +145,82 @@ jobs:
       - name: Remove synthetic E2E stack
         if: always()
         run: docker compose -f docker-compose-e2e.yml down --volumes --remove-orphans
+
+  browser-security:
+    name: Browser security E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    env:
+      SECURITY_E2E_HTTPS_PORT: "18443"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies from lockfile
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chromium from the lockfile
+        working-directory: frontend
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        with:
+          version: "29.7.2"
+          set-host: true
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
+        with:
+          version: "v5.3.1"
+
+      - name: Validate disposable security stack
+        run: >-
+          docker compose --project-name lab-solos-ci-browser-security
+          --file docker-compose-security-e2e.yml config --quiet
+
+      - name: Start disposable security stack
+        run: >-
+          docker compose --project-name lab-solos-ci-browser-security
+          --file docker-compose-security-e2e.yml up --detach --build --wait
+
+      - name: Run focused browser security E2E tests
+        id: security-tests
+        working-directory: frontend
+        run: npm run test:e2e -- --project=security
+
+      - name: Write sanitized result summary
+        if: always()
+        env:
+          SECURITY_E2E_OUTCOME: ${{ steps.security-tests.outcome }}
+        run: printf 'browser-security=%s\n' "$SECURITY_E2E_OUTCOME" > "${RUNNER_TEMP}/browser-security-summary.txt"
+
+      - name: Upload sanitized browser security artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-security-artifacts
+          path: |
+            ${{ runner.temp }}/browser-security-summary.txt
+            frontend/e2e/infra/artifacts/report
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Remove disposable security stack
+        if: always()
+        run: >-
+          docker compose --project-name lab-solos-ci-browser-security
+          --file docker-compose-security-e2e.yml down --volumes --remove-orphans
 
   workflow-quality:
     name: Workflow contracts
@@ -278,6 +354,7 @@ jobs:
       - frontend-quality
       - backend-quality
       - auth-e2e
+      - browser-security
       - workflow-quality
       - quality-baseline
       - container-scan
@@ -297,16 +374,18 @@ jobs:
           FRONTEND_RESULT: ${{ needs.frontend-quality.result }}
           BACKEND_RESULT: ${{ needs.backend-quality.result }}
           E2E_RESULT: ${{ needs.auth-e2e.result }}
+          BROWSER_SECURITY_RESULT: ${{ needs.browser-security.result }}
           WORKFLOW_RESULT: ${{ needs.workflow-quality.result }}
           QUALITY_RESULT: ${{ needs.quality-baseline.result }}
           CONTAINER_RESULT: ${{ needs.container-scan.result }}
         run: >-
           python -B .github/scripts/check_quality_gate.py
-          --required frontend-quality backend-quality auth-e2e workflow-quality
+          --required frontend-quality backend-quality auth-e2e browser-security workflow-quality
           quality-baseline container-scan
           --job "frontend-quality=$FRONTEND_RESULT"
           --job "backend-quality=$BACKEND_RESULT"
           --job "auth-e2e=$E2E_RESULT"
+          --job "browser-security=$BROWSER_SECURITY_RESULT"
           --job "workflow-quality=$WORKFLOW_RESULT"
           --job "quality-baseline=$QUALITY_RESULT"
           --job "container-scan=$CONTAINER_RESULT"

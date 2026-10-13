@@ -22,7 +22,11 @@ services:
           -CAcreateserial \
           -out /certs/smtp.crt \
           -extfile /tmp/smtp.ext
+        openssl rand -out /certs/authentication-throttle-key 32
+        openssl rand -base64 32 | tr -d '\n' > /tmp/recovery-key.b64
+        printf '{"activeKeyId":"e2e-key","keys":{"e2e-key":"%s"}}\n' "$$(cat /tmp/recovery-key.b64)" > /certs/recovery-encryption-keys.json
         chmod 644 /certs/ca.crt /certs/smtp.crt /certs/smtp.key
+        chmod 444 /certs/authentication-throttle-key /certs/recovery-encryption-keys.json
     volumes:
       - e2e_smtp_certs:/certs
     networks:
@@ -86,6 +90,11 @@ services:
       Email__Usuario: synthetic-e2e@example.invalid
       Email__Senha: synthetic-e2e-smtp-password
       Email__De: synthetic-e2e@example.invalid
+      AuthenticationProtection__KeyHashSecretFile: /run/secrets/authentication-throttle-key
+      AuthenticationProtection__RecoveryEncryptionKeysFile: /run/secrets/recovery-encryption-keys.json
+      AuthenticationProtection__ForwardedHeaders__KnownProxies__0: 127.0.0.1
+      AuthenticationProtection__ForwardedHeaders__ForwardLimit: "1"
+      AuthenticationProtection__Cors__DevelopmentOrigins__0: http://127.0.0.1:4173
       SSL_CERT_FILE: /certs/ca.crt
       AllowedHosts: "*"
     depends_on:
@@ -103,6 +112,7 @@ services:
       - "127.0.0.1:${E2E_BACKEND_PORT:-18080}:8080"
     volumes:
       - e2e_smtp_certs:/certs:ro
+      - e2e_smtp_certs:/run/secrets:ro
     networks:
       - e2e_private
       - e2e_public
