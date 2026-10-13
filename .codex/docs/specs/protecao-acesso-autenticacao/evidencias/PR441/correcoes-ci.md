@@ -37,6 +37,21 @@ Na primeira suíte UI completa, 201/222 passaram e 21 falharam ao exigir outline
 
 As pilhas lab-solos-pr441-verify e lab-solos-pr441-security foram removidas com seus próprios volumes e redes após a validação. Recursos de outros projetos e os artefatos preexistentes do workspace foram preservados.
 
+## Validação remota e proteção de merge
+
+O candidato f3ee41f completou os 18 checks com sucesso: Container CI (38480099371), Dependency security gate (38480099163), Documentation quality (38480099252) e CodeQL quality for develop (38480099216). O E2E de autenticação passou 239 cenários (17 real e 222 UI); os scans das imagens finais passaram nas duas arquiteturas.
+
+Apesar dos jobs verdes, o ruleset code-quality-develop manteve o merge bloqueado por alertas CodeQL novos de severidade error/warning. A comparação dos alertas abertos em refs/pull/441/merge com refs/heads/develop identificou oito novos: #65, #66, #76, #83, #84, #85, #86 e #87. A revisão seguinte corrige as causas; as regras e os alertas históricos não são relaxados ou descartados.
+
+Correções adicionais:
+
+- IDs usados nos caminhos do adaptador Users são convertidos a inteiros positivos Int32 antes da montagem da URL. Entradas com sintaxe de URL, frações, zero, valores negativos, tipos inesperados e overflow são rejeitadas antes de HTTP; o ID do aprovador segue o mesmo contrato.
+- O login verifica a ausência do usuário antes do resultado agregado de autenticação; SMTP utiliza a porta já validada; devolução rejeita claims malformados com 401 antes de acessar o repositório.
+- Os testes usam conversão implícita de Task, tolerância numérica para métricas double e endereços HTTPS explícitos para PATCH no transporte virtual TestServer. A fixture pública de senha é identificada como syntheticCredential, mantendo a verificação de ausência do segredo na resposta. A consulta CWE-201 classifica acessos a variáveis com nomes password/passwd como fonte sensível mesmo sobre TLS; a fixture sintética é distinguida sem excluir arquivos ou regras da análise.
+- RED backend: dois casos reproduziram FormatException/OverflowException no código anterior. GREEN: 15 testes de devolução, contrato de login e throttle; outros 34 testes de perfil, SMTP, métricas e concorrência passaram.
+- RED frontend: 98 casos adversariais falharam contra a montagem anterior dos caminhos. GREEN direcionado: 203 testes de integrações e identificadores, lint e build aprovados.
+- Regressão completa após as correções CodeQL: backend 434/434, sem skips; frontend 820/820 em 148 arquivos. Sete falhas iniciais da suíte frontend vieram de um mock que devolvia token também para rankID; o fixture passou a fornecer o ID numérico real do cenário, preservando as asserções. Os 11 testes dos consumidores de perfil passaram na revisão.
+
 ## Limites e encerramento
 
 As evidências acima são locais e sintéticas. O aceite publicado T030/CA-027 continua exigindo uma versão publicada identificável, URL confirmada e contas dedicadas. Aprovação dos checks de PR permite avaliar o merge; não comprova a aceitação do ambiente publicado nem substitui os critérios de encerramento das issues #436–#440. A revisão remota das correções deve ser registrada na PR #441 após o push.

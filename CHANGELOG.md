@@ -4,7 +4,7 @@ As entregas relevantes são registradas aqui e nas [releases do GitHub](https://
 
 ## Não publicado
 
-- Corrigir a esteira de proteção de autenticação: testes portáveis em Linux, seleção dos projetos E2E, exemplos Compose da Wiki e achados novos de qualidade; atualizar Axios, migrar o tema para Tailwind 4 e adotar ASP.NET 8.0.31 com OpenSSL corrigido ([#441](https://github.com/ifpebj-ti/lab-solos/pull/441)).
+- Corrigir a esteira de proteção de autenticação: testes portáveis em Linux, seleção dos projetos E2E, exemplos Compose da Wiki e achados novos de qualidade/CodeQL; validar identificadores nas URLs de usuários, atualizar Axios, migrar o tema para Tailwind 4 e adotar ASP.NET 8.0.31 com OpenSSL corrigido ([#441](https://github.com/ifpebj-ti/lab-solos/pull/441)).
 - Proteger autorização por perfil/vínculo, limitar login e recuperação com cotas compartilhadas, enfileirar entrega de recuperação e aplicar CSP no frontend via Caddy; documentar operação, migração e recuperação segura ([#436](https://github.com/ifpebj-ti/lab-solos/issues/436), [#437](https://github.com/ifpebj-ti/lab-solos/issues/437), [#438](https://github.com/ifpebj-ti/lab-solos/issues/438), [#439](https://github.com/ifpebj-ti/lab-solos/issues/439), [#440](https://github.com/ifpebj-ti/lab-solos/issues/440)).
 - Corrigir os 12 Standard findings do CodeQL e informar falhas de recuperação da publicação da Wiki ([#428](https://github.com/ifpebj-ti/lab-solos/issues/428)).
 
