@@ -7,6 +7,7 @@ using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Tests.Infrastructure;
 using LabSolos_Server_DotNet8.Services.Security;
@@ -382,7 +383,10 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
         int userId,
         NivelUsuario role)
     {
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             JwtSessionVersionTests.CreateToken(userId, "0", "false", role));
@@ -391,7 +395,7 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
 
     private static async Task<HttpResponseMessage> PatchAsync(HttpClient client, int userId, string jsonPatch)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/Usuarios/{userId}")
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"https://localhost/api/Usuarios/{userId}")
         {
             Content = new StringContent(jsonPatch, Encoding.UTF8, "application/json-patch+json")
         };

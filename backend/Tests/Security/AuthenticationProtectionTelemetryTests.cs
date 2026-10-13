@@ -128,11 +128,11 @@ public sealed class AuthenticationProtectionTelemetryTests
             measurement => Assert.Equal(-2, measurement.Value));
         Assert.Contains(measurements, measurement =>
             measurement.Name == "authentication_admission_duration" &&
-            measurement.Value == 12.5 &&
+            Math.Abs(measurement.Value - 12.5) < 0.000001 &&
             measurement.Tags.SequenceEqual(["operation=login", "result=denied"]));
         Assert.Contains(measurements, measurement =>
             measurement.Name == "recovery_delivery_duration" &&
-            measurement.Value == 84 &&
+            Math.Abs(measurement.Value - 84) < 0.000001 &&
             measurement.Tags.SequenceEqual(["result=delivered"]));
         Assert.Equal(4, logger.Messages.Count);
         Assert.DoesNotContain("CANARY", string.Join(Environment.NewLine, logger.Messages), StringComparison.OrdinalIgnoreCase);

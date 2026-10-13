@@ -220,7 +220,7 @@ public sealed class SharedAuthenticationThrottleTests(PostgreSql15ContainerFixtu
             return result.State;
         });
 
-        await Task.WhenAll((Task)cleanupTask, allocationTask);
+        await Task.WhenAll(cleanupTask, allocationTask);
         var cleanupCount = await cleanupTask;
         var allocationState = await allocationTask;
 

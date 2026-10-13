@@ -85,7 +85,7 @@ public sealed class EmailService : IEmailService
         var recipient = new MailAddress(para);
         var smtp = _smtpClientFactory();
         smtp.Host = smtpHost;
-        smtp.Port = port;
+        smtp.Port = smtpPort;
         smtp.EnableSsl = true;
         smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
         smtp.UseDefaultCredentials = false;

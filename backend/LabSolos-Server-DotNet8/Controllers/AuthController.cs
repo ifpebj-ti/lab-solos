@@ -143,7 +143,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!authenticationSucceeded || user is null)
+                    if (user is null || !authenticationSucceeded)
                     {
                         _telemetry.RecordAuthenticationAdmission(
                             admissionDuration,

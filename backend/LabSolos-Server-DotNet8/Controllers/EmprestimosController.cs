@@ -396,7 +396,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
+            if (!int.TryParse(userIdClaim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+            {
+                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+            }
 
             // Verificar se o usuário tem o papel de admin ou mentor
             var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
