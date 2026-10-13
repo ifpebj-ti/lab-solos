@@ -131,7 +131,7 @@ jobs:
 
       - name: Run authentication E2E tests
         working-directory: frontend
-        run: npm run test:e2e
+        run: npm run test:e2e -- --project=real --project=ui
 
       - name: Upload E2E artifacts on failure
         if: failure()

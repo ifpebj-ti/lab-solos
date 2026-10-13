@@ -136,7 +136,7 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn(
             "docker compose -f docker-compose-e2e.yml up -d --build --wait", e2e
         )
-        self.assertIn("npm run test:e2e", e2e)
+        self.assertIn("npm run test:e2e -- --project=real --project=ui", e2e)
         self.assertIn("if: always()", e2e)
         self.assertIn(
             "docker compose -f docker-compose-e2e.yml down --volumes --remove-orphans",
