@@ -52,6 +52,8 @@ Correções adicionais:
 - RED frontend: 98 casos adversariais falharam contra a montagem anterior dos caminhos. GREEN direcionado: 203 testes de integrações e identificadores, lint e build aprovados.
 - Regressão completa após as correções CodeQL: backend 434/434, sem skips; frontend 820/820 em 148 arquivos. Sete falhas iniciais da suíte frontend vieram de um mock que devolvia token também para rankID; o fixture passou a fornecer o ID numérico real do cenário, preservando as asserções. Os 11 testes dos consumidores de perfil passaram na revisão.
 
+No candidato 735d2da, a análise remota confirmou zero alertas novos error/warning. O job Backend quality passou 434/434; no job NuGet, um teste de auditoria encontrou `123` na fração do timestamp (`2026-10-13T23:10:06.6845123Z`) ao serializar a entidade inteira. A falha era uma colisão de metadados gerados, sem vazamento de ID. O teste passou a varrer todos os campos serializados exceto Id/DataHora, mantendo as asserções de IDs, canários e IPs. Um teste determinístico reproduziu a colisão no RED; os dez testes da classe passaram no GREEN, incluindo uma garantia de que o filtro preserva o conteúdo auditável. A suite remota passa a ter 435 casos.
+
 ## Limites e encerramento
 
 As evidências acima são locais e sintéticas. O aceite publicado T030/CA-027 continua exigindo uma versão publicada identificável, URL confirmada e contas dedicadas. Aprovação dos checks de PR permite avaliar o merge; não comprova a aceitação do ambiente publicado nem substitui os critérios de encerramento das issues #436–#440. A revisão remota das correções deve ser registrada na PR #441 após o push.

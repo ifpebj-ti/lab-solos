@@ -51,7 +51,7 @@ public sealed class AuthenticationAuditPrivacyTests
         await middleware.InvokeAsync(context);
 
         var log = await database.LogsAuditoria.SingleAsync();
-        var storedValues = JsonSerializer.Serialize(log);
+        var storedValues = SerializeAuditContent(log);
 
         Assert.Equal($"{expectedPurpose} {method}", log.Acao);
         Assert.Equal(expectedPurpose, log.Recurso);
@@ -66,6 +66,30 @@ public sealed class AuthenticationAuditPrivacyTests
         Assert.DoesNotContain("CANARY", storedValues);
         Assert.DoesNotContain("203.0.113.77", storedValues);
         Assert.DoesNotContain("198.51.100.42", storedValues);
+    }
+
+    [Fact]
+    public void GeneratedAuditMetadataMayContainRequestDigitsWithoutPersistingSensitiveContent()
+    {
+        var log = new LogAuditoria
+        {
+            Id = 123,
+            DataHora = new DateTime(2026, 10, 13, 23, 10, 6, DateTimeKind.Utc).AddTicks(4561230),
+            Acao = "loans.read GET",
+            Recurso = "loans.read",
+            Detalhes = "Status: 403; Resultado: negado",
+            DadosResposta = "403",
+            Origem = "CANARY_CONTENT"
+        };
+
+        var completeLog = JsonSerializer.Serialize(log);
+        Assert.Contains("123", completeLog);
+        Assert.Contains("456", completeLog);
+
+        var content = SerializeAuditContent(log);
+        Assert.Contains("CANARY_CONTENT", content);
+        Assert.DoesNotContain("123", content);
+        Assert.DoesNotContain("456", content);
     }
 
     [Fact]
@@ -167,6 +191,17 @@ public sealed class AuthenticationAuditPrivacyTests
         Assert.DoesNotContain("73421", string.Join(Environment.NewLine, logger.StructuredValues));
         Assert.DoesNotContain("CANARY_PASSWORD_OR_TOKEN", string.Join(Environment.NewLine, logger.Messages));
         Assert.Contains("password_invalid", string.Join(Environment.NewLine, logger.Messages));
+    }
+
+    private static string SerializeAuditContent(LogAuditoria log)
+    {
+        // Only generated metadata is excluded; every other property, including
+        // navigation properties and future fields, remains covered by the canaries.
+        var serialized = JsonSerializer.SerializeToElement(log);
+        var content = serialized.EnumerateObject()
+            .Where(property => property.Name is not nameof(LogAuditoria.Id) and not nameof(LogAuditoria.DataHora))
+            .ToDictionary(property => property.Name, property => property.Value);
+        return JsonSerializer.Serialize(content);
     }
 
     private static AppDbContext CreateDatabase() => new(
