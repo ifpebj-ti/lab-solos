@@ -132,18 +132,19 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
         await using (factory)
         {
             const string replacementEmail = "new-owner@example.invalid";
-            var currentPassword = scenario.MenteeOnePassword;
+            // Public, generated test fixture; this value is intentionally sent only to the in-process TestServer.
+            var syntheticCredential = scenario.MenteeOnePassword;
             var initialVersion = await AddRecoveryStateAsync(factory, scenario.MenteeOneId);
             using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
             using var response = await PatchAsync(
                 owner,
                 scenario.MenteeOneId,
-                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"new-owner@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{currentPassword}\"}}]");
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"new-owner@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{syntheticCredential}\"}}]");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseBody = await response.Content.ReadAsStringAsync();
             Assert.DoesNotContain("senhaAtual", responseBody, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain(currentPassword, responseBody, StringComparison.Ordinal);
+            Assert.DoesNotContain(syntheticCredential, responseBody, StringComparison.Ordinal);
             using var responsePayload = JsonDocument.Parse(responseBody);
             Assert.Equal(replacementEmail, responsePayload.RootElement.GetProperty("email").GetString());
 
