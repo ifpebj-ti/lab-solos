@@ -2,6 +2,8 @@
 
 Data: 2026-10-13.
 
+Este arquivo preserva a execução original de T029. As duas falhas E2E aqui registradas foram corrigidas na PR #441; os resultados posteriores (real 17/17, UI 222/222 e security 5/5) e as correções da esteira estão em [correções de CI](../PR441/correcoes-ci.md).
+
 ## Validações executadas
 
 | Validação | Resultado |
