@@ -240,7 +240,7 @@ function NotificationItem() {
                 aria-label={`${notificacao.lida ? '' : 'Não lida: '}${notificacao.titulo}. ${notificacao.mensagem}`}
               >
                 <div className='flex items-start gap-3'>
-                  <span className='text-lg flex-shrink-0 mt-0.5'>
+                  <span className='text-lg shrink-0 mt-0.5'>
                     {getTipoIcon(notificacao.tipo)}
                   </span>
                   <div className='flex-1 min-w-0'>
@@ -249,7 +249,7 @@ function NotificationItem() {
                         {notificacao.titulo}
                       </p>
                       {!notificacao.lida && (
-                        <div className='w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 ml-2' />
+                        <div className='w-2 h-2 bg-blue-500 rounded-full shrink-0 ml-2' />
                       )}
                     </div>
                     <p className='text-xs text-muted-foreground mt-1 line-clamp-2'>

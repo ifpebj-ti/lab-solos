@@ -164,7 +164,7 @@ function ProfileMentor() {
             <div className='flex items-center justify-between gap-x-4'>
               <Link
                 to={'/mentor/my-class'}
-                className='mr-1 flex min-h-11 items-center justify-center rounded-md border border-borderMy px-5 font-inter-regular transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:mr-5 sm:px-7'
+                className='mr-1 flex min-h-11 items-center justify-center rounded-md border border-borderMy px-5 font-inter-regular transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus sm:mr-5 sm:px-7'
               >
                 Minha Turma
               </Link>

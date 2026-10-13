@@ -54,7 +54,7 @@ function DateInput({
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? `${String(name)}-error` : undefined}
             className={cn(
-              'flex min-h-11 w-full items-center justify-start gap-x-3 rounded-md border border-borderMy px-4 text-left font-inter-regular text-sm font-normal text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-9',
+              'flex min-h-11 w-full items-center justify-start gap-x-3 rounded-md border border-borderMy px-4 text-left font-inter-regular text-sm font-normal text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-9',
               !date && 'text-muted-foreground'
             )}
           >
@@ -73,7 +73,7 @@ function DateInput({
             onSelect={handleDateSelect}
             disabled={(date) => disabled && date < new Date()} // Bloqueia apenas datas passadas quando disablePastDates=true
             initialFocus
-            className='border border-borderMy rounded-sm bg-backgroundMy'
+            className='border border-borderMy rounded-xs bg-backgroundMy'
           />
         </PopoverContent>
       </Popover>
@@ -81,7 +81,7 @@ function DateInput({
         id={`${String(name)}-error`}
         role={error ? 'alert' : undefined}
         className={cn(
-          'min-h-5 text-sm text-danger [overflow-wrap:anywhere]',
+          'min-h-5 text-sm text-danger wrap-anywhere',
           error ? '' : 'sr-only'
         )}
       >

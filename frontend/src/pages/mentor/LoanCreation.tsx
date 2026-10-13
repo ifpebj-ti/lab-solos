@@ -236,7 +236,7 @@ function LoanCreation() {
       ) : (
         <main className='flex min-h-svh w-full min-w-0 flex-col items-center justify-start overflow-y-auto bg-canvas pb-9'>
           <div className='mt-7 flex w-11/12 min-w-0 flex-col items-start justify-between gap-4 md:flex-row md:items-center'>
-            <h1 className='min-w-0 uppercase font-rajdhani-medium text-3xl text-clt-2 [overflow-wrap:anywhere]'>
+            <h1 className='min-w-0 uppercase font-rajdhani-medium text-3xl text-clt-2 wrap-anywhere'>
               Criação de Empréstimo
             </h1>
             <div className='flex min-w-0 max-w-full items-center justify-between gap-x-6'>
@@ -262,7 +262,7 @@ function LoanCreation() {
           </div>
 
           {/* Utilizadores */}
-          <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-sm'>
+          <div className='mt-7 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-xs'>
             <div className='flex w-full items-center justify-between rounded-t-xl border-b border-border p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Utilizadores
@@ -293,7 +293,7 @@ function LoanCreation() {
             </form>
           </div>
 
-          <div className='mt-9 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-sm'>
+          <div className='mt-9 flex min-h-32 w-11/12 min-w-0 flex-col rounded-xl border border-border bg-surface shadow-xs'>
             <div className='flex w-full items-center justify-between rounded-t-xl border-b border-border p-4'>
               <p className='font-rajdhani-medium text-clt-2 text-xl'>
                 Produtos
@@ -358,7 +358,7 @@ function LoanCreation() {
                   </div>
                   <button
                     type='submit'
-                    className='mt-4 min-h-11 w-full rounded-sm bg-green-700 px-5 font-rajdhani-semibold text-base text-white transition-colors duration-150 ease-in-out hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800 md:mt-9 md:w-1/3'
+                    className='mt-4 min-h-11 w-full rounded-xs bg-green-700 px-5 font-rajdhani-semibold text-base text-white transition-colors duration-150 ease-in-out hover:bg-green-800 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800 md:mt-9 md:w-1/3'
                   >
                     Adicionar
                   </button>
@@ -423,7 +423,7 @@ function LoanCreation() {
               type='button'
               onClick={handleSubmitLoan}
               disabled={selectedProducts.length === 0 || !userSelected || isSubmitting}
-              className='flex min-h-11 w-full items-center justify-center rounded-sm bg-green-700 px-5 font-rajdhani-semibold text-base text-white transition-colors duration-150 ease-in-out hover:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800 disabled:cursor-not-allowed disabled:opacity-50 md:w-96'
+              className='flex min-h-11 w-full items-center justify-center rounded-xs bg-green-700 px-5 font-rajdhani-semibold text-base text-white transition-colors duration-150 ease-in-out hover:bg-green-800 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800 disabled:cursor-not-allowed disabled:opacity-50 md:w-96'
             >
               {isSubmitting ? (
                 <span role='status' aria-live='polite'>

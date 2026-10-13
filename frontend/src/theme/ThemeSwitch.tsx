@@ -18,7 +18,7 @@ export function ThemeSwitch({ className }: ThemeSwitchProps) {
       aria-pressed={theme === 'dark'}
       onClick={toggleTheme}
       className={cn(
-        'fixed right-4 top-4 z-[60] flex min-h-11 items-center justify-center gap-2 rounded-md border border-borderMy bg-surface px-3 text-sm font-inter-medium text-primaryMy shadow-sm transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+        'fixed right-4 top-4 z-60 flex min-h-11 items-center justify-center gap-2 rounded-md border border-borderMy bg-surface px-3 text-sm font-inter-medium text-primaryMy shadow-xs transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
         className
       )}
     >

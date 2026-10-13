@@ -65,7 +65,7 @@ function HistoryClass() {
 
   return (
     <main className='mx-auto flex min-h-svh w-full max-w-7xl min-w-0 flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
-      <div className='flex flex-wrap items-center justify-between gap-4 pt-8'><BackLink /><h1 className='min-w-0 break-words font-rajdhani-medium text-2xl uppercase text-clt-2 md:text-3xl'>Histórico de Empréstimos</h1><OpenSearch /></div>
+      <div className='flex flex-wrap items-center justify-between gap-4 pt-8'><BackLink /><h1 className='min-w-0 wrap-break-word font-rajdhani-medium text-2xl uppercase text-clt-2 md:text-3xl'>Histórico de Empréstimos</h1><OpenSearch /></div>
       {error !== null ? (
         <div className='mt-7'><ErrorFeedback error={error} operationId={OPERATION_IDS.loansByDependents} onRetry={loadLoans} /></div>
       ) : (

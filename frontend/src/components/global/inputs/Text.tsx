@@ -44,7 +44,7 @@ function InputText<T extends FieldValues>({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         {...register(name)}
-        className='min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface px-3 text-base text-clt-2 shadow-sm hover:border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
+        className='min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface px-3 text-base text-clt-2 shadow-xs hover:border-focus focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
       />
       <p
         id={errorId}

@@ -12,7 +12,7 @@ function FollowUpCard({ title, number, icon, className }: FollowUpCardProps) {
   return (
     <article
       className={cn(
-        'flex min-h-24 w-full flex-col justify-between rounded-xl border border-borderMy bg-surface p-4 shadow-sm transition-colors hover:bg-surface-selected md:w-80',
+        'flex min-h-24 w-full flex-col justify-between rounded-xl border border-borderMy bg-surface p-4 shadow-xs transition-colors hover:bg-surface-selected md:w-80',
         className
       )}
     >

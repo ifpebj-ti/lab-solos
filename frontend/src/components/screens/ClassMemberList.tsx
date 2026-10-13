@@ -50,7 +50,7 @@ function ClassMemberList({
   return (
     <section
       aria-label={label}
-      className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'
+      className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'
     >
       <div className='mt-2 flex w-full min-w-0 flex-wrap items-center justify-between gap-3'>
         <div className='w-full min-w-0 md:w-2/4'>

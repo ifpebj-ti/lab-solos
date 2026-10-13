@@ -206,7 +206,7 @@ function SearchMaterialComponent({
       ) : (
         <div className='w-full min-w-0 flex justify-start items-center flex-col bg-backgroundMy min-h-screen '>
           <div className='w-11/12 min-w-0 flex flex-wrap gap-3 items-center justify-between mt-5 lg:mt-10'>
-            <h1 className='min-w-0 [overflow-wrap:anywhere] uppercase font-rajdhani-medium text-3xl text-clt-2'>
+            <h1 className='min-w-0 wrap-anywhere uppercase font-rajdhani-medium text-3xl text-clt-2'>
               {getTitle()}
             </h1>
             <div className='flex items-center justify-between'>
@@ -248,7 +248,7 @@ function SearchMaterialComponent({
               icon={<LayersIcon fill='currentColor' />}
             />
           </div>
-          <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm'>
+          <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-xs'>
             <div className='w-full flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
                 <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>

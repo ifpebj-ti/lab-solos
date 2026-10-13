@@ -157,7 +157,7 @@ function HistoryMentoring() {
         <InfoContainer items={infoItems6} />
         <InfoContainer items={infoItems7} />
       </div>
-      <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-sm'>
+      <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-xs'>
         {loansError !== null ? (
           <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
         ) : (

@@ -70,7 +70,7 @@ export const ResponsiveRecord = forwardRef<
       role='listitem'
       className={`mb-3 w-full min-w-0 rounded-lg border border-borderMy bg-surface px-3 py-3 transition-colors md:mb-1 md:py-2 ${className}`}
     >
-      <dl className='grid min-w-0 grid-cols-1 gap-3 md:grid-cols-[var(--responsive-columns)] md:gap-2'>
+      <dl className='grid min-w-0 grid-cols-1 gap-3 md:grid-cols-(--responsive-columns) md:gap-2'>
         {children}
       </dl>
     </div>
@@ -82,7 +82,7 @@ export function ResponsiveCell({ columnKey, children }: ResponsiveCellProps) {
   const column = columns.find((candidate) => candidate.key === columnKey);
   if (!column) throw new Error(`Coluna responsiva desconhecida: ${columnKey}`);
   return (
-    <div className='min-w-0 text-sm text-clt-2 [overflow-wrap:anywhere]'>
+    <div className='min-w-0 text-sm text-clt-2 wrap-anywhere'>
       <dt className='mb-1 font-inter-semibold text-clt-1 md:sr-only'>
         {column.label}
       </dt>

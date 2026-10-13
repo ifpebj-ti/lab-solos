@@ -124,7 +124,7 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
     <form
       aria-label='Editar meu perfil'
       onSubmit={handleSubmit}
-      className='grid w-full gap-4 rounded-xl border border-borderMy bg-surface p-4 shadow-sm'
+      className='grid w-full gap-4 rounded-xl border border-borderMy bg-surface p-4 shadow-xs'
     >
       <h2 className='font-rajdhani-medium text-xl text-clt-2'>
         Editar meus dados

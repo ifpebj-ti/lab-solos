@@ -91,7 +91,7 @@ function TableItemWithActions({
                     event.stopPropagation();
                     onRowClick();
                   }}
-                  className='inline-flex min-w-11 max-w-full break-all items-center rounded-md text-left underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-w-0'
+                  className='inline-flex min-w-11 max-w-full break-all items-center rounded-md text-left underline underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-w-0'
                 >
                   {value}
                 </button>
@@ -100,7 +100,7 @@ function TableItemWithActions({
                   to={recordDestination}
                   state={{ id }}
                   aria-label={`Abrir ${itemLabel}`}
-                  className='inline-flex min-w-11 max-w-full break-all items-center rounded-md underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-w-0'
+                  className='inline-flex min-w-11 max-w-full break-all items-center rounded-md underline underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-w-0'
                 >
                   {value}
                 </Link>

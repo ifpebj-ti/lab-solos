@@ -147,25 +147,26 @@ function ProfileMentee() {
     { title: 'Curso', value: displayUserValue(user?.curso), width: '100%' },
   ];
 
+  const responsible = user?.responsavel;
   const infoItemsProf = [
     {
       title: 'Nome do Responsável',
-      value: displayUserValue(user?.responsavel?.nomeCompleto),
+      value: displayUserValue(responsible?.nomeCompleto),
       width: '30%',
     },
     {
       title: 'Email',
-      value: displayUserValue(user?.responsavel?.email),
+      value: displayUserValue(responsible?.email),
       width: '30%',
     },
     {
       title: 'Telefone',
-      value: displayUserValue(user?.responsavel?.telefone),
+      value: displayUserValue(responsible?.telefone),
       width: '20%',
     },
     {
       title: 'Status',
-      value: displayUserValue(user?.responsavel?.status),
+      value: displayUserValue(responsible?.status),
       width: '20%',
     },
   ];

@@ -145,7 +145,7 @@ function LoanHistoryMentee() {
           <BackLink pathname='/mentee/history/loan' />
         </div>
         <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-          <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
+          <h1 className='min-w-0 wrap-break-word uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
             Histórico de Empréstimo - {loan.status}
           </h1>
           <div className='flex items-center justify-between gap-x-6'>

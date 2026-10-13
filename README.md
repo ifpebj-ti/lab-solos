@@ -24,6 +24,8 @@ O projeto utiliza um conjunto de tecnologias modernas para garantir um desempenh
 
 ### Front-end
 
+O frontend usa Tailwind CSS 4, com requisitos de navegador Safari 16.4+, Chrome 111+ e Firefox 128+, conforme o [guia oficial de compatibilidade](https://tailwindcss.com/docs/upgrade-guide#browser-requirements). A validação automatizada de interface e segurança utiliza Chromium; ela não comprova testes em todos esses navegadores.
+
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-grey?style=for-the-badge&logo=tailwind-css&logoColor=38B2AC) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![ViteJS](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ### Back-end
 

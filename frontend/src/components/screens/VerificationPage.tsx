@@ -433,7 +433,7 @@ function VerificationPage({ userType }: VerificationProps) {
           to={getBackRoute()}
           aria-label='Voltar'
           title='Voltar'
-          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
         >
           <ArrowLeft aria-hidden='true' className='h-5 w-5' />
         </Link>
@@ -454,7 +454,7 @@ function VerificationPage({ userType }: VerificationProps) {
           to={getBackRoute()}
           aria-label='Voltar'
           title='Voltar'
-          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+          className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
         >
           <ArrowLeft aria-hidden='true' className='h-5 w-5' />
         </Link>
@@ -521,7 +521,7 @@ function VerificationPage({ userType }: VerificationProps) {
           <Link
             to={getBackRoute()}
             aria-label='Voltar'
-            className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+            className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
           >
             <ArrowLeft className='w-5 h-5 text-clt-2' />
           </Link>
@@ -566,7 +566,7 @@ function VerificationPage({ userType }: VerificationProps) {
           <div className='w-11/12 min-w-0 mt-7 grid grid-cols-1 md:grid-cols-3 gap-4'>
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>
+                <CardTitle className='min-w-0 wrap-break-word text-lg'>
                   Total de Empréstimos
                 </CardTitle>
               </CardHeader>
@@ -579,7 +579,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>
+                <CardTitle className='min-w-0 wrap-break-word text-lg'>
                   Quantidade Emprestada
                 </CardTitle>
               </CardHeader>
@@ -596,7 +596,7 @@ function VerificationPage({ userType }: VerificationProps) {
 
             <Card className='min-w-0'>
               <CardHeader>
-                <CardTitle className='min-w-0 break-words text-lg'>
+                <CardTitle className='min-w-0 wrap-break-word text-lg'>
                   Status Atual
                 </CardTitle>
               </CardHeader>

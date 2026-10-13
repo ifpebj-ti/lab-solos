@@ -90,7 +90,7 @@ function LoanRequestRow({
             <Link
               to={detailUrl}
               state={{ id }}
-              className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-sm underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 [@media(pointer:coarse)]:min-h-11'
+              className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-xs underline underline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-0 pointer-coarse:min-h-11'
             >
               {value}
             </Link>
@@ -109,7 +109,7 @@ function LoanRequestRow({
               event.stopPropagation();
               onReject();
             }}
-            className='flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 disabled:cursor-wait disabled:opacity-50 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+            className='flex min-h-11 min-w-11 items-center justify-center rounded-xs focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-green-800 disabled:cursor-wait disabled:opacity-50 md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
           >
             <span aria-hidden='true'>
               <SquareX width={20} height={20} stroke='#dd1313' />
@@ -123,7 +123,7 @@ function LoanRequestRow({
               event.stopPropagation();
               onApprove();
             }}
-            className='flex min-h-11 min-w-11 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 disabled:cursor-wait disabled:opacity-50 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+            className='flex min-h-11 min-w-11 items-center justify-center rounded-xs focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-green-800 disabled:cursor-wait disabled:opacity-50 md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
           >
             <span aria-hidden='true'>
               <SquareCheck width={20} height={20} stroke='#16a34a' />
@@ -260,7 +260,7 @@ function LoansRequest() {
         </div>
       )}
       <div className='w-11/12 min-w-0 flex flex-wrap items-center justify-between gap-4 mt-7'>
-        <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
+        <h1 className='min-w-0 wrap-break-word uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
           Solicitações de Empréstimos
         </h1>
         <div className='flex items-center justify-between gap-x-6'>
@@ -274,7 +274,7 @@ function LoansRequest() {
           icon={<UserIcon />}
         />
       </div>
-      <div className='mt-10 mb-11 flex min-h-96 w-11/12 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-sm'>
+      <div className='mt-10 mb-11 flex min-h-96 w-11/12 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-xs'>
         <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
           <div className='w-full min-w-0 lg:w-1/2 flex justify-start items-start gap-2'>
             <div className='w-auto flex items-center justify-evenly'>

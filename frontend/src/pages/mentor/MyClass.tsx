@@ -104,7 +104,7 @@ function MyClass() {
             <div className='flex items-center justify-between gap-x-6'>
               <Link
                 to={'/mentor/my-class/disabled'}
-                className='flex min-h-11 items-center justify-center rounded-md border border-borderMy bg-surface px-5 font-inter-regular text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                className='flex min-h-11 items-center justify-center rounded-md border border-borderMy bg-surface px-5 font-inter-regular text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
               >
                 Mentorados desativados
               </Link>
@@ -118,7 +118,7 @@ function MyClass() {
               icon={<LayersIcon />}
             />
           </div>
-          <section aria-label='Minha turma' className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+          <section aria-label='Minha turma' className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
             <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
               <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
                 <div className='w-full min-w-0 md:w-[40%]'>
