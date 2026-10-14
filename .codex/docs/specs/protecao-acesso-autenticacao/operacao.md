@@ -1,6 +1,6 @@
 # Runbook de proteção de acesso, autenticação e publicação
 
-Data da revisão documental: 2026-10-13. Este runbook descreve a configuração deste repositório e evidências locais sintéticas. Ele prepara uma implantação e sua validação, mas não publica, executa migrações em produção nem substitui a autorização do operador.
+Data da revisão documental: 2026-10-14. Este runbook descreve a configuração deste repositório e evidências locais sintéticas. Ele prepara uma implantação e sua validação, mas não publica, executa migrações em produção nem substitui a autorização do operador.
 
 Documentos relacionados: [README de execução](../../../../README.md), [operação OCI](../../../../infra/oci/README.md), [operação de migrações](../../../../backend/LabSolos-Server-DotNet8/Data/Migrations/README.md), [manual de uso](../../../../docs/manual/README.md) e [especificação técnica](techspec.md).
 
@@ -102,7 +102,7 @@ ORDER BY "EncryptionKeyId", "Status";
 
 A chave HMAC não tem identificador por bucket e os hashes antigos não podem ser recalculados. Trocar seu valor com buckets ativos torna as cotas existentes inalcançáveis e pode reiniciar a proteção. Planeje manutenção sem novas tentativas, aguarde ao menos a maior janela/cooldown efetivamente configurada desde a última solicitação com a chave antiga e confirme por contagem que não há buckets ativos. A janela pode ser configurada até 24 h; não suponha uma hora se a configuração divergir dos defaults. Atualize a chave e recrie todas as instâncias coordenadamente. A limpeza normal pode remover linhas expiradas; não as apague manualmente para acelerar o processo.
 
-Produção expõe apenas Caddy nas portas 80/443. Frontend, API e PostgreSQL permanecem em redes internas; o backend não tem porta publicada no host. `PUBLIC_NETWORK_SUBNET` e `CADDY_PROXY_IP` do `.env.prod.example` são valores ilustrativos e precisam ser comparados com as redes reais do host. O mesmo IP fixo deve ser o endereço conhecido de Forwarded Headers da API. Produção serve a API na mesma origem pelo caminho `/api/*` e não registra política CORS para liberar origens externas. CORS controla leitura pelo navegador; não substitui autenticação da API.
+Produção expõe apenas Caddy nas portas 80/443. Frontend, API e PostgreSQL permanecem em redes internas; o backend não tem porta publicada no host. `PUBLIC_NETWORK_SUBNET`, `PUBLIC_NETWORK_DYNAMIC_RANGE` e `CADDY_PROXY_IP` do `.env.prod.example` são valores ilustrativos e precisam ser comparados com as redes reais do host. A faixa dinâmica deve estar dentro da sub-rede e excluir o IP fixo do proxy, para impedir colisão durante a subida dos contêineres. O mesmo IP fixo deve ser o endereço conhecido de Forwarded Headers da API. Produção serve a API na mesma origem pelo caminho `/api/*` e não registra política CORS para liberar origens externas. CORS controla leitura pelo navegador; não substitui autenticação da API.
 
 O snippet de cabeçalhos compartilhados está em `infra/proxy/security-headers.caddy`. O ramo frontend recebe esta CSP efetiva, também em fallback/rotas SPA:
 
