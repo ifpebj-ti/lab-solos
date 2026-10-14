@@ -9,6 +9,8 @@ public sealed record ScenarioIdentity(
     int AdministratorId,
     int MentorId,
     int BorrowerId,
+    int SecondMentorId,
+    int SecondBorrowerId,
     int ProductId)
 {
     public static ScenarioIdentity FromScenario(string scenario)
@@ -24,6 +26,8 @@ public sealed record ScenarioIdentity(
             checked((int)block + 1),
             checked((int)block + 2),
             checked((int)block + 3),
+            checked((int)block + 5),
+            checked((int)block + 6),
             checked((int)block + 4));
     }
 }

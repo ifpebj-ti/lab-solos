@@ -236,7 +236,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
                   tabIndex={0}
                 >
                   <div className='flex items-start gap-3'>
-                    <div className='flex-shrink-0 text-lg mt-0.5'>
+                    <div className='shrink-0 text-lg mt-0.5'>
                       {getTipoIcon(notificacao.tipo)}
                     </div>
                     <div className='flex-1 min-w-0'>
@@ -249,7 +249,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
                           {notificacao.titulo}
                         </p>
                         {!notificacao.lida && (
-                          <div className='flex-shrink-0'>
+                          <div className='shrink-0'>
                             <Check
                               className='h-3 w-3 text-primaryMy'
                               aria-label='Lida'

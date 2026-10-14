@@ -35,12 +35,12 @@ function PageHeader({
       <div className='min-w-0'>
         <h1
           id={titleId}
-          className='min-w-0 font-rajdhani-semibold text-3xl leading-tight text-clt-2 [overflow-wrap:anywhere]'
+          className='min-w-0 font-rajdhani-semibold text-3xl leading-tight text-clt-2 wrap-anywhere'
         >
           {title}
         </h1>
         {resolvedContext ? (
-          <p className='mt-1 max-w-prose text-sm leading-6 text-clt-1 [overflow-wrap:anywhere]'>
+          <p className='mt-1 max-w-prose text-sm leading-6 text-clt-1 wrap-anywhere'>
             {resolvedContext}
           </p>
         ) : null}

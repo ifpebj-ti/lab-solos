@@ -34,7 +34,7 @@ function Page404() {
               <button
                 type='button'
                 onClick={handleExplicitLogout}
-                className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
               >
                 Sair
               </button>
@@ -47,7 +47,7 @@ function Page404() {
                   to='/change-password-required'
                   aria-label='Voltar'
                   title='Voltar'
-                  className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   <ArrowLeft aria-hidden='true' className='h-5 w-5' />
                 </Link>
@@ -55,14 +55,14 @@ function Page404() {
                 <BackLink
                   pathname={location.pathname}
                   role={session.role}
-                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 />
               ) : (
                 <Link
                   to='/'
                   aria-label='Voltar'
                   title='Voltar'
-                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-primaryMy px-3 text-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   <ArrowLeft aria-hidden='true' className='h-5 w-5' />
                 </Link>

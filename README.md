@@ -24,6 +24,8 @@ O projeto utiliza um conjunto de tecnologias modernas para garantir um desempenh
 
 ### Front-end
 
+O frontend usa Tailwind CSS 4, com requisitos de navegador Safari 16.4+, Chrome 111+ e Firefox 128+, conforme o [guia oficial de compatibilidade](https://tailwindcss.com/docs/upgrade-guide#browser-requirements). A validação automatizada de interface e segurança utiliza Chromium; ela não comprova testes em todos esses navegadores.
+
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-grey?style=for-the-badge&logo=tailwind-css&logoColor=38B2AC) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![ViteJS](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ### Back-end
 
@@ -80,6 +82,8 @@ docker compose --env-file .env.dev -f docker-compose-dev.yml up -d --build
 Com as portas do exemplo, o frontend está em `http://localhost:8081` e a API em `http://localhost:8080/api/`. Configure SMTP para executar a recuperação de senha por e-mail.
 
 Em produção, copie [.env.prod.example](.env.prod.example) para `.env.prod`, configure credenciais, domínio/DNS e uma versão existente no GHCR. Consulte o [guia de execução, configuração e operação](https://github.com/ifpebj-ti/lab-solos/wiki/Guia-de-Execução-e-Configuração-com-Docker-e-Docker-Compose) e o [procedimento OCI](infra/oci/README.md) antes do deploy. Na VM, o atualizador usa `/opt/labon/.env`; use esse caminho para a configuração de produção quando adotar o timer.
+
+A API também precisa dos arquivos secretos indicados por `AUTHENTICATION_THROTTLE_KEY_FILE` e `RECOVERY_ENCRYPTION_KEYS_FILE`. Eles não são placeholders: gere-os fora do repositório, mantenha uma cópia protegida junto ao backup do banco e disponibilize os mesmos valores a todas as instâncias. A aplicação valida essa configuração ao iniciar e falha fechada se estiver ausente ou inválida. A política CORS de produção não autoriza clientes de outra origem; a CSP do frontend é entregue pelo Caddy. Consulte o [runbook de proteção e autenticação](.codex/docs/specs/protecao-acesso-autenticacao/operacao.md) para limites, rotação, migração, saturação e reversão.
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose-prod.yml config --quiet

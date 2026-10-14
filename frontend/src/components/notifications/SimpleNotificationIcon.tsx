@@ -227,7 +227,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
                   tabIndex={0}
                 >
                   <div className='flex items-start gap-3'>
-                    <div className='flex-shrink-0 text-sm mt-0.5'>
+                    <div className='shrink-0 text-sm mt-0.5'>
                       {getTipoIcon(notificacao.tipo)}
                     </div>
                     <div className='flex-1 min-w-0'>
@@ -240,7 +240,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
                           {notificacao.titulo}
                         </p>
                         {!notificacao.lida && (
-                          <div className='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primaryMy'></div>
+                          <div className='mt-1 h-2 w-2 shrink-0 rounded-full bg-primaryMy'></div>
                         )}
                       </div>
                       <p className='mt-1 line-clamp-2 text-xs text-clt-1'>

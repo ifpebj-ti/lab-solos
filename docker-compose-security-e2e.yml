@@ -1,0 +1,168 @@
+name: lab-solos-security-e2e
+
+services:
+  security-secrets:
+    image: alpine/openssl:3.3.1@sha256:d428569834003946999b6eb12e902c3c03de740fa61ddb0147233bb1bd16affe
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+          -keyout /secrets/ca.key \
+          -out /secrets/ca.crt \
+          -subj '/CN=Lab Solos Security E2E SMTP CA'
+        openssl req -newkey rsa:2048 -nodes \
+          -keyout /secrets/smtp.key \
+          -out /secrets/smtp.csr \
+          -subj '/CN=smtp'
+        printf 'subjectAltName=DNS:smtp\nextendedKeyUsage=serverAuth\n' > /tmp/smtp.ext
+        openssl x509 -req -days 1 \
+          -in /secrets/smtp.csr \
+          -CA /secrets/ca.crt \
+          -CAkey /secrets/ca.key \
+          -CAcreateserial \
+          -out /secrets/smtp.crt \
+          -extfile /tmp/smtp.ext
+        openssl rand -out /secrets/authentication-throttle-key 32
+        openssl rand -base64 32 | tr -d '\n' > /tmp/recovery-key.b64
+        printf '{"activeKeyId":"security-e2e-key","keys":{"security-e2e-key":"%s"}}\n' "$$(cat /tmp/recovery-key.b64)" > /secrets/recovery-encryption-keys.json
+        chmod 644 /secrets/ca.crt /secrets/smtp.crt /secrets/smtp.key
+        chmod 444 /secrets/authentication-throttle-key /secrets/recovery-encryption-keys.json
+    volumes:
+      - security_e2e_secrets:/secrets
+    networks:
+      - security_private
+
+  db:
+    image: postgres:15-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b
+    environment:
+      POSTGRES_DB: lab_solos_security_e2e
+      POSTGRES_USER: lab_solos_security_e2e
+      POSTGRES_PASSWORD: synthetic-security-e2e-database-password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test \"$$(head -n 1 /var/lib/postgresql/data/postmaster.pid)\" = \"1\" && pg_isready -U lab_solos_security_e2e -d lab_solos_security_e2e",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - security_e2e_postgres_data:/var/lib/postgresql/data
+    networks:
+      - security_private
+
+  smtp:
+    image: axllent/mailpit:v1.28.0@sha256:c076638db1e15662150be4fb62b8a6e96ef6ba5bde90c838a0239225854830f7
+    environment:
+      MP_SMTP_TLS_CERT: /secrets/smtp.crt
+      MP_SMTP_TLS_KEY: /secrets/smtp.key
+      MP_SMTP_REQUIRE_STARTTLS: "true"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+    depends_on:
+      security-secrets:
+        condition: service_completed_successfully
+    volumes:
+      - security_e2e_secrets:/secrets:ro
+    networks:
+      - security_private
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__PostgresConnection: Host=db;Port=5432;Database=lab_solos_security_e2e;Username=lab_solos_security_e2e;Password=synthetic-security-e2e-database-password
+      Seed__AdminEmail: synthetic-security-admin@example.invalid
+      Seed__AdminPassword: synthetic-security-admin-password
+      Jwt__Key: synthetic-security-e2e-jwt-signing-key-at-least-32-characters
+      Jwt__Issuer: lab-solos-security-e2e
+      Jwt__Audience: lab-solos-security-e2e-frontend
+      Jwt__ExpiresInMinutes: "60"
+      Email__SmtpHost: smtp
+      Email__SmtpPort: "1025"
+      Email__Usuario: synthetic-security-e2e@example.invalid
+      Email__Senha: synthetic-security-e2e-smtp-password
+      Email__De: synthetic-security-e2e@example.invalid
+      AuthenticationProtection__KeyHashSecretFile: /run/secrets/authentication-throttle-key
+      AuthenticationProtection__RecoveryEncryptionKeysFile: /run/secrets/recovery-encryption-keys.json
+      AuthenticationProtection__ForwardedHeaders__KnownProxies__0: 172.29.240.10
+      AuthenticationProtection__ForwardedHeaders__ForwardLimit: "1"
+      AllowedHosts: "localhost;127.0.0.1;api"
+      SSL_CERT_FILE: /run/secrets/ca.crt
+    depends_on:
+      db:
+        condition: service_healthy
+      smtp:
+        condition: service_started
+      security-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "dotnet", "/health-probe/HealthProbe.dll", "http://127.0.0.1:8080/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    expose:
+      - "8080"
+    volumes:
+      - security_e2e_secrets:/run/secrets:ro
+    networks:
+      - security_private
+      - security_app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: /api/
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1/"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    expose:
+      - "80"
+    networks:
+      - security_app
+
+  proxy:
+    image: caddy:2.10-alpine
+    ports:
+      - "127.0.0.1:${SECURITY_E2E_HTTPS_PORT:-18443}:443"
+    volumes:
+      - ./infra/testing/Caddyfile.security-e2e:/etc/caddy/Caddyfile:ro
+      - ./infra/proxy/security-headers.caddy:/etc/caddy/security-headers.caddy:ro
+      - security_e2e_caddy_data:/data
+      - security_e2e_caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      security_app:
+        ipv4_address: 172.29.240.10
+      security_edge: {}
+
+volumes:
+  security_e2e_secrets:
+  security_e2e_postgres_data:
+  security_e2e_caddy_data:
+  security_e2e_caddy_config:
+
+networks:
+  security_private:
+    internal: true
+  security_app:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.29.240.0/24
+  security_edge:
+    driver: bridge

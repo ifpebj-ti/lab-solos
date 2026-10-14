@@ -11,10 +11,10 @@ import InfoContainer from '@/components/screens/InfoContainer';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import BackLink from '@/components/global/BackLink';
-import { getUserById } from '@/integration/Users';
+import { getUserForMentoring } from '@/integration/Users';
 import { getLoansByUserId } from '@/integration/Loans';
 import { displayUserValue, formatCivilDate, formatDateTime } from '@/function/date';
-import { academicoSchema, type Academico } from '@/contracts/user';
+import type { UsuarioAcompanhamento } from '@/contracts/user';
 import type { Emprestimo } from '@/contracts/loan';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { buildDetailUrl, readIdFromLocation } from '@/navigation/profileNavigation';
@@ -36,7 +36,7 @@ function MentoringHistory() {
   const hasLegacyId = idResolution.source === 'state' && idResolution.id !== null;
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState<Academico | null>(null);
+  const [user, setUser] = useState<UsuarioAcompanhamento | null>(null);
   const [loans, setLoans] = useState<Emprestimo[] | null>(null);
   const [userError, setUserError] = useState<unknown | null>(null);
   const [loansError, setLoansError] = useState<unknown | null>(null);
@@ -69,11 +69,9 @@ function MentoringHistory() {
     setUserError(null);
     setLoansError(null);
     try {
-      const response = await getUserById({ id: idResolution.id });
-      const academicResult = academicoSchema.safeParse(response);
-      if (!academicResult.success) throw new Error('Resposta de usuário inválida.');
+      const response = await getUserForMentoring({ id: idResolution.id });
       if (sequence !== requestSequence.current) return;
-      setUser(academicResult.data);
+      setUser(response);
       try {
         const loansResponse = await getLoansByUserId({ id: idResolution.id });
         if (sequence !== requestSequence.current) return;

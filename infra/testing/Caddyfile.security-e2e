@@ -1,0 +1,22 @@
+{
+	admin off
+}
+
+import /etc/caddy/security-headers.caddy
+
+https://localhost {
+	tls internal
+	encode zstd gzip
+
+	import common_security_headers
+
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		import frontend_content_security_policy
+		reverse_proxy frontend:80
+	}
+}

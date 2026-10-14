@@ -16,7 +16,7 @@ function ButtonLinkNotify({
   const notifyProp = notify;
 
   return (
-    <div className='relative gap-x-4 border-borderMy border rounded-md flex items-center px-7 h-11 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-sm'>
+    <div className='relative gap-x-4 border-borderMy border rounded-md flex items-center px-7 h-11 hover:bg-cl-table-item transition-all ease-in-out duration-200 shadow-xs'>
       <p className='font-inter-medium uppercase text-clt-2 text-sm line-clamp-2'>
         {text}
       </p>

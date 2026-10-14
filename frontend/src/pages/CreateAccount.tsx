@@ -138,7 +138,7 @@ function CreateAccount() {
       <div className='w-full max-w-3xl min-w-0 overflow-hidden rounded-xl border border-borderMy bg-surface shadow-lg'>
         <div className='flex w-full flex-col items-start justify-start gap-2 bg-primaryMy p-5 text-white sm:flex-row sm:items-center sm:px-7'>
           <img alt='LabOn' src={logo} className='h-16 w-16 max-w-full shrink-0 object-contain' />
-          <div className='min-w-0 text-white gap-y-1 [overflow-wrap:anywhere]'>
+          <div className='min-w-0 text-white gap-y-1 wrap-anywhere'>
             <p className='font-inter-medium text-sm uppercase tracking-[0.12em]'>IFPE</p>
             <h1 className='font-rajdhani-semibold text-3xl'>Crie seu acesso</h1>
             <p className='font-inter-regular text-sm text-white/90'>
@@ -181,7 +181,7 @@ function CreateAccount() {
               {errors.tipoUsuario && (
                 <p
                   id='tipoUsuario-error'
-                  className='text-red-700 text-sm [overflow-wrap:anywhere]'
+                  className='text-red-700 text-sm wrap-anywhere'
                 >
                   {errors.tipoUsuario.message}
                 </p>
@@ -273,7 +273,7 @@ function CreateAccount() {
               >
                 <Checkbox
                   id='terms'
-                  className='border-stone-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+                  className='border-stone-500 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
                 />
                 Aceito os
               </label>
@@ -281,14 +281,14 @@ function CreateAccount() {
                 <SheetTrigger asChild>
                   <button
                     type='button'
-                    className='min-h-11 text-sm font-inter-regular text-blue-700 underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
+                    className='min-h-11 text-sm font-inter-regular text-blue-700 underline underline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800'
                   >
                     termos e condições{' '}
                   </button>
                 </SheetTrigger>
                 <SheetContent
                   side='left'
-                  className='max-w-full p-4 pt-16 [overflow-wrap:anywhere] [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:opacity-100 [&>button]:focus-visible:outline [&>button]:focus-visible:outline-2 [&>button]:focus-visible:outline-green-800'
+                  className='max-w-full p-4 pt-16 wrap-anywhere [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:opacity-100 focus-visible:[&>button]:outline-solid focus-visible:[&>button]:outline-2 focus-visible:[&>button]:outline-green-800'
                 >
                   <SheetHeader>
                     <SheetTitle>TERMOS E CONDIÇÕES DE USO</SheetTitle>
@@ -472,7 +472,7 @@ function CreateAccount() {
                     <SheetClose asChild>
                       <button
                         type='button'
-                        className='min-h-11 rounded-md bg-primaryMy px-6 font-rajdhani-semibold text-white shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaryMy'
+                        className='min-h-11 rounded-md bg-primaryMy px-6 font-rajdhani-semibold text-white shadow-md focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaryMy'
                       >
                         Fechar
                       </button>
@@ -484,7 +484,7 @@ function CreateAccount() {
             <button
               type='submit'
               disabled={loading}
-              className='mt-2 min-h-11 w-full min-w-0 rounded-md bg-primaryMy text-base font-rajdhani-semibold text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
+              className='mt-2 min-h-11 w-full min-w-0 rounded-md bg-primaryMy text-base font-rajdhani-semibold text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-solid focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
             >
               {loading ? 'Enviando...' : 'Criar Conta'}
             </button>

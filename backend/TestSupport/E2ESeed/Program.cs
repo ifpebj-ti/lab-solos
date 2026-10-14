@@ -9,7 +9,11 @@ var environment = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCa
     [SeedOptions.MentorEmailVariable] = Environment.GetEnvironmentVariable(SeedOptions.MentorEmailVariable),
     [SeedOptions.MentorPasswordVariable] = Environment.GetEnvironmentVariable(SeedOptions.MentorPasswordVariable),
     [SeedOptions.BorrowerEmailVariable] = Environment.GetEnvironmentVariable(SeedOptions.BorrowerEmailVariable),
-    [SeedOptions.BorrowerPasswordVariable] = Environment.GetEnvironmentVariable(SeedOptions.BorrowerPasswordVariable)
+    [SeedOptions.BorrowerPasswordVariable] = Environment.GetEnvironmentVariable(SeedOptions.BorrowerPasswordVariable),
+    [SeedOptions.SecondMentorEmailVariable] = Environment.GetEnvironmentVariable(SeedOptions.SecondMentorEmailVariable),
+    [SeedOptions.SecondMentorPasswordVariable] = Environment.GetEnvironmentVariable(SeedOptions.SecondMentorPasswordVariable),
+    [SeedOptions.SecondBorrowerEmailVariable] = Environment.GetEnvironmentVariable(SeedOptions.SecondBorrowerEmailVariable),
+    [SeedOptions.SecondBorrowerPasswordVariable] = Environment.GetEnvironmentVariable(SeedOptions.SecondBorrowerPasswordVariable)
 };
 
 try

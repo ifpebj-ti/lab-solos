@@ -34,7 +34,7 @@ public sealed class AuditoriaMiddlewareTests
                 bodySeenByPipeline = await reader.ReadToEndAsync();
             },
             body => bodyReader = new TrackingStreamReader(body));
-        var context = CreatePostContext(new MemoryStream(Encoding.UTF8.GetBytes(requestBody)));
+        var context = CreatePostContext(new MemoryStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos");
 
         await middleware.InvokeAsync(context);
         var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
@@ -56,7 +56,7 @@ public sealed class AuditoriaMiddlewareTests
         var middleware = CreateMiddleware(services, _ => Task.CompletedTask);
 
         await middleware.InvokeAsync(CreatePostContext(
-            new MemoryStream(Encoding.UTF8.GetBytes(requestBody))));
+            new MemoryStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos"));
 
         var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
         Assert.NotNull(log.DadosRequisicao);
@@ -103,7 +103,7 @@ public sealed class AuditoriaMiddlewareTests
             },
             body => bodyReader = new TrackingStreamReader(body));
         var context = CreatePostContext(
-            new ThrowOnceOnReadStream(Encoding.UTF8.GetBytes(requestBody)));
+            new ThrowOnceOnReadStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos");
 
         await middleware.InvokeAsync(context);
         var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
@@ -124,7 +124,7 @@ public sealed class AuditoriaMiddlewareTests
             _ => Task.CompletedTask,
             _ => throw new InvalidOperationException("falha inesperada de captura"));
         var context = CreatePostContext(
-            new MemoryStream(Encoding.UTF8.GetBytes("{\"nome\":\"Alice\"}")));
+            new MemoryStream(Encoding.UTF8.GetBytes("{\"nome\":\"Alice\"}")), "/api/produtos");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.InvokeAsync(context));
     }
@@ -184,11 +184,11 @@ public sealed class AuditoriaMiddlewareTests
             bodyReaderFactory);
     }
 
-    private static DefaultHttpContext CreatePostContext(Stream body)
+    private static DefaultHttpContext CreatePostContext(Stream body, string path = "/api/usuarios")
     {
         var context = new DefaultHttpContext();
         context.Request.Method = HttpMethods.Post;
-        context.Request.Path = "/api/usuarios";
+        context.Request.Path = path;
         context.Request.ContentType = "application/json";
         context.Request.ContentLength = body.Length;
         context.Request.Body = body;

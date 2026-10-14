@@ -17,7 +17,7 @@ function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
   return (
     <Link
       to={link}
-      className='group flex min-h-20 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-borderMy bg-surface px-4 py-3 text-clt-2 shadow-sm transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-[45%] lg:w-[30%] landscape:w-[40%]'
+      className='group flex min-h-20 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-borderMy bg-surface px-4 py-3 text-clt-2 shadow-xs transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-[45%] lg:w-[30%] landscape:w-[40%]'
     >
       <div className='relative flex min-w-7 shrink-0 items-center justify-center text-cl-icon'>
         {icon}
@@ -31,7 +31,7 @@ function InfoCard({ icon, text, notify, link, quant }: IInfoCardProps) {
           </span>
         )}
       </div>
-      <p className='min-w-0 flex-1 break-words font-inter-medium text-xs uppercase leading-tight text-clt-2 landscape:px-0'>
+      <p className='min-w-0 flex-1 wrap-break-word font-inter-medium text-xs uppercase leading-tight text-clt-2 landscape:px-0'>
         {text}
       </p>
     </Link>

@@ -16,6 +16,7 @@ export type ErrorPresentation = Readonly<{
   description: string;
   suggestedAction: string;
   requestId?: string;
+  retryAfterSeconds?: number;
   fieldErrors?: ApplicationError['fieldErrors'];
   retryable: boolean;
 }>;
@@ -30,11 +31,22 @@ export interface NotifyErrorOptions {
 
 export const RETRY_ACTION_LABEL = 'Tentar novamente';
 export const NAVIGATE_ACTION_LABEL = 'Voltar';
+export const AUTHENTICATION_ACTION_LABEL = 'Entrar novamente';
 
 const NAVIGABLE_CATEGORIES = new Set<ErrorCategory>([
+  'authentication',
   'authorization',
   'not_found',
 ]);
+
+export const getNavigationActionLabel = (
+  category: ErrorCategory,
+  requestedLabel?: string
+): string =>
+  requestedLabel ??
+  (category === 'authentication'
+    ? AUTHENTICATION_ACTION_LABEL
+    : NAVIGATE_ACTION_LABEL);
 
 const presentationCategories = new WeakMap<
   ErrorPresentation,
@@ -54,13 +66,21 @@ export const presentError = (
 ): ErrorPresentation => {
   const normalized = normalizeError(error);
   const catalogEntry = ERROR_CATALOG[normalized.category];
+  const suggestedAction =
+    normalized.category === 'rate_limited' &&
+    normalized.retryAfterSeconds !== undefined
+      ? `Aguarde ${normalized.retryAfterSeconds} ${normalized.retryAfterSeconds === 1 ? 'segundo' : 'segundos'} antes de tentar novamente.`
+      : catalogEntry.suggestedAction;
   const presentation: ErrorPresentation = Object.freeze({
     title: `Não foi possível ${getOperationLabel(operation)}`,
     description: catalogEntry.message,
-    suggestedAction: catalogEntry.suggestedAction,
+    suggestedAction,
     ...(normalized.requestId === undefined
       ? {}
       : { requestId: normalized.requestId }),
+    ...(normalized.retryAfterSeconds === undefined
+      ? {}
+      : { retryAfterSeconds: normalized.retryAfterSeconds }),
     ...(normalized.fieldErrors === undefined
       ? {}
       : { fieldErrors: normalized.fieldErrors }),
@@ -103,10 +123,10 @@ export const notifyError = (
         ? createElement(
             ToastAction,
             {
-              altText: options.navigateLabel ?? NAVIGATE_ACTION_LABEL,
+              altText: getNavigationActionLabel(category, options.navigateLabel),
               onClick: options.onNavigate,
             },
-            options.navigateLabel ?? NAVIGATE_ACTION_LABEL
+            getNavigationActionLabel(category, options.navigateLabel)
           )
         : undefined;
 

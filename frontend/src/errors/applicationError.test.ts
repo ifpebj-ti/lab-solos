@@ -14,6 +14,7 @@ describe('isApplicationError', () => {
       'authorization',
       'not_found',
       'conflict',
+      'rate_limited',
       'network',
       'timeout',
       'server',
@@ -35,6 +36,27 @@ describe('isApplicationError', () => {
       false
     );
     expect(isApplicationError({ ...error, retryable: 'yes' })).toBe(false);
+    expect(
+      isApplicationError({
+        ...error,
+        category: 'rate_limited',
+        retryAfterSeconds: 30,
+      })
+    ).toBe(true);
+    expect(
+      isApplicationError({
+        ...error,
+        category: 'rate_limited',
+        retryAfterSeconds: 0,
+      })
+    ).toBe(false);
+    expect(
+      isApplicationError({
+        ...error,
+        category: 'rate_limited',
+        retryAfterSeconds: 1.5,
+      })
+    ).toBe(false);
     expect(isApplicationError(null)).toBe(false);
     expect(isApplicationError('ApplicationError')).toBe(false);
   });

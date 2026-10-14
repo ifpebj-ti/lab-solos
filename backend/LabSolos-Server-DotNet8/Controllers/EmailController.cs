@@ -10,14 +10,16 @@ namespace LabSolos_Server_DotNet8.Controllers;
 [Route("api/[controller]")]
 public class EmailController(
     IEmailService emailService,
-    ICredentialService credentialService,
+    IPasswordResetService passwordResetService,
+    IPasswordRecoveryRequestService passwordRecoveryRequestService,
     ILogger<EmailController> logger) : ControllerBase
 {
     private const string NeutralRequestMessage =
         "Se a conta estiver apta, enviaremos as instruÃ§Ãµes.";
 
     private readonly IEmailService _emailService = emailService;
-    private readonly ICredentialService _credentialService = credentialService;
+    private readonly IPasswordResetService _passwordResetService = passwordResetService;
+    private readonly IPasswordRecoveryRequestService _passwordRecoveryRequestService = passwordRecoveryRequestService;
     private readonly ILogger<EmailController> _logger = logger;
     private static readonly Action<ILogger, Exception?> LogEmailDeliveryFailure =
         LoggerMessage.Define(
@@ -91,29 +93,11 @@ public class EmailController(
         string? email,
         CancellationToken cancellationToken)
     {
-        var request = await _credentialService.RequestPasswordResetAsync(email, cancellationToken);
-        if (request.Token is not null && request.RecipientEmail is not null)
-        {
-            try
-            {
-                _emailService.EnviarEmail(
-                    request.RecipientEmail,
-                    "RedefiniÃ§Ã£o de Senha",
-                    BuildPasswordResetEmail(request.RecipientName ?? "UsuÃ¡rio", request.Token));
-            }
-            catch (SmtpException ex)
-            {
-                LogEmailDeliveryFailure(_logger, ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                LogEmailDeliveryFailure(_logger, ex);
-            }
-            catch (FormatException ex)
-            {
-                LogEmailDeliveryFailure(_logger, ex);
-            }
-        }
+        AuthenticationProtectionResponses.ApplyNoStore(Response);
+        await _passwordRecoveryRequestService.AdmitAsync(
+            email,
+            HttpContext.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return Accepted(new { message = NeutralRequestMessage });
     }
@@ -126,18 +110,24 @@ public class EmailController(
         bool allowLegacyTokenOnly,
         CancellationToken cancellationToken)
     {
-        var result = await _credentialService.ResetPasswordAsync(
+        AuthenticationProtectionResponses.ApplyNoStore(Response);
+        var result = await _passwordResetService.ResetPasswordAsync(
             email,
             token,
             newPassword,
             confirmation,
             allowLegacyTokenOnly,
+            HttpContext.Connection.RemoteIpAddress,
             cancellationToken);
 
         return result.Status switch
         {
             CredentialChangeStatus.Success => NoContent(),
             CredentialChangeStatus.Conflict => ConflictProblem(),
+            CredentialChangeStatus.RateLimited => AuthenticationProtectionResponses.RateLimited(
+                Response,
+                result.RetryAfterSeconds),
+            CredentialChangeStatus.Unavailable => AuthenticationProtectionResponses.Unavailable(Response),
             _ => ValidationProblem(result.Code ?? CredentialErrorCodes.PasswordResetInvalid)
         };
     }
@@ -193,20 +183,6 @@ public class EmailController(
             ContentTypes = { "application/problem+json" }
         };
     }
-
-    private static string BuildPasswordResetEmail(string firstName, string token) => $@"
-        <html>
-        <body style=""font-family: Arial, sans-serif; color: #333;"">
-            <h2 style=""color: #2c3e50;"">OlÃ¡, {firstName}!</h2>
-            <p>Use o cÃ³digo abaixo para redefinir sua senha:</p>
-            <div style=""font-size: 24px; font-weight: bold; margin: 20px 0; color: #2c3e50;"">
-            {token}
-            </div>
-            <p style=""font-size: 14px; color: #777;"">
-            Caso vocÃª nÃ£o tenha solicitado essa redefiniÃ§Ã£o, ignore este e-mail.
-            </p>
-        </body>
-        </html>";
 
     private StatusCodeResult EmailDeliveryFailureResponse(Exception exception)
     {

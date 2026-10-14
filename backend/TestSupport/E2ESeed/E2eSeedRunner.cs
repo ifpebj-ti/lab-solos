@@ -45,6 +45,8 @@ public static class E2eSeedRunner
             administrator = new { id = identity.AdministratorId, email = options.Credentials.AdminEmail },
             mentor = new { id = identity.MentorId, email = options.Credentials.MentorEmail },
             borrower = new { id = identity.BorrowerId, email = options.Credentials.BorrowerEmail },
+            secondMentor = new { id = identity.SecondMentorId, email = options.Credentials.SecondMentorEmail },
+            secondBorrower = new { id = identity.SecondBorrowerId, email = options.Credentials.SecondBorrowerEmail },
             product = new { id = identity.ProductId, name = $"E2E Product {identity.Token}" }
         }));
         return 0;
@@ -75,6 +77,21 @@ public static class E2eSeedRunner
         borrower.Instituicao = $"E2E Institution {identity.Token}";
         borrower.Cidade = "Recife";
         borrower.Curso = "Química";
+
+        var secondMentor = await GetOrCreateAsync<Academico>(context, identity.SecondMentorId, credentials.SecondMentorEmail,
+            () => new Academico { Id = identity.SecondMentorId, NomeCompleto = $"E2E Second Mentor {identity.Token}", Email = credentials.SecondMentorEmail, SenhaHash = string.Empty, Instituicao = $"E2E Institution {identity.Token}" }, cancellationToken);
+        SetCommonUserValues(secondMentor, credentials.SecondMentorEmail, NivelUsuario.Mentor, TipoUsuario.Academico, hasher, credentials.SecondMentorPassword);
+        secondMentor.Instituicao = $"E2E Institution {identity.Token}";
+        secondMentor.Cidade = "Recife";
+        secondMentor.Curso = "Química";
+
+        var secondBorrower = await GetOrCreateAsync<Academico>(context, identity.SecondBorrowerId, credentials.SecondBorrowerEmail,
+            () => new Academico { Id = identity.SecondBorrowerId, NomeCompleto = $"E2E Second Borrower {identity.Token}", Email = credentials.SecondBorrowerEmail, SenhaHash = string.Empty, Instituicao = $"E2E Institution {identity.Token}" }, cancellationToken);
+        SetCommonUserValues(secondBorrower, credentials.SecondBorrowerEmail, NivelUsuario.Mentorado, TipoUsuario.Academico, hasher, credentials.SecondBorrowerPassword);
+        secondBorrower.ResponsavelId = identity.SecondMentorId;
+        secondBorrower.Instituicao = $"E2E Institution {identity.Token}";
+        secondBorrower.Cidade = "Recife";
+        secondBorrower.Curso = "Química";
     }
 
     private static async Task<T> GetOrCreateAsync<T>(

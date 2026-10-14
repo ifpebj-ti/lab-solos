@@ -8,9 +8,12 @@ using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -61,7 +64,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Configurar o Swagger para documentação da API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<AuthenticationProtectionReadinessHealthCheck>("authentication-protection-readiness");
 
 // Configurar JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -149,14 +153,16 @@ builder.Services.AddAuthorization(options =>
             .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 });
 
-// Configurar CORS
-builder.Services.AddCors(options =>
+if (builder.Environment.IsDevelopment())
 {
-    options.AddPolicy("AllowAll",
-        policy => policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-});
+    var developmentOrigins = Program.GetDevelopmentOrigins(builder.Configuration);
+
+    builder.Services.AddCors(options => options.AddPolicy("DevelopmentClients", policy =>
+        policy.SetIsOriginAllowed(origin => developmentOrigins.Contains(origin, StringComparer.Ordinal))
+            .WithMethods("GET", "POST", "PATCH", "PUT", "DELETE")
+            .WithHeaders("Authorization", "Content-Type")
+            .WithExposedHeaders("Retry-After")));
+}
 
 var app = builder.Build();
 
@@ -177,12 +183,14 @@ using (var startupScope = app.Services.CreateScope())
     }
 }
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-});
+app.UseForwardedHeaders(Program.BuildForwardedHeadersOptions(app.Configuration));
 
 app.UseRouting();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("DevelopmentClients");
+}
 
 // Configurar o pipeline de requisição
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
@@ -201,8 +209,6 @@ else
     app.UseExceptionHandler("/Error");
 }
 
-app.UseCors("AllowAll");
-
 // Middlewares
 if (!app.Environment.IsDevelopment())
 {
@@ -214,8 +220,79 @@ app.UseAuthentication();
 app.UseMiddleware<AuditoriaMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = static async (context, report) =>
+    {
+        context.Response.ContentType = "text/plain";
+        var status = report.Status == HealthStatus.Healthy ? "ready" : "not_ready";
+        await context.Response.WriteAsync(status, context.RequestAborted);
+    }
+});
 
 app.Run();
 
-public partial class Program;
+public partial class Program
+{
+    private static string[] GetDevelopmentOrigins(ConfigurationManager configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var configuredOrigins = configuration
+            .GetSection("AuthenticationProtection:Cors:DevelopmentOrigins")
+            .Get<string[]>() ?? [];
+
+        if (configuredOrigins.Any(origin => !IsExactDevelopmentOrigin(origin)))
+        {
+            throw new InvalidOperationException(
+                "AuthenticationProtection:Cors:DevelopmentOrigins must contain exact HTTP or HTTPS origins.");
+        }
+
+        return configuredOrigins;
+    }
+
+    private static bool IsExactDevelopmentOrigin(string? origin) =>
+        !string.IsNullOrWhiteSpace(origin) &&
+        origin != "null" &&
+        !origin.Contains('*') &&
+        Uri.TryCreate(origin, UriKind.Absolute, out var parsedOrigin) &&
+        (parsedOrigin.Scheme == Uri.UriSchemeHttp || parsedOrigin.Scheme == Uri.UriSchemeHttps) &&
+        !string.IsNullOrEmpty(parsedOrigin.Host) &&
+        parsedOrigin.UserInfo.Length == 0 &&
+        parsedOrigin.Query.Length == 0 &&
+        parsedOrigin.Fragment.Length == 0 &&
+        parsedOrigin.AbsolutePath == "/";
+
+    public static ForwardedHeadersOptions BuildForwardedHeadersOptions(IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var options = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            ForwardLimit = 1
+        };
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+
+        var configuredProxies = configuration
+            .GetSection("AuthenticationProtection:ForwardedHeaders:KnownProxies")
+            .Get<string[]>() ?? [];
+
+        foreach (var configuredProxy in configuredProxies)
+        {
+            if (!IPAddress.TryParse(configuredProxy, out var proxyAddress) ||
+                proxyAddress.Equals(IPAddress.Any) ||
+                proxyAddress.Equals(IPAddress.IPv6Any) ||
+                !string.Equals(configuredProxy, proxyAddress.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "AuthenticationProtection:ForwardedHeaders:KnownProxies must contain exact IP addresses.");
+            }
+
+            options.KnownProxies.Add(proxyAddress);
+        }
+
+        return options;
+    }
+}

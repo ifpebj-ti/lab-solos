@@ -3,9 +3,18 @@ using Testcontainers.PostgreSql;
 
 namespace Tests.Infrastructure;
 
-public sealed class PostgreSqlContainerFixture : IAsyncLifetime
+public interface IPostgreSqlDatabaseFixture
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685")
+    string ConnectionString { get; }
+
+    Task RecreateEmptyDatabaseAsync();
+
+    Task<int> CountPublicTablesAsync();
+}
+
+public abstract class PostgreSqlContainerFixtureBase(string image) : IAsyncLifetime, IPostgreSqlDatabaseFixture
+{
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder(image)
         .WithDatabase("labsolos_tests")
         .WithUsername("labsolos_test")
         .WithPassword("synthetic-postgres-password")
@@ -36,6 +45,14 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
     }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
+}
+
+public sealed class PostgreSqlContainerFixture : PostgreSqlContainerFixtureBase
+{
+    public PostgreSqlContainerFixture()
+        : base("postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685")
+    {
+    }
 }
 
 [CollectionDefinition(Name)]

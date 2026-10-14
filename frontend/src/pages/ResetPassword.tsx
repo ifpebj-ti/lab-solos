@@ -7,6 +7,10 @@ import { z } from 'zod';
 import { passwordChangeSchema } from '@/auth/passwordPolicy';
 import { clearSession } from '@/auth/session';
 import AuthFlowShell from '@/components/auth/AuthFlowShell';
+import {
+  AuthenticationWaitFeedback,
+  useAuthenticationWait,
+} from '@/components/auth/AuthenticationWaitFeedback';
 import PasswordChangeFields from '@/components/auth/PasswordChangeFields';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import type { ApplicationError } from '@/errors/applicationError';
@@ -68,9 +72,11 @@ const clearResetSession = () => clearSession();
 
 function ResetPassword() {
   const [loading, setLoading] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const [errorPresentation, setErrorPresentation] =
     useState<ErrorPresentation>();
   const [retryData, setRetryData] = useState<ResetPasswordFormData>();
+  const authenticationWait = useAuthenticationWait();
   const {
     register,
     handleSubmit,
@@ -83,6 +89,10 @@ function ResetPassword() {
   const navigate = useNavigate();
 
   async function postResetPassword(data: ResetPasswordFormData) {
+    if (loading || authenticationWait.isWaiting) return;
+
+    authenticationWait.clearWait();
+    setRateLimited(false);
     setLoading(true);
     setErrorPresentation(undefined);
     setRetryData(data);
@@ -105,9 +115,15 @@ function ResetPassword() {
       const normalizedError = normalizeError(error);
       applyResetPasswordFieldErrors(normalizedError, setError);
 
-      setErrorPresentation(
-        presentError(normalizedError, OPERATION_IDS.resetPassword)
-      );
+      if (normalizedError.category === 'rate_limited') {
+        setRateLimited(true);
+        authenticationWait.startWait(normalizedError.retryAfterSeconds);
+      } else {
+        setRateLimited(false);
+        setErrorPresentation(
+          presentError(normalizedError, OPERATION_IDS.resetPassword)
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -123,7 +139,14 @@ function ResetPassword() {
       description='Digite seu e-mail, a nova senha e o código que você recebeu por e-mail.'
     >
       <div className='flex w-full flex-col'>
-          {errorPresentation ? (
+          {rateLimited ? (
+            <AuthenticationWaitFeedback
+              isWaiting={authenticationWait.isWaiting}
+              waitSeconds={authenticationWait.waitSeconds}
+              isReady={authenticationWait.isReady}
+              className='mt-3'
+            />
+          ) : errorPresentation ? (
             <ErrorFeedback
               className='mt-3'
               presentation={errorPresentation}
@@ -160,8 +183,8 @@ function ResetPassword() {
             />
             <button
               type='submit'
-              disabled={loading}
-              className='mt-4 min-h-11 w-full rounded-md bg-primaryMy px-4 font-rajdhani-semibold text-lg text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
+              disabled={loading || authenticationWait.isWaiting}
+              className='mt-4 min-h-11 w-full rounded-md bg-primaryMy px-4 font-rajdhani-semibold text-lg text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
             >
               {loading ? 'Atualizando...' : 'Atualizar senha'}
             </button>

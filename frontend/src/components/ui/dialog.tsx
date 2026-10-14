@@ -43,7 +43,7 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close aria-label='Fechar diálogo' className='absolute right-4 top-4 rounded-sm text-clt-1 opacity-80 ring-offset-canvas transition-opacity hover:bg-surface-selected hover:text-clt-2 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas disabled:pointer-events-none'>
+      <DialogPrimitive.Close aria-label='Fechar diálogo' className='absolute right-4 top-4 rounded-xs text-clt-1 opacity-80 ring-offset-canvas transition-opacity hover:bg-surface-selected hover:text-clt-2 hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas disabled:pointer-events-none'>
         <Cross2Icon className='h-4 w-4' />
         <span className='sr-only'>Close</span>
       </DialogPrimitive.Close>

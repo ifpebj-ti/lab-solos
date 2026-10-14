@@ -29,7 +29,8 @@ public sealed class UserDataMigrationTests(PostgreSqlContainerFixture database)
             migration => Assert.EndsWith("_InitialSchemaBaseline", migration),
             migration => Assert.EndsWith("_CredentialLifecycle", migration),
             migration => Assert.EndsWith("_UserDataContracts", migration),
-            migration => Assert.EndsWith("_SeparateLoanReturnDates", migration));
+            migration => Assert.EndsWith("_SeparateLoanReturnDates", migration),
+            migration => Assert.EndsWith("_AuthenticationProtection", migration));
     }
 
     [Fact]
@@ -42,7 +43,7 @@ public sealed class UserDataMigrationTests(PostgreSqlContainerFixture database)
         await context.Database.MigrateAsync();
 
         Assert.Equal(("date", "YES"), await ReadAdmissionColumnAsync());
-        Assert.Equal(4, await CountAppliedMigrationsAsync());
+        Assert.Equal(5, await CountAppliedMigrationsAsync());
     }
 
     [Fact]

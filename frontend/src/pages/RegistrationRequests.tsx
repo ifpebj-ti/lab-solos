@@ -44,7 +44,7 @@ type PendingAction = Readonly<{
 }>;
 
 const actionButtonClassName =
-  'flex min-h-11 min-w-11 items-center justify-center rounded-md text-clt-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas hover:bg-surface-selected disabled:cursor-not-allowed disabled:opacity-50 md:min-h-8 md:min-w-8 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11';
+  'flex min-h-11 min-w-11 items-center justify-center rounded-md text-clt-2 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas hover:bg-surface-selected disabled:cursor-not-allowed disabled:opacity-50 md:min-h-8 md:min-w-8 pointer-coarse:min-h-11 pointer-coarse:min-w-11';
 
 const successNotifications: Record<
   RegistrationAction,
@@ -78,7 +78,7 @@ function RegistrationBackButtonInRouter() {
       onClick={() => navigate(resolveParentPath(location.pathname))}
       aria-label='Voltar'
       title='Voltar'
-      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
     >
       <ArrowLeft aria-hidden='true' className='h-5 w-5' />
     </button>
@@ -95,7 +95,7 @@ function RegistrationBackButton() {
       type='button'
       aria-label='Voltar'
       title='Voltar'
-      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+      className='mt-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
     >
       <ArrowLeft aria-hidden='true' className='h-5 w-5' />
     </button>
@@ -262,7 +262,7 @@ function RegistrationRequest() {
       ) : (
         <div className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 sm:px-6 lg:px-8'>
           <div className='flex min-w-0 flex-wrap items-center justify-between gap-4 pt-8'>
-            <h1 className='min-w-0 [overflow-wrap:anywhere] uppercase font-rajdhani-medium text-3xl text-clt-2'>
+            <h1 className='min-w-0 wrap-anywhere uppercase font-rajdhani-medium text-3xl text-clt-2'>
               Solicitações de Cadastro
             </h1>
             <div className='min-w-0 flex items-center justify-between gap-x-6'>
@@ -280,7 +280,7 @@ function RegistrationRequest() {
 
           <section
             aria-label='Solicitações de cadastro'
-            className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'
+            className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'
           >
             <div className='flex w-full flex-col-reverse items-stretch justify-between gap-4 lg:flex-row lg:items-center'>
               <div className='flex w-full min-w-0 items-start justify-start gap-2 lg:w-1/2'>

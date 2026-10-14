@@ -111,7 +111,7 @@ function Disabled() {
               icon={<LayersIcon />}
             />
           </div>
-          <section aria-label='Mentorados desativados' className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+          <section aria-label='Mentorados desativados' className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
             <div className='flex flex-col items-center justify-center w-full min-w-0 px-4'>
               <div className='flex flex-wrap items-center justify-start gap-3 mt-6 w-full min-w-0'>
                 <div className='w-full min-w-0 md:w-[40%]'>

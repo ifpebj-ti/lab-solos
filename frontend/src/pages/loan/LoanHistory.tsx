@@ -196,7 +196,7 @@ function LoanProductsSection({
             </PopoverTrigger>
             <PopoverContent className='w-32 border border-borderMy bg-surface p-2 shadow-lg'>
               <ul className='flex w-full flex-col items-start gap-y-1'>
-                <li className='flex w-full items-center rounded px-2 py-1 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
+                <li className='flex w-full items-center rounded-sm px-2 py-1 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
                   <button
                     type='button'
                     onClick={onExportPdf}
@@ -212,7 +212,7 @@ function LoanProductsSection({
                     PDF
                   </button>
                 </li>
-                <li className='flex w-full items-center rounded px-2 py-1 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
+                <li className='flex w-full items-center rounded-sm px-2 py-1 text-sm font-inter-regular transition-colors hover:bg-surface-selected'>
                   <button
                     type='button'
                     aria-label='Exportar Excel'
@@ -609,7 +609,7 @@ function LoanHistoryMentee() {
           <BackLink />
         </div>
         <div className='mt-7 flex w-full min-w-0 flex-wrap items-center justify-between gap-4'>
-          <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
+          <h1 className='min-w-0 wrap-break-word uppercase font-rajdhani-medium text-2xl md:text-3xl text-clt-2'>
             Histórico de Empréstimo - {loan?.status}
           </h1>
           <div className='flex items-center justify-between gap-x-6'>

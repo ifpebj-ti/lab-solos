@@ -36,6 +36,30 @@ for (const theme of designThemes) {
       page.getByRole('button', { name: 'Submeter Login', exact: true })
     ).toBeVisible();
 
+    // Ensure Tailwind's theme layer resolves the original RGB channel tokens.
+    // Visibility alone also passes when a circular token makes surfaces transparent.
+    const colors = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      const tokenColor = (name: string) =>
+        `rgb(${root.getPropertyValue(name).trim().split(/\s+/).join(', ')})`;
+      return {
+        expectedCanvas: tokenColor('--color-canvas'),
+        expectedSurface: tokenColor('--color-surface'),
+        canvas: getComputedStyle(document.querySelector('main')!)
+          .backgroundColor,
+        surfaces: Array.from(document.querySelectorAll('.bg-surface')).map(
+          (element) => getComputedStyle(element).backgroundColor
+        ),
+      };
+    });
+    expect(colors.expectedCanvas).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+    expect(colors.expectedSurface).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+    expect(colors.canvas).toBe(colors.expectedCanvas);
+    expect(colors.surfaces.length).toBeGreaterThan(0);
+    for (const surface of colors.surfaces) {
+      expect(surface).toBe(colors.expectedSurface);
+    }
+
     await runDesignAxeAudit(page, testInfo, `public-access-${theme}`);
   });
 

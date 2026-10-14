@@ -9,7 +9,11 @@ public sealed record SeedCredentials(
     string MentorEmail,
     string MentorPassword,
     string BorrowerEmail,
-    string BorrowerPassword);
+    string BorrowerPassword,
+    string SecondMentorEmail,
+    string SecondMentorPassword,
+    string SecondBorrowerEmail,
+    string SecondBorrowerPassword);
 
 public sealed partial record SeedOptions(
     string Scenario,
@@ -26,6 +30,10 @@ public sealed partial record SeedOptions(
     public const string MentorPasswordVariable = "E2E_SEED_MENTOR_PASSWORD";
     public const string BorrowerEmailVariable = "E2E_SEED_BORROWER_EMAIL";
     public const string BorrowerPasswordVariable = "E2E_SEED_BORROWER_PASSWORD";
+    public const string SecondMentorEmailVariable = "E2E_SEED_SECOND_MENTOR_EMAIL";
+    public const string SecondMentorPasswordVariable = "E2E_SEED_SECOND_MENTOR_PASSWORD";
+    public const string SecondBorrowerEmailVariable = "E2E_SEED_SECOND_BORROWER_EMAIL";
+    public const string SecondBorrowerPasswordVariable = "E2E_SEED_SECOND_BORROWER_PASSWORD";
 
     public static SeedOptions Parse(
         IReadOnlyList<string> args,
@@ -37,7 +45,8 @@ public sealed partial record SeedOptions(
         if (args.Count == 1 && string.Equals(args[0], "--help", StringComparison.Ordinal))
         {
             return new SeedOptions(string.Empty, string.Empty, string.Empty,
-                new SeedCredentials(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty),
+                new SeedCredentials(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+                    string.Empty, string.Empty, string.Empty, string.Empty),
                 true);
         }
 
@@ -61,6 +70,23 @@ public sealed partial record SeedOptions(
         var connectionString = Required(environment, ConnectionVariable);
         ValidateConnection(connectionString);
 
+        var secondMentorEmail = Optional(environment, SecondMentorEmailVariable);
+        var secondMentorPassword = Optional(environment, SecondMentorPasswordVariable);
+        var secondBorrowerEmail = Optional(environment, SecondBorrowerEmailVariable);
+        var secondBorrowerPassword = Optional(environment, SecondBorrowerPasswordVariable);
+        var secondScenarioCredentials = new[]
+        {
+            secondMentorEmail,
+            secondMentorPassword,
+            secondBorrowerEmail,
+            secondBorrowerPassword
+        };
+        if (secondScenarioCredentials.Any(value => value is not null) &&
+            secondScenarioCredentials.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new InvalidOperationException("As credenciais do segundo vínculo E2E devem ser fornecidas em conjunto.");
+        }
+
         return new SeedOptions(
             scenario,
             environmentName,
@@ -71,7 +97,11 @@ public sealed partial record SeedOptions(
                 Required(environment, MentorEmailVariable),
                 Required(environment, MentorPasswordVariable),
                 Required(environment, BorrowerEmailVariable),
-                Required(environment, BorrowerPasswordVariable)));
+                Required(environment, BorrowerPasswordVariable),
+                secondMentorEmail ?? $"synthetic-second-mentor-{scenario}@example.invalid",
+                secondMentorPassword ?? $"synthetic-second-mentor-{scenario}-password",
+                secondBorrowerEmail ?? $"synthetic-second-borrower-{scenario}@example.invalid",
+                secondBorrowerPassword ?? $"synthetic-second-borrower-{scenario}-password"));
     }
 
     public static void ValidateConnection(string connectionString)
@@ -107,4 +137,11 @@ public sealed partial record SeedOptions(
 
         return value.Trim();
     }
+
+    private static string? Optional(
+        IReadOnlyDictionary<string, string?> environment,
+        string name) =>
+        environment.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value)
+            ? value.Trim()
+            : null;
 }

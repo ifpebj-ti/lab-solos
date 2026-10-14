@@ -33,7 +33,8 @@ public sealed class CredentialLifecycleMigrationTests(PostgreSqlContainerFixture
             migration => Assert.EndsWith("_InitialSchemaBaseline", migration),
             migration => Assert.EndsWith("_CredentialLifecycle", migration),
             migration => Assert.EndsWith("_UserDataContracts", migration),
-            migration => Assert.EndsWith("_SeparateLoanReturnDates", migration));
+            migration => Assert.EndsWith("_SeparateLoanReturnDates", migration),
+            migration => Assert.EndsWith("_AuthenticationProtection", migration));
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public sealed class CredentialLifecycleMigrationTests(PostgreSqlContainerFixture
         Assert.Equal("bigint", columns["VersaoSessao"].DataType);
         Assert.True(columns.ContainsKey("TokenRedefinicaoHash"));
         Assert.False(columns.ContainsKey("TokenRedefinicao"));
-        Assert.Equal(4, await CountAppliedMigrationsAsync());
+        Assert.Equal(5, await CountAppliedMigrationsAsync());
     }
 
     [Fact]

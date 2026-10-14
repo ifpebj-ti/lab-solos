@@ -1,16 +1,17 @@
+import infra/proxy/security-headers.caddy # shared security header snippets
+
 {$APP_DOMAIN} {
-    encode zstd gzip
+	encode zstd gzip
 
-    @api path /api/*
-    reverse_proxy @api backend:8080
+	import common_security_headers
 
-    reverse_proxy frontend:80
+	@api path /api/*
+	handle @api {
+		reverse_proxy backend:8080
+	}
 
-    header {
-        -Server
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
+	handle {
+		import frontend_content_security_policy
+		reverse_proxy frontend:80
+	}
 }

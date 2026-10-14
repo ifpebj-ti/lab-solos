@@ -24,7 +24,7 @@ function DateRangeInput() {
           id='date'
           variant={'outline'}
           className={cn(
-            'w-full justify-start text-left font-normal font-inter-regular text-clt-2 bg-backgroundMy rounded-sm border border-borderMy text-ellipsis text-nowrap overflow-hidden whitespace-nowrap',
+            'w-full justify-start text-left font-normal font-inter-regular text-clt-2 bg-backgroundMy rounded-xs border border-borderMy text-ellipsis text-nowrap overflow-hidden whitespace-nowrap',
             !date && 'text-muted-foreground'
           )}
         >

@@ -66,10 +66,10 @@ describe('ViewClass: estados de consulta', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('respeita o 404 traduzido pelo adaptador como turma vazia', async () => {
+  it('mantém a turma vazia para resposta autorizada 200 com lista vazia', async () => {
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/7/dependentes`, () =>
-        new HttpResponse(null, { status: 404 })
+        HttpResponse.json([])
       )
     );
 
@@ -80,6 +80,21 @@ describe('ViewClass: estados de consulta', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Gestora da Turma')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('propaga 404 da consulta protegida de dependentes', async () => {
+    server.use(
+      http.get(`${API_ORIGIN}/Usuarios/7/dependentes`, () =>
+        new HttpResponse(null, { status: 404 })
+      )
+    );
+
+    renderPage();
+
+    const feedback = await screen.findByRole('alert');
+    expect(feedback).toHaveTextContent('Não foi possível carregar os dependentes da turma');
+    expect(feedback).toHaveTextContent('O recurso solicitado não foi encontrado.');
+    expect(screen.queryByText('Nenhum usuário encontrado nesta turma.')).not.toBeInTheDocument();
   });
 
   it('exibe falha persistente contextual sem transformá-la em turma vazia', async () => {

@@ -8,13 +8,15 @@ Este manual explica como usar o LabOn nas áreas de **Administrador**, **Mentor*
 
 O endereço da aplicação é fornecido pela instituição. Para entrar, use uma conta habilitada e uma credencial recebida por canal autorizado. Uma solicitação de cadastro ainda pendente não libera o acesso imediatamente.
 
+As telas podem pedir espera quando há tentativas demais de login ou de validação de código. Aguarde o tempo indicado e confira as orientações de [Acesso e conta](acesso-e-conta.md#j04-primeiro-acesso) e [Solução de problemas](solucao-de-problemas.md#limitacao-temporaria); não repita a submissão por atualização automática.
+
 ### Metadados deste manual
 
-Versão do manual: `2026-09-23.1`
+Versão do manual: `2026-10-13.1`
 
 Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-23`
+Atualizado em: `2026-10-13`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -129,6 +131,8 @@ As seções abaixo são pontos de partida. As opções podem depender do estado 
 5. Para falhas ou retorno à sua área, siga [J11 — Recuperar-se de falhas](solucao-de-problemas.md#j11-falhas).
 
 O Mentorado consulta e acompanha seus registros. Este manual não apresenta uma ação de criação, aprovação, recusa ou devolução de empréstimo para esse perfil.
+
+As consultas protegidas seguem o perfil e os vínculos registrados no sistema. O identificador de uma pessoa, sozinho, não autoriza a consulta; veja a [matriz de perfis e permissões](perfis-e-permissoes.md#matriz-de-acesso-aos-dados).
 
 As exportações documentais de usuários e empréstimos ficam disponíveis nos controles **Exportar Excel** e **Exportar PDF** das telas que os exibem. O PDF é a saída equivalente de impressão validada para o produto; não existe uma ação separada de impressão no runtime atual.
 

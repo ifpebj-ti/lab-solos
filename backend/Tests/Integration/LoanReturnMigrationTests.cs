@@ -19,7 +19,7 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
         var migrations = context.Database.GetMigrations().ToArray();
         var target = migrations.Single(migration =>
             migration.EndsWith("_SeparateLoanReturnDates", StringComparison.Ordinal));
-        var previous = migrations[^2];
+        var previous = GetPredecessor(migrations, target);
         var migrator = context.GetService<IMigrator>();
 
         await migrator.MigrateAsync(target);
@@ -39,7 +39,9 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
         await database.RecreateEmptyDatabaseAsync();
         await using var context = CreateContext();
         var migrations = context.Database.GetMigrations().ToArray();
-        var previous = migrations[^2];
+        var target = migrations.Single(migration =>
+            migration.EndsWith("_SeparateLoanReturnDates", StringComparison.Ordinal));
+        var previous = GetPredecessor(migrations, target);
         var migrator = context.GetService<IMigrator>();
 
         await migrator.MigrateAsync(previous);
@@ -62,6 +64,13 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
             .UseNpgsql(database.ConnectionString)
             .Options;
         return new AppDbContext(options);
+    }
+
+    private static string GetPredecessor(string[] migrations, string target)
+    {
+        var targetIndex = Array.IndexOf(migrations, target);
+        Assert.True(targetIndex > 0, "The target migration must have a predecessor.");
+        return migrations[targetIndex - 1];
     }
 
     private async Task InsertLegacyLoanAsync()
