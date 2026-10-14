@@ -21,7 +21,7 @@ class BackendContainerContractTests(unittest.TestCase):
         )
         self.assertRegex(
             self.dockerfile,
-            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.31-noble-chiseled-extra@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
+            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.32-noble-chiseled-extra@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
         )
         self.assertRegex(
             self.dockerfile,

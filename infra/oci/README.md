@@ -42,6 +42,10 @@ docker compose --env-file .env -f docker-compose-prod.yml config --quiet
 
 Produção publica somente Caddy em 80/443. Frontend, backend e PostgreSQL ficam nas redes internas; `pg_data`, `caddy_data` e `caddy_config` são persistentes. `config --quiet` não valida DNS/TLS, login, migrações, SMTP ou existência das imagens.
 
+Configure `PUBLIC_NETWORK_DYNAMIC_RANGE` como uma sub-rede dentro de `PUBLIC_NETWORK_SUBNET`, excluindo `CADDY_PROXY_IP`. Isso impede que a alocação dinâmica entregue ao frontend ou backend o endereço fixo do proxy antes de o Caddy iniciar. O exemplo usa `172.29.240.0/24`, faixa dinâmica `172.29.240.128/25` e proxy `172.29.240.2`. Confira conflitos com as redes existentes no host. Alterar o IPAM de uma rede existente exige recriar os contêineres ligados a essa rede e a própria rede, preservando os volumes.
+
+O Compose também monta `infra/proxy/security-headers.caddy` no caminho relativo importado pelo Caddyfile. Copie esse arquivo junto com o Compose e o Caddyfile para a implantação.
+
 ## Segredos e proteção da autenticação
 
 O `.env` aponta para dois arquivos no host: `AUTHENTICATION_THROTTLE_KEY_FILE` contém pelo menos 32 bytes aleatórios em formato binário; `RECOVERY_ENCRYPTION_KEYS_FILE` contém um JSON de até 65.536 bytes com `activeKeyId` e um mapa `keys`, cada chave decodificada com exatamente 32 bytes. O exemplo de produção usa `./secrets/authentication-throttle-key` e `./secrets/recovery-encryption-keys.json`, relativos a `/opt/labon`. A API os monta somente para leitura em `/run/secrets/` e roda como o usuário não root `app`.
