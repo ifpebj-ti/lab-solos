@@ -43,4 +43,31 @@ describe('ResetPassword HTTP errors', () => {
       },
     });
   });
+
+  it('normaliza o 429 da redefinicao com o Retry-After da resposta', async () => {
+    server.use(
+      http.post(`${API_ORIGIN}/Email/reset-password`, () =>
+        HttpResponse.json(
+          {
+            code: 'authentication_rate_limited',
+            retryAfterSeconds: 91,
+            message: 'nao expor detalhe remoto',
+          },
+          { status: 429, headers: { 'Retry-After': '17' } }
+        )
+      )
+    );
+
+    const error = await resetPassword(resetData).catch(
+      (reason: unknown) => reason
+    );
+
+    expect(error).toMatchObject({
+      name: 'ApplicationError',
+      category: 'rate_limited',
+      status: 429,
+      retryAfterSeconds: 17,
+    });
+    expect(JSON.stringify(error)).not.toContain('nao expor detalhe remoto');
+  });
 });

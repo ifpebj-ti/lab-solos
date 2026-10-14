@@ -224,7 +224,7 @@ function ReturnLoan() {
             <BackLink pathname='/admin/return' />
           </div>
           <div className='mt-7 flex w-full min-w-0 flex-wrap items-center justify-between gap-4'>
-            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
+            <h1 className='min-w-0 wrap-break-word uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Devolução de Empréstimo
             </h1>
             <div className='flex min-w-0 flex-wrap items-center justify-between gap-4'>
@@ -233,7 +233,7 @@ function ReturnLoan() {
                   type='button'
                   onClick={handleReturn}
                   disabled={isReturning}
-                  className='flex min-h-11 items-center justify-center gap-x-2 rounded-md bg-success px-4 text-base font-rajdhani-semibold text-on-success transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
+                  className='flex min-h-11 items-center justify-center gap-x-2 rounded-md bg-success px-4 text-base font-rajdhani-semibold text-on-success transition-colors hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <RefreshCw className='text-on-success' width={18} />
                   Registrar Devolução

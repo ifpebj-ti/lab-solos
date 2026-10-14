@@ -5,6 +5,7 @@ const e2eBaseUrl = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173';
 const realTestFiles = [
   '**/credential-lifecycle.spec.ts',
   '**/user-data-contract.real.spec.ts',
+  '**/authentication-protection.real.spec.ts',
   '**/infra/smoke.e2e.ts',
   '**/critical/registration-approval.spec.ts',
   '**/critical/loans.spec.ts',
@@ -16,9 +17,18 @@ const uiTestFiles = [
   '**/post-auth-navigation.spec.ts',
   '**/responsive-layout.spec.ts',
   '**/user-data-contract.spec.ts',
+  '**/authentication-protection.ui.spec.ts',
   '**/design-system.spec.ts',
   '**/design-pilots.spec.ts',
 ];
+
+const securityTestFiles = [
+  '**/infra/security-smoke.e2e.ts',
+  '**/browser-security.real.spec.ts',
+];
+
+const securityBaseUrl =
+  process.env.SECURITY_E2E_BASE_URL ?? 'https://localhost:18443';
 
 export default defineConfig({
   testDir: './e2e',
@@ -56,6 +66,20 @@ export default defineConfig({
       testIgnore: realTestFiles,
       fullyParallel: true,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'security',
+      testMatch: securityTestFiles,
+      fullyParallel: false,
+      retries: 0,
+      workers: 1,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: securityBaseUrl,
+        ignoreHTTPSErrors: true,
+        trace: 'off',
+        screenshot: 'off',
+      },
     },
   ],
 });

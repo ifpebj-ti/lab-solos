@@ -7,19 +7,22 @@ namespace Tests.Extensions;
 public sealed class HttpContextExtensionsTests
 {
     [Fact]
-    public void GetClientIpAddressRetornaPrimeiroHeaderValidoNaOrdemConfigurada()
+    public void GetClientIpAddressIgnoraHeadersDeProxyEUsaRemoteIpAddress()
     {
         var context = CreateContext("198.51.100.40");
         context.Request.Headers["X-Forwarded-For"] = " 198.51.100.10, 198.51.100.11 ";
         context.Request.Headers["X-Real-IP"] = "198.51.100.20";
+        context.Request.Headers["CF-Connecting-IP"] = "198.51.100.30";
+        context.Request.Headers["True-Client-IP"] = "198.51.100.31";
+        context.Request.Headers["X-Client-IP"] = "198.51.100.32";
 
         var result = context.GetClientIpAddress();
 
-        Assert.Equal("198.51.100.10", result);
+        Assert.Equal("198.51.100.40", result);
     }
 
     [Fact]
-    public void GetClientIpAddressIgnoraHeaderAusenteVazioEUnknownAteEncontrarProximoValido()
+    public void GetClientIpAddressIgnoraHeadersAlternativosMesmoQuandoXffAusente()
     {
         var context = CreateContext("198.51.100.40");
         context.Request.Headers["X-Real-IP"] = string.Empty;
@@ -28,7 +31,7 @@ public sealed class HttpContextExtensionsTests
 
         var result = context.GetClientIpAddress();
 
-        Assert.Equal("198.51.100.30", result);
+        Assert.Equal("198.51.100.40", result);
     }
 
     [Fact]

@@ -2,13 +2,18 @@ using System.Security.Claims;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Auth;
+using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Tests.Controllers;
@@ -46,6 +51,8 @@ public class AuthChangePasswordTests
         }, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl);
+        Assert.Equal("no-cache", controller.Response.Headers.Pragma);
         credentials.VerifyAll();
     }
 
@@ -128,7 +135,12 @@ public class AuthChangePasswordTests
         var controller = new AuthController(
             CreateJwtService(),
             Mock.Of<IUnitOfWork>(),
-            credentials);
+            credentials,
+            new PasswordHasher<Usuario>(),
+            Options.Create(new AuthenticationProtectionOptions()),
+            Mock.Of<ISecretFileReader>(),
+            Mock.Of<IHostEnvironment>(),
+            new AuthenticationProtectionTelemetry(NullLogger<AuthenticationProtectionTelemetry>.Instance));
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

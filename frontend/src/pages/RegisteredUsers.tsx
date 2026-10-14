@@ -309,7 +309,7 @@ function RegisteredUsers() {
       ) : registeredUsers.length !== 0 ? (
         <div className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 sm:px-6 lg:px-8'>
           <div className='flex min-w-0 flex-col items-start justify-between gap-4 pt-8 sm:flex-row sm:items-center'>
-            <h1 className='min-w-0 break-words uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
+            <h1 className='min-w-0 wrap-break-word uppercase font-rajdhani-medium text-2xl lg:text-3xl text-clt-2'>
               Usuários Cadastrados
             </h1>
             <div className='flex min-w-0 flex-wrap items-center gap-3'>
@@ -342,7 +342,7 @@ function RegisteredUsers() {
           </div>
           <section
             aria-label='Usuários cadastrados'
-            className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'
+            className='mt-8 mb-4 flex min-h-96 w-full min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'
           >
             <div className='flex w-full min-w-0 flex-col-reverse items-stretch justify-between gap-4 lg:flex-row lg:items-center'>
               <div className='flex w-full min-w-0 items-start justify-start gap-2 lg:w-2/5'>
@@ -367,7 +367,7 @@ function RegisteredUsers() {
                     <button
                       type='button'
                       aria-label='Opções de exportação'
-                      className='border border-borderMy rounded-sm min-h-11 min-w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-9 md:min-w-9 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+                      className='border border-borderMy rounded-xs min-h-11 min-w-11 flex items-center justify-center hover:bg-cl-table-item transition-all ease-in-out duration-200 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-green-800 md:min-h-9 md:min-w-9 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
                     >
                       <FileText
                         stroke='currentColor'
@@ -378,7 +378,7 @@ function RegisteredUsers() {
                   </PopoverTrigger>
                   <PopoverContent className='w-auto border border-borderMy bg-surface p-2 shadow-lg'>
                     <ul className='w-full flex flex-col items-start gap-y-1'>
-                      <li className='flex w-full items-center rounded py-1 px-2 font-inter-regular text-sm hover:bg-surface-selected'>
+                      <li className='flex w-full items-center rounded-sm py-1 px-2 font-inter-regular text-sm hover:bg-surface-selected'>
                         <button
                           type='button'
                           onClick={() => void exportToPdf()}
@@ -431,7 +431,7 @@ function RegisteredUsers() {
                         <button
                           type='button'
                           aria-label='Exportar Excel'
-                          className='flex min-h-11 w-full cursor-pointer items-center rounded px-2 py-1 font-inter-regular text-sm text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                          className='flex min-h-11 w-full cursor-pointer items-center rounded-sm px-2 py-1 font-inter-regular text-sm text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                           onClick={() => void exportToExcel()}
                           disabled={isExporting}
                         >

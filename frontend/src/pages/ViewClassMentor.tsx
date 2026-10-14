@@ -169,7 +169,7 @@ function ViewClassMentor() {
             <div className='flex items-center justify-between gap-x-6'>
               <button
                 onClick={handleClick}
-                className='flex min-h-11 items-center rounded-md border border-borderMy bg-surface px-4 text-sm font-inter-medium uppercase text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                className='flex min-h-11 items-center rounded-md border border-borderMy bg-surface px-4 text-sm font-inter-medium uppercase text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
               >
                 Empréstimos da Turma
               </button>

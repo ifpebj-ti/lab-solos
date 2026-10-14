@@ -5,3 +5,11 @@ root = true
 # CA1502 é mantido explícito para que a política de complexidade exista
 # independentemente da severidade padrão do conjunto recomendado do SDK.
 dotnet_diagnostic.CA1502.severity = warning
+
+[LabSolos-Server-DotNet8/BackgroundServices/AuthenticationThrottleCleanupWorker.cs]
+
+# This file is the first declaration of the existing application root namespace.
+# Namespace symbols aggregate declarations, so pragma and SuppressMessage do not
+# suppress CA1707 here. Keep the legacy namespace without renaming public types;
+# every identifier defined by this worker already follows the naming rule.
+dotnet_diagnostic.CA1707.severity = none

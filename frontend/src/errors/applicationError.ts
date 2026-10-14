@@ -4,6 +4,7 @@ export const ERROR_CATEGORIES = [
   'authorization',
   'not_found',
   'conflict',
+  'rate_limited',
   'network',
   'timeout',
   'server',
@@ -17,6 +18,7 @@ export type ApplicationError = Readonly<{
   category: ErrorCategory;
   message: string;
   status?: number;
+  retryAfterSeconds?: number;
   code?: string;
   requestId?: string;
   fieldErrors?: Readonly<Record<string, readonly string[]>>;
@@ -30,6 +32,10 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isHttpStatus = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= 100 && value <= 599;
+
+const isRetryAfterSeconds = (value: unknown): value is number =>
+  value === undefined ||
+  (typeof value === 'number' && Number.isSafeInteger(value) && value > 0);
 
 const isRequestId = (value: unknown): value is string =>
   typeof value === 'string' &&
@@ -57,6 +63,7 @@ export const isApplicationError = (value: unknown): value is ApplicationError =>
     categorySet.has(value.category) &&
     typeof value.message === 'string' &&
     (value.status === undefined || isHttpStatus(value.status)) &&
+    isRetryAfterSeconds(value.retryAfterSeconds) &&
     (value.code === undefined || typeof value.code === 'string') &&
     (value.requestId === undefined || isRequestId(value.requestId)) &&
     isFieldErrors(value.fieldErrors) &&
@@ -73,6 +80,7 @@ export const createApplicationError = (
     category,
     message,
     status,
+    retryAfterSeconds,
     code,
     requestId,
     fieldErrors,
@@ -83,6 +91,7 @@ export const createApplicationError = (
     category,
     message,
     ...(status === undefined ? {} : { status }),
+    ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
     ...(code === undefined ? {} : { code }),
     ...(requestId === undefined ? {} : { requestId }),
     ...(fieldErrors === undefined ? {} : { fieldErrors }),

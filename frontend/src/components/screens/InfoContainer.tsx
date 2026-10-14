@@ -31,17 +31,17 @@ function InfoContainer({ items, className, columns }: InfoContainerProps) {
   return (
     <div
       className={cn(
-        'grid min-h-20 w-full min-w-0 items-start gap-x-6 gap-y-4 rounded-xl border border-borderMy bg-surface p-4 shadow-sm lg:w-[49%]',
+        'grid min-h-20 w-full min-w-0 items-start gap-x-6 gap-y-4 rounded-xl border border-borderMy bg-surface p-4 shadow-xs lg:w-[49%]',
         responsiveColumns,
         className
       )}
     >
       {items.map((item, index) => (
         <div key={`${item.title}-${index}`} className='min-w-0'>
-          <p className='break-words font-inter-regular text-sm text-clt-1'>
+          <p className='wrap-break-word font-inter-regular text-sm text-clt-1'>
             {item.title}
           </p>
-          <p className='break-words font-inter-medium text-clt-2'>
+          <p className='wrap-break-word font-inter-medium text-clt-2'>
             {item.value ?? '—'}
           </p>
         </div>

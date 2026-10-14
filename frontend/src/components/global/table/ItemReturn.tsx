@@ -29,7 +29,7 @@ function ItemReturn({ data, rowIndex, rowId }: ITableItem) {
         id={switchId}
         checked={checked}
         onCheckedChange={setChecked}
-        className='min-h-11 min-w-11 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+        className='min-h-11 min-w-11 md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
       />
     </div>
   );
@@ -43,7 +43,7 @@ function ItemReturn({ data, rowIndex, rowId }: ITableItem) {
         id={reasonId}
         disabled={checked}
         type='text'
-        className='min-h-11 min-w-0 w-full rounded-md border border-borderMy bg-surface px-4 py-1 text-clt-2 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas md:min-h-8'
+        className='min-h-11 min-w-0 w-full rounded-md border border-borderMy bg-surface px-4 py-1 text-clt-2 focus:outline-hidden focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-canvas md:min-h-8'
       />
     </div>
   );

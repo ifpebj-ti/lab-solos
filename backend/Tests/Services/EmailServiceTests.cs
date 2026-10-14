@@ -39,9 +39,33 @@ public sealed class EmailServiceTests
         Assert.True(smtpClient!.IsDisposed);
     }
 
+    [Fact]
+    public async Task EnviarEmailAsyncAwaitsAsyncSenderAndDisposesSmtpClient()
+    {
+        TrackingSmtpClient? smtpClient = null;
+        var sentMessage = string.Empty;
+        using var cancellation = new CancellationTokenSource();
+        var service = CreateService(
+            () => smtpClient = new TrackingSmtpClient(),
+            (_, _) => throw new InvalidOperationException("The synchronous sender must not be used."),
+            async (_, message, cancellationToken) =>
+            {
+                await Task.Yield();
+                cancellationToken.ThrowIfCancellationRequested();
+                sentMessage = $"{message.Subject}|{message.Body}";
+            });
+
+        await service.EnviarEmailAsync("destino@example.com", "Assunto", "Corpo", cancellation.Token);
+
+        Assert.NotNull(smtpClient);
+        Assert.True(smtpClient!.IsDisposed);
+        Assert.Equal("Assunto|Corpo", sentMessage);
+    }
+
     private static EmailService CreateService(
         Func<SmtpClient> smtpClientFactory,
-        Action<SmtpClient, MailMessage> sendMail)
+        Action<SmtpClient, MailMessage> sendMail,
+        Func<SmtpClient, MailMessage, CancellationToken, Task>? sendMailAsync = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -54,7 +78,7 @@ public sealed class EmailServiceTests
             })
             .Build();
 
-        return new EmailService(configuration, smtpClientFactory, sendMail);
+        return new EmailService(configuration, smtpClientFactory, sendMail, sendMailAsync);
     }
 
     private sealed class TrackingSmtpClient : SmtpClient

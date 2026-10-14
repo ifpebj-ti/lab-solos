@@ -83,7 +83,9 @@ const legacyAcademicUser = {
 } as const;
 
 beforeEach(() => {
-  cookieGetMock.mockReturnValue('token');
+  cookieGetMock.mockImplementation((name: string) =>
+    name === 'rankID' ? String(academicUser.id) : 'token'
+  );
   vi.mocked(api).mockReset();
 });
 
@@ -109,6 +111,24 @@ describe('fronteiras de usuario e dependentes', () => {
     { ...academicUser, curso: undefined },
   ])('rejeita resposta invalida sem fabricar dado substituto', async (data) => {
     vi.mocked(api).mockResolvedValue({ data });
+
+    await expect(getUserById({ id: 7 })).rejects.toThrow();
+  });
+
+  it('mantém getUserById estrito para DTOs mínimos de acompanhamento', async () => {
+    const accompaniment = {
+      id: academicUser.id,
+      nomeCompleto: academicUser.nomeCompleto,
+      email: academicUser.email,
+      telefone: academicUser.telefone,
+      dataIngresso: academicUser.dataIngresso,
+      instituicao: academicUser.instituicao,
+      cidade: academicUser.cidade,
+      curso: academicUser.curso,
+      status: academicUser.status,
+      nivelUsuario: 'Mentorado',
+    };
+    vi.mocked(api).mockResolvedValue({ data: accompaniment });
 
     await expect(getUserById({ id: 7 })).rejects.toThrow();
   });

@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { normalizeError } from './normalizeError';
 
@@ -11,6 +11,7 @@ describe('normalizeError', () => {
     [403, 'authorization', false],
     [404, 'not_found', false],
     [409, 'conflict', false],
+    [429, 'rate_limited', false],
     [500, 'server', true],
     [599, 'server', true],
     [418, 'unknown', false],
@@ -26,6 +27,84 @@ describe('normalizeError', () => {
     expect(result.retryable).toBe(retryable);
     expect(result.status).toBe(status);
     expect(result.message).not.toContain('resposta remota secreta');
+  });
+
+  it('extracts Retry-After as seconds or an HTTP date', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-13T12:00:00.000Z'));
+
+    try {
+      const secondsHeader = normalizeError({
+        response: {
+          status: 429,
+          headers: { 'Retry-After': '37' },
+          data: {
+            code: 'authentication_rate_limited',
+            retryAfterSeconds: 91,
+            message: 'SENTINELA_REMOTA',
+          },
+        },
+      });
+      const dateHeader = normalizeError({
+        response: {
+          status: 429,
+          headers: { 'retry-after': 'Tue, 13 Oct 2026 12:00:45 GMT' },
+          data: { retryAfterSeconds: 91 },
+        },
+      });
+
+      expect(secondsHeader).toMatchObject({
+        category: 'rate_limited',
+        status: 429,
+        code: 'authentication_rate_limited',
+        retryAfterSeconds: 37,
+      });
+      expect(dateHeader.retryAfterSeconds).toBe(45);
+      expect(secondsHeader.message).not.toContain('SENTINELA_REMOTA');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('falls back to a validated numeric extension and maps senhaAtual', () => {
+    const validExtension = normalizeError({
+      response: {
+        status: 429,
+        headers: { 'retry-after': 'invalid' },
+        data: { retryAfterSeconds: 18 },
+      },
+    });
+    const invalidExtension = normalizeError({
+      response: {
+        status: 429,
+        headers: { 'retry-after': 'invalid' },
+        data: { retryAfterSeconds: 1.5 },
+      },
+    });
+    const currentPassword = normalizeError({
+      response: {
+        status: 400,
+        data: {
+          code: 'current_password_invalid',
+          errors: { senhaAtual: ['current_password_invalid'] },
+        },
+      },
+    });
+    const profileConflict = normalizeError({
+      response: {
+        status: 409,
+        data: { code: 'profile_update_conflict' },
+      },
+    });
+
+    expect(validExtension.retryAfterSeconds).toBe(18);
+    expect(invalidExtension.retryAfterSeconds).toBeUndefined();
+    expect(currentPassword.fieldErrors).toHaveProperty('currentPassword');
+    expect(profileConflict).toMatchObject({
+      category: 'conflict',
+      status: 409,
+      code: 'profile_update_conflict',
+    });
   });
 
   it('prioriza o status HTTP sobre o status alegado no corpo', () => {

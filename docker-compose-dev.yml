@@ -38,6 +38,12 @@ services:
       - Jwt__ExpiresInMinutes=${JWT_EXPIRES_IN_MINUTES}
       - Seed__AdminEmail=${SEED_ADMIN_EMAIL}
       - Seed__AdminPassword=${SEED_ADMIN_PASSWORD}
+      - AuthenticationProtection__KeyHashSecretFile=/run/secrets/authentication-throttle-key
+      - AuthenticationProtection__RecoveryEncryptionKeysFile=/run/secrets/recovery-encryption-keys.json
+      - AuthenticationProtection__ForwardedHeaders__KnownProxies__0=127.0.0.1
+      - AuthenticationProtection__ForwardedHeaders__ForwardLimit=1
+      - AuthenticationProtection__Cors__DevelopmentOrigins__0=http://localhost:${FRONTEND_PORT}
+      - AuthenticationProtection__Cors__DevelopmentOrigins__1=http://127.0.0.1:${FRONTEND_PORT}
       - AllowedHosts=${ALLOWED_HOSTS}
     depends_on:
       db:
@@ -45,6 +51,19 @@ services:
     networks:
       - private_network
       - public_network
+    volumes:
+      - type: bind
+        source: ${AUTHENTICATION_THROTTLE_KEY_FILE:?AUTHENTICATION_THROTTLE_KEY_FILE must be set}
+        target: /run/secrets/authentication-throttle-key
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${RECOVERY_ENCRYPTION_KEYS_FILE:?RECOVERY_ENCRYPTION_KEYS_FILE must be set}
+        target: /run/secrets/recovery-encryption-keys.json
+        read_only: true
+        bind:
+          create_host_path: false
 
   db:
     image: postgres:15

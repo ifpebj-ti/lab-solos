@@ -22,6 +22,100 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.AuthenticationProtectionCapacity", b =>
+                {
+                    b.Property<string>("Scope")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Allocated")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Scope");
+
+                    b.ToTable("AuthenticationProtectionCapacity", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AuthenticationProtectionCapacity_Allocated_NonNegative", "\"Allocated\" >= 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Scope = "login:account",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "login:ip",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "recovery-request:recipient",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "recovery-request:ip",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "recovery-code:recipient",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "recovery-code:ip",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "recovery-jobs",
+                            Allocated = 0
+                        });
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.AuthenticationThrottleBucket", b =>
+                {
+                    b.Property<string>("Scope")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<byte[]>("KeyHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("NextAllowedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("NextEmissionAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("WindowEndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("WindowStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Scope", "KeyHash");
+
+                    b.HasIndex("WindowEndsAt", "NextAllowedAt", "NextEmissionAt")
+                        .HasDatabaseName("IX_AuthenticationThrottleBuckets_Cleanup");
+
+                    b.ToTable("AuthenticationThrottleBuckets", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AuthenticationThrottleBuckets_Count_NonNegative", "\"Count\" >= 0");
+
+                            t.HasCheckConstraint("CK_AuthenticationThrottleBuckets_KeyHash_Length", "octet_length(\"KeyHash\") = 32");
+
+                            t.HasCheckConstraint("CK_AuthenticationThrottleBuckets_Window", "\"WindowEndsAt\" > \"WindowStartedAt\"");
+                        });
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>
                 {
                     b.Property<int>("Id")
@@ -227,6 +321,101 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.ToTable("Notificacoes");
                 });
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.PasswordRecoveryJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("DeliveryKeyHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("EncryptionKeyId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("PayloadCiphertext")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("PayloadNonce")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("PayloadTag")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("RecipientKeyHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.Property<long?>("SessionVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryKeyHash")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PasswordRecoveryJobs_ActiveDeliveryKey")
+                        .HasFilter("\"Status\" IN ('Pending', 'Processing')");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "NextAttemptAt", "LeaseUntil")
+                        .HasDatabaseName("IX_PasswordRecoveryJobs_Selection");
+
+                    b.ToTable("PasswordRecoveryJobs", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Attempts", "\"Attempts\" BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Expiry", "\"ExpiresAt\" > \"CreatedAt\"");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Hash_Lengths", "octet_length(\"DeliveryKeyHash\") = 32 AND octet_length(\"RecipientKeyHash\") = 32");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Lease_Pair", "(\"LeaseId\" IS NULL) = (\"LeaseUntil\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Nonce_Length", "octet_length(\"PayloadNonce\") = 12");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_SessionVersion", "\"SessionVersion\" IS NULL OR \"SessionVersion\" >= 0");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Status", "\"Status\" IN ('Pending', 'Processing', 'Completed', 'Cancelled', 'Failed')");
+
+                            t.HasCheckConstraint("CK_PasswordRecoveryJobs_Tag_Length", "octet_length(\"PayloadTag\") = 16");
+                        });
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>
                 {
                     b.Property<int>("Id")
@@ -362,6 +551,10 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Usuarios_Email");
+
                     b.HasIndex("ResponsavelId");
 
                     b.ToTable("Usuarios");
@@ -484,6 +677,16 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.PasswordRecoveryJob", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>

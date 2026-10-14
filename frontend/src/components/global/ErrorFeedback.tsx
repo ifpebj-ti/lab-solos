@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 
 import {
   getPresentationCategory,
+  getNavigationActionLabel,
   isNavigableErrorCategory,
   NAVIGATE_ACTION_LABEL,
   RETRY_ACTION_LABEL,
@@ -31,7 +32,7 @@ function ErrorFeedback({
   operationId,
   onRetry,
   onNavigate,
-  navigateLabel = NAVIGATE_ACTION_LABEL,
+  navigateLabel,
   className,
 }: ErrorFeedbackProps) {
   const feedbackRef = useRef<HTMLDivElement>(null);
@@ -55,6 +56,9 @@ function ErrorFeedback({
   const category = getPresentationCategory(resolvedPresentation);
   const canNavigate =
     category !== undefined && isNavigableErrorCategory(category);
+  const navigationActionLabel = category
+    ? getNavigationActionLabel(category, navigateLabel)
+    : (navigateLabel ?? NAVIGATE_ACTION_LABEL);
   const fieldErrors = Object.entries(resolvedPresentation.fieldErrors ?? {})
     .filter(([, messages]) => messages.length > 0)
     .flatMap(([field, messages]) =>
@@ -109,7 +113,7 @@ function ErrorFeedback({
           ) : null}
           {canNavigate && onNavigate ? (
             <Button type='button' onClick={onNavigate}>
-              {navigateLabel}
+              {navigationActionLabel}
             </Button>
           ) : null}
         </div>

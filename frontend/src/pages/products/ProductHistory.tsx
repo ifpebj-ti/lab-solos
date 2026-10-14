@@ -165,7 +165,7 @@ export default function ProductHistoryPage() {
           onClick={() => navigate('/admin/search-material')}
           aria-label='Voltar para busca de materiais'
           title='Voltar para busca de materiais'
-          className='mr-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+          className='mr-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
         >
           <ChevronLeft size={24} />
         </button>
@@ -173,17 +173,17 @@ export default function ProductHistoryPage() {
       </div>
 
       {/* Product Info */}
-      <section className='mb-6 rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+      <section className='mb-6 rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
           <div>
             <label className='text-sm font-medium text-clt-1'>Item</label>
-            <p className='break-words text-lg font-semibold text-clt-2'>
+            <p className='wrap-break-word text-lg font-semibold text-clt-2'>
               {data.nomeProduto}
             </p>
           </div>
           <div>
             <label className='text-sm font-medium text-clt-1'>Tipo</label>
-            <p className='break-words text-lg font-semibold text-clt-2'>
+            <p className='wrap-break-word text-lg font-semibold text-clt-2'>
               {data.tipoProduto}
             </p>
           </div>
@@ -229,7 +229,7 @@ export default function ProductHistoryPage() {
       </section>
 
       {/* Chart Section */}
-      <section className='mb-6 rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+      <section className='mb-6 rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
         <div className='mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center'>
           <h2 className='text-xl font-semibold text-gray-800'>
             Gráfico de Movimentação de Estoque
@@ -241,12 +241,12 @@ export default function ProductHistoryPage() {
                 type='text'
                 placeholder='20/01/2022 - 09/02/2022'
                 aria-label='Filtrar por periodo'
-                className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
+                className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
               />
             </div>
-            <select aria-label='Selecionar periodo' className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'>
+            <select aria-label='Selecionar periodo' className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'>
               <option>Selecione</option>
             </select>
           </div>
@@ -261,7 +261,7 @@ export default function ProductHistoryPage() {
       </section>
 
       {/* History Table */}
-      <section className='rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+      <section className='rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
         <div className='mb-4 flex flex-col gap-4'>
           <div className='flex items-center gap-4'>
             <div className='relative'>
@@ -273,7 +273,7 @@ export default function ProductHistoryPage() {
                 type='text'
                 placeholder='Buscar...'
                 aria-label='Buscar no historico'
-                className='min-h-11 w-full rounded-md border border-borderMy bg-surface py-2 pl-10 pr-4 text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
+                className='min-h-11 w-full rounded-md border border-borderMy bg-surface py-2 pl-10 pr-4 text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -284,10 +284,10 @@ export default function ProductHistoryPage() {
                 type='text'
                 placeholder='20/01/2022 - 09/02/2022'
                 aria-label='Filtrar historico por periodo'
-                className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
+                className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'
               />
             </div>
-            <select aria-label='Selecionar filtro do historico' className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'>
+            <select aria-label='Selecionar filtro do historico' className='min-h-11 w-full rounded-md border border-borderMy bg-surface px-3 py-2 text-sm text-clt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:w-auto'>
               <option>Selecione</option>
             </select>
           </div>
@@ -336,7 +336,7 @@ export default function ProductHistoryPage() {
                       item.quantidadeEmprestada
                     )}
                   </td>
-                  <td className='px-4 py-3 break-words'>{data.unidadeMedida}</td>
+                  <td className='px-4 py-3 wrap-break-word'>{data.unidadeMedida}</td>
                 </tr>
               ))}
             </tbody>

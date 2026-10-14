@@ -17,6 +17,7 @@ describe('errorCatalog', () => {
       'authorization',
       'not_found',
       'conflict',
+      'rate_limited',
       'network',
       'timeout',
       'server',
@@ -55,6 +56,7 @@ describe('errorCatalog', () => {
         'password_common',
         'password_confirmation_mismatch',
         'current_password_invalid',
+        'profile_update_conflict',
         'password_reset_invalid',
         'credential_concurrency_conflict',
       ])
@@ -92,6 +94,9 @@ describe('errorCatalog', () => {
     expect(getFieldErrorMessage('unknown', 'password_common')).toBeUndefined();
     expect(getFieldErrorMessage('email', 'mensagem-remota')).toBe(
       'Verifique este campo.'
+    );
+    expect(getFieldErrorMessage('senhaAtual', 'current_password_invalid')).toBe(
+      getFieldErrorMessage('currentPassword', 'current_password_invalid')
     );
   });
 });

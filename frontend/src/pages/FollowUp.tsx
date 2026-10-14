@@ -168,7 +168,7 @@ function FollowUp() {
               icon={<LayersIcon />}
             />
           </div>
-          <div className='mt-10 mb-11 flex min-h-96 w-full max-w-6xl min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-sm sm:p-6'>
+          <div className='mt-10 mb-11 flex min-h-96 w-full max-w-6xl min-w-0 flex-col items-center rounded-xl border border-borderMy bg-surface p-4 shadow-xs sm:p-6'>
             <div className='w-full min-w-0 flex flex-col-reverse lg:flex-row justify-between items-center mt-2 gap-4'>
               <div className='w-full min-w-0 lg:w-1/2 h-9 flex justify-start items-start gap-2'>
                 <div className='w-auto flex items-center justify-evenly'>

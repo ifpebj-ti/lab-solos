@@ -1,25 +1,17 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { parseResourceId } from '@/contracts/identifier';
 import {
   academicoSchema,
   dependenteSchema,
   usuarioSchema,
+  usuarioAcompanhamentoSchema,
 } from '@/contracts/user';
 
 import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
 
 const dependentesResponseSchema = dependenteSchema.array();
-
-const emptyOnNotFound = (error: unknown, operation: OperationId): [] => {
-  const normalized = reportAppError(error, operation);
-
-  if (normalized.category === 'not_found' && normalized.status === 404) {
-    return [];
-  }
-
-  throw normalized;
-};
 
 const parseUserResponse = (data: unknown) => {
   const academicResult = academicoSchema.safeParse(data);
@@ -54,7 +46,17 @@ interface IUpdateUserStatus {
   status: string;
 }
 
-/** 404 nesta operação representa uma coleção de cadastros vazia para aprovação. */
+export interface UpdateOwnUserProfileInput {
+  userId: number;
+  currentName: string;
+  currentEmail: string;
+  currentPhone: string | null;
+  nomeCompleto: string;
+  email: string;
+  telefone: string | null;
+  currentPassword?: string;
+}
+
 export const getDependentesForApproval = async (rankID: string | number) => {
   try {
     const doorKey = Cookie.get('doorKey');
@@ -65,7 +67,7 @@ export const getDependentesForApproval = async (rankID: string | number) => {
 
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${rankID}/dependentes/aprovacao`,
+      url: `Usuarios/${parseResourceId(rankID)}/dependentes/aprovacao`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -73,7 +75,7 @@ export const getDependentesForApproval = async (rankID: string | number) => {
 
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
-    return emptyOnNotFound(error, OPERATION_IDS.dependentsForApproval);
+    throw reportAppError(error, OPERATION_IDS.dependentsForApproval);
   }
 };
 
@@ -92,12 +94,12 @@ const mutateDependentApproval = async (
 
     const response = await api({
       method: 'PATCH',
-      url: `Usuarios/dependentes/${solicitanteId}/${action}`,
+      url: `Usuarios/dependentes/${parseResourceId(solicitanteId)}/${action}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
       data: {
-        aprovadorId: Number(rankID),
+        aprovadorId: parseResourceId(rankID),
       },
     });
 
@@ -150,12 +152,33 @@ export const getUserById = async ({ id }: IUserById) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Usuarios/${id}`,
+      url: `Usuarios/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
     });
     return parseUserResponse(response.data);
+  } catch (error) {
+    throw reportAppError(error, OPERATION_IDS.userById);
+  }
+};
+
+export const getUserForMentoring = async ({ id }: IUserById) => {
+  try {
+    const doorKey = Cookie.get('doorKey');
+
+    if (!doorKey) {
+      throw new Error('Usuário não autenticado.');
+    }
+
+    const response = await api({
+      method: 'GET',
+      url: `Usuarios/${parseResourceId(id)}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+      },
+    });
+    return usuarioAcompanhamentoSchema.parse(response.data);
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.userById);
   }
@@ -174,7 +197,7 @@ export const updateUserStatus = async ({
 
     const response = await api({
       method: 'PATCH',
-      url: `Usuarios/${userId}`,
+      url: `Usuarios/${parseResourceId(userId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json-patch+json',
@@ -190,6 +213,62 @@ export const updateUserStatus = async ({
     return response.data;
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.updateUserStatus);
+  }
+};
+
+export const updateOwnUserProfile = async ({
+  userId,
+  currentName,
+  currentEmail,
+  currentPhone,
+  nomeCompleto,
+  email,
+  telefone,
+  currentPassword,
+}: UpdateOwnUserProfileInput) => {
+  const emailChanged = email !== currentEmail;
+  if (emailChanged && !currentPassword) {
+    throw new Error('Informe a senha atual para alterar o e-mail.');
+  }
+
+  const operations: Array<{
+    op: 'replace';
+    path: '/nomeCompleto' | '/email' | '/telefone' | '/senhaAtual';
+    value: string | null;
+  }> = [];
+
+  if (nomeCompleto !== currentName) {
+    operations.push({ op: 'replace', path: '/nomeCompleto', value: nomeCompleto });
+  }
+  if (emailChanged) {
+    operations.push({ op: 'replace', path: '/email', value: email });
+    operations.push({
+      op: 'replace',
+      path: '/senhaAtual',
+      value: currentPassword!,
+    });
+  }
+  if (telefone !== currentPhone) {
+    operations.push({ op: 'replace', path: '/telefone', value: telefone });
+  }
+
+  if (operations.length === 0) return;
+
+  try {
+    const doorKey = Cookie.get('doorKey');
+    if (!doorKey) throw new Error('Usuário não autenticado.');
+
+    await api({
+      method: 'PATCH',
+      url: `Usuarios/${parseResourceId(userId)}`,
+      headers: {
+        Authorization: `Bearer ${doorKey}`,
+        'Content-Type': 'application/json-patch+json',
+      },
+      data: operations,
+    });
+  } catch (error) {
+    throw reportAppError(error, OPERATION_IDS.userById);
   }
 };
 

@@ -43,7 +43,7 @@ function Pagination({
         type='button'
         aria-label='Primeira página'
         onClick={() => goToPage(1)}
-        className='flex min-h-11 min-w-11 rotate-90 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-50 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+        className='flex min-h-11 min-w-11 rotate-90 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-50 md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
         disabled={currentPage === 1 || totalPages === 0}
       >
         <DownIcon />
@@ -68,7 +68,7 @@ function Pagination({
         type='button'
         aria-label='Última página'
         onClick={() => goToPage(totalPages)}
-        className='flex min-h-11 min-w-11 -rotate-90 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-50 md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+        className='flex min-h-11 min-w-11 -rotate-90 items-center justify-center rounded-md border border-borderMy bg-surface text-clt-2 hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-50 md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
         disabled={currentPage === totalPages || totalPages === 0}
       >
         <DownIcon />

@@ -5,6 +5,8 @@ using LabSolos_Server_DotNet8.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using LabSolos_Server_DotNet8.Services.Security;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -14,6 +16,14 @@ public sealed class SecureSeedStartupTests(PostgreSqlContainerFixture database)
 {
     private const string SyntheticEmail = "initial-admin@example.test";
     private const string SyntheticPassword = "synthetic-admin-passphrase-2026";
+    private static readonly string HashSecretPath = Path.Combine(
+        Path.GetTempPath(),
+        "lab-solos-synthetic-secrets",
+        "seed-throttle-key");
+    private static readonly string RecoveryKeysPath = Path.Combine(
+        Path.GetTempPath(),
+        "lab-solos-synthetic-secrets",
+        "seed-recovery-keys.json");
 
     [Fact]
     public async Task Empty_production_database_without_seed_configuration_aborts_before_health_check()
@@ -122,7 +132,12 @@ public sealed class SecureSeedStartupTests(PostgreSqlContainerFixture database)
         string? email = null,
         string? password = null)
     {
-        var configuration = new Dictionary<string, string?>();
+        var configuration = new Dictionary<string, string?>
+        {
+            ["AuthenticationProtection:KeyHashSecretFile"] = HashSecretPath,
+            ["AuthenticationProtection:RecoveryEncryptionKeysFile"] = RecoveryKeysPath,
+            ["AuthenticationProtection:ForwardedHeaders:KnownProxies:0"] = "10.20.0.5"
+        };
         if (email is not null)
         {
             configuration["Seed:AdminEmail"] = email;
@@ -136,8 +151,44 @@ public sealed class SecureSeedStartupTests(PostgreSqlContainerFixture database)
         return new IntegrationWebApplicationFactory(database, new()
         {
             EnvironmentName = environmentName,
-            Configuration = configuration
+            Configuration = configuration,
+            ConfigureServices = ConfigureSyntheticSecrets
         });
+    }
+
+    private static void ConfigureSyntheticSecrets(IServiceCollection services)
+    {
+        services.RemoveAll<ISecretFileReader>();
+        services.AddSingleton<ISecretFileReader>(new SyntheticSecretFileReader());
+    }
+
+    private sealed class SyntheticSecretFileReader : ISecretFileReader
+    {
+        private readonly byte[] _hashKey = Enumerable.Range(1, 32).Select(value => (byte)value).ToArray();
+        private readonly byte[] _recoveryKeys = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(
+            new
+            {
+                activeKeyId = "seed-key",
+                keys = new Dictionary<string, string>
+                {
+                    ["seed-key"] = Convert.ToBase64String(Enumerable.Repeat((byte)3, 32).ToArray())
+                }
+            });
+
+        public byte[] ReadAllBytes(string path)
+        {
+            if (string.Equals(path, HashSecretPath, StringComparison.Ordinal))
+            {
+                return _hashKey.ToArray();
+            }
+
+            if (string.Equals(path, RecoveryKeysPath, StringComparison.Ordinal))
+            {
+                return _recoveryKeys.ToArray();
+            }
+
+            throw new FileNotFoundException("Synthetic secret file is unavailable.");
+        }
     }
 
     private AppDbContext CreateDbContext()

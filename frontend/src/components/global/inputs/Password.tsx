@@ -44,13 +44,13 @@ function InputPassword<T extends FieldValues>({
           aria-describedby={error ? errorId : undefined}
           type={showPassword ? 'text' : 'password'}
           {...register(name)}
-          className='min-h-11 w-full min-w-0 rounded-l-md bg-surface px-3 text-base text-clt-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
+          className='min-h-11 w-full min-w-0 rounded-l-md bg-surface px-3 text-base text-clt-2 shadow-xs focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:text-sm'
         />
         <button
           type='button'
           aria-label={`${showPassword ? 'Ocultar' : 'Mostrar'} ${label}`}
           onClick={togglePasswordVisibility}
-          className='flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-r-md bg-backgroundMy text-clt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+          className='flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-r-md bg-backgroundMy text-clt-2 focus-visible:outline-2 focus-visible:outline-focus focus-visible:outline-offset-2 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
         >
           {showPassword ? <EyeIcon2 /> : <EyeIcon />}
         </button>

@@ -76,7 +76,7 @@ function ClickableItemTable({
               <Link
                 to={recordDestination}
                 state={{ id }}
-        className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-md underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-0 [@media(pointer:coarse)]:min-h-11'
+        className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-md underline underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-0 pointer-coarse:min-h-11'
               >
                 {value}
               </Link>

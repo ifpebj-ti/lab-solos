@@ -6,5 +6,6 @@ namespace LabSolos_Server_DotNet8.DTOs.Usuarios
         public string? Email { get; set; }
         public string? Telefone { get; set; }
         public string? Status { get; set; }
+        public string? SenhaAtual { get; set; }
     }
 }

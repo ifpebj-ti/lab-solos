@@ -1,10 +1,10 @@
 # Solução de problemas
 
-Versão do manual: `2026-09-23.1`
+Versão do manual: `2026-10-13.1`
 
 Produto validado: `8c2a8bd173723b8b154aad03da2f511499fbb83b`
 
-Atualizado em: `2026-09-23`
+Atualizado em: `2026-10-13`
 
 Responsável pela revisão: `nathannmvr`
 
@@ -96,6 +96,21 @@ Use **Tentar novamente** quando esse controle aparecer para uma falha de rede, d
 - **Conflito ou registro já processado:** atualize o contexto usando a lista ou o histórico e escolha uma ação compatível com o novo status.
 
 Se não houver o botão **Tentar novamente**, use **Voltar** para retornar ao contexto anterior. A ausência do botão não autoriza repetir a ação por outro endereço.
+
+<a id="limitacao-temporaria"></a>
+
+## Limitação temporária de tentativas
+
+Uma mensagem para aguardar antes de tentar novamente indica que uma cota de segurança foi atingida. Para login, o padrão é 5 falhas por identificador ou 30 por IP em 15 minutos; para validar código de recuperação, os limites são os mesmos. As cotas de recuperação são separadas das cotas de login. Os valores podem ser ajustados pelo operador e um IP compartilhado por NAT pode incluir tentativas de outras pessoas da mesma rede.
+
+1. Leia o tempo apresentado pela tela ou o cabeçalho `Retry-After`, quando estiver visível ao suporte.
+2. Aguarde o prazo integral. A interface não repete login automaticamente e a janela não é renovada por tentativas recusadas.
+3. Tente novamente uma vez após a espera, usando o email cadastrado e a senha ou o código atual.
+4. Se a espera continuar ou várias pessoas forem afetadas pela mesma rede, preserve a mensagem sem dados pessoais e contate o suporte da instituição.
+
+Uma solicitação de recuperação de senha continua usando resposta neutra, mesmo quando não há conta elegível, o pedido é repetido ou a fila não consegue admiti-lo. A resposta não confirma que o email existe ou que a mensagem foi entregue. Aguarde o email e não tente contornar a espera alternando endereços equivalentes.
+
+Se a tela informar indisponibilidade temporária do serviço (503) em login, redefinição ou troca de email, pare de repetir a operação e contate o suporte. Essa resposta pode indicar que a proteção ou uma dependência não está disponível; não é uma autorização para tentar uma rota alternativa.
 
 <a id="acesso-negado"></a>
 

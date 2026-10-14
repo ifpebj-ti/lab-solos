@@ -78,7 +78,7 @@ function ItemButtonLink({
           event.stopPropagation();
           onClick1();
         }}
-        className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+        className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
       >
         <span aria-hidden='true'>{icon1}</span>
       </button>
@@ -93,7 +93,7 @@ function ItemButtonLink({
           event.stopPropagation();
           onClick2?.();
         }}
-          className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11'
+          className='flex min-h-11 min-w-11 items-center justify-center rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-7 md:min-w-7 pointer-coarse:min-h-11 pointer-coarse:min-w-11'
       >
         <span aria-hidden='true'>{icon2}</span>
       </button>
@@ -125,7 +125,7 @@ function ItemButtonLink({
               <Link
                 to={recordDestination}
                 state={{ id }}
-                className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-md underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-0 [@media(pointer:coarse)]:min-h-11'
+                className='inline-flex min-h-11 min-w-11 max-w-full items-center rounded-md underline underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:min-h-0 pointer-coarse:min-h-11'
               >
                 {value}
               </Link>

@@ -92,7 +92,7 @@ function AdminAnalysis({
   return (
     <section
       aria-labelledby='admin-analysis-title'
-      className='w-full max-w-6xl rounded-2xl border border-border bg-card p-5 shadow-sm'
+      className='w-full max-w-6xl rounded-2xl border border-border bg-card p-5 shadow-xs'
     >
       <div className='flex flex-wrap items-center justify-between gap-3'>
         <div>
@@ -351,7 +351,7 @@ function Home() {
           : null}
 
         <div className='w-full flex items-center justify-center py-2'>
-          <div className='w-full flex justify-center flex-col font-rajdhani-semibold text-4xl md:text-5xl lg:text-6xl text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)] bg-no-repeat bg-center lg:bg-right-bottom bg-contain'>
+          <div className='w-full flex justify-center flex-col font-rajdhani-semibold text-4xl md:text-5xl lg:text-6xl text-clt-2 gap-y-3 lg:bg-[url(../../public/images/laboratory.png)] bg-no-repeat bg-center lg:bg-bottom-right bg-contain'>
             <div className='w-full md:w-11/12 flex items-center justify-center bg-backgroundMy/80 lg:bg-transparent'>
               <p>
                 Bem-vindo(a) ao Laboratório de

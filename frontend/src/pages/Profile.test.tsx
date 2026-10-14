@@ -6,15 +6,21 @@ import { getUserById } from '@/integration/Users';
 import { verificarEmprestimosVencidos } from '@/integration/Notifications';
 import { toast } from '@/components/hooks/use-toast';
 import Profile from '@/pages/Profile';
+import ProfileMentor from '@/pages/mentor/Profile';
+import ProfileMentee from '@/pages/mentee/Profile';
 
 const {
   cookieGetMock,
   getUserByIdMock,
+  updateOwnUserProfileMock,
+  getLoansByUserIdMock,
   verificarEmprestimosVencidosMock,
   toastMock,
 } = vi.hoisted(() => ({
   cookieGetMock: vi.fn(),
   getUserByIdMock: vi.fn(),
+  updateOwnUserProfileMock: vi.fn(),
+  getLoansByUserIdMock: vi.fn(),
   verificarEmprestimosVencidosMock: vi.fn(),
   toastMock: vi.fn(),
 }));
@@ -27,6 +33,11 @@ vi.mock('js-cookie', () => ({
 
 vi.mock('@/integration/Users', () => ({
   getUserById: getUserByIdMock,
+  updateOwnUserProfile: updateOwnUserProfileMock,
+}));
+
+vi.mock('@/integration/Loans', () => ({
+  getLoansByUserId: getLoansByUserIdMock,
 }));
 
 vi.mock('@/integration/Notifications', () => ({
@@ -40,6 +51,10 @@ vi.mock('@/components/hooks/use-toast', () => ({
 vi.mock('@/components/global/OpenSearch', () => ({
   default: () => null,
 }));
+
+vi.mock('@/components/global/ButtonLogout', () => ({ default: () => null }));
+vi.mock('@/components/screens/FollowUp', () => ({ default: () => null }));
+vi.mock('../../../public/icons/LayersIcon', () => ({ default: () => null }));
 
 vi.mock('../../public/icons/LoadingIcon', () => ({
   default: () => null,
@@ -56,6 +71,21 @@ const user = {
   tipoUsuario: 'Administrador',
 } as const;
 
+const academicUser = {
+  id: 7,
+  nomeCompleto: 'Ada Lovelace',
+  email: 'ada@example.com',
+  telefone: null,
+  dataIngresso: '2024-02-29',
+  status: 'Habilitado',
+  nivelUsuario: 'Mentor',
+  tipoUsuario: 'Academico',
+  responsavel: null,
+  instituicao: 'IFPE',
+  cidade: 'Belo Jardim',
+  curso: 'ES',
+} as const;
+
 const renderProfile = () =>
   render(
     <MemoryRouter>
@@ -69,6 +99,8 @@ beforeEach(() => {
   verificarEmprestimosVencidosMock.mockResolvedValue({
     message: 'Nenhum empréstimo vencido encontrado.',
   });
+  updateOwnUserProfileMock.mockResolvedValue(undefined);
+  getLoansByUserIdMock.mockResolvedValue([]);
   toastMock.mockReset();
 });
 
@@ -96,6 +128,39 @@ describe('Profile', () => {
       screen.queryByText(/Importar Planilha de Cadastro de Bens/i)
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('permite iniciar a edição do próprio perfil', async () => {
+    renderProfile();
+
+    await screen.findByText('Ada Lovelace');
+
+    expect(
+      screen.getByRole('button', { name: 'Editar meus dados' })
+    ).toBeInTheDocument();
+  });
+
+  it('salva nome próprio e atualiza os dados exibidos', async () => {
+    renderProfile();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Editar meus dados' })
+    );
+    fireEvent.change(screen.getByLabelText('Nome completo'), {
+      target: { value: 'Ada Byron' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByText('Ada Byron')).toBeInTheDocument();
+    expect(updateOwnUserProfileMock).toHaveBeenCalledWith({
+      userId: 7,
+      currentName: 'Ada Lovelace',
+      currentEmail: 'ada@example.com',
+      currentPhone: null,
+      nomeCompleto: 'Ada Byron',
+      email: 'ada@example.com',
+      telefone: null,
+    });
   });
 
   it('alinha os dados do perfil em painéis consistentes e não duplica telefone', async () => {
@@ -154,5 +219,27 @@ describe('Profile', () => {
       });
     });
     expect(screen.getByRole('link', { name: /Verificar/ })).toBeInTheDocument();
+  });
+});
+
+describe.each([
+  ['mentor', ProfileMentor, { ...academicUser, nivelUsuario: 'Mentor' }],
+  ['mentorado', ProfileMentee, { ...academicUser, nivelUsuario: 'Mentorado' }],
+] as const)('%s editando o próprio perfil', (_role, ProfileComponent, profile) => {
+  it('oferece edição de contato sem expor controle de status', async () => {
+    getUserByIdMock.mockResolvedValue(profile);
+    render(
+      <MemoryRouter>
+        <ProfileComponent />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Editar meus dados' })
+    );
+    expect(
+      screen.getByRole('form', { name: 'Editar meu perfil' })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Status')).not.toBeInTheDocument();
   });
 });

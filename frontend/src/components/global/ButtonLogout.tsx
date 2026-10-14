@@ -17,7 +17,7 @@ function ButtonLogout() {
             to={'/'}
             onClick={() => clearSession({ discardAuthContext: true })}
             aria-label='Sair'
-            className='group flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:border-danger hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+            className='group flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:border-danger hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
           >
             <LogOutIcon
               width={18}

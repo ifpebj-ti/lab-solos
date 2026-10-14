@@ -57,7 +57,7 @@ export default function StatusConfirmationDialog({
                 o usuário:
               </p>
               <div className='rounded-lg border border-borderMy bg-surface-muted p-4'>
-                <p className='mb-3 break-words font-rajdhani-medium text-lg text-clt-2'>
+                <p className='mb-3 wrap-break-word font-rajdhani-medium text-lg text-clt-2'>
                   {userName}
                 </p>
                 <div className='flex flex-col items-stretch gap-4 text-sm sm:flex-row sm:items-center sm:justify-between'>

@@ -1,5 +1,5 @@
-using LabSolos_Server_DotNet8.BackgroundServices;
 using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 namespace Tests.Infrastructure;
 
 public sealed class IntegrationWebApplicationFactory(
-    PostgreSqlContainerFixture database,
+    IPostgreSqlDatabaseFixture database,
     IntegrationApplicationOptions? options = null) : WebApplicationFactory<Program>
 {
     private const string SyntheticJwtKey =
@@ -43,6 +43,8 @@ public sealed class IntegrationWebApplicationFactory(
 
         builder.ConfigureTestServices(services =>
         {
+            _options.ConfigureServices?.Invoke(services);
+
             services.RemoveAll<AppDbContext>();
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.AddDbContext<AppDbContext>(dbOptions =>
@@ -51,12 +53,23 @@ public sealed class IntegrationWebApplicationFactory(
             services.RemoveAll<TimeProvider>();
             services.AddSingleton(_options.TimeProvider);
 
-            var backgroundWorker = services.FirstOrDefault(descriptor =>
-                descriptor.ServiceType == typeof(IHostedService) &&
-                descriptor.ImplementationType == typeof(EmprestimosVencidosBackgroundService));
-            if (backgroundWorker is not null)
+            var backgroundServices = services
+                .Where(descriptor => descriptor.ServiceType == typeof(IHostedService))
+                .ToArray();
+            foreach (var backgroundService in backgroundServices)
             {
-                services.Remove(backgroundWorker);
+                var implementationType = backgroundService.ImplementationType ??
+                    backgroundService.ImplementationInstance?.GetType();
+                if (implementationType is null || !_options.BackgroundServicesToRun.Contains(implementationType))
+                {
+                    services.Remove(backgroundService);
+                }
+            }
+
+            if (_options.EmailService is not null)
+            {
+                services.RemoveAll<IEmailService>();
+                services.AddSingleton(_options.EmailService);
             }
         });
     }
@@ -67,6 +80,6 @@ public sealed class IntegrationWebApplicationFactory(
 
         await using var scope = Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await context.Database.EnsureCreatedAsync(cancellationToken);
+        await context.Database.MigrateAsync(cancellationToken);
     }
 }

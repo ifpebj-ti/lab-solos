@@ -12,6 +12,10 @@ import { toast } from '@/components/hooks/use-toast';
 import type { Academico, Usuario } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import ProfileContactForm, {
+  type ProfileContactFields,
+} from '@/components/auth/ProfileContactForm';
+import { Button } from '@/components/ui/button';
 
 export type IUser = Usuario | Academico;
 
@@ -51,6 +55,7 @@ function Profile() {
   const [verificandoEmprestimos, setVerificandoEmprestimos] = useState(false);
   const [profileError, setProfileError] = useState<unknown>();
   const [retryToken, setRetryToken] = useState(0);
+  const [editingOwnProfile, setEditingOwnProfile] = useState(false);
   const id = Cookie.get('rankID')!;
 
   const handleVerificarEmprestimosVencidos = async () => {
@@ -169,6 +174,27 @@ function Profile() {
                     columns={2}
                     className='lg:w-full'
                   />
+                </div>
+                <div className='mt-5'>
+                  {editingOwnProfile ? (
+                    <ProfileContactForm
+                      user={user}
+                      onSaved={(fields: ProfileContactFields) =>
+                        setUser((current) =>
+                          current ? { ...current, ...fields } : current
+                        )
+                      }
+                      onCancel={() => setEditingOwnProfile(false)}
+                    />
+                  ) : (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={() => setEditingOwnProfile(true)}
+                    >
+                      Editar meus dados
+                    </Button>
+                  )}
                 </div>
                 <div className='mt-9 min-h-3 w-full border-t border-borderMy py-4 pt-6'>
                   <p className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>

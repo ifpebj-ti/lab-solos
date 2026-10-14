@@ -69,6 +69,35 @@ describe('Auth', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('preserva a espera segura de um 429 de login', async () => {
+    vi.mocked(api).mockRejectedValue({
+      response: {
+        status: 429,
+        headers: { 'Retry-After': '17' },
+        data: {
+          code: 'authentication_rate_limited',
+          retryAfterSeconds: 91,
+          message: 'nao expor detalhe remoto',
+        },
+      },
+    });
+    const navigate = vi.fn();
+
+    const error = await authenticate(loginRequest, navigate).catch(
+      (reason: unknown) => reason
+    );
+
+    expect(error).toMatchObject({
+      name: 'ApplicationError',
+      category: 'rate_limited',
+      status: 429,
+      code: 'authentication_rate_limited',
+      retryAfterSeconds: 17,
+    });
+    expect(JSON.stringify(error)).not.toContain('nao expor detalhe remoto');
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('retoma uma rota valida do mesmo perfil depois de iniciar a sessao', async () => {
     const intendedRoute = '/mentor/history/loan?tab=active#latest';
     saveIntendedRoute(intendedRoute);

@@ -8,12 +8,12 @@ interface IInputSearch {
 
 function SearchInput({ name, onChange, value }: IInputSearch) {
   return (
-    <div className='flex min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface focus-within:outline-none focus-within:ring-2 focus-within:ring-focus focus-within:ring-offset-2 focus-within:ring-offset-canvas md:min-h-9 [@media(pointer:coarse)]:min-h-11'>
+    <div className='flex min-h-11 w-full min-w-0 rounded-md border border-borderMy bg-surface focus-within:outline-hidden focus-within:ring-2 focus-within:ring-focus focus-within:ring-offset-2 focus-within:ring-offset-canvas md:min-h-9 pointer-coarse:min-h-11'>
       <input
         type='text'
         name={name}
         aria-label='Pesquisar'
-        className='w-full min-w-0 bg-transparent px-3 text-sm text-clt-2 placeholder:text-clt-1 focus:outline-none'
+        className='w-full min-w-0 bg-transparent px-3 text-sm text-clt-2 placeholder:text-clt-1 focus:outline-hidden'
         value={value} // Exibe o valor atual
         onChange={onChange} // Chama o manipulador quando o valor muda
       />

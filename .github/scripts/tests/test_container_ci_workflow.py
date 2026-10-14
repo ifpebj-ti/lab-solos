@@ -76,7 +76,7 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         for command in ("npm ci", "npm run test -- --run", "npm run lint", "npm run build"):
             self.assertIn(command, frontend)
         for command in (
-            "dotnet restore backend/backend.sln",
+            "dotnet restore backend/backend.sln --locked-mode",
             "dotnet build backend/backend.sln --no-restore -c Release",
             "dotnet test backend/backend.sln --no-build --no-restore -c Release",
         ):
@@ -106,11 +106,14 @@ class ContainerCiWorkflowTests(unittest.TestCase):
             "frontend-quality",
             "backend-quality",
             "auth-e2e",
+            "browser-security",
             "workflow-quality",
             "quality-baseline",
             "container-scan",
         ):
             self.assertIn(f"- {job_name}", gate)
+        self.assertIn("BROWSER_SECURITY_RESULT: ${{ needs.browser-security.result }}", gate)
+        self.assertIn('"browser-security=$BROWSER_SECURITY_RESULT"', gate)
 
     def test_backend_quality_runs_postgresql_integration_and_migration_tests(self) -> None:
         backend = self.job("backend-quality")
@@ -133,7 +136,7 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn(
             "docker compose -f docker-compose-e2e.yml up -d --build --wait", e2e
         )
-        self.assertIn("npm run test:e2e", e2e)
+        self.assertIn("npm run test:e2e -- --project=real --project=ui", e2e)
         self.assertIn("if: always()", e2e)
         self.assertIn(
             "docker compose -f docker-compose-e2e.yml down --volumes --remove-orphans",

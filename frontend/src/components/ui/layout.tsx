@@ -7,7 +7,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider defaultOpen className='flex w-full'>
       <a
         href='#main-content'
-        className='sr-only z-[100] rounded-md bg-surface px-3 py-2 text-clt-2 focus:not-sr-only focus:fixed focus:left-3 focus:top-3'
+        className='sr-only z-100 rounded-md bg-surface px-3 py-2 text-clt-2 focus:not-sr-only focus:fixed focus:left-3 focus:top-3'
       >
         Ir para o conteúdo
       </a>

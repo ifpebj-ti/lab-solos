@@ -28,38 +28,38 @@ function Index() {
               <TabsList className='grid h-auto w-full grid-cols-3 gap-2 rounded-xl border border-borderMy bg-surface p-2'>
                 <TabsTrigger
                   value='quimicos'
-                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Químicos
                 </TabsTrigger>
                 <TabsTrigger
                   value='vidrarias'
-                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Vidrarias
                 </TabsTrigger>
                 <TabsTrigger
                   value='outros'
-                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+                  className='min-h-11 w-full rounded-md border border-borderMy font-inter-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
                 >
                   Outros
                 </TabsTrigger>
               </TabsList>
               <TabsContent
                 value='quimicos'
-                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-xs sm:mt-6 sm:p-6'
               >
                 <FormQuimicos />
               </TabsContent>
               <TabsContent
                 value='vidrarias'
-                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-xs sm:mt-6 sm:p-6'
               >
                 <FormVidrarias />
               </TabsContent>
               <TabsContent
                 value='outros'
-                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-sm sm:mt-6 sm:p-6'
+                className='mt-4 w-full rounded-xl border border-borderMy bg-surface p-3 shadow-xs sm:mt-6 sm:p-6'
               >
                 <FormOutros />
               </TabsContent>

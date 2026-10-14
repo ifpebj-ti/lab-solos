@@ -109,7 +109,7 @@ const PopoverInput = ({
         id={errorId}
         role={error ? 'alert' : undefined}
         className={cn(
-          'min-h-5 text-sm text-danger [overflow-wrap:anywhere]',
+          'min-h-5 text-sm text-danger wrap-anywhere',
           error ? '' : 'sr-only'
         )}
       >

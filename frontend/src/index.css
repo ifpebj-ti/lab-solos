@@ -1,86 +1,213 @@
-@import './styles/tokens.css';
+@import 'tailwindcss';
+@import './styles/tokens.css' layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@plugin 'tailwindcss-animate';
 
-@font-face {
-  font-family: 'inter-bold';
-  src: url('../public/fonts/Inter/Inter-Bold.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-primaryMy: rgb(var(--color-action));
+  --color-backgroundMy: rgb(var(--color-canvas));
+  --color-borderMy: rgb(var(--color-border));
+  --color-clt-1: rgb(var(--color-text-secondary));
+  --color-clt-2: rgb(var(--color-text-primary));
+  --color-cl-icon: rgb(var(--color-icon));
+  --color-cl-icon2: rgb(var(--color-icon-muted));
+  --color-cl-table: rgb(var(--color-surface-muted));
+  --color-cl-table-item: rgb(var(--color-table-row));
+  --color-danger: rgb(var(--color-danger));
+  --color-canvas: rgb(var(--color-canvas));
+  --color-surface: rgb(var(--color-surface));
+  --color-surface-selected: rgb(var(--color-surface-selected));
+  --color-text-primary: rgb(var(--color-text-primary));
+  --color-focus: rgb(var(--color-focus));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: rgb(var(--color-navigation));
+  --color-sidebar-foreground: rgb(var(--color-navigation-foreground));
+  --color-sidebar-primary: rgb(var(--color-navigation-foreground));
+  --color-sidebar-primary-foreground: rgb(var(--color-navigation));
+  --color-sidebar-accent: rgb(var(--color-surface-selected));
+  --color-sidebar-accent-foreground: rgb(var(--color-text-primary));
+  --color-sidebar-border: rgb(var(--color-border));
+  --color-sidebar-ring: rgb(var(--color-focus));
+
+  --font-inter-bold: inter-bold, serif;
+  --font-inter-light: inter-light, serif;
+  --font-inter-medium: inter-medium, serif;
+  --font-inter-regular: inter-regular, serif;
+  --font-inter-semibold: inter-semibold, serif;
+  --font-inter-thin: inter-thin, serif;
+  --font-rajdhani-bold: rajdhani-bold, sans-serif;
+  --font-rajdhani-medium: rajdhani-medium, sans-serif;
+  --font-rajdhani-light: rajdhani-light, sans-serif;
+  --font-rajdhani-regular: rajdhani-regular, sans-serif;
+  --font-rajdhani-semibold: rajdhani-semibold, sans-serif;
+
+  --scale-99: 0.99;
+  --scale-customScale: 1.002;
+
+  --animate-slowPulse: slow-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes slow-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }
 
-@font-face {
-  font-family: 'inter-light';
-  src: url('../public/fonts/Inter/Inter-Light.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
-@font-face {
-  font-family: 'inter-medium';
-  src: url('../public/fonts/Inter/Inter-Medium.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+@layer utilities {
+  @font-face {
+    font-family: 'inter-bold';
+    src: url('../public/fonts/Inter/Inter-Bold.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'inter-regular';
-  src: url('../public/fonts/Inter/Inter-Regular.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'inter-light';
+    src: url('../public/fonts/Inter/Inter-Light.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'inter-semibold';
-  src: url('../public/fonts/Inter/Inter-SemiBold.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'inter-medium';
+    src: url('../public/fonts/Inter/Inter-Medium.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'inter-thin';
-  src: url('../public/fonts/Inter/Inter-Thin.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'inter-regular';
+    src: url('../public/fonts/Inter/Inter-Regular.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-/* font Rajdhani */
+  @font-face {
+    font-family: 'inter-semibold';
+    src: url('../public/fonts/Inter/Inter-SemiBold.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'rajdhani-bold';
-  src: url('../public/fonts/Rajdhani/Rajdhani-Bold.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'inter-thin';
+    src: url('../public/fonts/Inter/Inter-Thin.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'rajdhani-light';
-  src: url('../public/fonts/Rajdhani/Rajdhani-Light.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  /* font Rajdhani */
 
-@font-face {
-  font-family: 'rajdhani-medium';
-  src: url('../public/fonts/Rajdhani/Rajdhani-Medium.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'rajdhani-bold';
+    src: url('../public/fonts/Rajdhani/Rajdhani-Bold.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'rajdhani-regular';
-  src: url('../public/fonts/Rajdhani/Rajdhani-Regular.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
-}
+  @font-face {
+    font-family: 'rajdhani-light';
+    src: url('../public/fonts/Rajdhani/Rajdhani-Light.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 
-@font-face {
-  font-family: 'rajdhani-semibold';
-  src: url('../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf') format('opentype');
-  font-style: normal;
-  font-display: swap;
+  @font-face {
+    font-family: 'rajdhani-medium';
+    src: url('../public/fonts/Rajdhani/Rajdhani-Medium.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'rajdhani-regular';
+    src: url('../public/fonts/Rajdhani/Rajdhani-Regular.ttf') format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'rajdhani-semibold';
+    src: url('../public/fonts/Rajdhani/Rajdhani-SemiBold.ttf')
+      format('opentype');
+    font-style: normal;
+    font-display: swap;
+  }
 }
 
 @layer base {

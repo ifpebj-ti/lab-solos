@@ -47,6 +47,24 @@ describe('presentError', () => {
   });
 });
 
+describe('presentError rate limit', () => {
+  it('propagates the validated wait without echoing remote content', () => {
+    const presentation = presentError(
+      createApplicationError({
+        category: 'rate_limited',
+        message: 'SENTINELA_REMOTA',
+        retryAfterSeconds: 23,
+        retryable: false,
+      }),
+      OPERATION_IDS.login
+    );
+
+    expect(presentation.retryAfterSeconds).toBe(23);
+    expect(presentation.suggestedAction).toContain('23 segundos');
+    expect(JSON.stringify(presentation)).not.toContain('SENTINELA_REMOTA');
+  });
+});
+
 describe('notifyError', () => {
   it('envia um toast destrutivo com ação de repetição pertinente', () => {
     const toast = vi.spyOn(toastModule, 'toast').mockReturnValue({

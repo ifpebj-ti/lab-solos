@@ -61,7 +61,7 @@ function RecordWorkspace({
             onClick={onBack}
             aria-label='Voltar para a lista'
             title='Voltar para a lista'
-            className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:bg-surface-selected focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:hidden'
+            className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy text-clt-2 transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas md:hidden'
           >
             <ArrowLeft aria-hidden='true' className='h-5 w-5' />
           </button>
@@ -73,7 +73,7 @@ function RecordWorkspace({
           </h2>
         </div>
         {hasSelection && selectedLabel ? (
-          <p className='mb-3 text-sm text-clt-1 [overflow-wrap:anywhere]'>
+          <p className='mb-3 text-sm text-clt-1 wrap-anywhere'>
             Registro selecionado: {selectedLabel}
           </p>
         ) : null}

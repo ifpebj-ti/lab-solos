@@ -78,14 +78,40 @@ describe('Class: erros de integração', () => {
       '/Usuarios/42/dependentes/aprovacao',
       () => getDependentesForApproval('42'),
     ],
-    ['getAllUsersForApproval', '/Usuarios/aprovacao', () => getAllUsersForApproval()],
-  ] as const)('declara 404 vazio em %s', async (_operation, path, request) => {
+  ] as const)('propaga 404 de acesso em %s', async (_operation, path, request) => {
     Cookie.set('doorKey', 'session-token');
     server.use(
       http.get(`${API_ORIGIN}${path}`, () => new HttpResponse(null, { status: 404 }))
     );
 
+    await expect(request()).rejects.toMatchObject({
+      name: 'ApplicationError',
+      category: 'not_found',
+      status: 404,
+    });
+  });
+
+  it.each([
+    ['getDependentesID', '/Usuarios/42/dependentes', () => getDependentesID('42')],
+    [
+      'getDependentesForApproval',
+      '/Usuarios/42/dependentes/aprovacao',
+      () => getDependentesForApproval('42'),
+    ],
+  ] as const)('preserva 200 com coleção vazia em %s', async (_operation, path, request) => {
+    Cookie.set('doorKey', 'session-token');
+    server.use(http.get(`${API_ORIGIN}${path}`, () => HttpResponse.json([])));
+
     await expect(request()).resolves.toEqual([]);
+  });
+
+  it('preserva a semântica vazia do endpoint administrativo de aprovação', async () => {
+    Cookie.set('doorKey', 'session-token');
+    server.use(
+      http.get(`${API_ORIGIN}/Usuarios/aprovacao`, () => new HttpResponse(null, { status: 404 }))
+    );
+
+    await expect(getAllUsersForApproval()).resolves.toEqual([]);
   });
 
   it('mantém 404 como not_found nas demais consultas', async () => {
