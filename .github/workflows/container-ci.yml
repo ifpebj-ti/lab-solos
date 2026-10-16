@@ -392,6 +392,9 @@ jobs:
 
   container-scan:
     name: Scan ${{ matrix.component }} on ${{ matrix.platform }}
+    needs:
+      - frontend-quality
+      - backend-quality
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
