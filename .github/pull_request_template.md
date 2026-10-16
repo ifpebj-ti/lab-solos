@@ -1,27 +1,26 @@
-## 📑 Tipo de mudança
+## 📝 Descrição da Alteração
+<!-- Descreva de forma concisa e técnica o que foi implementado, refatorado ou corrigido. -->
 
-<!-- Selecione UMA das opções abaixo -->
-> Selecione **apenas uma** das opções abaixo, marcando com um `x`.
+## 🔗 Rastreabilidade (Issue Relacionada)
+<!-- Vincule a issue utilizando palavras-chave para fechamento automático: Closes #123, Fixes #456 -->
+Closes #
 
-- [ ] novo-marco
-- [ ] nova-feature-refactor
-- [ ] bug-fix
-- [ ] outros
+## 🏷️ Tipo de Mudança (selecione uma)
+- [ ] `feat`: Nova funcionalidade adicionada à aplicação ou infraestrutura
+- [ ] `fix`: Correção de um bug ou vulnerabilidade
+- [ ] `docs`: Alteração exclusiva em documentação
+- [ ] `refactor`: Refatoração interna de código sem alteração de funcionalidade
+- [ ] `ci`: Modificação em pipelines de CI/CD, GitHub Actions ou scripts de automação
+- [ ] `chore`: Atualização de dependências, templates ou tarefas rotineiras
 
----
+## 🧪 Evidências de Testes Locais
+<!-- Descreva quais validações você executou na sua máquina antes de abrir este PR. -->
+- [ ] Testes unitários/linter executados com sucesso no ambiente local.
+- [ ] Imagem Docker construída localmente com multi-stage build e sem erros.
+- [ ] Stack completa executada e validada via `docker compose up`.
+- [ ] Endpoint `/health` respondendo com status 200 OK.
 
-> ℹ️ A opção **"outros"** não gera nova tag de release.  
-> 🛠️ **Preencha todos os campos de forma clara.** Este template é lido automaticamente pela nossa pipeline de CI/CD.
-
----
-
-## 📝 Descrição
-
-> Explique de forma objetiva **o que foi feito** neste PR, incluindo contexto, propósito da mudança e possíveis impactos.
-
-[COLOQUE SUA DESCRIÇÃO AQUI]
-
-Exemplo:
-Este PR implementa o sistema de alertas para insumos com estoque baixo. Adicionalmente, corrige um bug no cálculo do consumo médio mensal dos produtos, garantindo maior precisão nos relatórios de análise.
-
----
+## 🛡️ Checklist de Governança e Segurança (Definition of Done)
+- [ ] As mensagens de commit seguem a convenção *Conventional Commits* (`tipo(escopo): mensagem`).
+- [ ] Nenhuma credencial, senha, token ou chave privada foi incluída no código (arquivos `.env` ignorados no `.gitignore`).
+- [ ] Novas dependências externas adicionadas foram inspecionadas e não possuem alertas críticos de segurança.
