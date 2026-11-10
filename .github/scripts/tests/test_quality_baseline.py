@@ -437,7 +437,7 @@ class QualityCollectionTests(unittest.TestCase):
                     if command[0] == "npm":
                         return self._completed(command, stdout="10.8.2\n")
                     if command[0] == "dotnet" and command[1] == "--version":
-                        return self._completed(command, stdout="8.0.419\n")
+                        return self._completed(command, stdout="8.0.428\n")
                     if command[0] == "python":
                         return self._completed(command, stdout="Python 3.12.14\n")
                     if command[0] == "docker" and command[1:3] == ["version", "--format"]:
@@ -482,7 +482,7 @@ class QualityCollectionTests(unittest.TestCase):
                         if command[0] == "npm":
                             return self._completed(command, stdout="10.8.2\n")
                         if command[0] == "dotnet" and command[1] == "--version":
-                            return self._completed(command, stdout="8.0.419\n")
+                            return self._completed(command, stdout="8.0.428\n")
                         if command[0] == "python":
                             return self._completed(command, stdout="Python 3.12.14\n")
                         if command[0] == "docker" and command[1:3] == ["version", "--format"]:
@@ -536,7 +536,7 @@ class QualityCollectionTests(unittest.TestCase):
                 if command[0] == "npm":
                     return self._completed(command, stdout="10.8.2\n")
                 if command[0] == "dotnet" and command[1] == "--version":
-                    return self._completed(command, stdout="8.0.419\n")
+                    return self._completed(command, stdout="8.0.428\n")
                 if command[0] == "python":
                     return self._completed(command, stdout="Python 3.12.14\n")
                 if command[0] == "docker" and command[1:3] == ["version", "--format"]:
@@ -576,7 +576,7 @@ class QualityCollectionTests(unittest.TestCase):
                 if command[0] == "npm":
                     return self._completed(command, stdout="10.8.2\n")
                 if command[0] == "dotnet" and command[1] == "--version":
-                    return self._completed(command, stdout="8.0.419\n")
+                    return self._completed(command, stdout="8.0.428\n")
                 if command[0] == "python":
                     return self._completed(command, stdout="Python 3.12.14\n")
                 if command[0] == "docker" and command[1:3] == ["version", "--format"]:
