@@ -209,13 +209,19 @@ public sealed class UserProfileUpdateService
         foreach (var operation in patch.Operations)
         {
             var path = operation.path;
-            var isReplace = operation.OperationType == OperationType.Replace;
-            var isTest = operation.OperationType == OperationType.Test;
             if (!string.IsNullOrEmpty(operation.from) ||
-                path is null ||
-                (isReplace && !ReplaceablePaths.Contains(path)) ||
-                (isTest && !PersistentPaths.Contains(path)) ||
-                (!isReplace && !isTest))
+                path is null)
+            {
+                return InvalidPatch();
+            }
+
+            var allowedPath = operation.OperationType switch
+            {
+                OperationType.Replace => ReplaceablePaths.Contains(path),
+                OperationType.Test => PersistentPaths.Contains(path),
+                _ => false
+            };
+            if (!allowedPath)
             {
                 return InvalidPatch();
             }

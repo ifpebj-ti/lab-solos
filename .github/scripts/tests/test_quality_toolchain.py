@@ -45,7 +45,7 @@ class ToolchainVersionTests(unittest.TestCase):
         cases = {
             ("node", "v20.20.2\n"): "20.20.2",
             ("npm", "10.8.2\n"): "10.8.2",
-            ("dotnet", "8.0.419\n"): "8.0.419",
+            ("dotnet", "8.0.428\n"): "8.0.428",
             ("python", "Python 3.12.14\n"): "3.12.14",
             ("docker", "Docker version 29.7.2, build 1234567\n"): "29.7.2",
             ("docker-compose", "Docker Compose version v5.3.1\n"): "5.3.1",
@@ -75,7 +75,7 @@ class ToolchainCheckTests(unittest.TestCase):
         self.outputs = {
             "node": "v20.20.2\n",
             "npm": "10.8.2\n",
-            "dotnet": "8.0.419\n",
+            "dotnet": "8.0.428\n",
             "python": "Python 3.12.14\n",
             "docker": "29.7.2\n",
             "docker-compose": "5.3.1\n",

@@ -72,7 +72,7 @@ public sealed class PasswordRecoveryDeliveryWorker(
             {
                 break;
             }
-            catch (Exception)
+            catch (Exception exception) when (IsProcessingFailure(exception))
             {
                 LogProcessingFailure(_logger, null);
             }
@@ -149,7 +149,7 @@ public sealed class PasswordRecoveryDeliveryWorker(
         {
             throw;
         }
-        catch (Exception)
+        catch (Exception exception) when (IsProcessingFailure(exception))
         {
             LogProcessingFailure(_logger, null);
         }
@@ -307,7 +307,8 @@ public sealed class PasswordRecoveryDeliveryWorker(
                 job.ExpiresAt,
                 cancellationToken);
         }
-        catch (Exception)
+        catch (Exception exception) when (exception is SmtpException or IOException
+            or TimeoutException or OperationCanceledException or DbException or DbUpdateException)
         {
             LogDeliveryFailure(_logger, null);
             var attempts = job.Attempts + 1;
@@ -482,6 +483,10 @@ public sealed class PasswordRecoveryDeliveryWorker(
 
     private static bool IsPermanentDeliveryFailure(Exception exception) =>
         exception is InvalidOperationException or FormatException or ArgumentException;
+
+    private static bool IsProcessingFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or TimeoutException
+            or OperationCanceledException or CryptographicException or JsonException;
 }
 
 public sealed record PasswordRecoveryDeliveryPayload(

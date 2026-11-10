@@ -32,8 +32,8 @@ class QualityImageContractTests(unittest.TestCase):
         self.assertIsInstance(images, dict)
 
         expected = {
-            "backend-sdk": "mcr.microsoft.com/dotnet/sdk:8.0.419-bookworm-slim",
-            "backend-runtime": "mcr.microsoft.com/dotnet/aspnet:8.0.30-bookworm-slim",
+            "backend-sdk": "mcr.microsoft.com/dotnet/sdk:8.0.428-bookworm-slim",
+            "backend-runtime": "mcr.microsoft.com/dotnet/aspnet:8.0.34-bookworm-slim",
             "frontend-node": "node:20.20.2-bookworm-slim",
             "frontend-runtime": "nginx:1.29.3-alpine-slim",
             "compose-smtp-cert": "alpine/openssl:3.3.1",

@@ -14,11 +14,11 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
 {
     private const string SyntheticEmail = "startup-admin@example.test";
     private const string SyntheticPassword = "synthetic-startup-admin-password-2026";
-    private static readonly string HashSecretPath = Path.Combine(
+    private static readonly string HashSecretPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "startup-throttle-key");
-    private static readonly string RecoveryKeysPath = Path.Combine(
+    private static readonly string RecoveryKeysPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "startup-recovery-keys.json");

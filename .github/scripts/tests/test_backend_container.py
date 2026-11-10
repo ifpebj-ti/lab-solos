@@ -17,11 +17,11 @@ class BackendContainerContractTests(unittest.TestCase):
     def test_uses_dotnet_8_multistage_build_and_aspnet_runtime(self) -> None:
         self.assertRegex(
             self.dockerfile,
-            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/sdk:8\.0\.419-bookworm-slim@sha256:[0-9a-f]{64}\s+AS\s+build\s*$",
+            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/sdk:8\.0\.428-bookworm-slim@sha256:[0-9a-f]{64}\s+AS\s+build\s*$",
         )
         self.assertRegex(
             self.dockerfile,
-            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.32-noble-chiseled-extra@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
+            r"(?m)^FROM\s+mcr\.microsoft\.com/dotnet/aspnet:8\.0\.34-noble-chiseled-extra@sha256:[0-9a-f]{64}\s+AS\s+runtime\s*$",
         )
         self.assertRegex(
             self.dockerfile,

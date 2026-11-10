@@ -15,7 +15,7 @@ public sealed record SeedCredentials(
     string SecondBorrowerEmail,
     string SecondBorrowerPassword);
 
-public sealed partial record SeedOptions(
+public sealed record SeedOptions(
     string Scenario,
     string EnvironmentName,
     string ConnectionString,
@@ -56,7 +56,7 @@ public sealed partial record SeedOptions(
         }
 
         var scenario = args[1].Trim();
-        if (!ScenarioPattern().IsMatch(scenario))
+        if (!ScenarioPattern.IsMatch(scenario))
         {
             throw new ArgumentException("O identificador de cenário deve ser alfanumérico e ter até 64 caracteres.");
         }
@@ -123,8 +123,11 @@ public sealed partial record SeedOptions(
         }
     }
 
-    [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$", RegexOptions.CultureInvariant)]
-    private static partial Regex ScenarioPattern();
+    // The seed CLI validates one identifier per run; a bounded, cached regex avoids generated source.
+    private static readonly Regex ScenarioPattern = new(
+        "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+        RegexOptions.CultureInvariant | RegexOptions.NonBacktracking,
+        TimeSpan.FromSeconds(1));
 
     private static string Required(
         IReadOnlyDictionary<string, string?> environment,

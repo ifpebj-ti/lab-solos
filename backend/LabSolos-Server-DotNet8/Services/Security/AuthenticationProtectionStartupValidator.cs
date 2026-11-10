@@ -373,7 +373,8 @@ public sealed class AuthenticationProtectionReadinessHealthCheck(
                 ? HealthCheckResult.Healthy("ready")
                 : HealthCheckResult.Unhealthy("dependency_unavailable");
         }
-        catch (Exception)
+        catch (Exception exception) when (exception is NpgsqlException or TimeoutException
+            or OperationCanceledException)
         {
             return HealthCheckResult.Unhealthy("dependency_unavailable");
         }

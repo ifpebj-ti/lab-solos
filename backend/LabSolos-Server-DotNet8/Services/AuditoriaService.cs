@@ -121,7 +121,7 @@ namespace LabSolos_Server_DotNet8.Services
             // Pode ser executado via background service
 
             // Exemplo: marcar IPs com muitas tentativas de login falhado
-            var ipsSuspeitos = await _uow.LogAuditoriaRepository.ObterIPsSuspeitosAsync();
+            await _uow.LogAuditoriaRepository.ObterIPsSuspeitosAsync();
 
             // Lógica adicional de detecção pode ser implementada aqui
             // Como análise de padrões, horários incomuns, etc.

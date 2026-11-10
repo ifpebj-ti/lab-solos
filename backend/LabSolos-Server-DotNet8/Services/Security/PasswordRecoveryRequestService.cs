@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Data.Common;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Cryptography;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace LabSolos_Server_DotNet8.Services.Security;
@@ -129,7 +131,8 @@ public sealed class PasswordRecoveryRequestService : IPasswordRecoveryRequestSer
             telemetryResult = AuthenticationProtectionResult.Failure;
             throw;
         }
-        catch (Exception)
+        catch (Exception exception) when (exception is DbException or DbUpdateException
+            or TimeoutException or OperationCanceledException or CryptographicException)
         {
             _telemetry.RecordFailure(
                 AuthenticationProtectionOperation.RecoveryRequest,

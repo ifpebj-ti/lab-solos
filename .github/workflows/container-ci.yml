@@ -69,7 +69,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: "8.0.428"
 
       - name: Restore backend solution
         run: dotnet restore backend/backend.sln --locked-mode
@@ -121,15 +121,23 @@ jobs:
           version: "29.7.2"
           set-host: true
 
+      - name: Set up Docker Buildx
+        id: e2e-builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
           version: "v5.3.1"
 
       - name: Start synthetic E2E stack
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         run: docker compose -f docker-compose-e2e.yml up -d --build --wait
 
       - name: Run authentication E2E tests
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         working-directory: frontend
         run: npm run test:e2e -- --project=real --project=ui
 
@@ -179,6 +187,10 @@ jobs:
           version: "29.7.2"
           set-host: true
 
+      - name: Set up Docker Buildx
+        id: e2e-builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
@@ -190,11 +202,15 @@ jobs:
           --file docker-compose-security-e2e.yml config --quiet
 
       - name: Start disposable security stack
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         run: >-
           docker compose --project-name lab-solos-ci-browser-security
           --file docker-compose-security-e2e.yml up --detach --build --wait
 
       - name: Run focused browser security E2E tests
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         id: security-tests
         working-directory: frontend
         run: npm run test:e2e -- --project=security
@@ -248,7 +264,7 @@ jobs:
       - name: Set up .NET for contract fixtures
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: "8.0.428"
 
       - name: Install frontend dependencies from lockfile
         working-directory: frontend
@@ -291,7 +307,9 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: |
+            8.0.419
+            8.0.428
 
       - name: Set up Docker
         uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0

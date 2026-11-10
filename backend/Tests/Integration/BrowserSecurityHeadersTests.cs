@@ -12,11 +12,11 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
 {
     private const string AllowedOrigin = "http://localhost:5173";
     private const string OtherOrigin = "https://attacker.example";
-    private static readonly string HashSecretPath = Path.Combine(
+    private static readonly string HashSecretPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "browser-throttle-key");
-    private static readonly string RecoveryKeysPath = Path.Combine(
+    private static readonly string RecoveryKeysPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "browser-recovery-keys.json");

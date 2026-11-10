@@ -145,14 +145,7 @@ public sealed class PostgresAuthenticationThrottle
         var dbTransaction = (NpgsqlTransaction)transaction.GetDbTransaction();
         await SetTransactionTimeoutsAsync(connection, dbTransaction, cancellationToken);
 
-        var missingBeforeLock = new List<AuthenticationThrottleRule>();
-        foreach (var rule in rules)
-        {
-            if (!await BucketExistsAsync(connection, dbTransaction, rule, cancellationToken))
-            {
-                missingBeforeLock.Add(rule);
-            }
-        }
+        var missingBeforeLock = await FindMissingBucketsAsync(connection, dbTransaction, rules, cancellationToken);
 
         if (missingBeforeLock.Count == 0)
         {
@@ -179,14 +172,8 @@ public sealed class PostgresAuthenticationThrottle
         var now = await _clock.GetUtcNowAsync(connection, dbTransaction, cancellationToken);
         foreach (var scope in scopesToLock)
         {
-            var missingForScope = new List<AuthenticationThrottleRule>();
-            foreach (var rule in rules.Where(rule => string.Equals(rule.Scope, scope, StringComparison.Ordinal)))
-            {
-                if (!await BucketExistsAsync(connection, dbTransaction, rule, cancellationToken))
-                {
-                    missingForScope.Add(rule);
-                }
-            }
+            var rulesForScope = rules.Where(rule => string.Equals(rule.Scope, scope, StringComparison.Ordinal));
+            var missingForScope = await FindMissingBucketsAsync(connection, dbTransaction, rulesForScope, cancellationToken);
 
             if (missingForScope.Count == 0)
             {
@@ -209,14 +196,7 @@ public sealed class PostgresAuthenticationThrottle
                 capacities[scope] = allocation;
             }
 
-            missingForScope.Clear();
-            foreach (var rule in rules.Where(rule => string.Equals(rule.Scope, scope, StringComparison.Ordinal)))
-            {
-                if (!await BucketExistsAsync(connection, dbTransaction, rule, cancellationToken))
-                {
-                    missingForScope.Add(rule);
-                }
-            }
+            missingForScope = await FindMissingBucketsAsync(connection, dbTransaction, rulesForScope, cancellationToken);
 
             if (allocation + missingForScope.Count > _options.MaxBucketsPerScope)
             {
@@ -480,6 +460,23 @@ public sealed class PostgresAuthenticationThrottle
         }
 
         return capacities;
+    }
+
+    private static async Task<List<AuthenticationThrottleRule>> FindMissingBucketsAsync(
+        NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
+        IEnumerable<AuthenticationThrottleRule> rules,
+        CancellationToken cancellationToken)
+    {
+        var bucketStates = new List<(AuthenticationThrottleRule Rule, bool Exists)>();
+        // Read sequentially: the transaction shares one Npgsql connection.
+        foreach (var rule in rules)
+        {
+            var exists = await BucketExistsAsync(connection, transaction, rule, cancellationToken);
+            bucketStates.Add((rule, exists));
+        }
+
+        return bucketStates.Where(bucket => !bucket.Exists).Select(bucket => bucket.Rule).ToList();
     }
 
     private static async Task<bool> BucketExistsAsync(

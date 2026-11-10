@@ -20,7 +20,8 @@ try
 {
     return await E2eSeedRunner.RunAsync(args, environment);
 }
-catch (Exception exception)
+catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
+    or Npgsql.NpgsqlException or IOException or TimeoutException or OperationCanceledException)
 {
     Console.Error.WriteLine($"e2e_seed_failed: {exception.GetType().Name}");
     return 2;
