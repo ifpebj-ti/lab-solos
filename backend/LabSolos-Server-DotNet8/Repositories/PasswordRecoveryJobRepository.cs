@@ -732,9 +732,13 @@ public sealed class PasswordRecoveryJobRepository
             throw new ArgumentException("A recovery job and lease identifier are required.");
         }
 
-        if (purpose == RecoveryPayloadPurpose.Request && (userId.HasValue || sessionVersion.HasValue)
-            || purpose == RecoveryPayloadPurpose.Delivery && (!userId.HasValue || userId <= 0 || !sessionVersion.HasValue || sessionVersion < 0)
-            || purpose is not (RecoveryPayloadPurpose.Request or RecoveryPayloadPurpose.Delivery))
+        var validContext = purpose switch
+        {
+            RecoveryPayloadPurpose.Request => !userId.HasValue && !sessionVersion.HasValue,
+            RecoveryPayloadPurpose.Delivery => userId is > 0 && sessionVersion is >= 0,
+            _ => false
+        };
+        if (!validContext)
         {
             throw new ArgumentException("The recovery payload context is invalid.");
         }

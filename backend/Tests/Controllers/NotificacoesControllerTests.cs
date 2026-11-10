@@ -269,6 +269,23 @@ public sealed class NotificacoesControllerTests
             ok.Value!.GetType().GetProperty("message")!.GetValue(ok.Value));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task MarcarVariasComoLidasSemUsuarioRetornaUnauthorizedAntesDeValidarIds(int? notificationCount)
+    {
+        var ids = notificationCount is { } count ? Enumerable.Range(11, count).ToArray() : null;
+        var service = new Mock<INotificacaoService>();
+        var controller = CreateController(service, userId: null);
+
+        var result = await controller.MarcarVariasComoLidas(new MarcarLidaDTO { NotificacaoIds = ids! });
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
+        service.Verify(item => item.MarcarVariasComoLidaComVerificacaoAsync(
+            It.IsAny<int[]>(), It.IsAny<int>()), Times.Never);
+    }
+
     [Fact]
     public async Task MarcarVariasComoLidasFalhaDePersistenciaRetornaErroInterno()
     {

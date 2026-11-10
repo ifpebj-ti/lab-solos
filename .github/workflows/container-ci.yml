@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20"
           cache: npm
@@ -69,7 +69,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: "8.0.428"
 
       - name: Restore backend solution
         run: dotnet restore backend/backend.sln --locked-mode
@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20"
           cache: npm
@@ -121,21 +121,29 @@ jobs:
           version: "29.7.2"
           set-host: true
 
+      - name: Set up Docker Buildx
+        id: e2e-builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
           version: "v5.3.1"
 
       - name: Start synthetic E2E stack
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         run: docker compose -f docker-compose-e2e.yml up -d --build --wait
 
       - name: Run authentication E2E tests
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         working-directory: frontend
         run: npm run test:e2e -- --project=real --project=ui
 
       - name: Upload E2E artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: auth-e2e-artifacts
           path: frontend/e2e/infra/artifacts
@@ -159,7 +167,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20"
           cache: npm
@@ -179,6 +187,10 @@ jobs:
           version: "29.7.2"
           set-host: true
 
+      - name: Set up Docker Buildx
+        id: e2e-builder
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@54042514f505b273907334ae2b9cdbb9a0213c1a # v2.0.0
         with:
@@ -190,11 +202,15 @@ jobs:
           --file docker-compose-security-e2e.yml config --quiet
 
       - name: Start disposable security stack
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         run: >-
           docker compose --project-name lab-solos-ci-browser-security
           --file docker-compose-security-e2e.yml up --detach --build --wait
 
       - name: Run focused browser security E2E tests
+        env:
+          BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         id: security-tests
         working-directory: frontend
         run: npm run test:e2e -- --project=security
@@ -207,7 +223,7 @@ jobs:
 
       - name: Upload sanitized browser security artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser-security-artifacts
           path: |
@@ -239,7 +255,7 @@ jobs:
         run: python -m pip install PyYAML==6.0.3
 
       - name: Set up Node.js for contract fixtures
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20.20.2"
           cache: npm
@@ -248,7 +264,7 @@ jobs:
       - name: Set up .NET for contract fixtures
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: "8.0.428"
 
       - name: Install frontend dependencies from lockfile
         working-directory: frontend
@@ -282,7 +298,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20.20.2"
           cache: npm
@@ -291,7 +307,9 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: "8.0.419"
+          dotnet-version: |
+            8.0.419
+            8.0.428
 
       - name: Set up Docker
         uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
@@ -334,7 +352,7 @@ jobs:
 
       - name: Upload quality reports
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: quality-baseline-${{ github.run_id }}
           path: |
@@ -446,7 +464,7 @@ jobs:
           --output "${RUNNER_TEMP}/trivy.sarif" --input "${RUNNER_TEMP}/oci-layout"
 
       - name: Upload Trivy reports
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: trivy-${{ matrix.component }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           path: |
@@ -460,7 +478,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event.pull_request.head.repo.full_name == github.repository &&
           github.actor != 'dependabot[bot]')
-        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: ${{ runner.temp }}/trivy.sarif
           category: container-${{ matrix.component }}-${{ matrix.platform }}

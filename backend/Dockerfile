@@ -1,5 +1,5 @@
 # Etapa 1: Build (usa o SDK para compilar)
-FROM mcr.microsoft.com/dotnet/sdk:8.0.419-bookworm-slim@sha256:dd09bcce84d9130e7f3e85c83a8ce9709e1d95e45c48c722a0d7923b38d8024c AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.428-bookworm-slim@sha256:1b955f179b02df4f0eb5fadedaa898cbe44d620a64aab52eec72c8e91d1355b5 AS build
 WORKDIR /src
 
 # Otimização de cache: copia primeiro os arquivos de projeto/solução
@@ -23,7 +23,7 @@ RUN dotnet publish LabSolos-Server-DotNet8.csproj -c Release -o /app/out --no-re
 
 # Runtime (usa apenas para rodar a aplicação)
 # Chiseled-extra mantém ICU/fusos horários e dispensa shell e gerenciador de pacotes.
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.31-noble-chiseled-extra@sha256:083152f868dc13215dd07856ced47701f707371c18d963d84caaac9795309f8c AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.34-noble-chiseled-extra@sha256:85063596009fe20db4108253acfff4edd36a60c343fec5d2fd6da53d4f1d9f5d AS runtime
 WORKDIR /app
 
 # Mudar para o usuário não-root

@@ -12,6 +12,7 @@ networks:
     ipam:
       config:
         - subnet: ${PUBLIC_NETWORK_SUBNET:?PUBLIC_NETWORK_SUBNET must be set}
+          ip_range: ${PUBLIC_NETWORK_DYNAMIC_RANGE:?PUBLIC_NETWORK_DYNAMIC_RANGE must be set}
 
 services:
   proxy:
@@ -26,6 +27,7 @@ services:
       APP_DOMAIN: ${APP_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./infra/proxy/security-headers.caddy:/etc/caddy/infra/proxy/security-headers.caddy:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

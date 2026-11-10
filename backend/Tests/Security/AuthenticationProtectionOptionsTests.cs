@@ -6,8 +6,8 @@ namespace Tests.Security;
 
 public sealed class AuthenticationProtectionOptionsTests
 {
-    private static readonly string HashSecretPath = Path.Combine(Path.GetTempPath(), "authentication-key-hash");
-    private static readonly string EncryptionKeysPath = Path.Combine(Path.GetTempPath(), "recovery-keys.json");
+    private static readonly string HashSecretPath = Path.Join(Path.GetTempPath(), "authentication-key-hash");
+    private static readonly string EncryptionKeysPath = Path.Join(Path.GetTempPath(), "recovery-keys.json");
 
     [Fact]
     public void DefaultsMatchApprovedInitialLimits()

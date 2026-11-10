@@ -25,7 +25,7 @@ public sealed class ProdutosControllerTests
         var produtoService = new Mock<IProdutoService>();
         produtoService
             .Setup(service => service.ObterHistoricoSaidaProdutoAsync(17))
-            .ReturnsAsync((HistoricoSaidaProdutoResponseDTO?)null);
+            .ReturnsAsync(default(HistoricoSaidaProdutoResponseDTO));
         var controller = CreateController(produtoService);
 
         var result = await controller.ObterHistoricoSaidaProduto(17);

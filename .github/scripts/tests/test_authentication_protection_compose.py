@@ -36,12 +36,26 @@ class AuthenticationProtectionComposeTests(unittest.TestCase):
 
         self.assertIn("ipv4_address: ${CADDY_PROXY_IP", proxy)
         self.assertIn("subnet: ${PUBLIC_NETWORK_SUBNET", self.prod)
+        self.assertIn("ip_range: ${PUBLIC_NETWORK_DYNAMIC_RANGE", self.prod)
         self.assertIn(
             "AuthenticationProtection__ForwardedHeaders__KnownProxies__0: ${CADDY_PROXY_IP",
             backend,
         )
         self.assertNotRegex(backend, r"(?m)^\s+ports:")
         self.assertRegex(backend, r"(?m)^\s+expose:\s*\n\s+- ['\"]?8080")
+
+    def test_production_proxy_is_outside_the_dynamic_allocation_range(self):
+        import ipaddress
+        values = dict(
+            line.split("=", 1) for line in self.prod_env.splitlines()
+            if line and not line.startswith("#")
+        )
+        subnet = ipaddress.ip_network(values["PUBLIC_NETWORK_SUBNET"])
+        dynamic = ipaddress.ip_network(values["PUBLIC_NETWORK_DYNAMIC_RANGE"])
+        proxy = ipaddress.ip_address(values["CADDY_PROXY_IP"])
+        self.assertTrue(dynamic.subnet_of(subnet))
+        self.assertIn(proxy, subnet)
+        self.assertNotIn(proxy, dynamic)
 
     def test_secret_files_are_mounted_read_only_with_path_only_examples(self):
         backend = service_block(self.prod, "backend")
@@ -65,6 +79,15 @@ class AuthenticationProtectionComposeTests(unittest.TestCase):
                 match = re.search(rf"(?m)^{name}=(.*)$", document)
                 self.assertIsNotNone(match)
                 self.assertTrue(match.group(1).startswith("SUBSTITUA_"))
+
+    def test_production_mounts_the_security_snippet_imported_by_caddy(self):
+        proxy = service_block(self.prod, "proxy")
+        caddy = (ROOT / "Caddyfile").read_text(encoding="utf-8")
+        self.assertIn("import infra/proxy/security-headers.caddy", caddy)
+        self.assertIn(
+            "./infra/proxy/security-headers.caddy:/etc/caddy/infra/proxy/security-headers.caddy:ro",
+            proxy,
+        )
 
     def test_development_and_e2e_configure_exact_origins_and_trusted_proxy(self):
         dev_backend = service_block(self.dev, "backend")

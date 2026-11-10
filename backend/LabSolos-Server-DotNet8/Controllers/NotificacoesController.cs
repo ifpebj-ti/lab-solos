@@ -111,12 +111,12 @@ namespace LabSolos_Server_DotNet8.Controllers
         {
             try
             {
-                if (marcarLidaDto.NotificacaoIds == null || marcarLidaDto.NotificacaoIds.Length == 0)
-                    return BadRequest("IDs das notificações são obrigatórios");
-
                 var usuarioId = GetCurrentUserId();
                 if (usuarioId == null)
                     return Unauthorized("Usuário não encontrado");
+
+                if (marcarLidaDto.NotificacaoIds == null || marcarLidaDto.NotificacaoIds.Length == 0)
+                    return BadRequest("IDs das notificações são obrigatórios");
 
                 var marcadasCount = await _notificacaoService.MarcarVariasComoLidaComVerificacaoAsync(marcarLidaDto.NotificacaoIds, usuarioId.Value);
                 return Ok(new { message = $"{marcadasCount} notificações marcadas como lidas" });
