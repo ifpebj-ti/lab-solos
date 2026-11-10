@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { parseResourceId } from '@/contracts/identifier';
 
 import { emprestimoSchema, emprestimosSchema } from '@/contracts/loan';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
@@ -18,7 +19,7 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Emprestimos/usuario/${id}`,
+      url: `Emprestimos/usuario/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -38,7 +39,7 @@ export const getLoansById = async ({ id }: ILoansByUserId) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Emprestimos/${id}`,
+      url: `Emprestimos/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -111,12 +112,12 @@ export const approveLoan = async (EmprestimoId: string | number) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `/Emprestimos/aprovar/${EmprestimoId}`,
+      url: `/Emprestimos/aprovar/${parseResourceId(EmprestimoId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
       data: {
-        aprovadorId: Number(rankID),
+        aprovadorId: parseResourceId(rankID),
       },
     });
 
@@ -137,12 +138,12 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `/Emprestimos/reprovar/${EmprestimoId}`,
+      url: `/Emprestimos/reprovar/${parseResourceId(EmprestimoId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
       data: {
-        aprovadorId: Number(rankID),
+        aprovadorId: parseResourceId(rankID),
       },
     });
 
@@ -162,7 +163,7 @@ export const returnLoan = async (EmprestimoId: string | number) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `/Emprestimos/devolver/${EmprestimoId}`,
+      url: `/Emprestimos/devolver/${parseResourceId(EmprestimoId)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },

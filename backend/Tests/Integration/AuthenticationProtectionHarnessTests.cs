@@ -138,9 +138,11 @@ public sealed class AuthenticationProtectionHarnessTests(PostgreSql15ContainerFi
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Interlocked.Increment(ref _totalStartCount);
+            RecordStart();
             return Task.CompletedTask;
         }
+
+        private static void RecordStart() => Interlocked.Increment(ref _totalStartCount);
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }

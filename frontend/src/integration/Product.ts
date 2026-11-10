@@ -1,5 +1,6 @@
 import { api } from '../services/BaseApi';
 import Cookie from 'js-cookie';
+import { parseResourceId } from '@/contracts/identifier';
 
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
@@ -17,7 +18,7 @@ export const getProductById = async ({ id }: IGetProductById) => {
     }
     const response = await api({
       method: 'GET',
-      url: `Produtos/${id}`,
+      url: `Produtos/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -160,7 +161,7 @@ export const getProductHistoricoSaida = async ({
 
     const response = await api({
       method: 'GET',
-      url: `Produtos/${id}/historico-saida`,
+      url: `Produtos/${parseResourceId(id)}/historico-saida`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
       },
@@ -191,7 +192,7 @@ export const updateProduct = async ({ id, operations }: IUpdateProduct) => {
 
     const response = await api({
       method: 'PATCH',
-      url: `Produtos/${id}`,
+      url: `Produtos/${parseResourceId(id)}`,
       headers: {
         Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json',

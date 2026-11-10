@@ -16,11 +16,11 @@ public sealed class SecureSeedStartupTests(PostgreSqlContainerFixture database)
 {
     private const string SyntheticEmail = "initial-admin@example.test";
     private const string SyntheticPassword = "synthetic-admin-passphrase-2026";
-    private static readonly string HashSecretPath = Path.Combine(
+    private static readonly string HashSecretPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "seed-throttle-key");
-    private static readonly string RecoveryKeysPath = Path.Combine(
+    private static readonly string RecoveryKeysPath = Path.Join(
         Path.GetTempPath(),
         "lab-solos-synthetic-secrets",
         "seed-recovery-keys.json");

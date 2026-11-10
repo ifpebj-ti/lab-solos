@@ -10,7 +10,7 @@ public sealed class RecoveryPayloadProtectorTests
     private static readonly byte[] PreviousKey = Enumerable.Range(33, 32).Select(value => (byte)value).ToArray();
     private const string CurrentKeyId = "recovery-2026-02";
     private const string PreviousKeyId = "recovery-2026-01";
-    private static readonly string SecretFilePath = Path.Combine(Path.GetTempPath(), "secrets", "recovery-keys.json");
+    private static readonly string SecretFilePath = Path.Join(Path.GetTempPath(), "secrets", "recovery-keys.json");
 
     [Fact]
     public void ProtectsPayloadWithActiveKeyAndAuthenticatesRecoveryContext()

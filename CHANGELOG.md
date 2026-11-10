@@ -4,6 +4,7 @@ As entregas relevantes são registradas aqui e nas [releases do GitHub](https://
 
 ## Não publicado
 
+- Corrigir as dependências associadas aos sete alertas Dependabot e a vulnerabilidade adicional do `minimatch`; validar identificadores nas URLs de produtos e empréstimos, verificar a identidade antes do corpo em notificações e tratar os 31 achados CodeQL da `develop`, com testes e [relatório da entrega](docs/security/2026-11-10.md) ([#457](https://github.com/ifpebj-ti/lab-solos/issues/457)).
 - Atualizar o runtime ASP.NET para 8.0.32 com digest multiarch fixado e sincronizar a revisão da Wiki com a variável obrigatória de alocação dinâmica da rede, corrigindo os gates de segurança e documentação da PR [#443](https://github.com/ifpebj-ti/lab-solos/pull/443).
 - Corrigir a montagem do snippet de segurança do Caddy e reservar uma faixa dinâmica de IPs que exclui o endereço fixo do proxy em produção; atualizar exemplos, testes e procedimentos de implantação ([#439](https://github.com/ifpebj-ti/lab-solos/issues/439), complemento da [#441](https://github.com/ifpebj-ti/lab-solos/pull/441)).
 - Corrigir a esteira de proteção de autenticação: testes portáveis em Linux, seleção dos projetos E2E, exemplos Compose da Wiki e achados novos de qualidade/CodeQL; validar identificadores nas URLs de usuários, atualizar Axios, migrar o tema para Tailwind 4 e adotar ASP.NET 8.0.31 com OpenSSL corrigido ([#441](https://github.com/ifpebj-ti/lab-solos/pull/441)).

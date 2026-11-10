@@ -294,10 +294,9 @@ namespace LabSolos_Server_DotNet8.Middlewares
                     }
                     break;
                 case JsonArray array:
-                    foreach (var item in array)
+                    foreach (var item in array.OfType<JsonNode>())
                     {
-                        if (item is not null)
-                            SanitizarCorpo(item);
+                        SanitizarCorpo(item);
                     }
                     break;
             }
