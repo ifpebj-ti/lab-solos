@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12.14"
 
@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: "8.0.428"
 
@@ -116,7 +116,7 @@ jobs:
         run: npx --no-install playwright install --with-deps chromium
 
       - name: Set up Docker
-        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.0.0
         with:
           version: "29.7.2"
           set-host: true
@@ -182,7 +182,7 @@ jobs:
         run: npx --no-install playwright install --with-deps chromium
 
       - name: Set up Docker
-        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.0.0
         with:
           version: "29.7.2"
           set-host: true
@@ -247,7 +247,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12.14"
 
@@ -262,7 +262,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Set up .NET for contract fixtures
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: "8.0.428"
 
@@ -305,14 +305,14 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: |
             8.0.419
             8.0.428
 
       - name: Set up Docker
-        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5.0.0
+        uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.0.0
         with:
           version: "29.7.2"
           set-host: true
@@ -323,7 +323,7 @@ jobs:
           version: "v5.3.1"
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12.14"
 
@@ -383,7 +383,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12.14"
 
@@ -478,7 +478,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event.pull_request.head.repo.full_name == github.repository &&
           github.actor != 'dependabot[bot]')
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: ${{ runner.temp }}/trivy.sarif
           category: container-${{ matrix.component }}-${{ matrix.platform }}

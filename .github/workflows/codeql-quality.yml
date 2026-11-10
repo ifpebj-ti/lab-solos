@@ -41,7 +41,7 @@ jobs:
 
       - name: Set up .NET
         if: matrix.language == 'csharp'
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: "8.0.428"
 
@@ -50,7 +50,7 @@ jobs:
         run: dotnet restore backend/backend.sln --locked-mode
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -63,6 +63,6 @@ jobs:
         run: dotnet build backend/backend.sln --no-restore -c Release --nologo --disable-build-servers
 
       - name: Analyze with CodeQL
-        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           category: ${{ matrix.category }}
