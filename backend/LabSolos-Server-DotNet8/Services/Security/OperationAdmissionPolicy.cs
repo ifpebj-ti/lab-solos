@@ -28,6 +28,18 @@ public sealed class OperationAdmissionPolicy(
     ThrottleKeyFactory keyFactory,
     ILogger<OperationAdmissionPolicy> logger)
 {
+    private static readonly Action<ILogger, string, string, Exception?> LogAdmissionDenied =
+        LoggerMessage.Define<string, string>(LogLevel.Information,
+            new EventId(2001, nameof(LogAdmissionDenied)),
+            "Operation admission denied {Operation} {Result}");
+    private static readonly Action<ILogger, string, string, Exception?> LogAdmissionUnavailable =
+        LoggerMessage.Define<string, string>(LogLevel.Warning,
+            new EventId(2002, nameof(LogAdmissionUnavailable)),
+            "Operation admission failed {Operation} {Result}");
+    private static readonly Action<ILogger, string, Exception?> LogAdmissionInvalidState =
+        LoggerMessage.Define<string>(LogLevel.Error,
+            new EventId(2003, nameof(LogAdmissionInvalidState)),
+            "Operation admission returned an invalid state for {Operation}");
     public const int RegistrationLimit = 10;
     public const int LoanCreationLimit = 30;
     public const int MaximumLoanItems = 100;
@@ -127,23 +139,15 @@ public sealed class OperationAdmissionPolicy(
         {
             case AuthenticationThrottleState.RateLimited:
             case AuthenticationThrottleState.CapacityExceeded:
-                _logger.LogInformation(
-                    "Operation admission denied {Operation} {Result}",
-                    operation,
-                    "rate_limited");
+                LogAdmissionDenied(_logger, operation, "rate_limited", null);
                 return OperationAdmissionResult.RateLimited(admission.RetryAfterSeconds);
             case AuthenticationThrottleState.Unavailable:
-                _logger.LogWarning(
-                    "Operation admission failed {Operation} {Result}",
-                    operation,
-                    "limiter_unavailable");
+                LogAdmissionUnavailable(_logger, operation, "limiter_unavailable", null);
                 return OperationAdmissionResult.Unavailable();
             case AuthenticationThrottleState.Allowed when admission.Attempt is not null:
                 break;
             default:
-                _logger.LogError(
-                    "Operation admission returned an invalid state for {Operation}",
-                    operation);
+                LogAdmissionInvalidState(_logger, operation, null);
                 return OperationAdmissionResult.Unavailable();
         }
 
@@ -155,10 +159,7 @@ public sealed class OperationAdmissionPolicy(
         }
         catch (Exception exception) when (IsInfrastructureFailure(exception, cancellationToken))
         {
-            _logger.LogWarning(
-                "Operation admission failed {Operation} {Result}",
-                operation,
-                "limiter_unavailable");
+            LogAdmissionUnavailable(_logger, operation, "limiter_unavailable", exception);
             return OperationAdmissionResult.Unavailable();
         }
     }

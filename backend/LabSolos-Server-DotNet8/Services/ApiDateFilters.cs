@@ -4,8 +4,13 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace LabSolos_Server_DotNet8.Services;
 
-public static class ApiDateFilters
+public static partial class ApiDateFilters
 {
+    [GeneratedRegex(
+        @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})\z",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex IsoDateTimePattern();
+
     public static bool TryParse(string value, TimeZoneInfo timeZone, out DateTime utc)
     {
         utc = default;
@@ -19,9 +24,7 @@ public static class ApiDateFilters
             return true;
         }
 
-        if (!Regex.IsMatch(value,
-                @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})\z",
-                RegexOptions.CultureInvariant)
+        if (!IsoDateTimePattern().IsMatch(value)
             || !DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var instant))
             return false;

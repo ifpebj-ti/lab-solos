@@ -107,7 +107,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_RateLimited_ReturnsRetryAfterProblemDetails()
+    public async Task ChangePasswordRateLimitedReturnsRetryAfterProblemDetails()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(
@@ -129,7 +129,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_LimiterUnavailable_ReturnsTransientServiceUnavailable()
+    public async Task ChangePasswordLimiterUnavailableReturnsTransientServiceUnavailable()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(

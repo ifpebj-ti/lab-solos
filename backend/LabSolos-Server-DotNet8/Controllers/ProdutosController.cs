@@ -32,6 +32,31 @@ namespace LabSolos_Server_DotNet8.Controllers
                 LogLevel.Error,
                 new EventId(1001, nameof(LogHistoryReadFailure)),
                 "Falha operacional ao obter histórico de saída do produto {ProdutoId}.");
+        private static readonly Action<ILogger, Exception?> LogHistoryNotFound =
+            LoggerMessage.Define(
+                LogLevel.Warning,
+                new EventId(1002, nameof(LogHistoryNotFound)),
+                "Histórico não encontrado para o recurso solicitado.");
+        private static readonly Action<ILogger, int, Exception?> LogHistoryReadSucceeded =
+            LoggerMessage.Define<int>(
+                LogLevel.Information,
+                new EventId(1003, nameof(LogHistoryReadSucceeded)),
+                "Histórico de saída autorizado obtido com sucesso para o produto {ProdutoId}.");
+        private static readonly Action<ILogger, TipoProduto, Exception?> LogProductsByTypeStarted =
+            LoggerMessage.Define<TipoProduto>(
+                LogLevel.Information,
+                new EventId(1004, nameof(LogProductsByTypeStarted)),
+                "Iniciando operação para obter produtos do tipo {Tipo}.");
+        private static readonly Action<ILogger, int, Exception?> LogInvalidProductType =
+            LoggerMessage.Define<int>(
+                LogLevel.Warning,
+                new EventId(1005, nameof(LogInvalidProductType)),
+                "Tipo de produto inválido: {Tipo}");
+        private static readonly Action<ILogger, int, Exception?> LogHistoryReadStarted =
+            LoggerMessage.Define<int>(
+                LogLevel.Information,
+                new EventId(1006, nameof(LogHistoryReadStarted)),
+                "Iniciando operação para obter histórico de saída do produto {ProdutoId}.");
 
         public ProdutosController(
             IProdutoService produtoService,
@@ -56,15 +81,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             [FromQuery] string? pagina,
             [FromQuery] string? tamanhoPagina)
         {
-            _logger.LogInformation(
-            "Iniciando operação para obter produtos do tipo {Tipo}.",
-            (TipoProduto)tipoProduto
-            );
+            LogProductsByTypeStarted(_logger, (TipoProduto)tipoProduto, null);
 
             // Validação do tipo com o enum
             if (!Enum.IsDefined(typeof(TipoProduto), tipoProduto))
             {
-                _logger.LogWarning("Tipo de produto inválido: {Tipo}", tipoProduto);
+                LogInvalidProductType(_logger, tipoProduto, null);
                 return BadRequest("Tipo de produto inválido. Use um valor de TipoProduto válido.");
             }
 
@@ -307,7 +329,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize]
         public async Task<IActionResult> ObterHistoricoSaidaProduto(int id)
         {
-            _logger.LogInformation("Iniciando operação para obter histórico de saída do produto {ProdutoId}.", id);
+            LogHistoryReadStarted(_logger, id, null);
 
             try
             {
@@ -318,11 +340,11 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 if (historico == null)
                 {
-                    _logger.LogWarning("Histórico não encontrado para o recurso solicitado.");
+                    LogHistoryNotFound(_logger, null);
                     return NotFound();
                 }
 
-                _logger.LogInformation("Histórico de saída autorizado obtido com sucesso para o produto {ProdutoId}.", id);
+                LogHistoryReadSucceeded(_logger, id, null);
 
                 return Ok(historico);
             }
@@ -405,7 +427,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             return Ok(_mapper.Map<ProdutoDTOPatchResponse>(product));
         }
 
-        private BadRequestObjectResult PatchValidation(string field, string code, string message) =>
+        private static BadRequestObjectResult PatchValidation(string field, string code, string message) =>
             new(new ValidationProblemDetails(new Dictionary<string, string[]>
             {
                 [field] = [message]

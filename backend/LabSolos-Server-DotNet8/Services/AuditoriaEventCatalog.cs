@@ -16,7 +16,7 @@ public sealed record DefinicaoEventoAuditoria(
     IReadOnlySet<OrigemConfiavelAuditoria> OrigensPermitidas,
     bool SomenteLegado = false);
 
-public static class AuditoriaEventCatalog
+public static partial class AuditoriaEventCatalog
 {
     public static readonly TimeSpan RetencaoTrilhaObrigatoria = TimeSpan.FromDays(365);
     public static readonly TimeSpan RetencaoDiagnosticoOperacional = TimeSpan.FromDays(30);
@@ -42,7 +42,7 @@ public static class AuditoriaEventCatalog
             OrigemConfiavelAuditoria.SemAtorValido
         };
 
-    private static readonly IReadOnlyDictionary<CodigoEventoAuditoria, DefinicaoEventoAuditoria> Definitions =
+    private static readonly ReadOnlyDictionary<CodigoEventoAuditoria, DefinicaoEventoAuditoria> Definitions =
         new ReadOnlyDictionary<CodigoEventoAuditoria, DefinicaoEventoAuditoria>(
             new Dictionary<CodigoEventoAuditoria, DefinicaoEventoAuditoria>
             {
@@ -79,7 +79,8 @@ public static class AuditoriaEventCatalog
                     SomenteLegado: true)
             });
 
-    private static readonly Regex SafeReference = new("^[A-Za-z0-9:_-]{1,64}$", RegexOptions.CultureInvariant);
+    [GeneratedRegex("^[A-Za-z0-9:_-]{1,64}$", RegexOptions.CultureInvariant)]
+    private static partial Regex SafeReferencePattern();
 
     public static DefinicaoEventoAuditoria Obter(CodigoEventoAuditoria codigo)
     {
@@ -90,7 +91,7 @@ public static class AuditoriaEventCatalog
     }
 
     public static bool ReferenciaSegura(string? reference) =>
-        string.IsNullOrEmpty(reference) || SafeReference.IsMatch(reference);
+        string.IsNullOrEmpty(reference) || SafeReferencePattern().IsMatch(reference);
 
     private static DefinicaoEventoAuditoria Required(
         CodigoEventoAuditoria code,

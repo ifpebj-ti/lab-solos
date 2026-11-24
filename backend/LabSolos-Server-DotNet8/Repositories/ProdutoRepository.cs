@@ -37,6 +37,18 @@ namespace LabSolos_Server_DotNet8.Repositories
         ILogger<ProdutoRepository> logger,
         IUnitOfWork unitOfWork) : IProdutoRepository
     {
+        private static readonly Action<ILogger, Exception?> LogAdministrativeCatalogStarted =
+            LoggerMessage.Define(LogLevel.Information,
+                new EventId(2201, nameof(LogAdministrativeCatalogStarted)),
+                "Iniciando consulta do catálogo administrativo de produtos.");
+        private static readonly Action<ILogger, int, Exception?> LogAdministrativeCatalogLoaded =
+            LoggerMessage.Define<int>(LogLevel.Information,
+                new EventId(2202, nameof(LogAdministrativeCatalogLoaded)),
+                "Catálogo administrativo carregado com {Count} produtos.");
+        private static readonly Action<ILogger, int, Exception?> LogAlertsLoaded =
+            LoggerMessage.Define<int>(LogLevel.Information,
+                new EventId(2203, nameof(LogAlertsLoaded)),
+                "Consulta de alertas retornou {Count} produtos elegíveis.");
         private readonly AppDbContext _context = context;
         private readonly ILogger<ProdutoRepository> _logger = logger;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -77,13 +89,13 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task<IEnumerable<Produto>> GetCatalogoAdministrativoAsync(
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Iniciando consulta do catálogo administrativo de produtos.");
+            LogAdministrativeCatalogStarted(_logger, null);
             var produtos = await _context.Produtos
                 .Where(product => !product.Desativado)
                 .Include(product => product.Lote)
                 .OrderBy(product => product.Id)
                 .ToListAsync(cancellationToken);
-            _logger.LogInformation("Catálogo administrativo carregado com {Count} produtos.", produtos.Count);
+            LogAdministrativeCatalogLoaded(_logger, produtos.Count, null);
             return produtos;
         }
 
@@ -106,7 +118,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                 .Include(product => product.Lote)
                 .OrderBy(product => product.Id)
                 .ToListAsync(cancellationToken);
-            _logger.LogInformation("Consulta de alertas retornou {Count} produtos elegíveis.", produtos.Count);
+            LogAlertsLoaded(_logger, produtos.Count, null);
             return produtos;
         }
 

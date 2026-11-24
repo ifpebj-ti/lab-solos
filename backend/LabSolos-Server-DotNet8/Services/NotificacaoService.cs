@@ -38,6 +38,14 @@ namespace LabSolos_Server_DotNet8.Services
 
     public class NotificacaoService : INotificacaoService
     {
+        private static readonly Action<ILogger, TipoNotificacao, Exception?> LogAutomaticNotificationSkipped =
+            LoggerMessage.Define<TipoNotificacao>(LogLevel.Information,
+                new EventId(2101, nameof(LogAutomaticNotificationSkipped)),
+                "Notificação automática ignorada porque não há destinatários habilitados para o tipo {Tipo}");
+        private static readonly Action<ILogger, int, int, Exception?> LogNotificationsMarkedRead =
+            LoggerMessage.Define<int, int>(LogLevel.Information,
+                new EventId(2102, nameof(LogNotificationsMarkedRead)),
+                "Marcadas {Count} notificações como lidas pelo usuário {UsuarioId}");
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly ILogger<NotificacaoService> _logger;
@@ -195,9 +203,7 @@ namespace LabSolos_Server_DotNet8.Services
             {
                 if (origem == OrigemConfiavelAuditoria.ProcessoAutorizado)
                 {
-                    _logger.LogInformation(
-                        "Notificação automática ignorada porque não há destinatários habilitados para o tipo {Tipo}",
-                        createDto.Tipo);
+                    LogAutomaticNotificationSkipped(_logger, createDto.Tipo, null);
                     return null;
                 }
 
@@ -405,7 +411,7 @@ namespace LabSolos_Server_DotNet8.Services
                 _timeProvider.GetUtcNow().UtcDateTime);
             await _uow.CommitAsync();
 
-            _logger.LogInformation("Marcadas {Count} notificações como lidas pelo usuário {UsuarioId}", markedCount, usuarioId);
+            LogNotificationsMarkedRead(_logger, markedCount, usuarioId, null);
             return markedCount;
         }
 

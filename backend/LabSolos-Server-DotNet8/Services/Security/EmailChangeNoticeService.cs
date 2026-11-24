@@ -25,6 +25,26 @@ public sealed class EmailChangeNoticeService(
     private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan SecondRetryDelay = TimeSpan.FromSeconds(120);
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
+    private static readonly Action<ILogger, Guid, Exception?> LogJobProcessingFailure =
+        LoggerMessage.Define<Guid>(LogLevel.Error,
+            new EventId(1906, "EmailChangeNoticeJobProcessingFailure"),
+            "Email-change notice processing failed for recipient job {JobId}; the lease will be reclaimed without recording recipient data.");
+    private static readonly Action<ILogger, int, Exception?> LogDeadlineExpired =
+        LoggerMessage.Define<int>(LogLevel.Error,
+            new EventId(1901, "EmailChangeNoticeDeadlineExpired"),
+            "Email-change notice delivery reached its deadline for {Count} recipient job(s); sanitized terminal state is available to authorized support.");
+    private static readonly Action<ILogger, int, Exception?> LogRetentionPurged =
+        LoggerMessage.Define<int>(LogLevel.Information,
+            new EventId(1902, "EmailChangeNoticeRetentionPurged"),
+            "Purged {Count} expired email-change notice record(s) after the approved retention period.");
+    private static readonly Action<ILogger, Guid, Exception?> LogRetryScheduled =
+        LoggerMessage.Define<Guid>(LogLevel.Warning,
+            new EventId(1903, "EmailChangeNoticeRetryScheduled"),
+            "Email-change notice delivery failed for recipient job {JobId}; an independent retry was scheduled.");
+    private static readonly Action<ILogger, Guid, Exception?> LogTerminalFailureEvent =
+        LoggerMessage.Define<Guid>(LogLevel.Error,
+            new EventId(1904, "EmailChangeNoticeTerminalFailure"),
+            "Email-change notice delivery entered a terminal state for recipient job {JobId}; sanitized evidence is available to authorized support.");
 
     private readonly AppDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
     private readonly RecoveryPayloadProtector _payloadProtector = payloadProtector ?? throw new ArgumentNullException(nameof(payloadProtector));
@@ -48,27 +68,18 @@ public sealed class EmailChangeNoticeService(
             }
             catch (Exception)
             {
-                _logger.LogError(
-                    new EventId(1906, "EmailChangeNoticeJobProcessingFailure"),
-                    "Email-change notice processing failed for recipient job {JobId}; the lease will be reclaimed without recording recipient data.",
-                    job.Id);
+                LogJobProcessingFailure(_logger, job.Id, null);
             }
         }
 
         if (batch.ExpiredCount > 0)
         {
-            _logger.LogError(
-                new EventId(1901, "EmailChangeNoticeDeadlineExpired"),
-                "Email-change notice delivery reached its deadline for {Count} recipient job(s); sanitized terminal state is available to authorized support.",
-                batch.ExpiredCount);
+            LogDeadlineExpired(_logger, batch.ExpiredCount, null);
         }
 
         if (batch.PurgedCount > 0)
         {
-            _logger.LogInformation(
-                new EventId(1902, "EmailChangeNoticeRetentionPurged"),
-                "Purged {Count} expired email-change notice record(s) after the approved retention period.",
-                batch.PurgedCount);
+            LogRetentionPurged(_logger, batch.PurgedCount, null);
         }
 
         return batch.Jobs.Count;
@@ -314,10 +325,7 @@ public sealed class EmailChangeNoticeService(
             nextAttemptAt);
         if (rescheduled)
         {
-            _logger.LogWarning(
-                new EventId(1903, "EmailChangeNoticeRetryScheduled"),
-                "Email-change notice delivery failed for recipient job {JobId}; an independent retry was scheduled.",
-                job.Id);
+            LogRetryScheduled(_logger, job.Id, null);
         }
     }
 
@@ -526,10 +534,8 @@ public sealed class EmailChangeNoticeService(
         && MailAddress.TryCreate(email, out var address)
         && string.Equals(address.Address, email, StringComparison.OrdinalIgnoreCase);
 
-    private void LogTerminalFailure(Guid jobId) => _logger.LogError(
-        new EventId(1904, "EmailChangeNoticeTerminalFailure"),
-        "Email-change notice delivery entered a terminal state for recipient job {JobId}; sanitized evidence is available to authorized support.",
-        jobId);
+    private void LogTerminalFailure(Guid jobId) =>
+        LogTerminalFailureEvent(_logger, jobId, null);
 
     private sealed record ReservedBatch(
         IReadOnlyList<ReservedNoticeJob> Jobs,

@@ -201,7 +201,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             return BadRequest(new { message });
         }
 
-        private IActionResult? AdmissionFailure(OperationAdmissionResult result) => result.Status switch
+        private ObjectResult? AdmissionFailure(OperationAdmissionResult result) => result.Status switch
         {
             OperationAdmissionStatus.Allowed => null,
             OperationAdmissionStatus.RateLimited => OperationAdmissionResponses.RateLimited(

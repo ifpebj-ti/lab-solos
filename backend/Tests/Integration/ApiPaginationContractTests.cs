@@ -14,6 +14,12 @@ public sealed class ApiPaginationContractTests(PostgreSqlContainerFixture databa
 {
     private const string ProductsPath = "/api/Produtos";
     private const string AdminCatalogPath = "/api/Produtos/catalogo-administrativo";
+    private static readonly int[] FirstPageProductIds = [3, 8];
+    private static readonly int[] SecondPageProductIds = [5, 12];
+    private static readonly int[] ThirdPageProductIds = [10];
+    private static readonly int[] FirstCatalogPageProductIds = [8];
+    private static readonly int[] SecondCatalogPageProductIds = [10];
+    private static readonly int[] AllCatalogProductIds = [1, 2];
 
     [Fact]
     public async Task ProductPagesUseStableNameAndIdOrderAndKeepTotalsAfterEnd()
@@ -33,18 +39,18 @@ public sealed class ApiPaginationContractTests(PostgreSqlContainerFixture databa
         using var firstResponse = await client.GetAsync($"{ProductsPath}?pagina=1&tamanhoPagina=2");
         var firstPage = await ReadPageAsync(firstResponse);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
-        Assert.Equal(new[] { 3, 8 }, ReadIds(firstPage));
+        Assert.Equal(FirstPageProductIds, ReadIds(firstPage));
         Assert.Equal(5, firstPage.GetProperty("totalItens").GetInt32());
         Assert.Equal(3, firstPage.GetProperty("totalPaginas").GetInt32());
 
         using var secondResponse = await client.GetAsync($"{ProductsPath}?pagina=2&tamanhoPagina=2");
         var secondPage = await ReadPageAsync(secondResponse);
-        Assert.Equal(new[] { 5, 12 }, ReadIds(secondPage));
+        Assert.Equal(SecondPageProductIds, ReadIds(secondPage));
         Assert.Equal(5, secondPage.GetProperty("totalItens").GetInt32());
 
         using var thirdResponse = await client.GetAsync($"{ProductsPath}?pagina=3&tamanhoPagina=2");
         var thirdPage = await ReadPageAsync(thirdResponse);
-        Assert.Equal(new[] { 10 }, ReadIds(thirdPage));
+        Assert.Equal(ThirdPageProductIds, ReadIds(thirdPage));
 
         using var beyondEndResponse = await client.GetAsync($"{ProductsPath}?pagina=4&tamanhoPagina=2");
         var beyondEndPage = await ReadPageAsync(beyondEndResponse);
@@ -112,8 +118,8 @@ public sealed class ApiPaginationContractTests(PostgreSqlContainerFixture databa
         var secondPage = await ReadPageAsync(secondResponse);
 
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
-        Assert.Equal(new[] { 8 }, ReadIds(firstPage));
-        Assert.Equal(new[] { 10 }, ReadIds(secondPage));
+        Assert.Equal(FirstCatalogPageProductIds, ReadIds(firstPage));
+        Assert.Equal(SecondCatalogPageProductIds, ReadIds(secondPage));
         Assert.Equal(2, secondPage.GetProperty("totalItens").GetInt32());
     }
 
@@ -133,7 +139,7 @@ public sealed class ApiPaginationContractTests(PostgreSqlContainerFixture databa
         var page = await ReadPageAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] { 1, 2 }, ReadIds(page));
+        Assert.Equal(AllCatalogProductIds, ReadIds(page));
         Assert.Equal(3, page.GetProperty("totalItens").GetInt32());
 
         using var mentor = AuthenticatedClient(factory, NivelUsuario.Mentor);

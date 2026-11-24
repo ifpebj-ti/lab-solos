@@ -170,6 +170,82 @@ export const loanCreationDependents = [
 const normalizeNullableDate = (value: unknown): string | null =>
   typeof value === 'string' && value.length > 0 ? value : null;
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function stringOr(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function nullableStringOrNull(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === 'number' ? value : fallback;
+}
+
+function normalizeLoanProductType(value: Record<string, unknown>): string {
+  if (typeof value.tipoProduto === 'string') return value.tipoProduto;
+  return stringOr(value.tipo, 'Quimico');
+}
+
+function normalizeLoanProductBatch(
+  rawBatch: unknown,
+  productId: number
+): ReturnType<typeof makeLoanBatch> | null {
+  if (rawBatch === null || rawBatch === undefined) return null;
+  if (typeof rawBatch === 'object') {
+    const batch = asRecord(rawBatch);
+    return makeLoanBatch(String(batch.codigoLote ?? `L-${productId}`));
+  }
+  return makeLoanBatch(String(rawBatch));
+}
+
+function normalizeLoanProduct(
+  rawProduct: unknown,
+  index: number,
+  loanId: number
+) {
+  const item = asRecord(rawProduct);
+  const rawProductValue =
+    item.produto && typeof item.produto === 'object'
+      ? asRecord(item.produto)
+      : item;
+  const productId = Number(
+    rawProductValue.id ?? item.produtoId ?? loanId * 100 + index + 1
+  );
+
+  return {
+    emprestimoId: loanId,
+    quantidade: numberOr(item.quantidade, 1),
+    produto: {
+      id: productId,
+      catmat: stringOr(rawProductValue.catmat, `CAT-${productId}`),
+      nomeProduto: stringOr(rawProductValue.nomeProduto, `Produto ${productId}`),
+      tipoProduto: normalizeLoanProductType(rawProductValue),
+      fornecedor: nullableStringOrNull(rawProductValue.fornecedor),
+      unidadeMedida: stringOr(rawProductValue.unidadeMedida, 'Unidade'),
+      quantidade: numberOr(rawProductValue.quantidade, 1),
+      quantidadeMinima: numberOr(rawProductValue.quantidadeMinima, 1),
+      localizacaoProduto: nullableStringOrNull(
+        rawProductValue.localizacaoProduto
+      ),
+      dataFabricacao: nullableStringOrNull(rawProductValue.dataFabricacao),
+      dataValidade: nullableStringOrNull(rawProductValue.dataValidade),
+      ultimaModificacao: stringOr(
+        rawProductValue.ultimaModificacao,
+        '2026-09-01T10:00:00Z'
+      ),
+      status: stringOr(rawProductValue.status, 'Disponivel'),
+      lote: normalizeLoanProductBatch(rawProductValue.lote, productId),
+    },
+  };
+}
+
 const normalizeLoanFixture = (value: Record<string, unknown>) => {
   const rawProducts = Array.isArray(value.produtos)
     ? value.produtos
@@ -177,91 +253,10 @@ const normalizeLoanFixture = (value: Record<string, unknown>) => {
       ? value.emprestimoProdutos
       : [];
 
-  const produtos = rawProducts.map((rawProduct, index) => {
-    const item =
-      rawProduct && typeof rawProduct === 'object'
-        ? (rawProduct as Record<string, unknown>)
-        : {};
-    const rawProductValue =
-      item.produto && typeof item.produto === 'object'
-        ? (item.produto as Record<string, unknown>)
-        : item;
-    const productId = Number(
-      rawProductValue.id ?? item.produtoId ?? Number(value.id) * 100 + index + 1
-    );
-    const rawBatch = rawProductValue.lote;
-    const lote =
-      rawBatch === null || rawBatch === undefined
-        ? null
-        : makeLoanBatch(
-            typeof rawBatch === 'object'
-              ? String(
-                  (rawBatch as Record<string, unknown>).codigoLote ??
-                    `L-${productId}`
-                )
-              : String(rawBatch)
-          );
-
-    return {
-      emprestimoId: Number(value.id),
-      quantidade:
-        typeof item.quantidade === 'number' ? item.quantidade : 1,
-      produto: {
-        id: productId,
-        catmat:
-          typeof rawProductValue.catmat === 'string'
-            ? rawProductValue.catmat
-            : `CAT-${productId}`,
-        nomeProduto:
-          typeof rawProductValue.nomeProduto === 'string'
-            ? rawProductValue.nomeProduto
-            : `Produto ${productId}`,
-        tipoProduto:
-          typeof rawProductValue.tipoProduto === 'string'
-            ? rawProductValue.tipoProduto
-            : typeof rawProductValue.tipo === 'string'
-              ? rawProductValue.tipo
-              : 'Quimico',
-        fornecedor:
-          typeof rawProductValue.fornecedor === 'string'
-            ? rawProductValue.fornecedor
-            : null,
-        unidadeMedida:
-          typeof rawProductValue.unidadeMedida === 'string'
-            ? rawProductValue.unidadeMedida
-            : 'Unidade',
-        quantidade:
-          typeof rawProductValue.quantidade === 'number'
-            ? rawProductValue.quantidade
-            : 1,
-        quantidadeMinima:
-          typeof rawProductValue.quantidadeMinima === 'number'
-            ? rawProductValue.quantidadeMinima
-            : 1,
-        localizacaoProduto:
-          typeof rawProductValue.localizacaoProduto === 'string'
-            ? rawProductValue.localizacaoProduto
-            : null,
-        dataFabricacao:
-          typeof rawProductValue.dataFabricacao === 'string'
-            ? rawProductValue.dataFabricacao
-            : null,
-        dataValidade:
-          typeof rawProductValue.dataValidade === 'string'
-            ? rawProductValue.dataValidade
-            : null,
-        ultimaModificacao:
-          typeof rawProductValue.ultimaModificacao === 'string'
-            ? rawProductValue.ultimaModificacao
-            : '2026-09-01T10:00:00Z',
-        status:
-          typeof rawProductValue.status === 'string'
-            ? rawProductValue.status
-            : 'Disponivel',
-        lote,
-      },
-    };
-  });
+  const loanId = Number(value.id);
+  const produtos = rawProducts.map((rawProduct, index) =>
+    normalizeLoanProduct(rawProduct, index, loanId)
+  );
 
   const normalizedBase = Object.fromEntries(
     Object.entries(value).filter(

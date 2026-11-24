@@ -14,6 +14,8 @@ namespace Tests.Integration;
 [Collection(PostgreSqlIntegrationCollection.Name)]
 public sealed class CriticalUserApprovalTests(PostgreSqlContainerFixture database)
 {
+    private static readonly string[] AcademicRoles = ["Mentor", "Mentorado"];
+
     [Theory]
     [InlineData("aprovar")]
     [InlineData("rejeitar")]
@@ -158,7 +160,7 @@ public sealed class CriticalUserApprovalTests(PostgreSqlContainerFixture databas
             Assert.Equal("Academico", user.GetProperty("tipoUsuario").GetString());
             Assert.Contains(
                 user.GetProperty("nivelUsuario").GetString(),
-                new[] { "Mentor", "Mentorado" });
+                AcademicRoles);
             Assert.DoesNotContain(
                 user.EnumerateObject().Select(property => property.Name),
                 property => SensitiveResponseFields.Contains(property, StringComparer.OrdinalIgnoreCase));

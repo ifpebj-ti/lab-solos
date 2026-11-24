@@ -97,6 +97,200 @@ const formatPesoMolecular = (value?: number | null) =>
     ? new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 }).format(value)
     : 'Não informado';
 
+const pageSettings: Record<UserType, { backRoute: string; title: string }> = {
+  admin: {
+    backRoute: '/admin/search-material',
+    title: 'Verificação - Administrador',
+  },
+  mentor: {
+    backRoute: '/mentor/search-material',
+    title: 'Verificação - Mentor',
+  },
+  mentee: {
+    backRoute: '/mentee/search-material',
+    title: 'Verificação - Mentorado',
+  },
+};
+
+function getClassification(product: IProduto) {
+  if (product.tipoProduto === 'Vidraria') {
+    return {
+      key: 'category',
+      title: 'Categoria',
+      value:
+        formatos.find((item) => item.value === product.formato)?.label ??
+        product.formato ??
+        '',
+    };
+  }
+
+  return {
+    key: 'group',
+    title: 'Grupo',
+    value: product.grupo?.toString() || 'N/A',
+  };
+}
+
+function itemInfo(product: IProduto, width: string): ProductInfo {
+  return { key: 'item', title: 'Item', value: product.nomeProduto, width };
+}
+
+function formulaInfo(product: IProduto, width: string): ProductInfo {
+  return {
+    key: 'formula',
+    title: 'Fórmula',
+    value: product.formulaQuimica,
+    width,
+  };
+}
+
+function molecularWeightInfo(product: IProduto): ProductInfo {
+  return {
+    key: 'molecular-weight',
+    title: 'Peso Molecular (g/mol)',
+    value: formatPesoMolecular(product.pesoMolecular),
+    width: '15%',
+  };
+}
+
+function statusInfo(product: IProduto, width: string): ProductInfo {
+  return {
+    key: 'status',
+    title: 'Situação',
+    value: product.status?.toString() || 'N/A',
+    width,
+  };
+}
+
+function getAdminProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  isGlassware: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '20%' : isChemical ? '25%' : '30%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '15%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+
+  result.push(
+    {
+      key: 'supplier',
+      title: isChemical ? 'Marca' : 'Fornecedor',
+      value: product.fornecedor,
+      width: showFormula ? '17%' : isChemical ? '20%' : '25%',
+    },
+    { ...classification, width: isChemical ? '13%' : '15%' },
+    statusInfo(product, showFormula ? '20%' : isChemical ? '27%' : '30%')
+  );
+
+  const height = product.altura;
+  if (isGlassware && height && height !== 'Indefinido') {
+    result.push({
+      key: 'height',
+      title: 'Altura',
+      value: grausPureza.find((item) => item.value === height)?.label ?? height,
+      width: '15%',
+    });
+  }
+  return result;
+}
+
+function getMentorProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '25%' : isChemical ? '35%' : '40%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '20%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+  result.push(
+    {
+      ...classification,
+      width: showFormula ? '20%' : isChemical ? '25%' : '30%',
+    },
+    statusInfo(product, showFormula ? '20%' : isChemical ? '25%' : '30%')
+  );
+  return result;
+}
+
+function getMenteeProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '30%' : isChemical ? '45%' : '50%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '25%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+  result.push({
+    ...classification,
+    width: showFormula ? '30%' : isChemical ? '40%' : '50%',
+  });
+  return result;
+}
+
+function getProductInfo(
+  product: IProduto | undefined,
+  userType: UserType
+): ProductInfo[] {
+  if (!product) return [];
+
+  const isChemical = product.tipoProduto === 'Quimico';
+  const isGlassware = product.tipoProduto === 'Vidraria';
+  const showFormula = isChemical && Boolean(product.formulaQuimica?.trim());
+  const classification = getClassification(product);
+
+  switch (userType) {
+    case 'admin':
+      return getAdminProductInfo(
+        product,
+        isChemical,
+        isGlassware,
+        showFormula,
+        classification
+      );
+    case 'mentor':
+      return getMentorProductInfo(
+        product,
+        isChemical,
+        showFormula,
+        classification
+      );
+    case 'mentee':
+      return getMenteeProductInfo(
+        product,
+        isChemical,
+        showFormula,
+        classification
+      );
+    default:
+      return [];
+  }
+}
+
+function shouldPromptProductSelection(
+  hasValidQueryId: boolean,
+  product: IProduto | undefined,
+  loadError: unknown | null
+): boolean {
+  return !hasValidQueryId || (!product && loadError === null);
+}
+
+function shouldShowProductLoadError(
+  product: IProduto | undefined,
+  loadError: unknown | null
+): boolean {
+  return loadError !== null && !product;
+}
+
 // Configuração do gráfico
 const chartConfig = {
   desktop: {
@@ -126,244 +320,11 @@ function VerificationPage({ userType }: VerificationProps) {
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [historyError, setHistoryError] = useState<unknown | null>(null);
 
-  // Configurações específicas por tipo de usuário
-  const getBackRoute = () => {
-    switch (userType) {
-      case 'admin':
-        return '/admin/search-material';
-      case 'mentor':
-        return '/mentor/search-material';
-      case 'mentee':
-        return '/mentee/search-material';
-      default:
-        return '/';
-    }
-  };
-
-  const getPageTitle = () => {
-    switch (userType) {
-      case 'admin':
-        return 'Verificação - Administrador';
-      case 'mentor':
-        return 'Verificação - Mentor';
-      case 'mentee':
-        return 'Verificação - Mentorado';
-      default:
-        return 'Verificação';
-    }
-  };
+  const { backRoute, title } = pageSettings[userType];
 
   // A API aplica o recorte permitido ao perfil autenticado.
   const showHistoricoDetalhado = true;
   const canEditProduct = userType === 'admin';
-
-  // Determina quais informações do produto mostrar baseado no tipo de usuário
-  const getProductInfo = (): ProductInfo[] => {
-    if (!productsById) return [];
-
-    // Verifica se deve mostrar fórmula (apenas para produtos químicos com valor)
-    const isChemical = productsById.tipoProduto === 'Quimico';
-    const isGlassware = productsById.tipoProduto === 'Vidraria';
-    const shouldShowFormula =
-      isChemical &&
-      productsById.formulaQuimica &&
-      productsById.formulaQuimica.trim() !== '';
-    const classification = isGlassware
-      ? {
-          key: 'category',
-          title: 'Categoria',
-          value:
-            formatos.find((item) => item.value === productsById.formato)
-              ?.label ?? productsById.formato ?? '',
-        }
-      : {
-          key: 'group',
-          title: 'Grupo',
-          value: productsById.grupo?.toString() || 'N/A',
-        };
-
-    switch (userType) {
-      case 'admin': {
-        // Admin vê todas as informações
-        const adminInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula
-              ? '20%'
-              : isChemical
-                ? '25%'
-                : '30%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          adminInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '15%',
-          });
-        }
-
-        if (isChemical) {
-          adminInfo.push({
-            key: 'molecular-weight',
-            title: 'Peso Molecular (g/mol)',
-            value: formatPesoMolecular(productsById.pesoMolecular),
-            width: '15%',
-          });
-        }
-
-        adminInfo.push(
-          {
-            key: 'supplier',
-            title: isChemical ? 'Marca' : 'Fornecedor',
-            value: productsById.fornecedor,
-            width: shouldShowFormula
-              ? '17%'
-              : isChemical
-                ? '20%'
-                : '25%',
-          },
-          {
-            ...classification,
-            width: isChemical ? '13%' : '15%',
-          },
-          {
-            key: 'status',
-            title: 'Situação',
-            value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula
-              ? '20%'
-              : isChemical
-                ? '27%'
-                : '30%',
-          }
-        );
-
-        const { altura } = productsById;
-        if (isGlassware && altura && altura !== 'Indefinido') {
-          adminInfo.push({
-            key: 'height',
-            title: 'Altura',
-            value:
-              grausPureza.find((item) => item.value === altura)?.label ??
-              altura,
-            width: '15%',
-          });
-        }
-
-        return adminInfo;
-      }
-
-      case 'mentor': {
-        // Mentor vê informações básicas (sem fornecedor)
-        const mentorInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula
-              ? '25%'
-              : isChemical
-                ? '35%'
-                : '40%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          mentorInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '20%',
-          });
-        }
-
-        if (isChemical) {
-          mentorInfo.push({
-            key: 'molecular-weight',
-            title: 'Peso Molecular (g/mol)',
-            value: formatPesoMolecular(productsById.pesoMolecular),
-            width: '15%',
-          });
-        }
-
-        mentorInfo.push(
-          {
-            ...classification,
-            width: shouldShowFormula
-              ? '20%'
-              : isChemical
-                ? '25%'
-                : '30%',
-          },
-          {
-            key: 'status',
-            title: 'Situação',
-            value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula
-              ? '20%'
-              : isChemical
-                ? '25%'
-                : '30%',
-          }
-        );
-
-        return mentorInfo;
-      }
-
-      case 'mentee': {
-        // Mentee vê apenas informações essenciais
-        const menteeInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula
-              ? '30%'
-              : isChemical
-                ? '45%'
-                : '50%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          menteeInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '25%',
-          });
-        }
-
-        if (isChemical) {
-          menteeInfo.push({
-            key: 'molecular-weight',
-            title: 'Peso Molecular (g/mol)',
-            value: formatPesoMolecular(productsById.pesoMolecular),
-            width: '15%',
-          });
-        }
-
-        menteeInfo.push({
-          ...classification,
-          width: shouldShowFormula
-            ? '30%'
-            : isChemical
-              ? '40%'
-              : '50%',
-        });
-
-        return menteeInfo;
-      }
-
-      default:
-        return [];
-    }
-  };
 
   useEffect(() => {
     if (!hasLegacyId || idResolution.id === null) return;
@@ -401,7 +362,9 @@ function VerificationPage({ userType }: VerificationProps) {
       setProductsById(productResponse);
 
       try {
-        const historicoResponse = await getProductHistoricoSaida({ id: idResolution.id });
+        const historicoResponse = await getProductHistoricoSaida({
+          id: idResolution.id,
+        });
         if (sequence !== requestSequence.current) return;
         setHistoricoData(historicoResponse);
         setFilteredHistorico(historicoResponse.historico);
@@ -417,10 +380,7 @@ function VerificationPage({ userType }: VerificationProps) {
     } finally {
       if (sequence === requestSequence.current) setIsLoading(false);
     }
-  }, [
-    hasValidQueryId,
-    idResolution.id,
-  ]);
+  }, [hasValidQueryId, idResolution.id]);
 
   useEffect(() => {
     void fetchData();
@@ -481,12 +441,12 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  if (!hasValidQueryId || (!productsById && loadError === null)) {
+  if (shouldPromptProductSelection(hasValidQueryId, productsById, loadError)) {
     return (
       <div className='flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-canvas p-6 text-clt-2'>
         <p>Selecione um registro para consultar</p>
         <Link
-          to={getBackRoute()}
+          to={backRoute}
           aria-label='Voltar'
           title='Voltar'
           className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
@@ -498,7 +458,7 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  if (loadError !== null && !productsById) {
+  if (shouldShowProductLoadError(productsById, loadError)) {
     return (
       <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
         <ErrorFeedback
@@ -507,7 +467,7 @@ function VerificationPage({ userType }: VerificationProps) {
           onRetry={fetchData}
         />
         <Link
-          to={getBackRoute()}
+          to={backRoute}
           aria-label='Voltar'
           title='Voltar'
           className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
@@ -553,7 +513,7 @@ function VerificationPage({ userType }: VerificationProps) {
   };
 
   const chartData = generateChartData();
-  const productInfo = getProductInfo();
+  const productInfo = getProductInfo(productsById, userType);
   const productInfoColumns: readonly ResponsiveColumn[] = productInfo.map(
     ({ key, title, width }) => ({
       key,
@@ -567,14 +527,14 @@ function VerificationPage({ userType }: VerificationProps) {
       <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center gap-4'>
           <Link
-            to={getBackRoute()}
+            to={backRoute}
             aria-label='Voltar'
             className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
           >
             <ArrowLeft className='w-5 h-5 text-clt-2' />
           </Link>
           <h1 className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
-            {getPageTitle()}
+            {title}
           </h1>
         </div>
         <OpenSearch />

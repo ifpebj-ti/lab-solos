@@ -52,6 +52,19 @@ public sealed record UserProfileUpdateResult(
 
 public sealed class UserProfileUpdateService
 {
+    private sealed record AuthorizedProfileUser(
+        Usuario? User,
+        UserProfileUpdateResult? Failure,
+        int CallerId,
+        bool HasCallerId,
+        bool IsAdministrator);
+
+    private sealed record PreparedProfilePatch(
+        UsuarioDTOPatchRequest? Request,
+        UserProfileUpdateResult? Failure,
+        string PreviousEmail,
+        bool EmailChanged);
+
     private const int MaximumPatchOperations = 10;
     private const string EmailConflictCode = "profile_update_conflict";
     private static readonly HashSet<string> PersistentPaths = new(StringComparer.Ordinal)
@@ -109,108 +122,21 @@ public sealed class UserProfileUpdateService
         await using var transaction = await _continuityGuard.BeginTransactionAsync(cancellationToken);
         try
         {
-            var isAdministrator = principal.IsInRole(NivelUsuario.Administrador.ToString());
-            var hasCallerId = TryGetCallerId(principal, out var callerId);
-            var idsToLock = isAdministrator && hasCallerId
-                ? new[] { userId, callerId }.Distinct().Order().ToArray()
-                : [userId];
-            foreach (var idToLock in idsToLock)
-            {
-                if (!await LockUserAsync(idToLock, transaction, cancellationToken))
-                {
-                    if (idToLock == userId)
-                        return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
-                    return await RollbackAsync(transaction, UserProfileUpdateResult.Forbidden(), cancellationToken);
-                }
-            }
+            var access = await LockAndLoadAuthorizedUserAsync(
+                userId, principal, transaction, cancellationToken);
+            if (access.Failure is not null)
+                return await RollbackAsync(transaction, access.Failure, cancellationToken);
 
-            var user = await _context.Usuarios.SingleOrDefaultAsync(
-                candidate => candidate.Id == userId,
-                cancellationToken);
-            if (user is null)
-            {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
-            }
+            var user = access.User!;
+            var prepared = PreparePatch(user, patch, access.IsAdministrator);
+            if (prepared.Failure is not null)
+                return await RollbackAsync(transaction, prepared.Failure, cancellationToken);
 
-            await _context.Entry(user).ReloadAsync(cancellationToken);
-
-            if (!isAdministrator && (!hasCallerId || callerId != user.Id))
-            {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
-            }
-
-            var patchValidation = ValidateOperations(patch, isAdministrator);
-            if (patchValidation is not null)
-            {
-                return await RollbackAsync(transaction, patchValidation, cancellationToken);
-            }
-
-            var patchRequest = _mapper.Map<UsuarioDTOPatchRequest>(user);
-            string? patchError = null;
-            patch.ApplyTo(patchRequest, error => patchError = error.ErrorMessage);
-            if (patchError is not null)
-            {
-                return await RollbackAsync(
-                    transaction,
-                    UserProfileUpdateResult.Invalid("patch", "invalid_patch", "O documento de alteração é inválido."),
-                    cancellationToken);
-            }
-
-            if (!string.IsNullOrWhiteSpace(patchRequest.Email))
-                patchRequest.Email = EmailAddressReservationService.Normalize(patchRequest.Email);
-
-            var validation = ValidatePatchedProfile(patchRequest);
-            if (validation is not null)
-            {
-                return await RollbackAsync(transaction, validation, cancellationToken);
-            }
-
-            var previousEmail = user.Email;
-            var emailChanged = !string.Equals(
-                EmailAddressReservationService.Normalize(previousEmail),
-                patchRequest.Email,
-                StringComparison.Ordinal);
-            if (!emailChanged)
-                patchRequest.Email = previousEmail;
-
-            var confirmer = hasCallerId
-                ? callerId == user.Id
-                    ? user
-                    : await _context.Usuarios.SingleOrDefaultAsync(
-                        candidate => candidate.Id == callerId,
-                        cancellationToken)
-                : null;
-            if (emailChanged && (confirmer is null || !HasCorrectCurrentPassword(confirmer, patchRequest.SenhaAtual)))
-            {
-                return await RollbackAsync(
-                    transaction,
-                    UserProfileUpdateResult.Invalid(
-                        "senhaAtual",
-                        "current_password_invalid",
-                        "Confirme a senha atual para alterar o e-mail."),
-                    cancellationToken);
-            }
-
-            if (emailChanged && (_throttleKeyFactory is null || _throttleKeyFactory.IsSynthetic))
-            {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.Unavailable(), cancellationToken);
-            }
-
-            if (emailChanged && (_emailAddressReservations is null || _auditoriaService is null))
-            {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.Unavailable(), cancellationToken);
-            }
-
-            if (emailChanged)
-            {
-                await _emailAddressReservations!.LockAddressAsync(patchRequest.Email!, cancellationToken);
-            }
-
-            if (emailChanged && await _emailAddressReservations!.IsUnavailableToAsync(
-                    patchRequest.Email!, user.Id, cancellationToken))
-            {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.Conflict(), cancellationToken);
-            }
+            var patchRequest = prepared.Request!;
+            var emailFailure = await ValidateEmailChangeAsync(
+                user, patchRequest, access, prepared.EmailChanged, cancellationToken);
+            if (emailFailure is not null)
+                return await RollbackAsync(transaction, emailFailure, cancellationToken);
 
             if (!await _continuityGuard.CanApplyAsync(user.Id, user.NivelUsuario,
                     Enum.Parse<StatusUsuario>(patchRequest.Status!), cancellationToken: cancellationToken))
@@ -219,37 +145,14 @@ public sealed class UserProfileUpdateService
                     new UserProfileUpdateResult(UserProfileUpdateStatus.ContinuityRequired), cancellationToken);
             }
 
-            if (emailChanged)
-            {
-                await _emailAddressReservations!.ReleaseReservationForOwnerAsync(
-                    patchRequest.Email!, user.Id, cancellationToken);
-            }
-
-            _mapper.Map(patchRequest, user);
-            if (emailChanged)
-            {
-                user.TokenRedefinicaoHash = null;
-                user.TokenExpiracao = null;
-
-                var now = _emailAddressReservations!.GetUtcNow();
-                var operationId = Guid.NewGuid();
-                await _emailAddressReservations!.ReserveFormerAddressAsync(
-                    previousEmail, user.Id, now, cancellationToken);
-                _emailAddressReservations.AddNoticeJobs(
-                    operationId, user.Id, previousEmail, patchRequest.Email!, now);
-                await _auditoriaService!.RegistrarEventoObrigatorioAsync(new CreateLogAuditoriaDTO
-                {
-                    CodigoEvento = CodigoEventoAuditoria.TrocaEmail,
-                    OrigemConfiavel = OrigemConfiavelAuditoria.UsuarioAutenticado,
-                    Resultado = ResultadoOperacaoAuditoria.Sucesso,
-                    UsuarioId = callerId,
-                    ReferenciaRecurso = $"usuario:{user.Id}",
-                    CorrelationId = operationId.ToString("N")
-                });
-
-                await CancelRecoveryJobsAsync(user.Id, previousEmail, transaction, cancellationToken);
-            }
-
+            await PersistPatchAsync(
+                user,
+                patchRequest,
+                prepared.PreviousEmail,
+                prepared.EmailChanged,
+                access.CallerId,
+                transaction,
+                cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return UserProfileUpdateResult.Updated(user);
@@ -279,6 +182,156 @@ public sealed class UserProfileUpdateService
             _context.ChangeTracker.Clear();
             return UserProfileUpdateResult.Unavailable();
         }
+    }
+
+    private async Task<AuthorizedProfileUser> LockAndLoadAuthorizedUserAsync(
+        int userId,
+        ClaimsPrincipal principal,
+        IDbContextTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        var isAdministrator = principal.IsInRole(NivelUsuario.Administrador.ToString());
+        var hasCallerId = TryGetCallerId(principal, out var callerId);
+        var idsToLock = isAdministrator && hasCallerId
+            ? new[] { userId, callerId }.Distinct().Order().ToArray()
+            : [userId];
+        foreach (var idToLock in idsToLock)
+        {
+            if (!await LockUserAsync(idToLock, transaction, cancellationToken))
+            {
+                var failure = idToLock == userId
+                    ? UserProfileUpdateResult.NotFound()
+                    : UserProfileUpdateResult.Forbidden();
+                return new(null, failure, callerId, hasCallerId, isAdministrator);
+            }
+        }
+
+        var user = await _context.Usuarios.SingleOrDefaultAsync(
+            candidate => candidate.Id == userId,
+            cancellationToken);
+        if (user is null)
+            return new(null, UserProfileUpdateResult.NotFound(), callerId, hasCallerId, isAdministrator);
+
+        await _context.Entry(user).ReloadAsync(cancellationToken);
+        if (!isAdministrator && (!hasCallerId || callerId != user.Id))
+            return new(null, UserProfileUpdateResult.NotFound(), callerId, hasCallerId, isAdministrator);
+
+        return new(user, null, callerId, hasCallerId, isAdministrator);
+    }
+
+    private PreparedProfilePatch PreparePatch(
+        Usuario user,
+        JsonPatchDocument<UsuarioDTOPatchRequest> patch,
+        bool isAdministrator)
+    {
+        var patchValidation = ValidateOperations(patch, isAdministrator);
+        if (patchValidation is not null)
+            return new(null, patchValidation, user.Email, false);
+
+        var patchRequest = _mapper.Map<UsuarioDTOPatchRequest>(user);
+        string? patchError = null;
+        patch.ApplyTo(patchRequest, error => patchError = error.ErrorMessage);
+        if (patchError is not null)
+        {
+            return new(null,
+                UserProfileUpdateResult.Invalid("patch", "invalid_patch", "O documento de alteração é inválido."),
+                user.Email,
+                false);
+        }
+
+        if (!string.IsNullOrWhiteSpace(patchRequest.Email))
+            patchRequest.Email = EmailAddressReservationService.Normalize(patchRequest.Email);
+
+        var validation = ValidatePatchedProfile(patchRequest);
+        if (validation is not null)
+            return new(null, validation, user.Email, false);
+
+        var previousEmail = user.Email;
+        var emailChanged = !string.Equals(
+            EmailAddressReservationService.Normalize(previousEmail),
+            patchRequest.Email,
+            StringComparison.Ordinal);
+        if (!emailChanged)
+            patchRequest.Email = previousEmail;
+
+        return new(patchRequest, null, previousEmail, emailChanged);
+    }
+
+    private async Task<UserProfileUpdateResult?> ValidateEmailChangeAsync(
+        Usuario user,
+        UsuarioDTOPatchRequest patchRequest,
+        AuthorizedProfileUser access,
+        bool emailChanged,
+        CancellationToken cancellationToken)
+    {
+        if (!emailChanged)
+            return null;
+
+        var confirmer = access.HasCallerId
+            ? access.CallerId == user.Id
+                ? user
+                : await _context.Usuarios.SingleOrDefaultAsync(
+                    candidate => candidate.Id == access.CallerId,
+                    cancellationToken)
+            : null;
+        if (confirmer is null || !HasCorrectCurrentPassword(confirmer, patchRequest.SenhaAtual))
+        {
+            return UserProfileUpdateResult.Invalid(
+                "senhaAtual",
+                "current_password_invalid",
+                "Confirme a senha atual para alterar o e-mail.");
+        }
+
+        if (_throttleKeyFactory is null || _throttleKeyFactory.IsSynthetic ||
+            _emailAddressReservations is null || _auditoriaService is null)
+            return UserProfileUpdateResult.Unavailable();
+
+        await _emailAddressReservations.LockAddressAsync(patchRequest.Email!, cancellationToken);
+        return await _emailAddressReservations.IsUnavailableToAsync(
+            patchRequest.Email!, user.Id, cancellationToken)
+            ? UserProfileUpdateResult.Conflict()
+            : null;
+    }
+
+    private async Task PersistPatchAsync(
+        Usuario user,
+        UsuarioDTOPatchRequest patchRequest,
+        string previousEmail,
+        bool emailChanged,
+        int callerId,
+        IDbContextTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        if (emailChanged)
+        {
+            await _emailAddressReservations!.ReleaseReservationForOwnerAsync(
+                patchRequest.Email!, user.Id, cancellationToken);
+        }
+
+        _mapper.Map(patchRequest, user);
+        if (!emailChanged)
+            return;
+
+        user.TokenRedefinicaoHash = null;
+        user.TokenExpiracao = null;
+
+        var now = _emailAddressReservations!.GetUtcNow();
+        var operationId = Guid.NewGuid();
+        await _emailAddressReservations.ReserveFormerAddressAsync(
+            previousEmail, user.Id, now, cancellationToken);
+        _emailAddressReservations.AddNoticeJobs(
+            operationId, user.Id, previousEmail, patchRequest.Email!, now);
+        await _auditoriaService!.RegistrarEventoObrigatorioAsync(new CreateLogAuditoriaDTO
+        {
+            CodigoEvento = CodigoEventoAuditoria.TrocaEmail,
+            OrigemConfiavel = OrigemConfiavelAuditoria.UsuarioAutenticado,
+            Resultado = ResultadoOperacaoAuditoria.Sucesso,
+            UsuarioId = callerId,
+            ReferenciaRecurso = $"usuario:{user.Id}",
+            CorrelationId = operationId.ToString("N")
+        });
+
+        await CancelRecoveryJobsAsync(user.Id, previousEmail, transaction, cancellationToken);
     }
 
     private static UserProfileUpdateResult? ValidateOperations(

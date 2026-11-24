@@ -99,7 +99,7 @@ namespace Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAllAsync_OmitsDeactivatedProductsFromActiveCatalog()
+        public async Task GetAllAsyncOmitsDeactivatedProductsFromActiveCatalog()
         {
             var context = ObterDbContextEmMemoria("BancoTeste_GetActiveCatalog");
             var repository = ObterProdutoRepositoryComLogger(context);

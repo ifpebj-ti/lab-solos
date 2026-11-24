@@ -39,9 +39,12 @@ public sealed class EmailAddressReservationService(
         CancellationToken cancellationToken = default)
     {
         var normalized = Normalize(address);
-        if (accountId is not null && await _context.Usuarios.AnyAsync(
-                user => user.Id != accountId && user.Email.Trim().ToLower() == normalized,
-                cancellationToken))
+        var normalizedPattern = EscapeLikePattern(normalized);
+        var existingAddresses = _context.Usuarios.Where(
+            user => EF.Functions.ILike(user.Email.Trim(), normalizedPattern, "\\"));
+        if (accountId is not null)
+            existingAddresses = existingAddresses.Where(user => user.Id != accountId.Value);
+        if (await existingAddresses.AnyAsync(cancellationToken))
         {
             return true;
         }
@@ -61,6 +64,11 @@ public sealed class EmailAddressReservationService(
             CryptographicOperations.ZeroMemory(hash);
         }
     }
+
+    private static string EscapeLikePattern(string value) => value
+        .Replace("\\", "\\\\", StringComparison.Ordinal)
+        .Replace("%", "\\%", StringComparison.Ordinal)
+        .Replace("_", "\\_", StringComparison.Ordinal);
 
     /// <summary>
     /// Serializes assignment and reservation checks for a normalized address across

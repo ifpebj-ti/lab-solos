@@ -327,7 +327,9 @@ public sealed class LoanDecisionPersistenceTests(PostgreSqlContainerFixture data
             "SELECT COUNT(*) FROM \"MovimentacoesEstoque\" WHERE \"EmprestimoId\" = @loanId",
             connection);
         command.Parameters.AddWithValue("loanId", loanId);
-        return Convert.ToInt32(await command.ExecuteScalarAsync());
+        return Convert.ToInt32(
+            await command.ExecuteScalarAsync(),
+            System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static async Task<LoanState> ReadLoanStateAsync(

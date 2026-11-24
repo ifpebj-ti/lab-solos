@@ -8,6 +8,8 @@ namespace Tests.Services;
 public sealed class LoteValidationTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly int[] ZeroProductIds = [0];
+    private static readonly int[] DuplicateProductIds = [10, 10];
     private readonly LoteService _service = new(NullLogger<LoteService>.Instance);
 
     [Theory]
@@ -71,8 +73,8 @@ public sealed class LoteValidationTests
             {
                 "missing" => null,
                 "empty" => Array.Empty<int>(),
-                "zero" => new[] { 0 },
-                _ => new[] { 10, 10 }
+                "zero" => ZeroProductIds,
+                _ => DuplicateProductIds
             };
         });
 

@@ -7,12 +7,14 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class OperationAdmissionCapacity : Migration
     {
+        private static readonly string[] CapacityColumns = ["Scope", "Allocated"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
                 table: "AuthenticationProtectionCapacity",
-                columns: new[] { "Scope", "Allocated" },
+                columns: CapacityColumns,
                 values: new object[,]
                 {
                     { "public-registration:ip", 0 },

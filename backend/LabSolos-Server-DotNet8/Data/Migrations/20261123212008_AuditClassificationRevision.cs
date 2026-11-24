@@ -9,6 +9,8 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class AuditClassificationRevision : Migration
     {
+        private static readonly string[] RevisionIndexColumns = ["LogAuditoriaId", "NumeroRevisao"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -50,7 +52,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "UX_AuditClassificationRevisions_Log_Revision",
                 table: "AuditClassificationRevisions",
-                columns: new[] { "LogAuditoriaId", "NumeroRevisao" },
+                columns: RevisionIndexColumns,
                 unique: true);
 
             migrationBuilder.Sql("""

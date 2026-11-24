@@ -59,31 +59,33 @@ function isValidEpochTimestamp(value: number | undefined): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-export function correlateCdpCacheSourcesByTime(
-  captures: TimedCdpCacheCapture[],
-  observations: TimedCdpCacheObservation[]
-): TimedCdpCacheCorrelation {
-  const capturesByKey = new Map<string, number[]>();
-  captures.forEach((capture, index) => {
-    const indices = capturesByKey.get(capture.correlationKey) ?? [];
-    indices.push(index);
-    capturesByKey.set(capture.correlationKey, indices);
-  });
-  const observationsByKey = new Map<string, number[]>();
-  observations.forEach((observation, index) => {
-    const indices = observationsByKey.get(observation.correlationKey) ?? [];
-    indices.push(index);
-    observationsByKey.set(observation.correlationKey, indices);
-  });
+type CorrelationEntry = { correlationKey: string };
 
-  const calibrationDeltas: number[] = [];
-  for (const [key, captureIndices] of capturesByKey) {
-    const observationIndices = observationsByKey.get(key) ?? [];
-    if (captureIndices.length !== 1 || observationIndices.length !== 1) {
-      continue;
-    }
-    const capture = captures[captureIndices[0]];
-    const observation = observations[observationIndices[0]];
+function indexByCorrelationKey<T extends CorrelationEntry>(
+  entries: readonly T[]
+): Map<string, number[]> {
+  const indexes = new Map<string, number[]>();
+  entries.forEach((entry, index) => {
+    const matchingIndexes = indexes.get(entry.correlationKey) ?? [];
+    matchingIndexes.push(index);
+    indexes.set(entry.correlationKey, matchingIndexes);
+  });
+  return indexes;
+}
+
+function getCalibrationDeltas(
+  captures: readonly TimedCdpCacheCapture[],
+  observations: readonly TimedCdpCacheObservation[],
+  capturesByKey: ReadonlyMap<string, number[]>,
+  observationsByKey: ReadonlyMap<string, number[]>
+): number[] {
+  const deltas: number[] = [];
+  for (const [key, captureIndexes] of capturesByKey) {
+    const observationIndexes = observationsByKey.get(key) ?? [];
+    if (captureIndexes.length !== 1 || observationIndexes.length !== 1) continue;
+
+    const capture = captures[captureIndexes[0]];
+    const observation = observations[observationIndexes[0]];
     if (
       capture.redirected ||
       observation.redirected ||
@@ -92,19 +94,28 @@ export function correlateCdpCacheSourcesByTime(
     ) {
       continue;
     }
-    calibrationDeltas.push(observation.wallTimeMs - capture.startTimeMs);
+    deltas.push(observation.wallTimeMs - capture.startTimeMs);
   }
+  return deltas;
+}
 
+function medianOfSorted(values: readonly number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  const midpoint = Math.floor(values.length / 2);
+  return values.length % 2 === 0
+    ? (values[midpoint - 1] + values[midpoint]) / 2
+    : values[midpoint];
+}
+
+function createTimingSummary(calibrationDeltas: readonly number[]): {
+  deltaSummary: CdpTimingDeltaSummary;
+  medianDeltaMs?: number;
+  toleranceMs?: number;
+} {
   const sortedDeltas = [...calibrationDeltas].sort(
     (left, right) => left - right
   );
-  const midpoint = Math.floor(sortedDeltas.length / 2);
-  const medianDeltaMs =
-    sortedDeltas.length === 0
-      ? undefined
-      : sortedDeltas.length % 2 === 0
-        ? (sortedDeltas[midpoint - 1] + sortedDeltas[midpoint]) / 2
-        : sortedDeltas[midpoint];
+  const medianDeltaMs = medianOfSorted(sortedDeltas);
   const observedToleranceMs =
     calibrationDeltas.length >= 3 && medianDeltaMs !== undefined
       ? Math.max(
@@ -116,92 +127,177 @@ export function correlateCdpCacheSourcesByTime(
     observedToleranceMs <= MAX_CDP_TIMING_TOLERANCE_MS + 1e-9
       ? Math.min(observedToleranceMs, MAX_CDP_TIMING_TOLERANCE_MS)
       : undefined;
-  const deltaSummary: CdpTimingDeltaSummary = {
-    calibrationPairs: calibrationDeltas.length,
-    ...(sortedDeltas.length > 0
-      ? {
-          minimumDeltaMs: sortedDeltas[0],
-          medianDeltaMs,
-          maximumDeltaMs: sortedDeltas[sortedDeltas.length - 1],
-        }
-      : {}),
-    ...(toleranceMs !== undefined ? { toleranceMs } : {}),
-  };
 
-  const candidateObservationsByCapture = captures.map((): number[] => []);
-  const candidateCaptureCounts = observations.map(() => 0);
-  if (toleranceMs !== undefined && medianDeltaMs !== undefined) {
-    for (const [key, captureIndices] of capturesByKey) {
-      const observationIndices = observationsByKey.get(key) ?? [];
-      if (observationIndices.length === 0) continue;
-
-      const invalidCapture = captureIndices.some((index) => {
-        const capture = captures[index];
-        return (
-          capture.redirected || !isValidEpochTimestamp(capture.startTimeMs)
-        );
-      });
-      const invalidObservation = observationIndices.some((index) => {
-        const observation = observations[index];
-        return (
-          observation.redirected ||
-          !isValidEpochTimestamp(observation.wallTimeMs)
-        );
-      });
-      if (invalidCapture || invalidObservation) continue;
-
-      for (const captureIndex of captureIndices) {
-        const capture = captures[captureIndex];
-        const startTimeMs = capture.startTimeMs;
-        if (!isValidEpochTimestamp(startTimeMs)) continue;
-        for (const observationIndex of observationIndices) {
-          const observation = observations[observationIndex];
-          const wallTimeMs = observation.wallTimeMs;
-          if (!isValidEpochTimestamp(wallTimeMs)) continue;
-          const delta = wallTimeMs - startTimeMs;
-          if (Math.abs(delta - medianDeltaMs) <= toleranceMs) {
-            candidateObservationsByCapture[captureIndex].push(observationIndex);
-            candidateCaptureCounts[observationIndex] += 1;
+  return {
+    deltaSummary: {
+      calibrationPairs: calibrationDeltas.length,
+      ...(sortedDeltas.length > 0
+        ? {
+            minimumDeltaMs: sortedDeltas[0],
+            medianDeltaMs,
+            maximumDeltaMs: sortedDeltas[sortedDeltas.length - 1],
           }
-        }
+        : {}),
+      ...(toleranceMs !== undefined ? { toleranceMs } : {}),
+    },
+    medianDeltaMs,
+    toleranceMs,
+  };
+}
+
+function hasValidCaptureGroup(
+  captures: readonly TimedCdpCacheCapture[],
+  captureIndexes: readonly number[]
+): boolean {
+  return captureIndexes.every((index) => {
+    const capture = captures[index];
+    return !capture.redirected && isValidEpochTimestamp(capture.startTimeMs);
+  });
+}
+
+function hasValidObservationGroup(
+  observations: readonly TimedCdpCacheObservation[],
+  observationIndexes: readonly number[]
+): boolean {
+  return observationIndexes.every((index) => {
+    const observation = observations[index];
+    return !observation.redirected && isValidEpochTimestamp(observation.wallTimeMs);
+  });
+}
+
+function addTimedCandidatePairs(
+  captureIndexes: readonly number[],
+  observationIndexes: readonly number[],
+  captures: readonly TimedCdpCacheCapture[],
+  observations: readonly TimedCdpCacheObservation[],
+  medianDeltaMs: number,
+  toleranceMs: number,
+  candidateObservationsByCapture: number[][],
+  candidateCaptureCounts: number[]
+): void {
+  for (const captureIndex of captureIndexes) {
+    const startTimeMs = captures[captureIndex].startTimeMs;
+    if (!isValidEpochTimestamp(startTimeMs)) continue;
+
+    for (const observationIndex of observationIndexes) {
+      const wallTimeMs = observations[observationIndex].wallTimeMs;
+      if (!isValidEpochTimestamp(wallTimeMs)) continue;
+      if (Math.abs(wallTimeMs - startTimeMs - medianDeltaMs) > toleranceMs) {
+        continue;
       }
+
+      candidateObservationsByCapture[captureIndex].push(observationIndex);
+      candidateCaptureCounts[observationIndex] += 1;
     }
   }
+}
 
-  const matchedObservationIndices: Array<number | undefined> = captures.map(
-    () => undefined
+function collectTimedCandidatePairs(
+  captures: readonly TimedCdpCacheCapture[],
+  observations: readonly TimedCdpCacheObservation[],
+  capturesByKey: ReadonlyMap<string, number[]>,
+  observationsByKey: ReadonlyMap<string, number[]>,
+  medianDeltaMs: number | undefined,
+  toleranceMs: number | undefined
+): { candidateObservationsByCapture: number[][]; candidateCaptureCounts: number[] } {
+  const candidateObservationsByCapture = captures.map((): number[] => []);
+  const candidateCaptureCounts = observations.map(() => 0);
+  if (medianDeltaMs === undefined || toleranceMs === undefined) {
+    return { candidateObservationsByCapture, candidateCaptureCounts };
+  }
+
+  for (const [key, captureIndexes] of capturesByKey) {
+    const observationIndexes = observationsByKey.get(key) ?? [];
+    if (observationIndexes.length === 0) continue;
+    if (!hasValidCaptureGroup(captures, captureIndexes)) continue;
+    if (!hasValidObservationGroup(observations, observationIndexes)) continue;
+
+    addTimedCandidatePairs(
+      captureIndexes,
+      observationIndexes,
+      captures,
+      observations,
+      medianDeltaMs,
+      toleranceMs,
+      candidateObservationsByCapture,
+      candidateCaptureCounts
+    );
+  }
+  return { candidateObservationsByCapture, candidateCaptureCounts };
+}
+
+function classifyTimedCapture(
+  capture: TimedCdpCacheCapture,
+  captureIndex: number,
+  observations: readonly TimedCdpCacheObservation[],
+  observationsByKey: ReadonlyMap<string, number[]>,
+  candidateObservationsByCapture: readonly number[][],
+  candidateCaptureCounts: readonly number[],
+  toleranceMs: number | undefined
+): { source: CdpCacheSource; matchedObservationIndex?: number } {
+  const observationIndexes = observationsByKey.get(capture.correlationKey) ?? [];
+  if (observationIndexes.length === 0) return { source: 'metadata_missing' };
+  if (
+    capture.redirected ||
+    !isValidEpochTimestamp(capture.startTimeMs) ||
+    !hasValidObservationGroup(observations, observationIndexes) ||
+    toleranceMs === undefined
+  ) {
+    return { source: 'ambiguous' };
+  }
+
+  const candidates = candidateObservationsByCapture[captureIndex];
+  if (
+    candidates.length !== 1 ||
+    candidateCaptureCounts[candidates[0]] !== 1
+  ) {
+    return { source: 'ambiguous' };
+  }
+  return {
+    source: observations[candidates[0]].source,
+    matchedObservationIndex: candidates[0],
+  };
+}
+
+export function correlateCdpCacheSourcesByTime(
+  captures: TimedCdpCacheCapture[],
+  observations: TimedCdpCacheObservation[]
+): TimedCdpCacheCorrelation {
+  const capturesByKey = indexByCorrelationKey(captures);
+  const observationsByKey = indexByCorrelationKey(observations);
+  const calibrationDeltas = getCalibrationDeltas(
+    captures,
+    observations,
+    capturesByKey,
+    observationsByKey
   );
+  const timing = createTimingSummary(calibrationDeltas);
+  const candidates = collectTimedCandidatePairs(
+    captures,
+    observations,
+    capturesByKey,
+    observationsByKey,
+    timing.medianDeltaMs,
+    timing.toleranceMs
+  );
+  const matchedObservationIndices: Array<number | undefined> = [];
   const sources = captures.map((capture, captureIndex) => {
-    const observationIndices =
-      observationsByKey.get(capture.correlationKey) ?? [];
-    if (observationIndices.length === 0) return 'metadata_missing';
-    if (
-      !isValidEpochTimestamp(capture.startTimeMs) ||
-      capture.redirected ||
-      observationIndices.some((index) => {
-        const observation = observations[index];
-        return (
-          observation.redirected ||
-          !isValidEpochTimestamp(observation.wallTimeMs)
-        );
-      }) ||
-      toleranceMs === undefined
-    ) {
-      return 'ambiguous';
-    }
-    const candidates = candidateObservationsByCapture[captureIndex];
-    if (
-      candidates.length !== 1 ||
-      candidateCaptureCounts[candidates[0]] !== 1
-    ) {
-      return 'ambiguous';
-    }
-    matchedObservationIndices[captureIndex] = candidates[0];
-    return observations[candidates[0]].source;
+    const classification = classifyTimedCapture(
+      capture,
+      captureIndex,
+      observations,
+      observationsByKey,
+      candidates.candidateObservationsByCapture,
+      candidates.candidateCaptureCounts,
+      timing.toleranceMs
+    );
+    matchedObservationIndices[captureIndex] =
+      classification.matchedObservationIndex;
+    return classification.source;
   });
 
   return {
-    deltaSummary,
+    deltaSummary: timing.deltaSummary,
     sources,
     matchedObservationIndices,
   };
@@ -342,43 +438,63 @@ export function recordCdpExtraInfo(
     (hop) => !hop.observed && hop.expected !== false
   );
   if (candidates.length === 1) {
-    const hop = candidates[0];
-    hop.observed = true;
-    if (!hop.contradictory && statusCode !== undefined) {
-      hop.responseStatusCode = statusCode;
-    }
-    const countNetwork304 = statusCode === 304 && !hop.network304Counted;
-    if (statusCode === 304) hop.network304Counted = true;
-    return {
-      inScope: hop.inScope,
-      redirected: hop.redirected,
-      ambiguous: hop.contradictory,
-      known: true,
-      countNetwork304,
-    };
+    return associateUniqueExtraInfo(candidates[0], statusCode);
   }
 
+  return associateAmbiguousExtraInfo(tracker, requestId, hops, candidates, statusCode);
+}
+
+function associateUniqueExtraInfo(
+  hop: CdpExtraInfoHop,
+  statusCode: number | undefined
+): CdpExtraInfoAssociation {
+  hop.observed = true;
+  if (!hop.contradictory && statusCode !== undefined) {
+    hop.responseStatusCode = statusCode;
+  }
+  const countNetwork304 = statusCode === 304 && !hop.network304Counted;
+  if (statusCode === 304) hop.network304Counted = true;
+  return {
+    inScope: hop.inScope,
+    redirected: hop.redirected,
+    ambiguous: hop.contradictory,
+    known: true,
+    countNetwork304,
+  };
+}
+
+function associateAmbiguousExtraInfo(
+  tracker: CdpExtraInfoTracker,
+  requestId: string,
+  hops: readonly CdpExtraInfoHop[],
+  candidates: readonly CdpExtraInfoHop[],
+  statusCode: number | undefined
+): CdpExtraInfoAssociation {
   const localCandidate = candidates.some((hop) => hop.inScope);
   const activeHop = tracker.activeHopByRequestId.get(requestId);
   const localActive = activeHop?.inScope === true;
   const known = hops.length > 0;
   const localRelated = localCandidate || localActive;
   const falseExpectationContradicted = activeHop?.expected === false;
-  if (candidates.length > 1) tracker.ambiguousExtraInfoEvents += 1;
-  else if (falseExpectationContradicted) {
-    tracker.unexpectedExpectedFalseExtraInfoEvents += 1;
-    activeHop.observed = true;
-    activeHop.unexpectedExpectedFalseCounted = true;
-  } else if (localRelated || !known) {
-    tracker.unmatchedExtraInfoEvents += 1;
+
+  recordAmbiguousExtraInfoEvent(
+    tracker,
+    candidates,
+    activeHop,
+    falseExpectationContradicted,
+    localRelated,
+    known
+  );
+  candidates.forEach((candidate) => {
+    candidate.contradictory = true;
+  });
+  if (falseExpectationContradicted && activeHop) {
+    activeHop.contradictory = true;
   }
-  for (const candidate of candidates) candidate.contradictory = true;
-  if (falseExpectationContradicted) activeHop.contradictory = true;
   if (candidates.length === 0 && localRelated && activeHop) {
     activeHop.contradictory = true;
   }
-  const alreadyCounted =
-    candidates.some((hop) => hop.network304Counted) ||
+  const alreadyCounted = candidates.some((hop) => hop.network304Counted) ||
     activeHop?.network304Counted === true;
   if (statusCode === 304 && activeHop) activeHop.network304Counted = true;
   return {
@@ -390,6 +506,24 @@ export function recordCdpExtraInfo(
     known,
     countNetwork304: statusCode === 304 && !alreadyCounted,
   };
+}
+
+function recordAmbiguousExtraInfoEvent(
+  tracker: CdpExtraInfoTracker,
+  candidates: readonly CdpExtraInfoHop[],
+  activeHop: CdpExtraInfoHop | undefined,
+  falseExpectationContradicted: boolean,
+  localRelated: boolean,
+  known: boolean
+): void {
+  if (candidates.length > 1) tracker.ambiguousExtraInfoEvents += 1;
+  else if (falseExpectationContradicted && activeHop) {
+    tracker.unexpectedExpectedFalseExtraInfoEvents += 1;
+    activeHop.observed = true;
+    activeHop.unexpectedExpectedFalseCounted = true;
+  } else if (localRelated || !known) {
+    tracker.unmatchedExtraInfoEvents += 1;
+  }
 }
 
 export function recordCdpResponseStatus(
@@ -634,6 +768,102 @@ export type BodylessCacheCandidateSidecarEntry = {
   loading_finished: boolean;
 };
 
+function registerSidecarCandidateIndexes(
+  candidate: BodylessCacheCandidateSidecarInput,
+  retainedEntryCount: number,
+  originalEntryIndexes: Set<number>,
+  harEntryIndexes: Set<number>
+): void {
+  if (
+    !Number.isSafeInteger(candidate.originalEntryIndex) ||
+    candidate.originalEntryIndex < 0 ||
+    originalEntryIndexes.has(candidate.originalEntryIndex)
+  ) {
+    throw new Error('candidate original_entry_index values must be unique');
+  }
+  originalEntryIndexes.add(candidate.originalEntryIndex);
+
+  if (candidate.bodyUnavailable !== true) {
+    throw new Error('sidecar candidates must have an unavailable body');
+  }
+  if (
+    !Number.isSafeInteger(candidate.responseStatus) ||
+    candidate.responseStatus < 100 ||
+    candidate.responseStatus > 599 ||
+    (candidate.skipped && candidate.responseStatus === 304)
+  ) {
+    throw new Error('sidecar response status is invalid');
+  }
+  if (candidate.skipped) {
+    if (candidate.harEntryIndex !== null) {
+      throw new Error('skipped entries must not have a HAR index');
+    }
+    return;
+  }
+
+  if (candidate.harEntryIndex === null) {
+    throw new Error('retained entries must have a HAR index');
+  }
+  if (
+    !Number.isSafeInteger(candidate.harEntryIndex) ||
+    candidate.harEntryIndex < 0 ||
+    candidate.harEntryIndex >= retainedEntryCount
+  ) {
+    throw new Error('HAR index must point inside the retained HAR');
+  }
+  if (harEntryIndexes.has(candidate.harEntryIndex)) {
+    throw new Error('candidate HAR indexes must be unique');
+  }
+  harEntryIndexes.add(candidate.harEntryIndex);
+}
+
+function getSidecarStartedAt(wallTimeMs: number | undefined): string | null {
+  if (
+    typeof wallTimeMs !== 'number' ||
+    !Number.isFinite(wallTimeMs) ||
+    wallTimeMs <= 0
+  ) {
+    return null;
+  }
+  const date = new Date(wallTimeMs);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function getSidecarResourceType(resourceType: CdpResourceType): CdpResourceType {
+  const counts = summarizeCdpResourceTypes([resourceType]);
+  return (Object.keys(counts) as CdpResourceType[])[0] ?? 'unknown';
+}
+
+function getSidecarResponseExtraInfo(
+  status: number | undefined
+): BodylessCacheCandidateSidecarEntry['response_extra_info'] {
+  if (status === undefined) return 'absent';
+  return status === 304 ? 'status304' : 'otherStatus';
+}
+
+function projectSidecarCandidate(
+  candidate: BodylessCacheCandidateSidecarInput
+): BodylessCacheCandidateSidecarEntry {
+  return {
+    original_entry_index: candidate.originalEntryIndex,
+    har_entry_index: candidate.skipped ? null : candidate.harEntryIndex,
+    method: candidate.method,
+    url: candidate.url,
+    response_status: candidate.responseStatus,
+    started_at: getSidecarStartedAt(candidate.wallTimeMs),
+    cache_source: candidate.cacheSource,
+    body_unavailable: candidate.bodyUnavailable,
+    skipped: candidate.skipped,
+    cache_event_observed: candidate.cacheEventObserved,
+    has_extra_info: candidate.hasExtraInfo ?? null,
+    response_extra_info: getSidecarResponseExtraInfo(
+      candidate.responseExtraInfoStatus
+    ),
+    resource_type: getSidecarResourceType(candidate.resourceType),
+    loading_finished: candidate.loadingFinished,
+  };
+}
+
 export function projectBodylessCacheCandidateSidecar(
   candidates: readonly BodylessCacheCandidateSidecarInput[],
   retainedEntryCount: number
@@ -646,85 +876,13 @@ export function projectBodylessCacheCandidateSidecar(
   const harEntryIndexes = new Set<number>();
 
   return candidates.map((candidate) => {
-    if (
-      !Number.isSafeInteger(candidate.originalEntryIndex) ||
-      candidate.originalEntryIndex < 0 ||
-      originalEntryIndexes.has(candidate.originalEntryIndex)
-    ) {
-      throw new Error('candidate original_entry_index values must be unique');
-    }
-    originalEntryIndexes.add(candidate.originalEntryIndex);
-
-    if (candidate.bodyUnavailable !== true) {
-      throw new Error('sidecar candidates must have an unavailable body');
-    }
-    if (
-      !Number.isSafeInteger(candidate.responseStatus) ||
-      candidate.responseStatus < 100 ||
-      candidate.responseStatus > 599 ||
-      (candidate.skipped && candidate.responseStatus === 304)
-    ) {
-      throw new Error('sidecar response status is invalid');
-    }
-    if (candidate.skipped) {
-      if (candidate.harEntryIndex !== null) {
-        throw new Error('skipped entries must not have a HAR index');
-      }
-    } else {
-      if (candidate.harEntryIndex === null) {
-        throw new Error('retained entries must have a HAR index');
-      }
-      if (
-        !Number.isSafeInteger(candidate.harEntryIndex) ||
-        candidate.harEntryIndex < 0 ||
-        candidate.harEntryIndex >= retainedEntryCount
-      ) {
-        throw new Error('HAR index must point inside the retained HAR');
-      }
-      if (harEntryIndexes.has(candidate.harEntryIndex)) {
-        throw new Error('candidate HAR indexes must be unique');
-      }
-      harEntryIndexes.add(candidate.harEntryIndex);
-    }
-
-    let startedAt: string | null = null;
-    if (
-      typeof candidate.wallTimeMs === 'number' &&
-      Number.isFinite(candidate.wallTimeMs) &&
-      candidate.wallTimeMs > 0
-    ) {
-      const date = new Date(candidate.wallTimeMs);
-      if (Number.isFinite(date.getTime())) startedAt = date.toISOString();
-    }
-
-    const resourceTypeCounts = summarizeCdpResourceTypes([
-      candidate.resourceType,
-    ]);
-    const resourceType =
-      (Object.keys(resourceTypeCounts) as CdpResourceType[])[0] ?? 'unknown';
-    const responseExtraInfo =
-      candidate.responseExtraInfoStatus === undefined
-        ? 'absent'
-        : candidate.responseExtraInfoStatus === 304
-          ? 'status304'
-          : 'otherStatus';
-
-    return {
-      original_entry_index: candidate.originalEntryIndex,
-      har_entry_index: candidate.skipped ? null : candidate.harEntryIndex,
-      method: candidate.method,
-      url: candidate.url,
-      response_status: candidate.responseStatus,
-      started_at: startedAt,
-      cache_source: candidate.cacheSource,
-      body_unavailable: candidate.bodyUnavailable,
-      skipped: candidate.skipped,
-      cache_event_observed: candidate.cacheEventObserved,
-      has_extra_info: candidate.hasExtraInfo ?? null,
-      response_extra_info: responseExtraInfo,
-      resource_type: resourceType,
-      loading_finished: candidate.loadingFinished,
-    };
+    registerSidecarCandidateIndexes(
+      candidate,
+      retainedEntryCount,
+      originalEntryIndexes,
+      harEntryIndexes
+    );
+    return projectSidecarCandidate(candidate);
   });
 }
 
@@ -769,16 +927,17 @@ export function createCdpActivitySignal(): CdpActivitySignal {
   };
 }
 
-export async function drainCdpCaptureEvents(
-  getState: CdpCaptureDrainState,
-  activity: CdpActivitySignal,
-  options: {
-    quietWindowMs?: number;
-    maxWaitMs?: number;
-    deadlineAtMs?: number;
-    allowPendingExtraInfo?: boolean;
-  } = {}
-): Promise<boolean> {
+type CdpCaptureDrainOptions = {
+  quietWindowMs?: number;
+  maxWaitMs?: number;
+  deadlineAtMs?: number;
+  allowPendingExtraInfo?: boolean;
+};
+
+function resolveDrainTiming(
+  options: CdpCaptureDrainOptions,
+  now: () => number
+): { quietWindowMs: number; deadline: number } | null {
   const quietWindowMs = options.quietWindowMs ?? 250;
   const maxWaitMs = options.maxWaitMs ?? 2_000;
   if (
@@ -787,44 +946,61 @@ export async function drainCdpCaptureEvents(
     !Number.isFinite(maxWaitMs) ||
     maxWaitMs < quietWindowMs
   ) {
-    return false;
+    return null;
   }
 
-  const now = () => performance.now();
   const deadline = options.deadlineAtMs ?? now() + maxWaitMs;
-  if (!Number.isFinite(deadline) || deadline <= now()) return false;
+  return Number.isFinite(deadline) && deadline > now()
+    ? { quietWindowMs, deadline }
+    : null;
+}
+
+function hasValidCaptureDrainState(state: CdpCaptureDrainState): boolean {
+  const counts = [
+    state.inFlightRequests,
+    state.pendingOperations,
+    state.pendingContinuations,
+    state.pendingExtraInfo,
+  ];
+  return state.reliable && counts.every((count) => Number.isSafeInteger(count) && count >= 0);
+}
+
+function hasPendingCaptureWork(
+  state: CdpCaptureDrainState,
+  allowPendingExtraInfo: boolean
+): boolean {
+  return (
+    state.inFlightRequests > 0 ||
+    state.pendingOperations > 0 ||
+    state.pendingContinuations > 0 ||
+    (state.pendingExtraInfo > 0 && !allowPendingExtraInfo)
+  );
+}
+
+export async function drainCdpCaptureEvents(
+  getState: CdpCaptureDrainState,
+  activity: CdpActivitySignal,
+  options: CdpCaptureDrainOptions = {}
+): Promise<boolean> {
+  const now = () => performance.now();
+  const timing = resolveDrainTiming(options, now);
+  if (!timing) return false;
+
   let observedVersion = activity.getVersion();
   let quietSince = now();
   while (true) {
     const currentTime = now();
-    if (currentTime >= deadline) return false;
+    if (currentTime >= timing.deadline) return false;
     const state = getState();
-    if (
-      !state.reliable ||
-      !Number.isSafeInteger(state.inFlightRequests) ||
-      state.inFlightRequests < 0 ||
-      !Number.isSafeInteger(state.pendingOperations) ||
-      state.pendingOperations < 0 ||
-      !Number.isSafeInteger(state.pendingContinuations) ||
-      state.pendingContinuations < 0 ||
-      !Number.isSafeInteger(state.pendingExtraInfo) ||
-      state.pendingExtraInfo < 0
-    ) {
-      return false;
-    }
-    if (
-      state.inFlightRequests > 0 ||
-      state.pendingOperations > 0 ||
-      state.pendingContinuations > 0 ||
-      (state.pendingExtraInfo > 0 && !options.allowPendingExtraInfo)
-    ) {
+    if (!hasValidCaptureDrainState(state)) return false;
+    if (hasPendingCaptureWork(state, options.allowPendingExtraInfo ?? false)) {
       quietSince = currentTime;
-    } else if (currentTime - quietSince >= quietWindowMs) {
+    } else if (currentTime - quietSince >= timing.quietWindowMs) {
       return true;
     }
 
-    const quietRemaining = quietWindowMs - (currentTime - quietSince);
-    const timeRemaining = deadline - currentTime;
+    const quietRemaining = timing.quietWindowMs - (currentTime - quietSince);
+    const timeRemaining = timing.deadline - currentTime;
     await activity.waitForChange(
       observedVersion,
       Math.min(Math.max(quietRemaining, 1), timeRemaining)

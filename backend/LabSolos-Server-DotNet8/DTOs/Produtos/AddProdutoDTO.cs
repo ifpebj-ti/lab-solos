@@ -4,8 +4,11 @@ using LabSolos_Server_DotNet8.Enums;
 
 namespace LabSolos_Server_DotNet8.DTOs.Produtos
 {
-    public class AddProdutoDTO : IValidatableObject
+    public partial class AddProdutoDTO : IValidatableObject
     {
+        [GeneratedRegex(@"\A[A-Za-z0-9₀-₉()\-+,. ]+\z")]
+        private static partial Regex FormulaQuimicaPermitidaPattern();
+
         public required string NomeProduto { get; set; }
         public required string Tipo { get; set; } // Enum
         public required float Quantidade { get; set; }
@@ -38,7 +41,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
 
             if (ehQuimico
                 && FormulaQuimica is { Length: > 0 } formula
-                && (formula.Length > 50 || !Regex.IsMatch(formula, @"\A[A-Za-z0-9₀-₉()\-+,. ]+\z")))
+                && (formula.Length > 50 || !FormulaQuimicaPermitidaPattern().IsMatch(formula)))
             {
                 yield return new ValidationResult(
                     "A fórmula deve ter no máximo 50 caracteres e usar apenas caracteres válidos.",

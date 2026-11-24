@@ -8,6 +8,9 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class EmailAddressReservation : Migration
     {
+        private static readonly string[] PendingNoticeIndexColumns = ["Status", "NextAttemptAt", "DeadlineAt"];
+        private static readonly string[] OperationRecipientIndexColumns = ["OperationId", "Recipient"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -89,7 +92,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_EmailChangeNoticeJobs_Pending",
                 table: "EmailChangeNoticeJobs",
-                columns: new[] { "Status", "NextAttemptAt", "DeadlineAt" });
+                columns: PendingNoticeIndexColumns);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmailChangeNoticeJobs_Retention",
@@ -104,7 +107,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "UX_EmailChangeNoticeJobs_Operation_Recipient",
                 table: "EmailChangeNoticeJobs",
-                columns: new[] { "OperationId", "Recipient" },
+                columns: OperationRecipientIndexColumns,
                 unique: true);
         }
 

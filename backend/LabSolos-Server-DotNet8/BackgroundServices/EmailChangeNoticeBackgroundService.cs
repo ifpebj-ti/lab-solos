@@ -7,6 +7,11 @@ public sealed class EmailChangeNoticeBackgroundService(
     ILogger<EmailChangeNoticeBackgroundService> logger) : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(15);
+    private static readonly Action<ILogger, Exception?> LogProcessingFailure =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            new EventId(1905, "EmailChangeNoticeProcessingFailure"),
+            "Email-change notice processing failed; leased jobs remain recoverable and no recipient data was logged.");
     private readonly IServiceScopeFactory _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     private readonly ILogger<EmailChangeNoticeBackgroundService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -27,9 +32,7 @@ public sealed class EmailChangeNoticeBackgroundService(
             }
             catch (Exception)
             {
-                _logger.LogError(
-                    new EventId(1905, "EmailChangeNoticeProcessingFailure"),
-                    "Email-change notice processing failed; leased jobs remain recoverable and no recipient data was logged.");
+                LogProcessingFailure(_logger, null);
             }
 
             try

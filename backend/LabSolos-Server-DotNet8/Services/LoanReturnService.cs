@@ -33,6 +33,8 @@ public sealed class LoanReturnService(
     TimeProvider timeProvider,
     ProductCivilDay productCivilDay) : ILoanReturnService
 {
+    private sealed record RestoredLoanProduct(Produto Product, ProdutoEmprestado Item, float Quantity);
+
     public async Task<LoanReturnResult> ReturnAsync(
         int loanId,
         int actorId,
@@ -42,136 +44,26 @@ public sealed class LoanReturnService(
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
-            var productIds = await context.ProdutosEmprestados
-                .AsNoTracking()
-                .Where(item => item.EmprestimoId == loanId)
-                .OrderBy(item => item.ProdutoId)
-                .Select(item => item.ProdutoId)
-                .ToArrayAsync(cancellationToken);
-
-            // Keep the same product-before-loan lock order as approval and other stock writers.
-            await unitOfWork.LockProductsForMutationAsync(productIds, cancellationToken);
-            await context.Emprestimos
-                .FromSqlInterpolated($"SELECT * FROM \"Emprestimos\" WHERE \"Id\" = {loanId} FOR UPDATE")
-                .LoadAsync(cancellationToken);
-
-            var loan = await context.Emprestimos
-                .Include(item => item.Produtos)
-                    .ThenInclude(item => item.Produto)
-                .FirstOrDefaultAsync(item => item.Id == loanId, cancellationToken);
+            var loan = await LoadAndLockLoanAsync(loanId, cancellationToken);
             if (loan is null)
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.NotFound();
-            }
+                return await RollbackAsync(transaction, LoanReturnResult.NotFound(), cancellationToken);
 
-            await LockUsersAsync([actorId, loan.SolicitanteId], cancellationToken);
-            var users = await context.Usuarios
-                .AsNoTracking()
-                .Where(item => item.Id == actorId || item.Id == loan.SolicitanteId)
-                .ToDictionaryAsync(item => item.Id, cancellationToken);
-            users.TryGetValue(actorId, out var actor);
-            users.TryGetValue(loan.SolicitanteId, out var borrower);
+            var accessFailure = await ValidateActorAsync(loan, actorId, cancellationToken);
+            if (accessFailure is not null)
+                return await RollbackAsync(transaction, accessFailure, cancellationToken);
 
-            // Recheck the current profile, status and mentor relationship while the rows are locked.
-            if (actor is null || actor.Status != StatusUsuario.Habilitado ||
-                actor.NivelUsuario is not (NivelUsuario.Administrador or NivelUsuario.Mentor))
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.NotFound();
-            }
+            var eligibilityFailure = await ValidateReturnEligibilityAsync(loan, loanId, cancellationToken);
+            if (eligibilityFailure is not null)
+                return await RollbackAsync(transaction, eligibilityFailure, cancellationToken);
 
-            var isAuthorizedMentor = actor.NivelUsuario == NivelUsuario.Mentor &&
-                (loan.SolicitanteId == actorId ||
-                 (borrower?.NivelUsuario == NivelUsuario.Mentorado &&
-                  borrower.ResponsavelId == actorId));
-            if (actor.NivelUsuario != NivelUsuario.Administrador && !isAuthorizedMentor)
-            {
-                // Keep the response identical to a missing loan until the actor is in its current scope.
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.NotFound();
-            }
-
-            if (loan.DataDevolucao is not null || await HasReturnMovementAsync(loanId, cancellationToken))
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.Conflict("loan_return_already_recorded");
-            }
-
-            if (loan.Status is not (StatusEmprestimo.Aprovado or StatusEmprestimo.EmAndamento))
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.Conflict("loan_not_approved_for_return");
-            }
-
-            if (loan.Produtos.Count == 0 || loan.Produtos.Any(item => item.Produto is null))
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return LoanReturnResult.Conflict("loan_not_approved_for_return");
-            }
-
-            var hasLegacyApprovalEvidence = loan.AprovadorId is not null && loan.DataAprovacao is not null;
-            foreach (var item in loan.Produtos)
-            {
-                var hasRecordedOutflow = await context.MovimentacoesEstoque
-                    .AnyAsync(movement =>
-                        movement.EmprestimoId == loanId &&
-                        movement.ProdutoId == item.ProdutoId &&
-                        movement.Tipo == TipoMovimentacaoEstoque.SaidaEmprestimo,
-                        cancellationToken);
-                if (!hasRecordedOutflow && !hasLegacyApprovalEvidence)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return LoanReturnResult.Conflict("loan_not_approved_for_return");
-                }
-            }
-
-            var changes = new List<(Produto Product, ProdutoEmprestado Item, float Restored)>();
-            foreach (var item in loan.Produtos.OrderBy(item => item.ProdutoId))
-            {
-                var violation = LoanDomainRules.ValidateCredit(
-                    item.Produto.Quantidade,
-                    item.Quantidade,
-                    out var restored);
-                if (violation is not null)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return LoanReturnResult.Conflict(
-                        violation.Code == "loan_stock_out_of_range"
-                            ? "loan_stock_out_of_range"
-                            : "loan_concurrent_conflict");
-                }
-
-                changes.Add((item.Produto, item, restored));
-            }
+            var changes = CreateValidatedChanges(loan, out var stockConflictCode);
+            if (stockConflictCode is not null)
+                return await RollbackAsync(
+                    transaction, LoanReturnResult.Conflict(stockConflictCode), cancellationToken);
 
             var now = timeProvider.GetUtcNow().UtcDateTime;
             var today = productCivilDay.GetToday();
-            foreach (var (product, item, restored) in changes)
-            {
-                product.Quantidade = restored;
-                product.UltimaModificacao = now;
-                if (!product.Desativado)
-                {
-                    product.Status = product.DataValidade is { } expiration &&
-                        ProductCivilDay.FromStoredDate(expiration) < today
-                            ? StatusProduto.Vencido
-                            : restored > 0
-                                ? StatusProduto.Disponivel
-                                : StatusProduto.Esgotado;
-                }
-
-                context.MovimentacoesEstoque.Add(new MovimentacaoEstoque
-                {
-                    EmprestimoId = loan.Id,
-                    ProdutoId = product.Id,
-                    Quantidade = item.Quantidade,
-                    Instante = now,
-                    AtorId = actorId,
-                    LoteId = product.LoteId,
-                    Tipo = TipoMovimentacaoEstoque.DevolucaoEmprestimo
-                });
-            }
+            ApplyReturnChanges(loan, changes!, actorId, now, today);
 
             loan.DataDevolucao = now;
             await auditService.RegistrarEventoObrigatorioAsync(new CreateLogAuditoriaDTO
@@ -203,6 +95,154 @@ public sealed class LoanReturnService(
             await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
+    }
+
+    private async Task<Emprestimo?> LoadAndLockLoanAsync(int loanId, CancellationToken cancellationToken)
+    {
+        var productIds = await context.ProdutosEmprestados
+            .AsNoTracking()
+            .Where(item => item.EmprestimoId == loanId)
+            .OrderBy(item => item.ProdutoId)
+            .Select(item => item.ProdutoId)
+            .ToArrayAsync(cancellationToken);
+
+        // Keep the same product-before-loan lock order as approval and other stock writers.
+        await unitOfWork.LockProductsForMutationAsync(productIds, cancellationToken);
+        await context.Emprestimos
+            .FromSqlInterpolated($"SELECT * FROM \"Emprestimos\" WHERE \"Id\" = {loanId} FOR UPDATE")
+            .LoadAsync(cancellationToken);
+
+        return await context.Emprestimos
+            .Include(item => item.Produtos)
+                .ThenInclude(item => item.Produto)
+            .FirstOrDefaultAsync(item => item.Id == loanId, cancellationToken);
+    }
+
+    private async Task<LoanReturnResult?> ValidateActorAsync(
+        Emprestimo loan,
+        int actorId,
+        CancellationToken cancellationToken)
+    {
+        await LockUsersAsync([actorId, loan.SolicitanteId], cancellationToken);
+        var users = await context.Usuarios
+            .AsNoTracking()
+            .Where(item => item.Id == actorId || item.Id == loan.SolicitanteId)
+            .ToDictionaryAsync(item => item.Id, cancellationToken);
+        users.TryGetValue(actorId, out var actor);
+        users.TryGetValue(loan.SolicitanteId, out var borrower);
+
+        // Recheck the current profile, status and mentor relationship while the rows are locked.
+        if (actor is null || actor.Status != StatusUsuario.Habilitado ||
+            actor.NivelUsuario is not (NivelUsuario.Administrador or NivelUsuario.Mentor))
+            return LoanReturnResult.NotFound();
+
+        var isAuthorizedMentor = actor.NivelUsuario == NivelUsuario.Mentor &&
+            (loan.SolicitanteId == actorId ||
+             (borrower?.NivelUsuario == NivelUsuario.Mentorado && borrower.ResponsavelId == actorId));
+        return actor.NivelUsuario == NivelUsuario.Administrador || isAuthorizedMentor
+            ? null
+            : LoanReturnResult.NotFound();
+    }
+
+    private async Task<LoanReturnResult?> ValidateReturnEligibilityAsync(
+        Emprestimo loan,
+        int loanId,
+        CancellationToken cancellationToken)
+    {
+        if (loan.DataDevolucao is not null || await HasReturnMovementAsync(loanId, cancellationToken))
+            return LoanReturnResult.Conflict("loan_return_already_recorded");
+
+        if (loan.Status is not (StatusEmprestimo.Aprovado or StatusEmprestimo.EmAndamento) ||
+            loan.Produtos.Count == 0 || loan.Produtos.Any(item => item.Produto is null))
+            return LoanReturnResult.Conflict("loan_not_approved_for_return");
+
+        var hasLegacyApprovalEvidence = loan.AprovadorId is not null && loan.DataAprovacao is not null;
+        foreach (var item in loan.Produtos)
+        {
+            if (hasLegacyApprovalEvidence)
+                continue;
+
+            var hasRecordedOutflow = await context.MovimentacoesEstoque
+                .AnyAsync(movement =>
+                    movement.EmprestimoId == loanId &&
+                    movement.ProdutoId == item.ProdutoId &&
+                    movement.Tipo == TipoMovimentacaoEstoque.SaidaEmprestimo,
+                    cancellationToken);
+            if (!hasRecordedOutflow)
+                return LoanReturnResult.Conflict("loan_not_approved_for_return");
+        }
+
+        return null;
+    }
+
+    private static List<RestoredLoanProduct>? CreateValidatedChanges(
+        Emprestimo loan,
+        out string? conflictCode)
+    {
+        conflictCode = null;
+        var changes = new List<RestoredLoanProduct>();
+        foreach (var item in loan.Produtos.OrderBy(item => item.ProdutoId))
+        {
+            var violation = LoanDomainRules.ValidateCredit(
+                item.Produto.Quantidade,
+                item.Quantidade,
+                out var restored);
+            if (violation is not null)
+            {
+                conflictCode = violation.Code == "loan_stock_out_of_range"
+                    ? "loan_stock_out_of_range"
+                    : "loan_concurrent_conflict";
+                return null;
+            }
+
+            changes.Add(new RestoredLoanProduct(item.Produto, item, restored));
+        }
+
+        return changes;
+    }
+
+    private void ApplyReturnChanges(
+        Emprestimo loan,
+        IEnumerable<RestoredLoanProduct> changes,
+        int actorId,
+        DateTime now,
+        DateOnly today)
+    {
+        foreach (var change in changes)
+        {
+            var product = change.Product;
+            product.Quantidade = change.Quantity;
+            product.UltimaModificacao = now;
+            if (!product.Desativado)
+            {
+                product.Status = product.DataValidade is { } expiration &&
+                    ProductCivilDay.FromStoredDate(expiration) < today
+                        ? StatusProduto.Vencido
+                        : change.Quantity > 0
+                            ? StatusProduto.Disponivel
+                            : StatusProduto.Esgotado;
+            }
+
+            context.MovimentacoesEstoque.Add(new MovimentacaoEstoque
+            {
+                EmprestimoId = loan.Id,
+                ProdutoId = product.Id,
+                Quantidade = change.Item.Quantidade,
+                Instante = now,
+                AtorId = actorId,
+                LoteId = product.LoteId,
+                Tipo = TipoMovimentacaoEstoque.DevolucaoEmprestimo
+            });
+        }
+    }
+
+    private static async Task<LoanReturnResult> RollbackAsync(
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction,
+        LoanReturnResult result,
+        CancellationToken cancellationToken)
+    {
+        await transaction.RollbackAsync(cancellationToken);
+        return result;
     }
 
     private async Task LockUsersAsync(int[] userIds, CancellationToken cancellationToken)

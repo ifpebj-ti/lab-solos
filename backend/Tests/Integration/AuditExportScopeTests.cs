@@ -15,6 +15,14 @@ public sealed class AuditExportScopeTests(PostgreSqlContainerFixture database)
 {
     private static readonly DateTimeOffset ScenarioNow =
         new(2026, 11, 23, 15, 0, 0, TimeSpan.Zero);
+    private static readonly int[] FirstAuditPageIds = [13, 12];
+    private static readonly int[] SecondAuditPageIds = [11];
+    private static readonly string[] AuditProjectionProperties =
+    [
+        "acao", "categoriaDeteccao", "codigoEvento", "codigoRegraDeteccao", "dataHoraUtc",
+        "historicoClassificacao", "id", "origem", "quantidadeObservadaDeteccao", "recurso",
+        "resultado", "revisaoClassificacao", "suspeita", "versaoRegraDeteccao"
+    ];
 
     [Fact]
     public async Task AuditQueryUsesMinimalStablePagesAndRechecksAuthorizationForEveryPage()
@@ -31,18 +39,13 @@ public sealed class AuditExportScopeTests(PostgreSqlContainerFixture database)
         var firstPage = firstDocument.RootElement;
 
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
-        Assert.Equal(new[] { 13, 12 }, ReadIds(firstPage));
+        Assert.Equal(FirstAuditPageIds, ReadIds(firstPage));
         Assert.Equal(3, firstPage.GetProperty("totalItens").GetInt32());
         Assert.Equal(2, firstPage.GetProperty("totalPaginas").GetInt32());
         Assert.Equal(2, firstPage.GetProperty("tamanhoPagina").GetInt32());
         var item = firstPage.GetProperty("itens")[0];
         Assert.Equal(
-            new[]
-            {
-                "acao", "categoriaDeteccao", "codigoEvento", "codigoRegraDeteccao", "dataHoraUtc",
-                "historicoClassificacao", "id", "origem", "quantidadeObservadaDeteccao", "recurso",
-                "resultado", "revisaoClassificacao", "suspeita", "versaoRegraDeteccao"
-            },
+            AuditProjectionProperties,
             item.EnumerateObject().Select(property => property.Name).Order(StringComparer.Ordinal).ToArray());
         Assert.Equal("AtividadeNormal", item.GetProperty("categoriaDeteccao").GetString());
         Assert.Equal(JsonValueKind.Null, item.GetProperty("codigoRegraDeteccao").ValueKind);
@@ -55,7 +58,7 @@ public sealed class AuditExportScopeTests(PostgreSqlContainerFixture database)
         using var secondResponse = await administrator.GetAsync(
             "/api/Auditoria/logs?Recurso=recurso-sintetico&pagina=2&tamanhoPagina=2");
         using var secondDocument = JsonDocument.Parse(await secondResponse.Content.ReadAsStringAsync());
-        Assert.Equal(new[] { 11 }, ReadIds(secondDocument.RootElement));
+        Assert.Equal(SecondAuditPageIds, ReadIds(secondDocument.RootElement));
 
         using var mentor = AuthenticatedClient(factory, NivelUsuario.Mentor);
         using var denied = await mentor.GetAsync(

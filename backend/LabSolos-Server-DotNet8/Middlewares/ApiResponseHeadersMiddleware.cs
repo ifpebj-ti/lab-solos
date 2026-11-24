@@ -17,10 +17,10 @@ public sealed class ApiResponseHeadersMiddleware(RequestDelegate next)
         context.Response.OnStarting(() =>
         {
             var headers = context.Response.Headers;
-            headers["Cache-Control"] = "no-store";
-            headers["Content-Security-Policy"] = ContentSecurityPolicy;
+            headers.CacheControl = "no-store";
+            headers.ContentSecurityPolicy = ContentSecurityPolicy;
             headers["Permissions-Policy"] = PermissionsPolicy;
-            headers["X-Content-Type-Options"] = "nosniff";
+            headers.XContentTypeOptions = "nosniff";
             headers.Vary = MergeVary(headers.Vary, "Origin");
             return Task.CompletedTask;
         });

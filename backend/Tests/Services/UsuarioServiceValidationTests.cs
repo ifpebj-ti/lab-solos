@@ -124,7 +124,7 @@ public class UsuarioServiceValidationTests
     }
 
     [Fact]
-    public void ValidarEstrutura_RejectsCommonUserFromPublicRegistration()
+    public void ValidarEstruturaRejectsCommonUserFromPublicRegistration()
     {
         var request = CreateAcademicRequest(city: "Indefinido", course: "E");
         request.TipoUsuario = "Comum";

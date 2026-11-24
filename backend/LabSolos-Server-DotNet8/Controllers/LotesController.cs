@@ -82,7 +82,7 @@ public class LoteController(
         return result;
     }
 
-    private IActionResult InvalidFields(Dictionary<string, string[]> fields)
+    private BadRequestObjectResult InvalidFields(Dictionary<string, string[]> fields)
     {
         var problem = new ValidationProblemDetails(fields)
         {
@@ -93,7 +93,7 @@ public class LoteController(
         return BadRequest(problem);
     }
 
-    private IActionResult ConflictProblem(string field, string guidance)
+    private ConflictObjectResult ConflictProblem(string field, string guidance)
     {
         var problem = new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = guidance };
         problem.Extensions["code"] = "operation_conflict";

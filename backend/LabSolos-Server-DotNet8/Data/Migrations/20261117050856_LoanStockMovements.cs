@@ -9,6 +9,8 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class LoanStockMovements : Migration
     {
+        private static readonly string[] LoanStockMovementIndexColumns = ["EmprestimoId", "ProdutoId", "Tipo"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -74,7 +76,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "UX_MovimentacoesEstoque_Emprestimo_Produto_Tipo",
                 table: "MovimentacoesEstoque",
-                columns: new[] { "EmprestimoId", "ProdutoId", "Tipo" },
+                columns: LoanStockMovementIndexColumns,
                 unique: true);
         }
 

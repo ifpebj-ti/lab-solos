@@ -8,6 +8,8 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class SessaoAutenticacao : Migration
     {
+        private static readonly string[] UserSessionIndexColumns = ["UsuarioId", "ExpiraEmUtc"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -46,7 +48,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_SessoesAutenticacao_User_Expiry",
                 table: "SessoesAutenticacao",
-                columns: new[] { "UsuarioId", "ExpiraEmUtc" });
+                columns: UserSessionIndexColumns);
 
             migrationBuilder.CreateIndex(
                 name: "UX_SessoesAutenticacao_IdentifierHash",

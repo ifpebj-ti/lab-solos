@@ -299,7 +299,7 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
   await context.clearCookies();
   await page.goto('/');
   await page.getByLabel('Email').fill(identity.email);
-  await page.getByLabel('Senha').fill(identity.password);
+  await page.getByRole('textbox', { name: 'Senha' }).fill(identity.password);
   const loginResponsePromise = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname.endsWith('/Auth/login') &&

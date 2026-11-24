@@ -278,7 +278,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, emprestimoResponseDto);
         }
 
-        private IActionResult? ValidarEstruturaDosProdutos(List<ProdutoQuantidadeDTO> produtos)
+        private ActionResult? ValidarEstruturaDosProdutos(List<ProdutoQuantidadeDTO> produtos)
         {
             if (produtos is not { Count: > 0 })
             {

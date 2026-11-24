@@ -8,6 +8,8 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
     /// <inheritdoc />
     public partial class NotificationRecipientRead : Migration
     {
+        private static readonly string[] RecipientReadIndexColumns = ["UsuarioId", "Lida", "NotificacaoId"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -42,7 +44,7 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_NotificacoesLeituras_Usuario_Lida_Notificacao",
                 table: "NotificacoesLeituras",
-                columns: new[] { "UsuarioId", "Lida", "NotificacaoId" });
+                columns: RecipientReadIndexColumns);
 
             migrationBuilder.Sql("""
                 INSERT INTO "NotificacoesLeituras" ("NotificacaoId", "UsuarioId", "Lida", "DataLeitura")
