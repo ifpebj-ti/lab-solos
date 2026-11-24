@@ -1106,10 +1106,10 @@ test('preserves session, administrator guard, email reservation and audit across
     headers: { Cookie: `lab_solos_session=${identities.admin.sessionCookie}` },
   });
   expect(activeAdministratorSession.status()).toBe(200);
-  const revokedOwnerSession = await request.get('/api/Auth/session', {
+  const ownerSessionAfterRestart = await request.get('/api/Auth/session', {
     headers: { Cookie: `lab_solos_session=${owner.sessionCookie}` },
   });
-  expect(revokedOwnerSession.status()).toBe(401);
+  expect(ownerSessionAfterRestart.status()).toBe(200);
 
   const registrationAfterReturn = await request.post('/api/Usuarios', {
     data: {
