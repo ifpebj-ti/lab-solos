@@ -167,9 +167,6 @@ namespace LabSolos_Server_DotNet8.Services
 
         public async Task<bool> VerificarAtividadeSuspeitaAsync(int usuarioId, string enderecoIP)
         {
-            if (usuarioId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(usuarioId));
-
             var now = _timeProvider.GetUtcNow();
             var normalizedIp = NormalizarEnderecoIp(enderecoIP);
             var accountRule = _auditDetection.ObterRegra(AuditDetectionAxis.Conta);
