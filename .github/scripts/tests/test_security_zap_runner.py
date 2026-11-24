@@ -641,6 +641,116 @@ class SecurityZapRunnerTests(unittest.TestCase):
             self.assertTrue(captures)
             self.assertTrue(all(not path.exists() for path in captures))
 
+    def test_reports_only_sanitized_access_evidence_error_code(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            root = Path(root_text)
+            temp_root = root / "runner-temp"
+            temp_root.mkdir()
+            reports = root / "reports"
+            commands: list[str] = []
+
+            def fake_runner(command, cwd, env):
+                del cwd
+                if "test:e2e" in command:
+                    commands.append("playwright")
+                    sidecar = (
+                        Path(env["SECURITY_ZAP_CAPTURE_DIR"])
+                        / "api-request-context"
+                    )
+                    sidecar.mkdir(parents=True)
+                    (sidecar / "capture.status.json").write_text(
+                        '{"complete":true}', encoding="utf-8"
+                    )
+                    return 0
+                commands.append("zap")
+                capture_dir = Path(command[command.index("--capture-dir") + 1])
+                sidecar_status = json.loads(
+                    (capture_dir / "api-request-context/capture.status.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertFalse(sidecar_status["complete"])
+                Path(command[command.index("--report") + 1]).write_text(
+                    '{"status":"inconclusive"}', encoding="utf-8"
+                )
+                return 2
+
+            def unavailable_access_log(*_args):
+                raise runner.AccessLogEvidenceError("access_log_unavailable")
+
+            output = StringIO()
+            with redirect_stdout(output):
+                exit_code, _report = runner.run_pipeline(
+                    frontend=root,
+                    env={},
+                    command_runner=fake_runner,
+                    temp_root=temp_root,
+                    report_root=reports,
+                    access_log_reader=unavailable_access_log,
+                )
+
+            self.assertEqual(commands, ["playwright", "zap"])
+            self.assertEqual(exit_code, 2)
+            self.assertIn(
+                "[security-zap-access-log] complete=false evidence=access_log_unavailable",
+                output.getvalue(),
+            )
+            self.assertNotIn("synthetic", output.getvalue())
+
+    def test_does_not_echo_non_token_access_evidence_error(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            root = Path(root_text)
+            temp_root = root / "runner-temp"
+            temp_root.mkdir()
+            reports = root / "reports"
+
+            def fake_runner(command, cwd, env):
+                del cwd
+                if "test:e2e" in command:
+                    sidecar = (
+                        Path(env["SECURITY_ZAP_CAPTURE_DIR"])
+                        / "api-request-context"
+                    )
+                    sidecar.mkdir(parents=True)
+                    (sidecar / "capture.status.json").write_text(
+                        '{"complete":true}', encoding="utf-8"
+                    )
+                    return 0
+                capture_dir = Path(command[command.index("--capture-dir") + 1])
+                sidecar_status = json.loads(
+                    (capture_dir / "api-request-context/capture.status.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertFalse(sidecar_status["complete"])
+                Path(command[command.index("--report") + 1]).write_text(
+                    '{"status":"inconclusive"}', encoding="utf-8"
+                )
+                return 2
+
+            def invalid_error(*_args):
+                raise runner.AccessLogEvidenceError(
+                    "synthetic-query-token?password=do-not-log"
+                )
+
+            output = StringIO()
+            with redirect_stdout(output):
+                runner.run_pipeline(
+                    frontend=root,
+                    env={},
+                    command_runner=fake_runner,
+                    temp_root=temp_root,
+                    report_root=reports,
+                    access_log_reader=invalid_error,
+                )
+
+            self.assertIn(
+                "[security-zap-access-log] complete=false evidence=invalid",
+                output.getvalue(),
+            )
+            self.assertNotIn("synthetic-query-token", output.getvalue())
+            self.assertNotIn("password=do-not-log", output.getvalue())
+
     def test_cancellation_cleans_capture_files(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             root = Path(root_text)

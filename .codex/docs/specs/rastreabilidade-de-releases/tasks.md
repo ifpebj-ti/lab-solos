@@ -1,6 +1,6 @@
 # Tarefas — Rastreabilidade de releases
 
-- Status: bloqueado — T001–T002 e T005–T010 concluídas localmente; T003–T004 aguardam evidência remota e autoridade de release
+- Status: bloqueado — T001–T003 e T005–T010 concluídas localmente; T004 aguarda disposição das lacunas históricas e autoridade de release
 - PRD: [Rastreabilidade de releases](./prd.md)
 - Especificação técnica: [Rastreabilidade de releases](./techspec.md)
 - Atualizado em: 2026-11-24
@@ -65,10 +65,10 @@ Preparar a grade de coleta para `v1.0.0`, `1.0.1`, `2.0.0`, `2.0.1`, `2.0.2`, `2
 
 ## T003 — Inventariar os quatro canais com a convenção histórica aprovada
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #491
 - Dependências: T002
-- Bloqueio: A convenção e as fontes estão definidas. As verificações dos quatro canais dependem de consultas remotas fora desta etapa local. A fotografia das refs Git presentes no checkout está em [evidência local parcial](./evidencias/T003.md); ela não comprova ausências em GitHub Releases ou GHCR nem conclui a associação entre grafias. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
+- Evidência: [inventário datado dos quatro canais](./evidencias/T003.md), com colisões e lacunas explicitamente mantidas para T004.
 - Paralela: não
 - Requisitos: RF-002, RNF-001, CA-002
 - Caminhos sob responsabilidade: `.codex/docs/specs/rastreabilidade-de-releases/evidencias/T003.md` como registro de trabalho local
@@ -297,7 +297,8 @@ O contrato integrado também preserva a checagem de changelog da #488.
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
 | --- | --- | --- | --- | --- |
-| 2026-11-24 | T004 | bloqueada; nenhuma disposição histórica autorizada | Reavaliação após a fotografia local de T003, em `evidencias/T003.md`. | T003 ainda não cobre GitHub Releases nem GHCR e não confirma publicação ou digest. Não classificar refs ausentes no checkout como lacunas publicadas nem escolher entre os candidatos `1.0.0`/`v1.0.0`. Responsável efetivo e destino do inventário seguem sem evidência; T004 não inicia até T003 ser concluída. |
+| 2026-11-24 | T003 | concluída — inventário remoto somente leitura dos quatro canais | Refs Git remotas, releases, manifests GHCR e Docker Hub legados registrados em `evidencias/T003.md`, com timestamp UTC, URLs e digests observados. | As ausências, colisões e digests sem associação comprovada permanecem ocorrências explícitas para T004. Nenhuma tag, release, imagem ou configuração foi alterada. |
+| 2026-11-24 | T004 | bloqueada; nenhuma disposição histórica aplicada | Reavaliação após conclusão de T003 e inventário em `evidencias/T003.md`. | A autoridade efetiva e o destino de aceite continuam sem evidência. Não atribuir correção ou exceção histórica sem essa prova. |
 | 2026-11-24 | T003 | evidência local parcial; tarefa permanece bloqueada | Repetidas as 14 consultas exatas de refs e inspeção de workflows/compose em tags locais; commits, tipos e blobs registrados em `evidencias/T003.md`. | Confirmados dois commits distintos e duas linhagens de pacote para `1.0.0`/`v1.0.0`; pacote `jrrs1/*-labon` para `v1.0.0`/`1.0.1`; `ghcr.io/.../lab-solos-*` nas fontes locais de `1.0.0` e `2.0.0`–`2.0.2`. `2.0.3` e `2.1.0` não têm refs locais. GitHub Releases e registros não foram consultados nem inferidos; T004 continua aguardando inventário e autoridade de release. |
 | 2026-11-17 | T010 | concluída localmente | Sequência 14/14, contrato do workflow 30/30, regressão Python 438/438 com 2 skips existentes; YAML parse e Bash -n nos 24 blocos passaram; diff --check limpo. | Reexecução reaproveita intenção/prova; recuperação é restrita a canais ausentes comprovados; validação ocorre antes da release estável e impede rollback de `latest`. Não foi possível rodar actionlint (indisponível localmente); nenhum artefato real foi publicado. |
 | 2026-11-16 | T008/T009 | validação integrada | Regressão Python completa com 424 testes, 2 skips existentes e zero falhas. | Usado ambiente local existente com PyYAML 6.0.3 e core.autocrlf=false apenas no processo de teste para os repositórios temporários. Corrige as limitações de ambiente da primeira execução. |

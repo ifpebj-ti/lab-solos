@@ -1067,10 +1067,18 @@ test('preserves session, administrator guard, email reservation and audit across
     return response.status;
   });
   expect(logout).toBe(204);
-  const ownerSessionAfterLogout = await request.get('/api/Auth/session', {
+  const browserSessionAfterLogout = await page.evaluate(async () => {
+    const response = await fetch('/api/Auth/session');
+    const status = response.status;
+    await response.arrayBuffer();
+    return status;
+  });
+  expect(browserSessionAfterLogout).toBe(401);
+
+  const independentOwnerSession = await request.get('/api/Auth/session', {
     headers: { Cookie: `lab_solos_session=${owner.sessionCookie}` },
   });
-  expect(ownerSessionAfterLogout.status()).toBe(401);
+  expect(independentOwnerSession.status()).toBe(200);
 
   await startBrowserSession(page, identities.admin);
   await page.evaluate(async () => {

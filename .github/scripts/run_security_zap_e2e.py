@@ -1191,6 +1191,7 @@ def run_pipeline(
         tests_exit = command_runner(playwright_command, frontend, child_env)
         incomplete_marker_persisted = True
         reconciliation: AccessLogReconciliation | None = None
+        evidence_error: str | None = None
         try:
             access_records = access_log_reader(
                 COMPOSE_FILE, project_name, compose_override, capture_started
@@ -1202,10 +1203,21 @@ def run_pipeline(
             )
             if not reconciliation.complete:
                 incomplete_marker_persisted = mark_capture_incomplete(capture_dir)
-        except AccessLogEvidenceError:
+        except AccessLogEvidenceError as exc:
+            # These error codes are static, allowlisted identifiers. Never echo
+            # the Docker log, HAR data, exception cause, or any request content.
+            candidate_reason = str(exc)
+            evidence_error = (
+                candidate_reason
+                if candidate_reason.replace("_", "").isalnum()
+                else "invalid"
+            )
             incomplete_marker_persisted = mark_capture_incomplete(capture_dir)
         if reconciliation is None:
-            print("[security-zap-access-log] complete=false evidence=unknown")
+            print(
+                "[security-zap-access-log] "
+                f"complete=false evidence={evidence_error or 'unknown'}"
+            )
         elif reconciliation.failure_reason is not None:
             reason = reconciliation.failure_reason
             safe_reason = reason if reason.replace("_", "").isalnum() else "invalid"
