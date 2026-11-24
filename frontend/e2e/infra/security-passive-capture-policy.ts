@@ -826,7 +826,6 @@ export async function drainCdpCaptureEvents(
 
     const quietRemaining = quietWindowMs - (currentTime - quietSince);
     const timeRemaining = deadline - currentTime;
-    if (timeRemaining <= 0) return false;
     await activity.waitForChange(
       observedVersion,
       Math.min(Math.max(quietRemaining, 1), timeRemaining)
@@ -837,7 +836,6 @@ export async function drainCdpCaptureEvents(
       quietSince = now();
     }
   }
-  return false;
 }
 
 export type BodylessCacheCandidateExtraInfoInput = {
@@ -1257,7 +1255,7 @@ export function classifyUnavailableBody(
   status: number,
   headers: CaptureHeader[],
   resourceType = ''
-): BodyUnavailableReason | undefined {
+): BodyUnavailableReason {
   const normalizedMethod = method.toUpperCase();
   if (normalizedMethod === 'HEAD' || status === 204 || status === 304) {
     return 'no_body_status';

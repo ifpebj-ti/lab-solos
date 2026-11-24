@@ -51,9 +51,9 @@ public sealed class ProductExplicitPatchTests(PostgreSqlContainerFixture databas
         using var client = scenario.Client;
 
         using var response = await PatchAsync(client, scenario.ProductId,
-            new { op = operation, path = "/fornecedor", value = (object?)null },
-            new { op = operation, path = "/dataFabricacao", value = (object?)null },
-            new { op = operation, path = "/dataValidade", value = (object?)null });
+            new { op = operation, path = "/fornecedor", value = (string?)null },
+            new { op = operation, path = "/dataFabricacao", value = (string?)null },
+            new { op = operation, path = "/dataValidade", value = (string?)null });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var saved = await ReadProductAsync(factory, scenario.ProductId);
@@ -194,11 +194,14 @@ public sealed class ProductExplicitPatchTests(PostgreSqlContainerFixture databas
         Assert.Equal("Nome após concorrência", saved.NomeProduto);
     }
 
-    private static Task<HttpResponseMessage> PatchAsync(HttpClient client, int productId, params object[] operations) =>
-        client.SendAsync(new HttpRequestMessage(HttpMethod.Patch, $"/api/Produtos/{productId}")
+    private static async Task<HttpResponseMessage> PatchAsync(HttpClient client, int productId, params object[] operations)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/Produtos/{productId}")
         {
             Content = JsonContent.Create(operations)
-        });
+        };
+        return await client.SendAsync(request);
+    }
 
     private static async Task<Quimico> ReadProductAsync(IntegrationWebApplicationFactory factory, int productId)
     {

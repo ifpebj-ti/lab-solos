@@ -212,8 +212,11 @@ public sealed class AdminContinuityTests(PostgreSqlContainerFixture database)
         PatchAsync(client, id,
             $"[{{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"Não persistir em recusa\"}},{{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"{status}\"}}]");
 
-    private static Task<HttpResponseMessage> PatchAsync(HttpClient client, int id, string patch) =>
-        client.PatchAsync($"/api/Usuarios/{id}", new StringContent(patch, Encoding.UTF8, "application/json-patch+json"));
+    private static async Task<HttpResponseMessage> PatchAsync(HttpClient client, int id, string patch)
+    {
+        using var content = new StringContent(patch, Encoding.UTF8, "application/json-patch+json");
+        return await client.PatchAsync($"/api/Usuarios/{id}", content);
+    }
 
     private static async Task AssertContinuityConflictAsync(HttpResponseMessage response)
     {

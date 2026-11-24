@@ -180,7 +180,7 @@ const adminCatalog = async (
 ): Promise<CatalogProduct[]> => {
   const products: CatalogProduct[] = [];
   let pagina = 1;
-  let totalPaginas = 1;
+  let totalPaginas: number;
 
   do {
     const response = await request.get(

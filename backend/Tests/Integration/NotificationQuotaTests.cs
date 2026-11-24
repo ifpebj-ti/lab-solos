@@ -22,7 +22,7 @@ public sealed class NotificationQuotaTests(PostgreSqlContainerFixture database)
         await using var context = CreateContext();
         var policy = CreatePolicy(context, clock, keyFactory);
 
-        await using (var abandoned = await policy.BeginManualAsync(42))
+        await using (await policy.BeginManualAsync(42))
         {
             // Disposing without completion represents a refused or failed operation.
         }

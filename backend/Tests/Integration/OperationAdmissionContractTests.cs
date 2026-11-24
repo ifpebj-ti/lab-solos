@@ -279,8 +279,11 @@ public sealed class OperationAdmissionContractTests(PostgreSqlContainerFixture d
         return products.Select(product => product.Id).ToArray();
     }
 
-    private static Task<HttpResponseMessage> PostJsonAsync(HttpClient client, string json) =>
-        client.PostAsync("/api/Usuarios", new StringContent(json, Encoding.UTF8, "application/json"));
+    private static async Task<HttpResponseMessage> PostJsonAsync(HttpClient client, string json)
+    {
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        return await client.PostAsync("/api/Usuarios", content);
+    }
 
     private static string RegistrationJsonAtSize(int number, int byteCount)
     {

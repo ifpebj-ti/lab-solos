@@ -52,13 +52,22 @@ public static class LoanDomainRules
         var candidate = (float)(stock + signedQuantity);
         // Both the requested quantity and the prior balance must survive float rounding.
         if (!float.IsFinite(candidate) || candidate < 0
-            || (double)candidate - stock != signedQuantity
-            || (double)candidate - signedQuantity != stock)
+            || !SameExactValue((double)candidate - stock, signedQuantity)
+            || !SameExactValue((double)candidate - signedQuantity, stock))
         {
             return new("loan_stock_out_of_range", "A movimentação excede a precisão ou a faixa suportada pelo saldo.");
         }
 
         result = candidate;
         return null;
+    }
+
+    private static bool SameExactValue(double left, double right)
+    {
+        const long magnitudeMask = 0x7FFF_FFFF_FFFF_FFFFL;
+        var leftBits = BitConverter.DoubleToInt64Bits(left);
+        var rightBits = BitConverter.DoubleToInt64Bits(right);
+        return leftBits == rightBits ||
+            ((leftBits & magnitudeMask) == 0 && (rightBits & magnitudeMask) == 0);
     }
 }

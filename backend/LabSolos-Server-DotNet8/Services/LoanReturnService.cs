@@ -209,7 +209,11 @@ public sealed class LoanReturnService(
     {
         var orderedIds = userIds.Distinct().Order().ToArray();
         await context.Usuarios
-            .FromSqlInterpolated($"SELECT * FROM \"Usuarios\" WHERE \"Id\" = ANY ({orderedIds}) ORDER BY \"Id\" FOR UPDATE")
+            .FromSqlRaw("SELECT * FROM \"Usuarios\" WHERE \"Id\" = ANY (@orderedIds) ORDER BY \"Id\" FOR UPDATE",
+                new Npgsql.NpgsqlParameter("orderedIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer)
+                {
+                    Value = orderedIds
+                })
             .LoadAsync(cancellationToken);
     }
 

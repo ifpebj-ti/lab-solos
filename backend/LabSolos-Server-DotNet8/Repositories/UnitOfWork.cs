@@ -163,7 +163,11 @@ namespace LabSolos_Server_DotNet8.Repositories
             }
 
             await _context.Produtos
-                .FromSqlInterpolated($"SELECT * FROM \"Produtos\" WHERE \"Id\" = ANY ({orderedIds}) ORDER BY \"Id\" FOR UPDATE")
+                .FromSqlRaw("SELECT * FROM \"Produtos\" WHERE \"Id\" = ANY (@orderedIds) ORDER BY \"Id\" FOR UPDATE",
+                    new Npgsql.NpgsqlParameter("orderedIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer)
+                    {
+                        Value = orderedIds
+                    })
                 .LoadAsync(cancellationToken);
         }
 

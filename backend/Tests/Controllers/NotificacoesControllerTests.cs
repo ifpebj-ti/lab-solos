@@ -67,7 +67,7 @@ public sealed class NotificacoesControllerTests
     public async Task ObterNotificacaoForaDoEscopoRetornaNotFoundSemDetalhes()
     {
         var service = new Mock<INotificacaoService>();
-        service.Setup(item => item.ObterNotificacaoDestinatarioAsync(11, 7)).ReturnsAsync((NotificacaoDTO?)null);
+        service.Setup(item => item.ObterNotificacaoDestinatarioAsync(11, 7)).ReturnsAsync(default(NotificacaoDTO));
         var controller = CreateController(service);
 
         var result = await controller.ObterNotificacao(11);

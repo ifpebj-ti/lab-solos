@@ -759,7 +759,7 @@ async function attachCdpCapture(
         event.resourceType?.toLowerCase() ?? ''
       ) === 'binary_media';
     if (!isAllowedOrigin(event.request.url) || !isBinaryResponse) {
-      const continuation = trackCaptureOperation(
+      trackCaptureOperation(
         session
           .send('Fetch.continueRequest', { requestId: event.requestId })
           .then(() => undefined)
@@ -1089,9 +1089,7 @@ async function toHarEntry(
             responseHeaders,
             request.resourceType()
           );
-          bodyFailure =
-            bodyUnavailableReason !== undefined &&
-            isUnavailableBodyFatal(bodyUnavailableReason);
+          bodyFailure = isUnavailableBodyFatal(bodyUnavailableReason);
           bodyUnavailable = true;
           responseBody = Buffer.alloc(0);
         }
@@ -1294,9 +1292,7 @@ async function toApiHarEntry(
       response.status(),
       responseHeaders
     );
-    bodyFailure =
-      bodyUnavailableReason !== undefined &&
-      isUnavailableBodyFatal(bodyUnavailableReason);
+    bodyFailure = isUnavailableBodyFatal(bodyUnavailableReason);
     bodyUnavailable = true;
     responseBody = Buffer.alloc(0);
   }

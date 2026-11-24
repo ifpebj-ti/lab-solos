@@ -78,7 +78,7 @@ public sealed class ProdutosControllerTests
                 17,
                 It.IsAny<ClaimsPrincipal>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((HistoricoSaidaProdutoResponseDTO?)null);
+            .ReturnsAsync(default(HistoricoSaidaProdutoResponseDTO));
         var controller = CreateController(produtoService);
 
         var result = await controller.ObterHistoricoSaidaProduto(17);
