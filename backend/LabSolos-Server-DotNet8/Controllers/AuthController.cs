@@ -488,27 +488,30 @@ namespace LabSolos_Server_DotNet8.Controllers
     }
 }
 
-public static class SessaoCsrfProof
+namespace LabSolos_Server_DotNet8.Controllers
 {
-    private static readonly byte[] Context = Encoding.UTF8.GetBytes("lab-solos-browser-csrf-v1");
-
-    public static string Create(string opaqueSessionId)
+    public static class SessaoCsrfProof
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(opaqueSessionId);
+        private static readonly byte[] Context = Encoding.UTF8.GetBytes("lab-solos-browser-csrf-v1");
 
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(opaqueSessionId));
-        var digest = hmac.ComputeHash(Context);
-        return Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(digest);
-    }
+        public static string Create(string opaqueSessionId)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(opaqueSessionId);
 
-    public static bool Matches(string opaqueSessionId, string? submittedProof)
-    {
-        if (string.IsNullOrWhiteSpace(opaqueSessionId) || string.IsNullOrWhiteSpace(submittedProof))
-            return false;
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(opaqueSessionId));
+            var digest = hmac.ComputeHash(Context);
+            return Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(digest);
+        }
 
-        var expected = Encoding.UTF8.GetBytes(Create(opaqueSessionId));
-        var submitted = Encoding.UTF8.GetBytes(submittedProof);
-        return expected.Length == submitted.Length &&
-            CryptographicOperations.FixedTimeEquals(expected, submitted);
+        public static bool Matches(string opaqueSessionId, string? submittedProof)
+        {
+            if (string.IsNullOrWhiteSpace(opaqueSessionId) || string.IsNullOrWhiteSpace(submittedProof))
+                return false;
+
+            var expected = Encoding.UTF8.GetBytes(Create(opaqueSessionId));
+            var submitted = Encoding.UTF8.GetBytes(submittedProof);
+            return expected.Length == submitted.Length &&
+                CryptographicOperations.FixedTimeEquals(expected, submitted);
+        }
     }
 }
