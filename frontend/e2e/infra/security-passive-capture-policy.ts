@@ -757,13 +757,12 @@ export function createCdpActivitySignal(): CdpActivitySignal {
       }
 
       return new Promise((resolve) => {
-        let timer: ReturnType<typeof setTimeout>;
         const finish = () => {
           clearTimeout(timer);
           waiters.delete(finish);
           resolve();
         };
-        timer = setTimeout(finish, timeoutMs);
+        const timer = setTimeout(finish, timeoutMs);
         waiters.add(finish);
       });
     },

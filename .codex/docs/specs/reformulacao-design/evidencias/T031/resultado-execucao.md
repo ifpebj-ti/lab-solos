@@ -34,3 +34,7 @@ O E2E global e as operações `audit`/`critique`, leitor de tela e Wiki permanec
 ## Limitações finais mantidas visíveis
 
 As falhas E2E históricas foram corrigidas e não são apresentadas como limitações atuais. Permanecem os achados axe explícitos na matriz T029 (contraste e um `button-name` crítico nos pilotos) e a indisponibilidade de leitor de tela, `audit`/`critique` e Wiki no ambiente local. Esses achados não foram reclassificados como aprovação técnica; o aceite global autorizado por Nathan os mantém como limitações documentadas do pacote local. Deploy, publicação e sincronização externa continuam fora do escopo.
+
+## Aditivo de cobertura de rotas — 2026-11-24
+
+A PR acrescenta os fallbacks `/admin/*`, `/mentor/*` e `/mentee/*`, todos renderizando a mesma `Page404` já exercitada e registrada pela T016. A matriz agora inclui esses três aliases estruturais como SUP-064–SUP-066, sem declará-los telas novas ou protótipos aprovados. O usuário esclareceu que o sistema LabOn em andamento, aprovado pelo cliente, é a referência visual; não existe protótipo independente aprovado. `python scripts/check_design_coverage.py --spec .codex/docs/specs/reformulacao-design --final` → `OK (final): 66 superfícies e 47 rotas verificadas.`

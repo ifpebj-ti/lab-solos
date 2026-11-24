@@ -297,6 +297,9 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
   });
   const context = page.context();
   await context.clearCookies();
+  if (new URL(page.url()).pathname !== '/') {
+    await page.goto('/');
+  }
   await context.addCookies([
     {
       name: 'lab_solos_session',
@@ -307,9 +310,6 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
       sameSite: 'Lax',
     },
   ]);
-  if (!page.url().startsWith(securityE2eData.baseURL)) {
-    await page.goto('/login');
-  }
   const actualSession = await page.evaluate(async () => {
     const response = await fetch('/api/Auth/session');
     return response.ok ? ((await response.json()) as BrowserSession) : null;
@@ -332,6 +332,13 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
     sessionStorage.setItem('auth:csrf-token', session.csrfToken);
   }, actualSession);
   await page.reload({ waitUntil: 'networkidle' });
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        sessionStorage.getItem('auth:session-context') ?? ''
+      )
+    )
+    .toContain(String(identity.id));
 
   const browserCookie = (await context.cookies(securityE2eData.baseURL)).find(
     (cookie) => cookie.name === 'lab_solos_session'
@@ -752,7 +759,6 @@ test('keeps same-origin API calls readable while external and null origins fail 
 
 test('keeps the three profile routes, recovery flow, images, fonts and exports working under CSP', async ({
   page,
-  context,
   request,
 }) => {
   test.setTimeout(90_000);
@@ -1057,6 +1063,10 @@ test('preserves session, administrator guard, email reservation and audit across
   expect(ownerSessionAfterLogout.status()).toBe(401);
 
   await startBrowserSession(page, identities.admin);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await page.waitForLoadState('networkidle');
   restartSecurityApi();
 
   await expect

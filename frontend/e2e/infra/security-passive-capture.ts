@@ -261,8 +261,7 @@ function trackCaptureOperation<T>(
   operation: Promise<T>,
   continuation = false
 ): Promise<T> {
-  let tracked: Promise<T>;
-  tracked = operation.then(
+  const tracked: Promise<T> = operation.then(
     (result) => {
       pendingCaptureOperations.delete(tracked);
       if (continuation)
@@ -1422,7 +1421,7 @@ async function writeCapture(
 }
 
 export const test = base.extend({
-  page: async ({ page, context }, use) => {
+  page: async ({ page, context }, provide) => {
     downloadBodies.clear();
     downloadBodyWaiters.clear();
     cdpBodies.clear();
@@ -1467,7 +1466,7 @@ export const test = base.extend({
     page.on('response', captureBinaryResponse);
     page.on('download', trackDownload);
     try {
-      await use(page);
+      await provide(page);
     } finally {
       cdpCaptureDrainDeadlineAtMs =
         performance.now() + cdpCaptureDrainMaxWaitMs;
@@ -1482,7 +1481,7 @@ export const test = base.extend({
       if (!pageDrainComplete) cdpCaptureDrainFailed = true;
     }
   },
-  context: async ({ context }, use, testInfo) => {
+  context: async ({ context }, provide, testInfo) => {
     const capturedResults: HarCaptureResult[] = [];
     const capturedBrowserRequests = new WeakSet<Request>();
     let captureError = false;
@@ -1581,7 +1580,7 @@ export const test = base.extend({
     context.on('requestfinished', captureFinishedRequest);
     context.on('response', captureResponseBeforeFinished);
     try {
-      await use(context);
+      await provide(context);
     } finally {
       try {
         const cdpDrainComplete =
@@ -2002,7 +2001,7 @@ export const test = base.extend({
       }
     }
   },
-  request: async ({ request }, use, testInfo) => {
+  request: async ({ request }, provide, testInfo) => {
     const entries: HarEntry[] = [];
     let captureError = false;
     let observedMethods = 0;
@@ -2099,7 +2098,7 @@ export const test = base.extend({
     }) as APIRequestContext;
 
     try {
-      await use(observedRequest);
+      await provide(observedRequest);
     } finally {
       await writeCapture(
         'api-request-context',
