@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 
@@ -161,7 +162,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             ReclassificarAsync(logId, solicitacao, suspeitaResultante: false);
 
         [HttpGet("verificar-atividade-suspeita")]
-        public async Task<IActionResult> VerificarAtividadeSuspeita([FromQuery] int usuarioId)
+        public async Task<IActionResult> VerificarAtividadeSuspeita(
+            [FromQuery, Range(1, int.MaxValue)] int usuarioId)
         {
             try
             {

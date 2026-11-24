@@ -42,7 +42,10 @@ describe('session', () => {
     expect(readSession()).toEqual(session);
     expect(readCsrfToken()).toBe('session-bound-proof');
     expect(sessionStorage.getItem('auth:session-context')).toBe(
-      JSON.stringify(session)
+      JSON.stringify({ userId: '42', role: 'Administrador' })
+    );
+    expect(sessionStorage.getItem('auth:session-context')).not.toContain(
+      'requiresPasswordChange'
     );
     expect(sessionStorage.getItem('auth:session-context')).not.toContain(
       'session-bound-proof'

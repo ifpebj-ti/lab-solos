@@ -22,6 +22,10 @@ export type ClearSessionOptions = Readonly<{
   discardAuthContext?: boolean;
 }>;
 
+type StoredSessionContext = Pick<Session, 'userId' | 'role'>;
+
+let passwordChangeRequiredInMemory: boolean | null = null;
+
 const isSessionBootstrap = (value: unknown): value is SessionBootstrap => {
   if (!value || typeof value !== 'object') return false;
 
@@ -39,7 +43,34 @@ const isSessionBootstrap = (value: unknown): value is SessionBootstrap => {
   );
 };
 
-/** Store only display/navigation context and the session-bound CSRF proof. */
+const readStoredSessionContext = (): StoredSessionContext | null => {
+  try {
+    const value: unknown = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY) ?? 'null'
+    );
+    if (!value || typeof value !== 'object') return null;
+
+    const candidate = value as Record<string, unknown>;
+    if (
+      typeof candidate.userId !== 'string' ||
+      candidate.userId.length === 0 ||
+      typeof candidate.role !== 'string' ||
+      candidate.role.length === 0
+    ) {
+      return null;
+    }
+
+    return { userId: candidate.userId, role: candidate.role };
+  } catch {
+    return null;
+  }
+};
+
+/** Indicates that the app should revalidate a stored browser session on startup. */
+export const hasStoredSessionContext = (): boolean =>
+  readStoredSessionContext() !== null;
+
+/** Persist only identity display context; security state stays in memory. */
 export const startSession = (value: unknown): Session | null => {
   if (!isSessionBootstrap(value)) {
     clearSession();
@@ -53,8 +84,12 @@ export const startSession = (value: unknown): Session | null => {
   };
 
   try {
-    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    sessionStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({ userId: session.userId, role: session.role })
+    );
     sessionStorage.setItem(CSRF_STORAGE_KEY, value.csrfToken);
+    passwordChangeRequiredInMemory = value.requiresPasswordChange;
   } catch {
     clearSession();
     return null;
@@ -65,31 +100,13 @@ export const startSession = (value: unknown): Session | null => {
 };
 
 export const readSession = (): Session | null => {
-  try {
-    const value: unknown = JSON.parse(
-      sessionStorage.getItem(SESSION_STORAGE_KEY) ?? 'null'
-    );
-    if (!value || typeof value !== 'object') return null;
+  const context = readStoredSessionContext();
+  if (!context || passwordChangeRequiredInMemory === null) return null;
 
-    const candidate = value as Record<string, unknown>;
-    if (
-      typeof candidate.userId !== 'string' ||
-      candidate.userId.length === 0 ||
-      typeof candidate.role !== 'string' ||
-      candidate.role.length === 0 ||
-      typeof candidate.requiresPasswordChange !== 'boolean'
-    ) {
-      return null;
-    }
-
-    return {
-      userId: candidate.userId,
-      role: candidate.role,
-      requiresPasswordChange: candidate.requiresPasswordChange,
-    };
-  } catch {
-    return null;
-  }
+  return {
+    ...context,
+    requiresPasswordChange: passwordChangeRequiredInMemory,
+  };
 };
 
 export const readCsrfToken = (): string | null => {
@@ -115,6 +132,7 @@ const clearLegacyAuthCookies = (): void => {
 export const clearSession = (
   options: ClearSessionOptions = {}
 ): void => {
+  passwordChangeRequiredInMemory = null;
   try {
     sessionStorage.removeItem(SESSION_STORAGE_KEY);
     sessionStorage.removeItem(CSRF_STORAGE_KEY);

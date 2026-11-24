@@ -1,7 +1,11 @@
 import { NavigateFunction } from 'react-router-dom';
 
 import { consumeIntendedRoute } from '@/auth/intendedRoute';
-import { clearSession, startSession } from '@/auth/session';
+import {
+  clearSession,
+  hasStoredSessionContext,
+  startSession,
+} from '@/auth/session';
 import type { CreateAcademicUserData } from '@/contracts/userRegistration';
 import { normalizeError } from '@/errors/normalizeError';
 import { api } from '../services/BaseApi';
@@ -81,6 +85,20 @@ export const authenticate = async (
     return response;
   } catch (error: unknown) {
     throw normalizeError(error);
+  }
+};
+
+export const restoreSession = async () => {
+  if (!hasStoredSessionContext()) return null;
+
+  try {
+    const response = await api.get('Auth/session');
+    const session = startSession(response.data);
+    if (!session) clearSession();
+    return session;
+  } catch {
+    clearSession();
+    return null;
   }
 };
 

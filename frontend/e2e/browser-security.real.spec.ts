@@ -327,11 +327,11 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
       JSON.stringify({
         userId: String(session.userId),
         role: session.role,
-        requiresPasswordChange: session.requiresPasswordChange,
       })
     );
     sessionStorage.setItem('auth:csrf-token', session.csrfToken);
   }, actualSession);
+  await page.reload({ waitUntil: 'networkidle' });
 
   const browserCookie = (await context.cookies(securityE2eData.baseURL)).find(
     (cookie) => cookie.name === 'lab_solos_session'

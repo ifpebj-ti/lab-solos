@@ -33,7 +33,7 @@ public sealed class AuditDetectionRuleTests(PostgreSqlContainerFixture database)
                 {
                     0 => ScenarioNow.AddMinutes(-15),
                     3 => ScenarioNow,
-                    _ => ScenarioNow.AddMinutes(-10 + index * 2)
+                    _ => ScenarioNow.AddMinutes(-10d + index * 2d)
                 },
                 scenario.AdministratorId,
                 source,

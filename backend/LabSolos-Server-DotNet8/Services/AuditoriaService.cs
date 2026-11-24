@@ -167,17 +167,18 @@ namespace LabSolos_Server_DotNet8.Services
 
         public async Task<bool> VerificarAtividadeSuspeitaAsync(int usuarioId, string enderecoIP)
         {
+            if (usuarioId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(usuarioId));
+
             var now = _timeProvider.GetUtcNow();
             var normalizedIp = NormalizarEnderecoIp(enderecoIP);
             var accountRule = _auditDetection.ObterRegra(AuditDetectionAxis.Conta);
             var originRule = _auditDetection.ObterRegra(AuditDetectionAxis.Origem);
             var end = LimiteSuperiorInclusivoComoExclusivo(now);
-            var accountFailures = usuarioId > 0
-                ? await _uow.LogAuditoriaRepository.ContarFalhasLoginPorContaAsync(
-                    usuarioId,
-                    (now - accountRule.Janela).UtcDateTime,
-                    end)
-                : 0;
+            var accountFailures = await _uow.LogAuditoriaRepository.ContarFalhasLoginPorContaAsync(
+                usuarioId,
+                (now - accountRule.Janela).UtcDateTime,
+                end);
             var originFailures = normalizedIp.Length > 0
                 ? await _uow.LogAuditoriaRepository.ContarFalhasLoginPorOrigemAsync(
                     normalizedIp,
@@ -187,11 +188,9 @@ namespace LabSolos_Server_DotNet8.Services
             var probe = new LogAuditoria
             {
                 TipoAcao = TipoAcaoAuditoria.LoginFalhado,
-                UsuarioId = usuarioId > 0 ? usuarioId : null,
+                UsuarioId = usuarioId,
                 EnderecoIP = normalizedIp,
-                OrigemConfiavel = usuarioId > 0
-                    ? OrigemConfiavelAuditoria.UsuarioAutenticado
-                    : OrigemConfiavelAuditoria.SemAtorValido
+                OrigemConfiavel = OrigemConfiavelAuditoria.SemAtorValido
             };
 
             return _auditDetection.Avaliar(probe, accountFailures, originFailures, now).Categoria ==
