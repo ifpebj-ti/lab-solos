@@ -59,7 +59,7 @@ Para mais informações e documentação do projeto, acesse nossa [Wiki](https:/
 
 ## Gestão do Projeto
 
-O desenvolvimento, a qualidade e os indicadores do LabOn são acompanhados no [GitHub Project — LabOn: Desenvolvimento e Qualidade](https://github.com/orgs/ifpebj-ti/projects/41/views/1).
+O desenvolvimento, a qualidade e os indicadores do LabOn são acompanhados no [GitHub Project — LabOn: Desenvolvimento e Qualidade](https://github.com/orgs/ifpebj-ti/projects/41/views/1). O Project #41 é privado e exige uma conta autorizada. O recorte e o acesso de um perfil de avaliação não foram verificados nesta entrega; consulte a [validação da Unidade 1](docs/entregas/unidade-1/validacao.md).
 
 ## Apresentações semanais
 

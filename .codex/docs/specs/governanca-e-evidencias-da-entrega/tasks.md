@@ -1,9 +1,9 @@
 # Tarefas — Governança e evidências da entrega
 
-- Status: planejado
+- Status: 9 de 14 tarefas concluídas; 5 permanecem bloqueadas por dependências operacionais externas.
 - PRD: [Governança e evidências da entrega](./prd.md)
 - Especificação técnica: [Governança e evidências da entrega](./techspec.md)
-- Atualizado em: 2026-11-15
+- Atualizado em: 2026-11-24
 
 Ler o PRD e a especificação técnica antes de executar cada tarefa. As ondas registram a ordem após a liberação dos bloqueios. Edições locais, consultas com perfil de avaliação e ações de validação na plataforma têm evidências próprias. O Project #41 permanece privado durante a definição e a demonstração do meio de consulta.
 
@@ -146,10 +146,10 @@ Editar localmente a seção de telas com o link do sistema aprovado e os seis fl
 
 ## T006 — Documentar e conferir o procedimento aprovado do backlog
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário
 - Issue: #493
 - Dependências: nenhuma
-- Bloqueio: Confirmar se o barema aceita recorte datado e definir campos, perfil, período e canal autorizado. O recorte datado é a abordagem de planejamento. Ver [decisão de planejamento](../decisoes-de-planejamento.md#pré-requisitos-operacionais).
+- Dispensa: o usuário autorizou encerrar sem os testes de acesso que não poderá executar. Ver [evidência T006](./evidencias/T006.md) e [decisão de planejamento](../decisoes-de-planejamento.md#dispensas-e-referência-aprovada--2026-11-24). Acesso do perfil de avaliação, aceite do recorte pelo barema e confirmação dos campos/período/canal não foram verificados.
 - Paralela: não
 - Requisitos: RF-002, RNF-001, CA-002, CA-003
 - Caminhos sob responsabilidade: `README.md`, `docs/entregas/unidade-1/validacao.md`, `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T006.md`
@@ -219,13 +219,13 @@ Aplicar os padrões e responsáveis aprovados em `.github/CODEOWNERS`, com aten�
 
 ## T009 — Coletar evidências datadas de Dependabot e code scanning
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #497
 - Dependências: T001
-- Bloqueio: [Coleta e destino](./techspec.md#alternativas-e-decisões). Confirmar responsável, permissão, recorte e local autorizado dos registros agregados.
+- Evidência: [snapshot agregado T009](./evidencias/T009.md), coleta completa e somente de leitura em 24/11/2026.
 - Paralela: não
 - Requisitos: RF-007, RNF-001, RNF-002, CA-008, CA-009
-- Caminhos sob responsabilidade: nenhum arquivo versionado. A posse se limita ao registro agregado de alertas no meio a confirmar.
+- Caminhos sob responsabilidade: `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T009.md`.
 
 ### Escopo
 
@@ -241,13 +241,13 @@ No ambiente autorizado, consultar Dependabot e code scanning, percorrendo as pá
 
 ## T010 — Coletar regras e checks efetivos das duas branches
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #497
 - Dependências: T001
-- Bloqueio: [Coleta e destino](./techspec.md#alternativas-e-decisões). Confirmar responsável, acesso às fontes clássicas e rulesets aplicáveis e destino aprovado.
+- Evidência: [regras efetivas T010](./evidencias/T010.md), coleta completa e somente de leitura em 24/11/2026.
 - Paralela: não
 - Requisitos: RF-007, RNF-001, RNF-002, CA-008, CA-009
-- Caminhos sob responsabilidade: nenhum arquivo versionado. A posse se limita ao registro agregado das proteções no meio a confirmar.
+- Caminhos sob responsabilidade: `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T010.md`.
 
 ### Escopo
 
@@ -263,11 +263,11 @@ Consultar regras efetivas de `main` e `develop` e a proteção clássica. Regist
 
 ## T011 — Vincular as evidências de segurança aos materiais da entrega
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário
 - Issue: #497
 - Dependências: T009, T010
 - Dependências externas: [documentação da primeira entrega T016](../documentacao-primeira-entrega/tasks.md#t016--publicar-revisão-validada-e-concluir-aceite), formato de validação e navegação de evidências.
-- Bloqueio: T009 e T010 aguardam autorização para coleta. Confirmar quais agregados podem ser disponibilizados, meio, retenção e perfil autorizado a consultá-los.
+- Dispensa: o usuário autorizou encerrar sem os testes de acesso que não poderá executar. Os materiais foram vinculados localmente; acesso pelo perfil de avaliação não foi verificado.
 - Paralela: não
 - Requisitos: RF-007, RNF-001, RNF-002, CA-008, CA-009
 - Caminhos sob responsabilidade: `docs/entregas/unidade-1/validacao.md`
@@ -355,7 +355,11 @@ No ambiente autorizado, conferir a atribuição de revisão em PR de teste que a
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
 | --- | --- | --- | --- | --- |
-| 2026-11-24 | T005 | concluída por substituição de escopo aprovada pelo usuário | README conferido contra o mapa de seis fluxos da apresentação de 2026-11-04; evidência em `evidencias/T005.md`. | O cliente aprovou o sistema em andamento; não há protótipo independente aprovado. Não houve nova navegação com perfil de avaliador. T006–T014 continuam com seus pré-requisitos próprios. |
+| 2026-11-24 | T006 | concluída sob exceção explícita do usuário | Evidência local em `evidencias/T006.md`; atualização do material da Unidade 1. | Testes de acesso do avaliador e confirmação do barema/campos/período/canal dispensados pelo usuário; nenhum acesso positivo foi presumido. |
+| 2026-11-24 | T009 | concluída | Paginação completa das APIs de Dependabot (2 páginas) e code scanning (1 página); totais agregados em `evidencias/T009.md`. | Coleta somente de leitura; nenhum identificador ou detalhe individual de alerta foi persistido. |
+| 2026-11-24 | T010 | concluída | Regras efetivas, rulesets e rotas de proteção clássica conferidos para develop e main; evidencias/T010.md. | Rotas clássicas responderam HTTP 404; checks requeridos registrados a partir das regras efetivas. |
+| 2026-11-24 | T011 | concluída sob exceção explícita do usuário | `docs/entregas/unidade-1/validacao.md` vincula T009 e T010, data, fonte e limitações. | Acesso do perfil de avaliação não foi testado; o usuário dispensou os testes que não poderá executar. |
+| 2026-11-24 | T005 | concluída por substituição de escopo aprovada pelo usuário | README conferido contra o mapa de seis fluxos da apresentação de 2026-11-04; evidência em `evidencias/T005.md`. | O cliente aprovou o sistema em andamento; não há protótipo independente aprovado. Não houve nova navegação com perfil de avaliador. As dispensas e coletas posteriores estão registradas nas demais entradas de 24/11/2026. |
 | 2026-11-15 | T002 | concluída | RED por ausência de bug.md e da seção Objetivo. GREEN 3 testes; REFACTOR e conferência integrados 5/5. | Descoberta já coberta pelo job Workflow contracts antes do merge. Verificação do seletor fica em T012. |
 | 2026-11-16 | T001 | concluída | Verificação inicial: arquivo ausente. Roteiro final conferido com seis casos sintéticos, incluindo paginação, acesso e checks das duas branches. | A coleta real e a publicação de evidências permanecem nas tarefas condicionadas T009 a T011. |
 | 2026-11-16 | T003 | concluída | RED: 159 saídas rastreadas. Cópia isolada: restore travado, build Release, 485/485 testes e 486 saídas ignoradas. No índice principal: 159 remoções, zero fora do escopo. | Os 159 arquivos em disco preservaram tamanho e SHA-256 em verificação independente. Nenhum manifesto ou fonte incluído no stage. |

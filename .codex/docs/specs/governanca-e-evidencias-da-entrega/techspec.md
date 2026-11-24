@@ -124,7 +124,7 @@ Reaproveitar o formato de validação editorial existente e reunir informações
 | Acesso ao backlog | Acesso direto de leitura apresenta dados atualizados, mas pode revelar itens ou campos adicionais. O recorte datado controla exposição, mas exige atualização e validação de vínculos | Usar o acesso direto somente se o responsável confirmar que toda a visibilidade é autorizada. Usar recorte datado em canal aprovado se o barema aceitar e o acesso direto exceder o escopo. | Diretriz definida, com pré-requisitos operacionais na [decisão local](../decisoes-de-planejamento.md#pré-requisitos-operacionais) | Define perfil, recorte, duração, canal e procedimento do avaliador. |
 | Referência visual | Protótipo independente exige link e perfil próprios; o sistema aprovado já demonstra a interface real | Usar o sistema LabOn publicado e identificar os seis fluxos principais, conforme esclarecimento do usuário em 2026-11-24. | Confirmada: sistema em andamento aprovado pelo cliente; protótipo independente inexistente | Atualizar README e registrar a decisão; não alegar teste de protótipo ou sessão de avaliação. |
 | Canal privado e responsáveis | Relato privado do repositório, quando disponível e habilitado, centraliza o fluxo. Uma caixa institucional restrita pode atender com confirmação de acesso e tratamento | Usar canal institucional já operacional e confirmar destinatários. Aplicar proprietários por área com a equipe e revisar padrões sobrepostos. | Pendente | Condiciona conteúdo de `SECURITY.md`, `CODEOWNERS` e os aceites de integração. |
-| Coleta e destino | Registro manual datado reduz a implantação inicial. Um coletor reproduzível com relatórios sanitizados facilita repetição e adiciona manutenção e controle de acesso | Coleta autorizada de leitura e registro sanitizado no meio aprovado. Automatizar validação de estrutura se houver repetição da coleta. | Pendente | Define coletor, autorização, campos, retenção e acesso externo aos resultados. |
+| Coleta e destino | Registro manual datado reduz a implantação inicial. Um coletor reproduzível com relatórios sanitizados facilita repetição e adiciona manutenção e controle de acesso | Coleta de leitura via GitHub CLI autenticado; versionar snapshots agregados sem identificadores em evidências da governança. | Confirmada nesta revisão; perfil de avaliação não validado sob dispensa explícita do usuário. Ver T009/T010. | Coletas registradas em `evidencias/T009.md` e `evidencias/T010.md`; retenção segue o histórico do repositório. Acesso externo permanece não verificado. |
 | Limpeza do índice | Reusar regras de ignore atuais tem baixo impacto. Uma regra adicional só é necessária se a conferência achar saída elegível sem ignore | Reutilizar `backend/.gitignore` e retirar apenas saídas rastreadas dos dois diretórios. | Recorte confirmado no PRD | Comprovar o efeito em checkout limpo e manter arquivos de origem. |
 
 ## Riscos e mitigação
@@ -135,10 +135,10 @@ Reaproveitar o formato de validação editorial existente e reunir informações
 - Atribuição automática pode falhar por permissão ou precedência de padrões. Validar a identidade e o caminho real em PR cuja base já contenha o arquivo.
 - Uma regra de ignore não remove entradas existentes no índice. Conferir índice, ignore e limpeza depois de gerar novamente as saídas.
 
-## Perguntas abertas
+## Pendências e dispensas
 
-1. Qual meio, recorte de dados, período e perfil o responsável pelo Project #41 aprova para a avaliação, e qual evidência atende ao barema?
-2. Quais áreas e responsáveis ficam em `CODEOWNERS` e qual canal privado foi confirmado pela equipe de segurança?
-3. Quem fará a coleta autorizada de Dependabot, code scanning e regras efetivas, e em qual meio as evidências poderão ser consultadas?
+1. **Backlog e barema — dispensado para este aceite local.** O acesso do perfil, o recorte, o período, o canal e a aceitação pelo barema não foram confirmados. O usuário autorizou encerrar T006 sem os testes; não declarar acesso validado.
+2. **Canal privado e responsáveis — pendente.** Ainda faltam canal privado confirmado, destinatários, áreas e identidades autorizadas para `SECURITY.md` e `CODEOWNERS`.
+3. **Acesso às evidências — dispensado para este aceite local.** T009/T010 foram coletadas por sessão autenticada de leitura e registradas nos arquivos agregados. O perfil de avaliação não consultou esses arquivos; o usuário autorizou encerrar T011 sem esse teste.
 
-A auditoria desta especificação foi local e documental. A verificação do índice em checkout limpo, a coleta remota, a vigência das permissões e os testes de interação com o perfil da avaliação ainda fazem parte da implementação e do aceite.
+A auditoria desta especificação foi local e documental. As coletas remotas de T009/T010 foram realizadas em 24/11/2026. A publicação não alterou permissões, rulesets, canais ou identidades. Acesso externo e os itens ainda pendentes permanecem descritos nas tarefas correspondentes.
