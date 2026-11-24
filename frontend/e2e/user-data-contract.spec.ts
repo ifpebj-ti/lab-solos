@@ -6,6 +6,18 @@ test('perfil apresenta data ausente e cidade legada sem escrita', async ({ page 
   await page.route('**/api/**', async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
   });
+  await page.route('**/api/Auth/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        userId: 4242,
+        role: 'Mentor',
+        requiresPasswordChange: false,
+        csrfToken: 'user-data-test-csrf-proof',
+      }),
+    });
+  });
   await page.route('**/api/Usuarios/4242', async (route) => {
     requestMethods.push(route.request().method());
     await route.fulfill({

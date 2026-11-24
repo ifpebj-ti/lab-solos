@@ -661,6 +661,16 @@ export async function mockResponsiveSession(page: Page, role: string) {
     sessionStorage.setItem('auth:csrf-token', 'responsive-test-csrf-proof');
   }, role);
   await page.route('**/api/**', (route) => route.fulfill({ json: [] }));
+  await page.route('**/api/Auth/session', (route) =>
+    route.fulfill({
+      json: {
+        userId: 4242,
+        role,
+        requiresPasswordChange: false,
+        csrfToken: 'responsive-test-csrf-proof',
+      },
+    })
+  );
   await page.route('**/api/Usuarios/4242', (route) =>
     route.fulfill({
       json: {

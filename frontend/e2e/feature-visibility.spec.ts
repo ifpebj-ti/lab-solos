@@ -356,12 +356,13 @@ for (const viewport of viewports) {
 
 for (const removedRoute of removedRoutes) {
   for (const session of ['visitante', 'sessao-sintetica'] as const) {
-    test(`${removedRoute} exibe Page404 para ${session}, com query e após reload`, async ({
+    test(`${removedRoute} exibe Page404 para ${session}, sem APIs de negócio`, async ({
       page,
     }) => {
       const apiRequests: string[] = [];
       page.on('request', (request) => {
-        if (new URL(request.url()).pathname.includes('/api/')) {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname.startsWith('/api/') && pathname !== '/api/Auth/session') {
           apiRequests.push(request.url());
         }
       });
@@ -387,13 +388,14 @@ for (const removedRoute of removedRoutes) {
 }
 
 for (const { path, role } of unknownProfileRoutes) {
-  test(`${path} exibe Page404 sem chamadas à API e mantém o resultado após reload`, async ({
+  test(`${path} exibe Page404 sem APIs de negócio e mantém o resultado após reload`, async ({
     page,
   }) => {
     const apiRequests: string[] = [];
     await mockResponsiveSession(page, role);
     page.on('request', (request) => {
-      if (new URL(request.url()).pathname.startsWith('/api/')) {
+      const pathname = new URL(request.url()).pathname;
+      if (pathname.startsWith('/api/') && pathname !== '/api/Auth/session') {
         apiRequests.push(request.url());
       }
     });
