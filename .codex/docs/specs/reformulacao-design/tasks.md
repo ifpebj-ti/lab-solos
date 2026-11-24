@@ -485,6 +485,10 @@ Conteúdo longo legível, sem esconder unidades; vazio e falha distintos; filtro
 
 Não alterar contratos ou caminhos fora da posse; atualizações do inventário são entregues ao próximo marco por meio das evidências desta tarefa.
 
+### Retomada — 2026-11-24
+
+A validação cruzada T016 encontrou dois cenários do piloto Mentor sem resultados porque o mock de `frontend/e2e/design-pilots.spec.ts` intercepta a rota/shape legado. Conferir a integração vigente do catálogo Mentor e alinhar a fixture mantendo a distinção entre catálogo comum e catálogo administrativo.
+
 ## T012 — Piloto de criação de empréstimo
 
 - Status: concluída sob limitação de ambiente
@@ -1050,7 +1054,7 @@ Marco com decisão humana: manter pendente até resposta explícita no alcance d
 
 ## T029 — Integração final entre módulos e desempenho comparado
 
-- Status: concluída sob limitações documentadas (retomada: E2E global 235/235 e comparação 5×4 dentro dos orçamentos)
+- Status: concluída sob limitações documentadas
 - Dependências: T028
 - Onda: 28
 - Paralela: não
@@ -1083,6 +1087,10 @@ Suítes completas aprovadas e matriz sem lacunas silenciosas; contraste mínimo 
 ### Notas
 
 Não alterar contratos ou caminhos fora da posse; atualizações do inventário são entregues ao próximo marco por meio das evidências desta tarefa.
+
+### Retomada — 2026-11-24
+
+A validação cruzada atual encontrou três expectativas de auditoria obsoletas em `frontend/e2e/responsive-layout.spec.ts` (shape paginado e mensagens visíveis). Alinhar os cenários ao contrato atual sem alterar produção; executar os testes UI dessa jornada e registrar a revalidação integrada.
 
 ## T030 — Manual e sistema visual documentados a partir da versão validada
 
@@ -1231,3 +1239,5 @@ Verificação estática desta decomposição: 31 IDs únicos, 32 requisitos cobe
 | 2026-09-23 | T001 (retomada) | Concluída sob limitações documentadas | Medição isolada 5/5 × 4; JSON bruto, medianas, bloqueios e tolerâncias versionados; confirmação global de Nathan aplicada | 404s preexistentes, bytes Resource Timing com cache aquecido e assistência humana não instrumentada explicitados; sem alteração de produção ou issue/Project |
 | 2026-09-23 | T029 (retomada) | Concluída sob limitações documentadas | E2E global 235/235; quatro suítes 195/195; unidade 139/643; lint/build/cobertura aprovados; overflow 50/50; desempenho 5×4 dentro das tolerâncias | Comparação final em Compose limpo; achados axe e falta de leitor de tela automatizado permanecem listados, sem lacunas silenciosas; T030 liberada; sem issue/Project |
 | 2026-09-23 | T031 (revalidação após T029) | Concluída sob limitações documentadas | `--final` OK com 63 superfícies/44 rotas; workflow 3/3; validador 11/11; aceite atualizado para E2E 235/235, Vitest 643 e comparativo T029 | Falhas globais anteriores preservadas como histórico e marcadas resolvidas; limites axe/leitor de tela/audit/Wiki seguem explícitos; sem publicação/deploy/issue |
+| 2026-11-24 | T011 retomada catálogo Mentor | concluída sob limitação de ambiente | RED: 2/2 cenários sem itens por fixture desatualizada; GREEN 2/2 claro/escuro, RTL 29/29, ESLint, Prettier e `git diff --check` aprovados. | Mock usa catálogo comum paginado e verifica query; axe mantém achados históricos `button-name` e `color-contrast`. Evidência `evidencias/T011/resultado-execucao.md`; sem GitHub/Wiki. |
+| 2026-11-24 | T029 retomada auditoria | concluída sob limitações documentadas | RED: 0/3 cenários passaram com fixture/cópias obsoletas; GREEN 3/3, ESLint dirigido e `git diff --check` aprovados. | E2Es alinhados ao envelope paginado, estado vazio e alerta atuais. Prettier global do arquivo segue limitado por formatação anterior fora do escopo; artefatos isolados foram preservados por bloqueio da remoção. Evidência `evidencias/T029/resultado-execucao.md`; sem GitHub/Wiki. |

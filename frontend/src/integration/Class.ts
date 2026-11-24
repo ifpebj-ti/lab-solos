@@ -1,13 +1,16 @@
+import { readSession } from '@/auth/session';
 import { api } from '../services/BaseApi';
-import Cookie from 'js-cookie';
 import { parseResourceId } from '@/contracts/identifier';
 import { emprestimosSchema } from '@/contracts/loan';
-import { dependenteSchema } from '@/contracts/user';
+import { dependenteSchema, tipoUsuarioSchema } from '@/contracts/user';
 
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
 
 const dependentesResponseSchema = dependenteSchema.array();
+const approvalRequestsResponseSchema = dependenteSchema
+  .extend({ tipoUsuario: tipoUsuarioSchema })
+  .array();
 
 const emptyOnAdminApprovalNotFound = (error: unknown): [] => {
   const normalized = reportAppError(error, OPERATION_IDS.usersForApproval);
@@ -21,18 +24,14 @@ const emptyOnAdminApprovalNotFound = (error: unknown): [] => {
 
 export const getLoansByDependentes = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
     const response = await api({
       method: 'GET',
       url: `Usuarios/${rankID}/dependentes/emprestimos`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     emprestimosSchema.parse(response.data);
     return response.data;
@@ -43,18 +42,14 @@ export const getLoansByDependentes = async () => {
 
 export const getDependentes = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
     const response = await api({
       method: 'GET',
       url: `Usuarios/${rankID}/dependentes`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
@@ -64,16 +59,9 @@ export const getDependentes = async () => {
 
 export const getDependentesID = async (rankID: string) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Usuarios/${parseResourceId(rankID)}/dependentes`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     return dependentesResponseSchema.parse(response.data);
   } catch (error) {
@@ -83,18 +71,11 @@ export const getDependentesID = async (rankID: string) => {
 
 export const getDependentesForApproval = async (rankID: string) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Usuarios/${rankID}/dependentes/aprovacao`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
-    return dependentesResponseSchema.parse(response.data);
+    return approvalRequestsResponseSchema.parse(response.data);
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.dependentsForApproval);
   }
@@ -103,18 +84,11 @@ export const getDependentesForApproval = async (rankID: string) => {
 /** Mantém o fallback legado da aprovação administrativa sem estendê-lo a vínculos protegidos. */
 export const getAllUsersForApproval = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Usuarios/aprovacao`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
-    return dependentesResponseSchema.parse(response.data);
+    return approvalRequestsResponseSchema.parse(response.data);
   } catch (error) {
     return emptyOnAdminApprovalNotFound(error);
   }
@@ -122,19 +96,15 @@ export const getAllUsersForApproval = async () => {
 
 export const approveDependente = async (solicitanteId: string | number) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
 
     const response = await api({
       method: 'PATCH',
       url: `/Usuarios/dependentes/${solicitanteId}/aprovar`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
       data: {
         aprovadorId: Number(rankID),
       },
@@ -148,19 +118,15 @@ export const approveDependente = async (solicitanteId: string | number) => {
 
 export const rejectDependente = async (solicitanteId: string | number) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
 
     const response = await api({
       method: 'PATCH',
       url: `/Usuarios/dependentes/${solicitanteId}/rejeitar`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
       data: {
         aprovadorId: Number(rankID),
       },
@@ -178,17 +144,10 @@ interface IIdMentorClass {
 
 export const getLoansByClass = async ({ id }: IIdMentorClass) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Usuarios/${parseResourceId(id)}/dependentes/emprestimos`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     emprestimosSchema.parse(response.data);
     return response.data;

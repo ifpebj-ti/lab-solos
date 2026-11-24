@@ -10,6 +10,6 @@ namespace LabSolos_Server_DotNet8.DTOs.Lotes
         public string? DataFabricacao { get; set; }
         public string? DataValidade { get; set; }
         public string? DataEntrada { get; set; }
-        public List<ProdutoDTO> Produtos { get; set; }
+        public List<ProdutoDTO> Produtos { get; set; } = [];
     }
 }

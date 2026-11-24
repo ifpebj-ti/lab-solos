@@ -23,5 +23,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Auditoria
         public TimeSpan? TempoSessao { get; set; }
         public int? TentativasAcesso { get; set; }
         public string? Origem { get; set; }
+        public int RevisaoClassificacao { get; set; }
+        public List<AuditClassificationRevisionDTO> HistoricoClassificacao { get; set; } = new();
     }
 }

@@ -13,7 +13,7 @@ namespace Tests.Services;
 public sealed class NotificacaoServiceTests
 {
     [Fact]
-    public async Task VerificarEmprestimosVencidosAsyncCriaUmaNotificacaoPorAdministradorNaOrdemOriginal()
+    public async Task VerificarEmprestimosVencidosAsyncCriaUmaNotificacaoDeGrupoParaAdministradoresHabilitados()
     {
         var fixture = CreateFixture();
         var administrators = new[]
@@ -44,25 +44,29 @@ public sealed class NotificacaoServiceTests
             .Setup(repository => repository.Criar(It.IsAny<Notificacao>()))
             .Callback<Notificacao>(createdNotifications.Add)
             .Returns((Notificacao notification) => notification);
+        fixture.NotificationRepository
+            .Setup(repository => repository.ObterDestinatariosHabilitadosAsync(
+                It.IsAny<int?>(),
+                It.IsAny<NivelUsuario?>()))
+            .ReturnsAsync((int? userId, NivelUsuario? targetLevel) => userId.HasValue
+                ? [userId.Value]
+                : targetLevel == NivelUsuario.Administrador
+                    ? administrators.Select(user => user.Id).ToArray()
+                    : []);
 
         await fixture.Service.VerificarEmprestimosVencidosAsync();
 
-        Assert.Equal(administrators.Length, createdNotifications.Count);
-        Assert.Collection(
-            createdNotifications,
-            notification => Assert.Equal(administrators[0].Id, notification.UsuarioId),
-            notification => Assert.Equal(administrators[1].Id, notification.UsuarioId),
-            notification => Assert.Equal(administrators[2].Id, notification.UsuarioId));
-        Assert.All(createdNotifications, notification =>
-        {
-            Assert.Equal(TipoNotificacao.Sistema, notification.Tipo);
-            Assert.Equal(loan.Id, notification.ReferenciaId);
-            Assert.Equal("EmprestimoVencido", notification.TipoReferencia);
-            Assert.Equal($"/admin/history/loan/{loan.Id}", notification.LinkAcao);
-            Assert.Contains(loan.Solicitante.NomeCompleto, notification.Mensagem);
-            Assert.Contains("Reagente A, Reagente B", notification.Mensagem);
-        });
-        fixture.UnitOfWork.Verify(unitOfWork => unitOfWork.CommitAsync(), Times.Exactly(administrators.Length));
+        var notification = Assert.Single(createdNotifications);
+        Assert.Equal(TipoNotificacao.Sistema, notification.Tipo);
+        Assert.Null(notification.UsuarioId);
+        Assert.Equal(loan.Id, notification.ReferenciaId);
+        Assert.Equal("EmprestimoVencido", notification.TipoReferencia);
+        Assert.Equal($"/admin/history/loan/{loan.Id}", notification.LinkAcao);
+        Assert.Contains(loan.Solicitante.NomeCompleto, notification.Mensagem);
+        Assert.Contains("Reagente A, Reagente B", notification.Mensagem);
+        Assert.Equal(administrators.Select(user => user.Id).Order(),
+            notification.Destinatarios.Select(read => read.UsuarioId).Order());
+        fixture.UnitOfWork.Verify(unitOfWork => unitOfWork.CommitAsync(), Times.Once);
     }
 
     private static TestFixture CreateFixture()

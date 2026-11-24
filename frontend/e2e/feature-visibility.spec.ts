@@ -48,12 +48,53 @@ const productFixture = {
   unidadeMedida: 'ml',
 };
 
+const adminProductFixture = {
+  ...productFixture,
+  catmat: 'CAT-101',
+  ultimaModificacao: '2026-11-23T00:00:00Z',
+  lote: null,
+  capacidadeMl: null,
+  motivosAlerta: [],
+};
+
+const paginatedFixture = <T,>(item: T) => ({
+  itens: [item],
+  pagina: 1,
+  tamanhoPagina: 100,
+  totalItens: 1,
+  totalPaginas: 1,
+});
+
+async function mockProductCatalog(page: Page) {
+  await page.route(
+    (url) => {
+      const path = new URL(url).pathname;
+      return path === '/api/Produtos' || path === '/api/Produtos/catalogo-administrativo';
+    },
+    (route) => {
+      const isAdminCatalog = new URL(route.request().url()).pathname.endsWith(
+        '/catalogo-administrativo'
+      );
+      return route.fulfill({
+        json: isAdminCatalog
+          ? paginatedFixture(adminProductFixture)
+          : paginatedFixture(productFixture),
+      });
+    }
+  );
+}
+
 const removedRoutes = [
   '/admin/view-info',
   '/admin/create-info',
   '/admin/insert/launch',
   '/boot',
   '/pre',
+] as const;
+const unknownProfileRoutes = [
+  { path: '/admin/t010-unknown', role: 'Administrador' },
+  { path: '/mentor/t010-unknown', role: 'Mentor' },
+  { path: '/mentee/t010-unknown', role: 'Mentorado' },
 ] as const;
 
 const page404Text = /P[aá]gina n[aã]o encontrada/i;
@@ -163,9 +204,7 @@ for (const profile of profiles) {
         ).toHaveCount(0);
       }
 
-      await page.route('**/api/Produtos', (route) =>
-        route.fulfill({ json: [productFixture] })
-      );
+      await mockProductCatalog(page);
       await page.goto(profile.search);
       await expect(
         main.getByRole('heading', { name: profile.searchTitle })
@@ -186,9 +225,16 @@ for (const profile of profiles) {
       const cookieNames = (await page.context().cookies()).map(
         (cookie) => cookie.name
       );
-      expect(cookieNames).not.toEqual(
-        expect.arrayContaining(['doorKey', 'rankID', 'level'])
-      );
+      expect(cookieNames).not.toContain('lab_solos_session');
+      expect(cookieNames).not.toContain('doorKey');
+      expect(cookieNames).not.toContain('rankID');
+      expect(cookieNames).not.toContain('level');
+      expect(
+        await page.evaluate(() => sessionStorage.getItem('auth:session-context'))
+      ).toBeNull();
+      expect(
+        await page.evaluate(() => sessionStorage.getItem('auth:csrf-token'))
+      ).toBeNull();
     });
   }
 }
@@ -202,9 +248,7 @@ for (const profile of profiles.filter(
     }) => {
       await page.setViewportSize(viewport);
       await mockResponsiveSession(page, profile.role);
-      await page.route('**/api/Produtos', (route) =>
-        route.fulfill({ json: [productFixture] })
-      );
+      await mockProductCatalog(page);
       await page.goto(profile.home);
 
       const main = page.getByRole('main');
@@ -243,9 +287,7 @@ for (const viewport of viewports) {
   }) => {
     await page.setViewportSize(viewport);
     await mockResponsiveSession(page, 'Administrador');
-    await page.route('**/api/Produtos', (route) =>
-      route.fulfill({ json: [productFixture] })
-    );
+    await mockProductCatalog(page);
     await page.route('**/api/Usuarios/4242/dependentes/aprovacao', (route) =>
       route.fulfill({ json: [] })
     );
@@ -342,6 +384,28 @@ for (const removedRoute of removedRoutes) {
       }
     });
   }
+}
+
+for (const { path, role } of unknownProfileRoutes) {
+  test(`${path} exibe Page404 sem chamadas à API e mantém o resultado após reload`, async ({
+    page,
+  }) => {
+    const apiRequests: string[] = [];
+    await mockResponsiveSession(page, role);
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.startsWith('/api/')) {
+        apiRequests.push(request.url());
+      }
+    });
+
+    await page.goto(`${path}?origem=t010`);
+    await expect(page.getByText(page404Text)).toBeVisible();
+    expect(apiRequests).toEqual([]);
+
+    await page.reload();
+    await expect(page.getByText(page404Text)).toBeVisible();
+    expect(apiRequests).toEqual([]);
+  });
 }
 
 for (const viewport of viewports) {

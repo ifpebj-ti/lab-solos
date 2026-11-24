@@ -40,6 +40,11 @@ export const ERROR_CATALOG: Readonly<Record<ErrorCategory, ErrorCatalogEntry>> =
       suggestedAction: 'Aguarde um pouco antes de tentar novamente.',
       retryable: false,
     },
+    request_too_large: {
+      message: 'A solicitação excede o tamanho permitido.',
+      suggestedAction: 'Reduzir os dados enviados e tentar novamente.',
+      retryable: false,
+    },
     network: {
       message: 'Não foi possível conectar ao serviço.',
       suggestedAction: 'Conferir a conexão e tentar novamente.',
@@ -63,6 +68,29 @@ export const ERROR_CATALOG: Readonly<Record<ErrorCategory, ErrorCatalogEntry>> =
   });
 
 export const KNOWN_ERROR_CODES = [
+  'validation_failed',
+  'authentication_required',
+  'access_denied',
+  'resource_not_found',
+  'operation_conflict',
+  'request_body_too_large',
+  'admission_rate_limited',
+  'service_unavailable',
+  'operation_failed',
+  'loan_decision_already_recorded',
+  'loan_return_already_recorded',
+  'loan_insufficient_stock',
+  'loan_opposite_decision_recorded',
+  'loan_concurrent_conflict',
+  'loan_not_approved_for_return',
+  'loan_return_period_invalid',
+  'loan_return_date_out_of_range',
+  'loan_quantity_invalid',
+  'loan_stock_invalid',
+  'loan_stock_out_of_range',
+  'registration_account_invalid',
+  'registration_responsible_invalid',
+  'registration_conflict',
   'password_required',
   'password_too_short',
   'password_too_long',
@@ -74,9 +102,34 @@ export const KNOWN_ERROR_CODES = [
   'password_reset_invalid',
   'credential_concurrency_conflict',
   'password_invalid',
+  'product_expiration_confirmation_required',
 ] as const;
 
 export type KnownErrorCode = (typeof KNOWN_ERROR_CODES)[number];
+
+const registrationErrorMessages = {
+  registration_account_invalid:
+    'Selecione Mentor ou Mentorado para o cadastro acadêmico.',
+  registration_responsible_invalid:
+    'Verifique o e-mail do responsável informado.',
+  registration_conflict:
+    'Não foi possível concluir o cadastro com os dados informados.',
+} as const;
+
+export const getRegistrationErrorMessage = (
+  code: unknown
+): string | undefined => {
+  if (
+    typeof code !== 'string' ||
+    !Object.prototype.hasOwnProperty.call(registrationErrorMessages, code)
+  ) {
+    return undefined;
+  }
+
+  return registrationErrorMessages[
+    code as keyof typeof registrationErrorMessages
+  ];
+};
 
 const knownCodeSet = new Set<string>(KNOWN_ERROR_CODES);
 
@@ -106,6 +159,7 @@ export const EXPECTED_ERROR_FIELDS = [
   'localizacao',
   'formula',
   'catmat',
+  'grupo',
   'dataFabricacao',
   'dataValidade',
 ] as const;
@@ -141,6 +195,7 @@ const codeAppliesToField = (
   field: ExpectedErrorField,
   code: KnownErrorCode
 ): boolean => {
+  if (code === 'registration_responsible_invalid') return field === 'emailMentor';
   if (
     code === 'current_password_invalid' ||
     code === 'password_confirmation_mismatch'
@@ -165,6 +220,9 @@ export const getFieldErrorMessage = (
   if (!normalizedField) return undefined;
 
   if (isKnownErrorCode(code) && codeAppliesToField(normalizedField, code)) {
+    if (code === 'registration_responsible_invalid') {
+      return registrationErrorMessages.registration_responsible_invalid;
+    }
     if (code === 'password_reset_invalid') {
       return 'O código de redefinição é inválido ou expirou.';
     }
@@ -188,6 +246,7 @@ export const OPERATION_IDS = {
   resetPassword: 'recovery.resetPassword',
   auditLogs: 'audit.list',
   auditReport: 'audit.report',
+    auditExport: 'audit.export',
   markAuditLogSuspicious: 'audit.markSuspicious',
   markAuditLogNotSuspicious: 'audit.markNotSuspicious',
   checkSuspiciousActivity: 'audit.checkSuspiciousActivity',
@@ -236,6 +295,7 @@ export const OPERATION_LABELS: Readonly<Record<OperationId, string>> = {
   'recovery.resetPassword': 'redefinir a senha',
   'audit.list': 'carregar os registros de auditoria',
   'audit.report': 'gerar o relatório de auditoria',
+    'audit.export': 'exportar os registros de auditoria',
   'audit.markSuspicious': 'marcar o registro como suspeito',
   'audit.markNotSuspicious': 'remover a marcação de suspeita',
   'audit.checkSuspiciousActivity': 'verificar atividade suspeita',

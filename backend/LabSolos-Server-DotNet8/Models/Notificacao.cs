@@ -13,6 +13,10 @@ namespace LabSolos_Server_DotNet8.Models
         public bool Lida { get; set; } = false;
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime? DataLeitura { get; set; }
+        public bool AudienciaLegadaIndeterminada { get; set; }
+        public DateTime? ExcluidaEmUtc { get; set; }
+        public string? ChaveIdempotencia { get; set; }
+        public virtual ICollection<NotificacaoLeitura> Destinatarios { get; set; } = new List<NotificacaoLeitura>();
         public string? LinkAcao { get; set; } // URL para onde a notificação deve redirecionar
         public int? ReferenciaId { get; set; } // ID do objeto relacionado (produto, emprestimo, etc)
         public string? TipoReferencia { get; set; } // "Produto", "Emprestimo", "Usuario", etc

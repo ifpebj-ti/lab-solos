@@ -3,7 +3,7 @@ import OpenSearch from '@/components/global/OpenSearch';
 import { useEffect, useState } from 'react';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { getUserById } from '@/integration/Users';
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import { displayUserValue, formatCivilDate } from '@/function/date';
 import { AlertTriangle } from 'lucide-react';
 import CardFunction from '@/components/screens/CardFunction';
@@ -56,7 +56,7 @@ function Profile() {
   const [profileError, setProfileError] = useState<unknown>();
   const [retryToken, setRetryToken] = useState(0);
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
-  const id = Cookie.get('rankID')!;
+  const id = readSession()?.userId ?? '';
 
   const handleVerificarEmprestimosVencidos = async () => {
     try {

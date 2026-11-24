@@ -4,7 +4,24 @@ import type {
   UseFormSetError,
 } from 'react-hook-form';
 
-import type { ApplicationError } from '@/errors/applicationError';
+import {
+  isApplicationError,
+  type ApplicationError,
+  type ProductExpiryConfirmationData,
+} from '@/errors/applicationError';
+
+export const readProductExpiryConfirmation = (
+  error: unknown
+): ProductExpiryConfirmationData | undefined => {
+  if (
+    !isApplicationError(error) ||
+    error.code !== 'product_expiration_confirmation_required'
+  ) {
+    return undefined;
+  }
+
+  return error.productExpiryConfirmation;
+};
 
 export const applyRecognizedFieldErrors = <TFieldValues extends FieldValues>(
   fieldErrors: ApplicationError['fieldErrors'],

@@ -1,9 +1,9 @@
 # Tarefas: Manual de uso do LabOn
 
-- Status: bloqueado
+- Status: concluído sob exceção explícita do usuário; CA-001 sem comprovação humana
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
-- Atualizado em: 2026-09-14
+- Atualizado em: 2026-11-24
 - Issue de referência: #220
 - Base inspecionada: `2c78dbe1c3ec41f4004f53c42be8fed556080192`
 
@@ -17,7 +17,7 @@ Todos os comandos Python partem da raiz e usam `-B` para evitar caches compartil
 
 Cada tarefa registra comando, resultado e causa observada de RED, GREEN e REFACTOR. Comportamento correto existente recebe caracterização, sem provocar regressão artificial. Para prosa, capturas e sessões humanas, RED significa ausência ou reprovação objetiva no checklist aplicável; não escrever testes que apenas repitam o texto do manual. T007–T010 validam seus documentos por checklist; o comando sobre a fonte completa só deve ficar verde em T011, quando páginas, imagens e manifesto estiverem presentes. Não suavizar o validador para aceitar conteúdo incompleto.
 
-A issue #220 associa todo o plano; essa associação não cria subissues nem autoriza atualização externa nesta etapa. Durante execução, o estado da issue deve refletir os critérios ainda pendentes. T015–T017 requerem participação humana; T019 é uma operação externa posterior e não é iniciada automaticamente pelo executor/orquestrador. Concluir código e documentação local não satisfaz sozinho CA-001 ou CA-003.
+A issue #220 associa todo o plano; essa associação não cria subissues nem autoriza atualização externa nesta etapa. T015–T018 foram encerradas sob exceção explícita do usuário em 2026-11-24 porque não será possível realizar as sessões. Nenhuma sessão ou resultado de autonomia foi fabricado; CA-001 permanece sem comprovação humana. T019 já foi publicada e validada conforme a evidência histórica.
 
 ## Ondas de execução
 
@@ -519,7 +519,7 @@ Instalar dependências frontend com `npm ci` e Chromium com `npx --no-install pl
 
 ## T015 — Validar autonomia de uma pessoa no perfil Administrador
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário; sessão humana não realizada
 - Dependências: T014
 - Paralela: não
 - Requisitos: RF-001, RF-002, RNF-001, CA-001
@@ -552,7 +552,7 @@ Sem participante disponível, registrar bloqueio e preservar a preparação; nã
 
 ## T016 — Validar autonomia de uma pessoa no perfil Mentor
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário; sessão humana não realizada
 - Dependências: T015
 - Paralela: não
 - Requisitos: RF-001, RF-002, RNF-001, CA-001
@@ -585,7 +585,7 @@ A dependência de T015 serializa o ambiente compartilhado. Conferir novamente es
 
 ## T017 — Validar autonomia de uma pessoa no perfil Mentorado
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário; sessão humana não realizada
 - Dependências: T016
 - Paralela: não
 - Requisitos: RF-001, RF-002, RNF-001, CA-001
@@ -614,11 +614,11 @@ Pessoa conclui suas operações sem ajuda informal e identifica o que depende do
 
 ### Notas
 
-Não depender do estado residual do teste de Mentor. Sem sessão humana, CA-001 permanece pendente mesmo que as verificações técnicas estejam aprovadas.
+Não depender do estado residual do teste de Mentor. A dispensa aprovada encerra a tarefa administrativamente, mas CA-001 continua sem evidência humana.
 
 ## T018 — Consolidar o aceite editorial e a prontidão para publicação
 
-- Status: bloqueada
+- Status: concluída sob exceção explícita do usuário; CA-001 não comprovado
 - Dependências: T017
 - Paralela: não
 - Requisitos: RF-001, RF-002, RNF-001, RNF-002, CA-001, CA-002
@@ -695,7 +695,7 @@ A mudança planejada é documental e de scripts/workflow: executar a suíte Pyth
 
 Se uma falha exigir mudar o produto, devolver ao escopo responsável e revalidar os critérios afetados. Não adicionar refatoração frontend/backend a este plano para contornar uma instrução incorreta.
 
-O plano está concluído somente quando T001–T019 e CA-001/CA-002/CA-003 tiverem evidências reais. Sem participação humana ou publicação autorizada, registrar precisamente o que está pronto e o critério pendente; não transformar o término da implementação automatizada em conclusão do manual.
+O plano está concluído quando T001–T019 estão encerradas e CA-001/CA-002/CA-003 têm evidência ou exceção explícita registrada. Uma dispensa não transforma uma sessão humana não realizada em resultado observado; a limitação deve permanecer visível no aceite.
 
 ## Log de execução
 
@@ -723,4 +723,5 @@ O plano está concluído somente quando T001–T019 e CA-001/CA-002/CA-003 tiver
 | 2026-09-14 | T019 | bloqueada | Não iniciada: depende de T018 e autorização externa de publicação | Não houve autorização/commit/push na Wiki nem verificação pós-publicação; CA-003 permanece pendente. |
 | 2026-09-14 | T012 | concluída | RED: página/link ausentes; GREEN/refactor checklist aprovado; `check_manual.py --help`, `sync_manual_to_wiki.py --help` e `git diff --check` aprovados | Criados procedimento de manutenção/publicação/reversão e link do manual no README; publicação externa não executada; CI não publica automaticamente. Issue #220/Project 41 em `In Progress`. |
 | 2026-09-14 | T019 (tentativa autorizada) | bloqueada | Issue #220/Project 41 confirmados; Wiki `master` limpa e sem manifesto; fonte local aprovada pelo validador, porém sem SHA versionado em `develop` | Autorização para publicar fornecida, mas não há commit de fonte byte a byte rastreável para gerar URLs de imagens; nenhuma alteração externa foi feita. Evidência: `evidencias/T019.md`. |
-| 2026-09-14 | T019 (publicação autorizada) | concluída | Fonte `f615dff5af6e5a9cc931f976b2c263e7034c7d0e` em `develop`; Wiki `d81feb51eafe7606af5a01fac7950d68c3099216`; `--mode check` em clone LF novo retornou 0; 7 páginas e 9 imagens HTTP 200 | CA-003 comprovado. T015–T018 permanecem bloqueadas por ausência de sessões humanas; CA-001 não foi inferido. PR #341 integrado. Evidência: `evidencias/T019.md`. |
+| 2026-09-14 | T019 (publicação autorizada) | concluída | Fonte `f615dff5af6e5a9cc931f976b2c263e7034c7d0e` em `develop`; Wiki `d81feb51eafe7606af5a01fac7950d68c3099216`; `--mode check` em clone LF novo retornou 0; 7 páginas e 9 imagens HTTP 200 | CA-003 comprovado. Naquela data T015–T018 permaneciam bloqueadas; CA-001 não foi inferido. PR #341 integrado. Evidência: `evidencias/T019.md`. |
+| 2026-11-24 | T015–T018 | concluídas sob exceção explícita do usuário | Evidências T015–T017 registram que não houve sessão humana; consolidação em `validacao.md`. | O usuário não poderá organizar os testes e autorizou encerrar as tarefas. Não se declara autonomia observada; CA-001 permanece sem comprovação humana e a limitação acompanha o aceite. |

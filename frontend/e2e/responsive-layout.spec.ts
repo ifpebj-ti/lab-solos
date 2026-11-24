@@ -3,6 +3,7 @@ import {
   expectPageFits,
   mockResponsiveSession,
   productFixtures,
+  paginatedProductResponse,
   responsiveViewports,
   fillResponsiveAccount,
   expectAccountFits,
@@ -16,7 +17,7 @@ import {
   verificationProductFixture,
   verificationHistoryFixture,
   loanHistoriesFixtures,
-  alertFixtures,
+  followUpCatalogFixtures,
   classFixture,
   classDependentsFixtures,
   adminLoansFixtures,
@@ -38,14 +39,19 @@ test('T020 requester fixtures preserve null and populated branches', () => {
 
 const auditLogFixture = {
   id: 9021,
-  dataHora: '2026-09-21T12:00:00.000Z',
+  codigoEvento: 'LegadoNaoClassificado',
   acao: 'Login',
   recurso: 'Auth',
-  enderecoIP: '192.0.2.21',
-  tipoAcao: 'Autenticação',
-  nivelRisco: 'Baixo',
+  dataHoraUtc: '2026-09-21T12:00:00.000Z',
+  origem: 'Navegador',
+  resultado: 'Sucesso',
   suspeita: false,
-  nomeUsuario: 'Pessoa Sintética',
+  categoriaDeteccao: 'AtividadeNormal',
+  codigoRegraDeteccao: null,
+  versaoRegraDeteccao: null,
+  quantidadeObservadaDeteccao: null,
+  revisaoClassificacao: 0,
+  historicoClassificacao: [],
 };
 
 const auditReportFixture = {
@@ -61,6 +67,14 @@ const auditReportFixture = {
   usuariosComMaisAcessos: [],
 };
 
+const paginatedAuditResponse = (itens: (typeof auditLogFixture)[]) => ({
+  itens,
+  pagina: 1,
+  tamanhoPagina: 25,
+  totalItens: itens.length,
+  totalPaginas: itens.length === 0 ? 0 : 1,
+});
+
 test('T023 auditoria preserva loading e exibe a lista carregada', async ({
   page,
 }) => {
@@ -71,10 +85,12 @@ test('T023 auditoria preserva loading e exibe a lista carregada', async ({
   const logsPending = new Promise<void>((resolve) => {
     releaseLogs = resolve;
   });
+  let paginationQuery = '';
 
   await page.route('**/api/Auditoria/logs**', async (route) => {
+    paginationQuery = new URL(route.request().url()).search;
     await logsPending;
-    await route.fulfill({ json: [auditLogFixture] });
+    await route.fulfill({ json: paginatedAuditResponse([auditLogFixture]) });
   });
   await page.route('**/api/Auditoria/relatorio**', (route) =>
     route.fulfill({ json: auditReportFixture })
@@ -93,21 +109,29 @@ test('T023 auditoria preserva loading e exibe a lista carregada', async ({
   await expect(
     page.getByRole('heading', { name: /Logs de Auditoria \(1 registros\)/i })
   ).toBeVisible();
+  expect(paginationQuery).toBe('?pagina=1&tamanhoPagina=25');
   await expect(page.getByText('Login')).toBeVisible();
 });
 
-test('T023 auditoria preserva o estado vazio após carregar', async ({ page }) => {
+test('T023 auditoria preserva o estado vazio após carregar', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockResponsiveSession(page, 'Administrador');
   await page.route('**/api/Auditoria/logs**', (route) =>
-    route.fulfill({ json: [] })
+    route.fulfill({ json: paginatedAuditResponse([]) })
   );
   await page.route('**/api/Auditoria/relatorio**', (route) =>
     route.fulfill({ json: auditReportFixture })
   );
 
   await page.goto('/admin/auditoria');
-  await expect(page.getByText('Nenhum log encontrado')).toBeVisible();
+  await expect(
+    page.getByText(
+      'Nenhum evento de auditoria encontrado para os filtros selecionados.',
+      { exact: true }
+    )
+  ).toBeVisible();
 });
 
 test('T023 auditoria preserva o erro de carregamento', async ({ page }) => {
@@ -121,10 +145,20 @@ test('T023 auditoria preserva o erro de carregamento', async ({ page }) => {
   );
 
   await page.goto('/admin/auditoria');
+  const feedback = page.getByRole('alert');
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toContainText(
+    'Não foi possível carregar os registros de auditoria'
+  );
+  await expect(feedback).toContainText(
+    'O serviço não conseguiu concluir a operação.'
+  );
   await expect(
-    page.getByText('Erro ao carregar dados de auditoria', { exact: true })
+    page.getByRole('button', { name: 'Tentar novamente' })
   ).toBeVisible();
-  await expect(page.getByText('Nenhum log encontrado')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /Logs de Auditoria/i })
+  ).toHaveCount(0);
 });
 
 for (const viewport of responsiveViewports) {
@@ -138,8 +172,20 @@ for (const viewport of responsiveViewports) {
       { ...productFixtures[1], id: 102, tipoProduto: 'Quimico' },
     ];
     const submissions: Array<Record<string, unknown>> = [];
-    await page.route('**/api/Produtos', (route) =>
-      route.fulfill({ json: products })
+    const productRequests: Array<{
+      pagina: string | null;
+      tamanhoPagina: string | null;
+    }> = [];
+    await page.route(
+      /\/api\/Produtos(?:\?.*)?$/,
+      (route) => {
+        const requestUrl = new URL(route.request().url());
+        productRequests.push({
+          pagina: requestUrl.searchParams.get('pagina'),
+          tamanhoPagina: requestUrl.searchParams.get('tamanhoPagina'),
+        });
+        return route.fulfill({ json: paginatedProductResponse(products) });
+      }
     );
     await page.route('**/api/Usuarios/4242/dependentes', (route) =>
       route.fulfill({ json: loanCreationDependents })
@@ -164,6 +210,7 @@ for (const viewport of responsiveViewports) {
     await choose(0, 'Pessoa dependente sintética');
     await choose(1, 'Vidraria');
     await choose(2, new RegExp(`^A{200}$`));
+    expect(productRequests).toEqual([{ pagina: '1', tamanhoPagina: '100' }]);
     await page.getByLabel('Quantidade').fill('2');
     await choose(3, 'Litro');
     await page.getByRole('button', { name: 'Adicionar' }).click();
@@ -245,8 +292,24 @@ for (const [profile, role] of [
     }, testInfo) => {
       await page.setViewportSize(viewport);
       await mockResponsiveSession(page, role);
-      await page.route('**/api/Produtos', (route) =>
-        route.fulfill({ json: [productFixtures[0]] })
+      const catalogPaths: string[] = [];
+      page.on('request', (request) => {
+        const requestUrl = new URL(request.url());
+        if (
+          requestUrl.pathname.endsWith('/Produtos') ||
+          requestUrl.pathname.endsWith('/Produtos/catalogo-administrativo')
+        ) {
+          catalogPaths.push(requestUrl.pathname);
+        }
+      });
+      const catalogRoute =
+        profile === 'admin'
+          ? /\/api\/Produtos\/catalogo-administrativo(?:\?.*)?$/
+          : /\/api\/Produtos(?:\?.*)?$/;
+      await page.route(catalogRoute, (route) =>
+        route.fulfill({
+          json: paginatedProductResponse([productFixtures[0]]),
+        })
       );
       await page.route('**/api/Produtos/101/historico-saida', (route) =>
         route.fulfill({ json: verificationHistoryFixture })
@@ -257,6 +320,11 @@ for (const [profile, role] of [
 
       await page.goto(`/${profile}/search-material`);
       await page.getByRole('list', { name: 'Produtos' }).getByRole('link').first().click();
+      expect(catalogPaths).toEqual([
+        profile === 'admin'
+          ? '/api/Produtos/catalogo-administrativo'
+          : '/api/Produtos',
+      ]);
       const info = page.getByRole('list', { name: /Informa/ });
       await expect(info).toBeVisible();
       await expect(info.getByRole('listitem')).toContainText(
@@ -287,13 +355,13 @@ for (const [profile, role] of [
         });
         await expect(history).toBeVisible();
         await expect(history.getByRole('listitem')).toHaveCount(2);
-        await expect(history.getByRole('listitem').first()).toContainText('ID-2001');
-        await expect(history.getByRole('listitem').first()).toContainText('N/A');
+        await expect(history.getByRole('listitem').first()).toContainText('2001');
+        await expect(history.getByRole('listitem').first()).toContainText('Sem lote');
         await expectPageFits(page, /Hist.*Movimenta/);
         const search = page.getByRole('textbox', { name: 'Pesquisar' });
         await search.fill('Outra pessoa');
         await expect(history.getByRole('listitem')).toHaveCount(1);
-        await expect(history.getByRole('listitem')).toContainText('ID-2002');
+        await expect(history.getByRole('listitem')).toContainText('2002');
         await page.setViewportSize({ width: 375, height: 812 });
         await expect(search).toHaveValue('Outra pessoa');
         await expect(search).toBeFocused();
@@ -361,8 +429,27 @@ for (const viewport of responsiveViewports) {
   test(`T010 acompanhamento ${viewport.width}`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     await mockResponsiveSession(page, 'Administrador');
-    await page.route('**/api/Produtos/emAlerta', (route) =>
-      route.fulfill({ json: alertFixtures })
+    const catalogRequests: Array<{
+      pathname: string;
+      pagina: string | null;
+      tamanhoPagina: string | null;
+    }> = [];
+    page.on('request', (request) => {
+      const requestUrl = new URL(request.url());
+      if (requestUrl.pathname.endsWith('/Produtos/catalogo-administrativo')) {
+        catalogRequests.push({
+          pathname: requestUrl.pathname,
+          pagina: requestUrl.searchParams.get('pagina'),
+          tamanhoPagina: requestUrl.searchParams.get('tamanhoPagina'),
+        });
+      }
+    });
+    await page.route(
+      /\/api\/Produtos\/catalogo-administrativo(?:\?.*)?$/,
+      (route) =>
+        route.fulfill({
+          json: paginatedProductResponse(followUpCatalogFixtures),
+        })
     );
     await page.goto('/admin/follow-up');
     const list = page.getByRole('list', { name: 'Produtos em alerta' });
@@ -370,6 +457,13 @@ for (const viewport of responsiveViewports) {
     await expect(list.getByRole('listitem')).toHaveCount(1);
     await expect(list.getByRole('listitem')).toContainText('Alerta ' + 'A'.repeat(200));
     await expect(list.getByRole('link')).toHaveAttribute('href', '/admin/verification?id=1901');
+    expect(catalogRequests).toEqual([
+      {
+        pathname: '/api/Produtos/catalogo-administrativo',
+        pagina: '1',
+        tamanhoPagina: '100',
+      },
+    ]);
     await expectPageFits(page, 'Produtos em alerta');
     if ([320, 1440].includes(viewport.width))
       await page.screenshot({ path: testInfo.outputPath(`acompanhamento-${viewport.width}.png`), fullPage: true });
@@ -538,12 +632,15 @@ for (const viewport of responsiveViewports) {
   test(`T015 primitivas responsivas ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await mockResponsiveSession(page, 'Administrador');
-    await page.route('**/api/Usuarios/4242/dependentes/aprovacao', (route) =>
-      route.fulfill({ json: registrationRequestFixtures })
-    );
+    let approvalRequestPath = '';
+    await page.route('**/api/Usuarios/aprovacao', (route) => {
+      approvalRequestPath = new URL(route.request().url()).pathname;
+      return route.fulfill({ json: registrationRequestFixtures });
+    });
     await page.goto('/admin/register-request');
     const list = page.getByRole('list', { name: 'Solicitações de cadastro' });
     await expect(list).toBeVisible();
+    expect(approvalRequestPath).toBe('/api/Usuarios/aprovacao');
     await expect(list.getByRole('listitem')).toHaveCount(7);
     await expectPageFits(page, 'Solicitações de cadastro');
   });
@@ -733,6 +830,9 @@ for (const viewport of [...responsiveViewports, { width: 812, height: 375 }]) {
     await expect(page.getByLabel('Nome Completo')).toBeVisible();
     await expectAccountFits(page);
     await fillResponsiveAccount(page);
+    await expect(
+      page.getByLabel('Email do responsável habilitado')
+    ).toHaveCount(0);
     const password = page.getByLabel('Senha', { exact: true });
     await password.focus();
     await page.keyboard.press('Tab');
@@ -821,9 +921,9 @@ for (const viewport of [...responsiveViewports, { width: 812, height: 375 }]) {
     const errorBox = (await page
       .locator('#cidade-error')
       .boundingBox())!;
-    const nextBox = (await page
-      .getByLabel('Email do Mentor Responsável')
-      .boundingBox())!;
+    const nextBox = viewport.width < 768
+      ? (await page.getByLabel('Telefone').boundingBox())!
+      : (await page.locator('label[for="terms"]').boundingBox())!;
     expect(errorBox.y + errorBox.height).toBeLessThan(nextBox.y);
     const city = page.getByLabel('Cidade');
     await city.fill('Recife');
@@ -847,9 +947,15 @@ for (const viewport of [...responsiveViewports, { width: 812, height: 375 }]) {
       curso: 'ES',
       nivelUsuario: 'Mentor',
       tipoUsuario: 'Academico',
-      responsavelEmail: 'mentor@example.invalid',
+      responsavelEmail: '',
     });
-    expect(submissions[1]).toMatchObject({ cidade: 'Recife', curso: 'ES' });
+    expect(submissions[1]).toMatchObject({
+      cidade: 'Recife',
+      curso: 'ES',
+      nivelUsuario: 'Mentor',
+      tipoUsuario: 'Academico',
+      responsavelEmail: '',
+    });
   });
 }
 
@@ -866,12 +972,27 @@ for (const [profile, role] of [
       await mockResponsiveSession(page, role);
       let queries = 0;
       let quantityQueries = 0;
+      const catalogPaths: string[] = [];
       page.on('request', (request) => {
-        if (request.url().endsWith('/System/quantities')) quantityQueries++;
+        const requestUrl = new URL(request.url());
+        if (requestUrl.pathname.endsWith('/System/quantities'))
+          quantityQueries++;
+        if (
+          requestUrl.pathname.endsWith('/Produtos') ||
+          requestUrl.pathname.endsWith('/Produtos/catalogo-administrativo')
+        ) {
+          catalogPaths.push(requestUrl.pathname);
+        }
       });
-      await page.route('**/api/Produtos', (route) => {
+      const catalogRoute =
+        profile === 'admin'
+          ? /\/api\/Produtos\/catalogo-administrativo(?:\?.*)?$/
+          : /\/api\/Produtos(?:\?.*)?$/;
+      await page.route(catalogRoute, (route) => {
         queries++;
-        return route.fulfill({ json: productFixtures });
+        return route.fulfill({
+          json: paginatedProductResponse(productFixtures),
+        });
       });
       await page.goto(`/${profile}/search-material`);
       await expect(
@@ -880,9 +1001,18 @@ for (const [profile, role] of [
       const list = page.getByRole('list', { name: 'Produtos' });
       await expect(list).toBeVisible();
       await expect(list.getByRole('listitem')).toHaveCount(7);
+      const alertIndicator = page.getByRole('img', {
+        name: 'Alertas de produtos',
+      });
+      if (profile === 'admin') {
+        await expect(alertIndicator).toBeVisible();
+        await expect(alertIndicator.locator('svg')).toBeVisible();
+      } else {
+        await expect(alertIndicator).toHaveCount(0);
+      }
       await expectPageFits(page);
       if (profile === 'admin' && [320, 1440].includes(viewport.width)) {
-        await list.scrollIntoViewIfNeeded();
+        await alertIndicator.scrollIntoViewIfNeeded();
         await page.screenshot({
           path: testInfo.outputPath(`produtos-${viewport.width}.png`),
         });
@@ -964,6 +1094,11 @@ for (const [profile, role] of [
       ).toBeFocused();
       await expectPageFits(page);
       expect(queries).toBe(1);
+      expect(catalogPaths).toEqual([
+        profile === 'admin'
+          ? '/api/Produtos/catalogo-administrativo'
+          : '/api/Produtos',
+      ]);
       expect(quantityQueries).toBe(1);
       const link = list.getByRole('link').first();
       await link.focus();
@@ -984,13 +1119,18 @@ for (const viewport of responsiveViewports) {
       const pending = new Promise<void>((resolve) => {
         release = resolve;
       });
-      await page.route('**/api/Produtos', async (route) => {
-        if (state === 'atraso') await pending;
-        await route.fulfill({
-          status: state === 'erro' ? 500 : 200,
-          json: state === 'atraso' ? productFixtures : [],
-        });
-      });
+      await page.route(
+        /\/api\/Produtos\/catalogo-administrativo(?:\?.*)?$/,
+        async (route) => {
+          if (state === 'atraso') await pending;
+          await route.fulfill({
+            status: state === 'erro' ? 500 : 200,
+            json: paginatedProductResponse(
+              state === 'atraso' ? productFixtures : []
+            ),
+          });
+        }
+      );
       await page.goto('/admin/search-material');
       if (state === 'atraso') {
         await expect(
@@ -1009,6 +1149,9 @@ for (const viewport of responsiveViewports) {
           page.getByRole('button', { name: 'Última página' })
         ).toBeDisabled();
       }
+      await expect(
+        page.getByRole('img', { name: 'Alertas de produtos' })
+      ).toBeVisible();
       await expectPageFits(page);
     });
   }
@@ -1238,10 +1381,12 @@ for (const viewport of responsiveViewports) {
     await mockResponsiveSession(page, 'Administrador');
     const actions: Array<{ kind: 'approve' | 'reject'; id: number }> = [];
     let listQueries = 0;
+    let approvalRequestPath = '';
     await page.route(
-      '**/api/Usuarios/4242/dependentes/aprovacao',
+      '**/api/Usuarios/aprovacao',
       (route) => {
         listQueries++;
+        approvalRequestPath = new URL(route.request().url()).pathname;
         return route.fulfill({ json: registrationRequestFixtures });
       }
     );
@@ -1265,11 +1410,13 @@ for (const viewport of responsiveViewports) {
       name: 'Solicitações de cadastro',
     });
     await expect(list).toBeVisible();
+    expect(approvalRequestPath).toBe('/api/Usuarios/aprovacao');
     await expect(list.getByRole('listitem')).toHaveCount(7);
     await expectPageFits(page, 'Solicitações de cadastro');
 
     const first = list.getByRole('listitem').first();
     await expect(first).toContainText('A'.repeat(200));
+    await expect(first).toContainText('Acadêmico');
     const labels = first.locator('dt');
     if (viewport.width < 768)
       expect((await labels.first().boundingBox())!.width).toBeGreaterThan(1);

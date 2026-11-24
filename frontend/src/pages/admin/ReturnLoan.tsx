@@ -15,6 +15,7 @@ import {
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
+import { isApplicationError } from '@/errors/applicationError';
 import { toast } from '@/components/hooks/use-toast';
 import { RefreshCw } from 'lucide-react';
 import BackLink from '@/components/global/BackLink';
@@ -43,6 +44,10 @@ const otherReturnColumns: readonly ResponsiveColumn[] = [
 ];
 
 const userName = (user: Usuario | null) => user?.nomeCompleto ?? 'Não informado';
+
+const shouldRefreshAfterMutationError = (error: unknown) =>
+  isApplicationError(error) &&
+  ['conflict', 'network', 'timeout', 'server'].includes(error.category);
 
 export type {
   Emprestimo as IEmprestimo,
@@ -119,6 +124,7 @@ function ReturnLoan() {
       });
     } catch (error) {
       notifyError(error, OPERATION_IDS.returnLoan);
+      if (shouldRefreshAfterMutationError(error)) await fetchLoan();
     } finally {
       setIsReturning(false);
     }
@@ -158,7 +164,21 @@ function ReturnLoan() {
         {
           title: 'Data de Realização',
           value: formatDate(loans?.dataRealizacao),
-          width: '100%',
+          width: '33%',
+        },
+        {
+          title: 'Data prevista para devolução',
+          value: loans.dataPrevistaDevolucao
+            ? formatDate(loans.dataPrevistaDevolucao)
+            : 'Não informada',
+          width: '33%',
+        },
+        {
+          title: 'Data efetiva da devolução',
+          value: loans.dataDevolucao
+            ? formatDate(loans.dataDevolucao)
+            : 'Ainda não devolvido',
+          width: '33%',
         },
       ]
     : [];

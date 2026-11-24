@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Globalization;
+using System.Security.Claims;
 using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
@@ -10,29 +11,80 @@ using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
+using Tests.Infrastructure;
 using Xunit;
 
 namespace Tests.Controllers;
 
 public sealed class ProdutosControllerTests
 {
+    [Theory]
+    [InlineData("2026-02-31", "2028-02-29", "dataFabricacao", "Quimico")]
+    [InlineData("2024-02-29", "2026-02-31", "dataValidade", "Quimico")]
+    [InlineData("2024-02-29", "2026-02-29", "dataValidade", "quimico")]
+    [InlineData("2024-02-29T00:00:00Z", "2028-02-29", "dataFabricacao", "0")]
+    [InlineData("2024-2-9", "2028-02-29", "dataFabricacao", "Quimico")]
+    [InlineData("2024-02-29", " ", "dataValidade", "Quimico")]
+    public async Task CriacaoDeQuimicoComDataInvalidaIdentificaCampoAntesDeMapear(
+        string dataFabricacao,
+        string dataValidade,
+        string campoInvalido,
+        string tipo)
+    {
+        var unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
+        var mapper = new Mock<IMapper>(MockBehavior.Strict);
+        var controller = new ProdutosController(
+            new ProdutoService(NullLogger<ProdutoService>.Instance, CriarDiaCivil()),
+            new UtilitiesService(),
+            NullLogger<ProdutosController>.Instance,
+            unitOfWork.Object,
+            mapper.Object,
+            Mock.Of<IProdutoRepository>());
+
+        var result = await controller.Adicionar(new AddProdutoDTO
+        {
+            NomeProduto = "Químico de teste",
+            Tipo = tipo,
+            Quantidade = 10,
+            QuantidadeMinima = 1,
+            UnidadeMedida = nameof(UnidadeMedida.Grama),
+            FormulaQuimica = "H2O",
+            Grupo = nameof(Grupo.Outros),
+            DataFabricacao = dataFabricacao,
+            DataValidade = dataValidade
+        });
+
+        var badRequest = Assert.IsAssignableFrom<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequest.StatusCode);
+        var payload = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
+        var erro = Assert.Single(payload.Errors);
+        Assert.Equal(campoInvalido, erro.Key);
+        Assert.Contains("inválida", Assert.Single(erro.Value));
+        mapper.VerifyNoOtherCalls();
+        unitOfWork.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task HistoricoProdutoInexistenteRetornaNotFound()
     {
         var produtoService = new Mock<IProdutoService>();
         produtoService
-            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(17))
-            .ReturnsAsync(default(HistoricoSaidaProdutoResponseDTO));
+            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(
+                17,
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((HistoricoSaidaProdutoResponseDTO?)null);
         var controller = CreateController(produtoService);
 
         var result = await controller.ObterHistoricoSaidaProduto(17);
 
-        var notFound = Assert.IsType<NotFoundObjectResult>(result);
+        var notFound = Assert.IsType<NotFoundResult>(result);
         Assert.Equal(StatusCodes.Status404NotFound, notFound.StatusCode);
-        Assert.Equal("Produto com ID 17 não encontrado.", notFound.Value);
     }
 
     [Fact]
@@ -47,7 +99,10 @@ public sealed class ProdutosControllerTests
         };
         var produtoService = new Mock<IProdutoService>();
         produtoService
-            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(17))
+            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(
+                17,
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
         var controller = CreateController(produtoService);
 
@@ -63,7 +118,10 @@ public sealed class ProdutosControllerTests
     {
         var produtoService = new Mock<IProdutoService>();
         produtoService
-            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(17))
+            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(
+                17,
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Falha temporária na consulta."));
         var controller = CreateController(produtoService);
 
@@ -79,7 +137,10 @@ public sealed class ProdutosControllerTests
     {
         var produtoService = new Mock<IProdutoService>();
         produtoService
-            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(17))
+            .Setup(service => service.ObterHistoricoSaidaProdutoAsync(
+                17,
+                It.IsAny<ClaimsPrincipal>(),
+                It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException("Identificador inválido."));
         var controller = CreateController(produtoService);
 
@@ -97,7 +158,9 @@ public sealed class ProdutosControllerTests
         var result = await controller.AtualizarParcialmente(17, patch);
 
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("Status inválido. Valores válidos: Disponivel, EmUso, Danificado, Emprestado, Esgotado, Vencido, Perdido, Solicitado, Indefinido", badRequest.Value);
+        var details = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
+        Assert.Equal("product_patch_invalid", details.Extensions["code"]);
+        Assert.Single(details.Errors["status"]);
     }
 
     [Fact]
@@ -110,7 +173,9 @@ public sealed class ProdutosControllerTests
         var result = await controller.AtualizarParcialmente(17, patch);
 
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("Data de fabricação inválida. Use o formato YYYY-MM-DD.", badRequest.Value);
+        var details = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
+        Assert.Equal("product_patch_invalid", details.Extensions["code"]);
+        Assert.Single(details.Errors["dataFabricacao"]);
     }
 
     [Fact]
@@ -123,18 +188,35 @@ public sealed class ProdutosControllerTests
         var result = await controller.AtualizarParcialmente(17, patch);
 
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("Data de validade inválida. Use o formato YYYY-MM-DD.", badRequest.Value);
+        var details = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
+        Assert.Equal("product_patch_invalid", details.Extensions["code"]);
+        Assert.Single(details.Errors["dataValidade"]);
     }
 
     private static ProdutosController CreateController(Mock<IProdutoService> produtoService)
     {
-        return new ProdutosController(
+        var controller = new ProdutosController(
             produtoService.Object,
             Mock.Of<IUtilitiesService>(),
             NullLogger<ProdutosController>.Instance,
             Mock.Of<LabSolos_Server_DotNet8.Repositories.IUnitOfWork>(),
-            Mock.Of<IMapper>());
+            Mock.Of<IMapper>(),
+            Mock.Of<IProdutoRepository>());
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        return controller;
     }
+
+    private static ProductCivilDay CriarDiaCivil() => new(
+        new ControlledTimeProvider(new DateTimeOffset(2026, 11, 17, 15, 0, 0, TimeSpan.Zero)),
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Products:TimeZone"] = "America/Sao_Paulo"
+            })
+            .Build());
 
     private static ProdutosController CreatePatchController()
     {
@@ -158,6 +240,14 @@ public sealed class ProdutosControllerTests
         var unitOfWork = new Mock<IUnitOfWork>();
         unitOfWork.SetupGet(item => item.ProdutoRepository).Returns(repository.Object);
         unitOfWork.Setup(item => item.CommitAsync()).Returns(Task.CompletedTask);
+        var transaction = new Mock<IDbContextTransaction>();
+        transaction.Setup(item => item.CommitAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        unitOfWork.Setup(item => item.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(transaction.Object);
+        var productRepository = new Mock<IProdutoRepository>();
+        productRepository.Setup(item => item.LockForLoanDecisionAsync(
+            It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        productRepository.Setup(item => item.GetByIdAsync(17)).ReturnsAsync(produto);
 
         var mapper = new Mock<IMapper>();
         mapper
@@ -187,7 +277,8 @@ public sealed class ProdutosControllerTests
             Mock.Of<IUtilitiesService>(),
             NullLogger<ProdutosController>.Instance,
             unitOfWork.Object,
-            mapper.Object)
+            mapper.Object,
+            productRepository.Object)
         {
             ControllerContext = new ControllerContext
             {

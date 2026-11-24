@@ -1,13 +1,17 @@
 using AutoMapper;
+using System.Globalization;
 using LabSolos_Server_DotNet8.DTOs.Produtos;
+using LabSolos_Server_DotNet8.DTOs.Paginacao;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -22,6 +26,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly ILogger<ProdutosController> _logger;
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
+        private readonly IProdutoRepository _productRepository;
         private static readonly Action<ILogger, int, Exception?> LogHistoryReadFailure =
             LoggerMessage.Define<int>(
                 LogLevel.Error,
@@ -33,18 +38,23 @@ namespace LabSolos_Server_DotNet8.Controllers
             IUtilitiesService utilsService,
             ILogger<ProdutosController> logger,
             IUnitOfWork uow,
-            IMapper mapper)
+            IMapper mapper,
+            IProdutoRepository productRepository)
         {
             _produtoService = produtoService;
             _utilsService = utilsService;
             _logger = logger;
             _uow = uow;
             _mapper = mapper;
+            _productRepository = productRepository;
         }
 
         [HttpGet("tipo/{tipoProduto}")]
         [Authorize]
-        public async Task<IActionResult> ObterProdutosPeloTipo(int tipoProduto)
+        public async Task<IActionResult> ObterProdutosPeloTipo(
+            int tipoProduto,
+            [FromQuery] string? pagina,
+            [FromQuery] string? tamanhoPagina)
         {
             _logger.LogInformation(
             "Iniciando operação para obter produtos do tipo {Tipo}.",
@@ -58,31 +68,79 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return BadRequest("Tipo de produto inválido. Use um valor de TipoProduto válido.");
             }
 
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Tipo == (TipoProduto)tipoProduto, query => query.Include(c => c.Lote));
+            if (!ParametrosPaginacao.TentarCriar(pagina, tamanhoPagina, out var parametros, out var campoInvalido))
+            {
+                return PaginationInvalid(campoInvalido);
+            }
+
+            var produtos = await _productRepository.GetPaginadoAsync(
+                p => p.Tipo == (TipoProduto)tipoProduto && !p.Desativado,
+                parametros,
+                HttpContext.RequestAborted);
 
             // Mapeamento baseado no tipo do produto
-            return (TipoProduto)tipoProduto switch
+            return Ok(produtos.Projetar<object>(produto => (TipoProduto)tipoProduto switch
             {
-                TipoProduto.Quimico => Ok(_mapper.Map<IEnumerable<QuimicoDTO>>(produtos)),
-                TipoProduto.Vidraria => Ok(_mapper.Map<IEnumerable<VidrariaDTO>>(produtos)),
-                _ => Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos)),
-            };
+                TipoProduto.Quimico => _mapper.Map<QuimicoDTO>(produto),
+                TipoProduto.Vidraria => _mapper.Map<VidrariaDTO>(produto),
+                _ => _mapper.Map<ProdutoDTO>(produto),
+            }));
         }
 
         [HttpGet()]
         [Authorize]
-        public async Task<ActionResult<Produto>> ObterTodos()
+        public async Task<ActionResult<ResultadoPaginado<ProdutoDTO>>> ObterTodos(
+            [FromQuery] string? pagina,
+            [FromQuery] string? tamanhoPagina)
         {
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => true, query => query.Include(p => p.Lote));
-            return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
+            if (!ParametrosPaginacao.TentarCriar(pagina, tamanhoPagina, out var parametros, out var campoInvalido))
+            {
+                return PaginationInvalid(campoInvalido);
+            }
+
+            var produtos = await _productRepository.GetPaginadoAsync(
+                product => !product.Desativado,
+                parametros,
+                HttpContext.RequestAborted);
+            return Ok(produtos.Projetar<ProdutoDTO>(produto => _mapper.Map<ProdutoDTO>(produto)));
+        }
+
+        [HttpGet("catalogo-administrativo")]
+        [Authorize("ApenasAdministradores")]
+        public async Task<ActionResult<ResultadoPaginado<ProdutoAlertaDTO>>> ObterCatalogoAdministrativo(
+            [FromServices] ProductCivilDay civilDay,
+            [FromQuery] string? pagina,
+            [FromQuery] string? tamanhoPagina)
+        {
+            if (!ParametrosPaginacao.TentarCriar(pagina, tamanhoPagina, out var parametros, out var campoInvalido))
+            {
+                return PaginationInvalid(campoInvalido);
+            }
+
+            var hojeCivil = civilDay.GetToday();
+            var produtos = await _productRepository.GetPaginadoAsync(
+                product => !product.Desativado,
+                parametros,
+                HttpContext.RequestAborted);
+            return Ok(produtos.Projetar(produto => ProjetarAlerta(produto, hojeCivil)));
         }
 
         [HttpGet("emAlerta")]
         [Authorize("ApenasAdministradores")]
-        public async Task<ActionResult<Produto>> ObterProdutosEmAlerta()
+        public async Task<ActionResult<Produto>> ObterProdutosEmAlerta(
+            [FromServices] ProductCivilDay civilDay)
         {
-            var produtos = await _uow.ProdutoRepository.ObterTodosAsync(p => p.Quantidade <= p.QuantidadeMinima || p.DataValidade <= DateTime.UtcNow.AddDays(10), query => query.Include(c => c.Lote));
+            var produtos = await _productRepository.GetProdutosEmAlertaAsync(
+                civilDay.GetToday(), HttpContext.RequestAborted);
             return Ok(_mapper.Map<IEnumerable<ProdutoDTO>>(produtos));
+        }
+
+        private ProdutoAlertaDTO ProjetarAlerta(Produto produto, DateOnly hojeCivil)
+        {
+            var projection = _mapper.Map<ProdutoAlertaDTO>(produto);
+            projection.CapacidadeMl = (produto as Vidraria)?.Capacidade;
+            projection.MotivosAlerta = _produtoService.CalcularMotivosAlerta(produto, hojeCivil);
+            return projection;
         }
 
         [HttpGet("{id}")]
@@ -112,6 +170,15 @@ namespace LabSolos_Server_DotNet8.Controllers
             var resultadoValidacao = _produtoService.ValidarEstruturaProduto(addProdutoDTO);
             if (!resultadoValidacao.Validado)
             {
+                if (resultadoValidacao.ErrosPorCampo is { } errosPorCampo)
+                {
+                    return ValidationProblem(new ValidationProblemDetails(errosPorCampo)
+                    {
+                        Title = resultadoValidacao.Mensagem,
+                        Status = StatusCodes.Status400BadRequest
+                    });
+                }
+
                 return BadRequest(new { Message = resultadoValidacao.Mensagem });
             }
 
@@ -124,6 +191,23 @@ namespace LabSolos_Server_DotNet8.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(new { Message = ex.Message });
+            }
+
+            var confirmacaoValidade = _produtoService.AvaliarConfirmacaoValidade(addProdutoDTO);
+            if (confirmacaoValidade is not null)
+            {
+                var problema = new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Confirme o cadastro do químico vencido.",
+                    Detail = "Confirme a data de validade informada para continuar com o cadastro."
+                };
+                problema.Extensions["code"] = "product_expiration_confirmation_required";
+                problema.Extensions["dataValidade"] = confirmacaoValidade.DataValidade
+                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                problema.Extensions["diaCivil"] = confirmacaoValidade.DiaCivil
+                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                return Conflict(problema);
             }
 
             Produto produto = tipoProduto switch
@@ -141,46 +225,82 @@ namespace LabSolos_Server_DotNet8.Controllers
 
         [HttpPut("{id}")]
         [Authorize("ApenasAdministradores")]
-        public async Task<ActionResult> Atualizar(int id, UpdateProdutoDTO produtoDto)
+        public async Task<ActionResult> Atualizar(int id, JObject produtoDto)
         {
-            if (id != produtoDto.Id)
+            if (produtoDto.TryGetValue("id", StringComparison.OrdinalIgnoreCase, out var suppliedId)
+                && (suppliedId.Type != JTokenType.Integer
+                    || !int.TryParse(suppliedId.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var bodyId)
+                    || bodyId != id))
+                return PatchValidation("id", "product_patch_invalid", "O ID do produto não corresponde.");
+
+            var patch = new JsonPatchDocument<ProdutoDTOPatchRequest>();
+            JToken? legacyCatmat = null;
+            foreach (var property in produtoDto.Properties())
             {
-                return BadRequest("O ID do produto não corresponde.");
+                if (property.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (property.Name.Equals("catmat", StringComparison.OrdinalIgnoreCase))
+                {
+                    legacyCatmat = property.Value;
+                    continue;
+                }
+
+                patch.Operations.Add(new Operation<ProdutoDTOPatchRequest>(
+                    "replace", "/" + property.Name, null, property.Value));
             }
 
-            // Buscar o produto existente do banco
-            var produtoExistente = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
-            if (produtoExistente == null)
-            {
-                return NotFound("Produto não encontrado.");
-            }
-
-            var produto = _mapper.Map<Produto>(produtoDto);
-
-            // Manter o mesmo ID da entidade existente (por segurança, caso o mapper não mantenha)
-            produto.Id = id;
-
-            _uow.ProdutoRepository.Atualizar(produto);
-            await _uow.CommitAsync();
-
-            return NoContent();
+            var result = await ApplyExplicitPatchAsync(id, patch, legacyCatmat);
+            return result.Result is OkObjectResult ? NoContent() : result.Result!;
         }
-
         [HttpDelete("{id}")]
         [Authorize("ApenasAdministradores")]
-        public async Task<ActionResult> Remover(int id)
+        public async Task<ActionResult> Remover(
+            int id,
+            [FromServices] IProductLifecycleService lifecycleService)
         {
-            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id, query => query.Include(c => c.Lote));
+            var result = await lifecycleService.DeleteAsync(id, HttpContext.RequestAborted);
+            return LifecycleResponse(result);
+        }
 
-            if (produto == null)
+        [HttpPost("{id}/desativar")]
+        [Authorize("ApenasAdministradores")]
+        public async Task<ActionResult> Desativar(
+            int id,
+            [FromServices] IProductLifecycleService lifecycleService)
+        {
+            var result = await lifecycleService.DeactivateAsync(id, HttpContext.RequestAborted);
+            return LifecycleResponse(result);
+        }
+
+        [HttpPost("{id}/reativar")]
+        [Authorize("ApenasAdministradores")]
+        public async Task<ActionResult> Reativar(
+            int id,
+            [FromServices] IProductLifecycleService lifecycleService)
+        {
+            var result = await lifecycleService.ReactivateAsync(id, HttpContext.RequestAborted);
+            return LifecycleResponse(result);
+        }
+
+        private ActionResult LifecycleResponse(ProductLifecycleResult result)
+        {
+            if (result.Succeeded)
+            {
+                return NoContent();
+            }
+
+            if (result.ProductNotFound)
             {
                 return NotFound();
             }
 
-            _uow.ProdutoRepository.Remover(produto);
-            await _uow.CommitAsync();
-
-            return NoContent();
+            return Conflict(new ProblemDetails
+            {
+                Type = "about:blank",
+                Title = "A operação de ciclo de vida do produto não pôde ser concluída.",
+                Status = StatusCodes.Status409Conflict,
+                Extensions = { ["code"] = result.ConflictCode }
+            });
         }
 
         [HttpGet("{id}/historico-saida")]
@@ -191,17 +311,18 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             try
             {
-                var historico = await _produtoService.ObterHistoricoSaidaProdutoAsync(id);
+                var historico = await _produtoService.ObterHistoricoSaidaProdutoAsync(
+                    id,
+                    User,
+                    HttpContext.RequestAborted);
 
                 if (historico == null)
                 {
-                    _logger.LogWarning("Produto com ID {ProdutoId} não encontrado", id);
-                    return NotFound($"Produto com ID {id} não encontrado.");
+                    _logger.LogWarning("Histórico não encontrado para o recurso solicitado.");
+                    return NotFound();
                 }
 
-                _logger.LogInformation(
-                    "Histórico de saída do produto {ProdutoId} obtido com sucesso. Total de empréstimos: {TotalEmprestimos}",
-                    id, historico.TotalEmprestimos);
+                _logger.LogInformation("Histórico de saída autorizado obtido com sucesso para o produto {ProdutoId}.", id);
 
                 return Ok(historico);
             }
@@ -219,83 +340,99 @@ namespace LabSolos_Server_DotNet8.Controllers
 
         [HttpPatch("{id}")]
         [Authorize("ApenasAdministradores")]
-        public async Task<ActionResult<ProdutoDTOPatchResponse>> AtualizarParcialmente(int id, JsonPatchDocument<ProdutoDTOPatchRequest> patchProdutoDto)
+        public Task<ActionResult<ProdutoDTOPatchResponse>> AtualizarParcialmente(
+            int id, JsonPatchDocument<ProdutoDTOPatchRequest> patchProdutoDto) =>
+            ApplyExplicitPatchAsync(id, patchProdutoDto);
+
+        private async Task<ActionResult<ProdutoDTOPatchResponse>> ApplyExplicitPatchAsync(
+            int id, JsonPatchDocument<ProdutoDTOPatchRequest>? patch, JToken? legacyCatmat = null)
         {
-            _logger.LogInformation("Iniciando operação para atualizar parcialmente produto {ProdutoId}.", id);
+            if (patch is null)
+                return PatchValidation("operations", "product_patch_invalid", "Informe um documento de alterações.");
 
-            if (patchProdutoDto is null)
+            var paths = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var operation in patch.Operations)
             {
-                _logger.LogWarning("Documento de patch nulo fornecido para produto {ProdutoId}", id);
-                return BadRequest("Documento de patch não pode ser nulo.");
+                if (operation is null)
+                    return PatchValidation("operations", "product_patch_operation_invalid", "Informe uma operação válida.");
+                var path = operation.path?.ToLowerInvariant() ?? string.Empty;
+                if (!ProdutoService.CampoEditavel(path))
+                    return PatchValidation(ProdutoService.CampoDeErro(path), "product_patch_field_forbidden",
+                        "Este campo não pode ser alterado por esta operação.");
+                if (operation.op is not ("replace" or "remove") || operation.from is not null
+                    || operation.op == "remove" && !ProdutoService.CampoRemovivel(path))
+                    return PatchValidation(ProdutoService.CampoDeErro(path), "product_patch_operation_invalid",
+                        "Operação não permitida para este campo.");
+                paths.Add(path);
             }
 
-            // Obter o produto pelo ID
-            var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == id);
-
-            if (produto == null)
-            {
-                _logger.LogWarning("Produto com ID {ProdutoId} não encontrado para atualização", id);
+            var cancellationToken = HttpContext.RequestAborted;
+            await using var transaction = await _uow.BeginTransactionAsync(cancellationToken);
+            await _productRepository.LockForLoanDecisionAsync([id], cancellationToken);
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product is null)
                 return NotFound("Produto não encontrado.");
-            }
 
-            // Mapear produto para ProdutoDTOPatchRequest
-            var produtoPatchRequest = _mapper.Map<ProdutoDTOPatchRequest>(produto);
+            if (legacyCatmat is not null
+                && !JToken.DeepEquals(legacyCatmat, product.Catmat is null
+                    ? JValue.CreateNull()
+                    : new JValue(product.Catmat)))
+                return PatchValidation("catmat", "product_patch_field_forbidden",
+                    "O CATMAT histórico deve ser preservado.");
 
-            // Aplicar as alterações definidas no documento JSON Patch
-            patchProdutoDto.ApplyTo(produtoPatchRequest, ModelState);
+            var candidate = _mapper.Map<ProdutoDTOPatchRequest>(product);
+            var errors = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+            patch.ApplyTo(candidate, error =>
+                errors[ProdutoService.CampoDeErro(error.Operation.path.ToLowerInvariant())] =
+                    ["Informe um valor compatível com este campo."]);
+            if (errors.Count == 0)
+                errors = ProdutoService.ValidarAlteracoesExplicitas(candidate, paths);
+            if (errors.Count > 0)
+                return BadRequest(new ValidationProblemDetails(errors)
+                {
+                    Title = "Há alterações inválidas no produto.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Extensions = { ["code"] = "product_patch_invalid" }
+                });
 
-            if (!ModelState.IsValid || !TryValidateModel(produtoPatchRequest))
+            if (paths.Count > 0)
             {
-                _logger.LogWarning("Modelo inválido para atualização do produto {ProdutoId}: {Errors}",
-                    id, string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
-                return BadRequest(ModelState);
+                ProdutoService.AplicarAlteracoesExplicitas(product, candidate, paths);
+                product.UltimaModificacao = DateTime.UtcNow;
+                await _uow.CommitAsync();
             }
+            await transaction.CommitAsync(cancellationToken);
+            return Ok(_mapper.Map<ProdutoDTOPatchResponse>(product));
+        }
 
-            // Validar status se estiver sendo alterado
-            var isStatusPatch = patchProdutoDto.Operations.Any(op =>
-                op.path.Equals("/status", StringComparison.OrdinalIgnoreCase));
-
-            if (isStatusPatch
-                && !string.IsNullOrEmpty(produtoPatchRequest.Status)
-                && !Enum.TryParse<StatusProduto>(produtoPatchRequest.Status, out _))
+        private BadRequestObjectResult PatchValidation(string field, string code, string message) =>
+            new(new ValidationProblemDetails(new Dictionary<string, string[]>
             {
-                _logger.LogWarning("Status inválido fornecido para produto {ProdutoId}: {Status}", id, produtoPatchRequest.Status);
-                return BadRequest($"Status inválido. Valores válidos: {string.Join(", ", Enum.GetNames<StatusProduto>())}");
-            }
-
-            // Validar datas se estiverem sendo alteradas
-            var isDataFabricacaoPatch = patchProdutoDto.Operations.Any(op =>
-                op.path.Equals("/dataFabricacao", StringComparison.OrdinalIgnoreCase));
-            var isDataValidadePatch = patchProdutoDto.Operations.Any(op =>
-                op.path.Equals("/dataValidade", StringComparison.OrdinalIgnoreCase));
-
-            if (isDataFabricacaoPatch
-                && !string.IsNullOrEmpty(produtoPatchRequest.DataFabricacao)
-                && !DateTime.TryParse(produtoPatchRequest.DataFabricacao, out _))
+                [field] = [message]
+            })
             {
-                return BadRequest("Data de fabricação inválida. Use o formato YYYY-MM-DD.");
-            }
-
-            if (isDataValidadePatch
-                && !string.IsNullOrEmpty(produtoPatchRequest.DataValidade)
-                && !DateTime.TryParse(produtoPatchRequest.DataValidade, out _))
+                Title = "Há alterações inválidas no produto.",
+                Status = StatusCodes.Status400BadRequest,
+                Extensions = { ["code"] = code }
+            })
             {
-                return BadRequest("Data de validade inválida. Use o formato YYYY-MM-DD.");
-            }
+                ContentTypes = { "application/problem+json" }
+            };
 
-            // Mapear as alterações de volta para o produto
-            _mapper.Map(produtoPatchRequest, produto);
-
-            // Atualizar timestamp de modificação
-            produto.UltimaModificacao = DateTime.UtcNow;
-
-            _uow.ProdutoRepository.Atualizar(produto);
-            await _uow.CommitAsync();
-
-            _logger.LogInformation("Produto {ProdutoId} atualizado parcialmente com sucesso.", id);
-
-            // Retornar o produto atualizado
-            return Ok(_mapper.Map<ProdutoDTOPatchResponse>(produto));
+        private BadRequestObjectResult PaginationInvalid(string parameter)
+        {
+            var problem = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Os parâmetros da paginação são inválidos.",
+                Detail = "Informe uma página positiva e um tamanho de 1 a 100 sem ultrapassar o deslocamento aceito."
+            };
+            problem.Extensions["code"] = "pagination_invalid";
+            problem.Extensions["errors"] = new Dictionary<string, string[]>
+            {
+                [parameter] = ["Verifique o valor informado."]
+            };
+            return BadRequest(problem);
         }
     }
 }

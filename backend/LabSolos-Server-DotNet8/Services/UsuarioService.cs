@@ -13,6 +13,8 @@ namespace LabSolos_Server_DotNet8.Services
     {
         UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto);
         PasswordPolicyResult PrepararSenhaCadastro(Usuario usuario, string? senha);
+        bool PodeDecidir(Usuario ator, Usuario solicitacao);
+        IEnumerable<Usuario> FiltrarSolicitacoesElegiveis(Usuario ator, IEnumerable<Usuario> solicitacoes);
     }
     
     public class UsuarioService(
@@ -32,16 +34,13 @@ namespace LabSolos_Server_DotNet8.Services
 
         public UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto)
         {
-            // Verificar se o nivel e tipo são consistentes
-            if (NiveisAcademico.Contains(usuarioDto.NivelUsuario) && usuarioDto.TipoUsuario != "Academico")
+            if (!string.IsNullOrWhiteSpace(usuarioDto.Email))
+                usuarioDto.Email = EmailAddressReservationService.Normalize(usuarioDto.Email);
+
+            if (!PoliticaContas.TryGetPublicRole(usuarioDto, out _))
             {
                 return UsuarioValidationResult.Invalid(
-                    $"Se o nível de usuário for '{usuarioDto.NivelUsuario}', o tipo de usuário deve ser 'Academico'.");
-            }
-
-            if (usuarioDto.TipoUsuario != "Academico")
-            {
-                return UsuarioValidationResult.Valid();
+                    "Selecione Mentor ou Mentorado para o cadastro acadêmico.");
             }
 
             // Preservar as validações estruturais acadêmicas existentes.
@@ -87,6 +86,24 @@ namespace LabSolos_Server_DotNet8.Services
             usuario.SenhaHash = _passwordHasher.HashPassword(usuario, senha!);
             usuario.ExigeTrocaSenha = false;
             return PasswordPolicyResult.Valid;
+        }
+
+        public bool PodeDecidir(Usuario ator, Usuario solicitacao)
+        {
+            ArgumentNullException.ThrowIfNull(ator);
+            ArgumentNullException.ThrowIfNull(solicitacao);
+
+            return PoliticaContas.CanDecide(ator, solicitacao) &&
+                (solicitacao.NivelUsuario != NivelUsuario.Mentorado ||
+                 PoliticaContas.IsEligibleResponsible(solicitacao.Responsavel));
+        }
+
+        public IEnumerable<Usuario> FiltrarSolicitacoesElegiveis(
+            Usuario ator,
+            IEnumerable<Usuario> solicitacoes)
+        {
+            ArgumentNullException.ThrowIfNull(solicitacoes);
+            return solicitacoes.Where(solicitacao => PodeDecidir(ator, solicitacao));
         }
     }
 }

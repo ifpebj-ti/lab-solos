@@ -1,11 +1,11 @@
 # Tarefas: Frontend responsivo
 
-- Status: concluida
+- Status: concluída localmente — validação integrada final aprovada; CI remota não executada
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
-- Atualizado em: 2026-09-07
+- Atualizado em: 2026-11-24
 - Issues de origem: #229, #230, #231
-- Total: 16 tarefas; 16 concluidas
+- Total: 16 tarefas; 16 concluídas
 
 ## Associação às issues remotas
 
@@ -115,6 +115,10 @@ Produtos preservam todos os seis campos e as consultas atuais. Vazio, carregamen
 
 Compatibilidade temporária deve ser explícita e coberta: o contrato responsivo exige contexto e rótulos; o consumidor ainda não migrado conserva seu modo legado até sua tarefa. Header e ItemClickable são estabilizados aqui para evitar retrabalho nos grupos posteriores.
 
+### Retomada — 2026-11-24
+
+A validação cruzada de Visibilidade T006 identificou que os cenários E2E de produtos ainda interceptam `GET /api/Produtos`, enquanto o consumidor atual consulta o catálogo administrativo paginado. Atualizar as fixtures e conferir que os cenários voltam a exercer a listagem sem alterar o contrato de produção.
+
 ## T002 — Tornar o cadastro fluido e acessível
 
 - Issue: #230
@@ -148,6 +152,10 @@ Todos os campos e ações cabem em 320/375/768/1440; termos rolam verticalmente 
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
 
+### Retomada — 2026-11-24
+
+A validação cruzada de Visibilidade T006 encontrou que `fillResponsiveAccount` seleciona o perfil Mentor e depois tenta preencher `emailMentor`, campo que o contrato público atual mostra somente para Mentorado. Corrigir a fixture e a expectativa de payload do caso responsivo para representar o fluxo de Mentor aprovado, sem alterar a regra de cadastro.
+
 ## T003 — Migrar aprovação e recusa de cadastros
 
 - Issue: #231
@@ -180,6 +188,10 @@ Cada ação recebe o registro correto, uma única vez, por clique e teclado; dad
 ### Notas
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
+
+### Retomada — 2026-11-24
+
+A validação cruzada de Visibilidade T006 revelou timeout nos cenários T003 da fila de solicitações: o mock interceptava `GET /api/Usuarios/4242/dependentes/aprovacao`, rota dos Mentores, mas a tela administrativa consulta `GET /api/Usuarios/aprovacao`. A rota e a fixture foram corrigidas; o E2E revelou e levou à correção do overflow da coluna de ações em 768 px. Evidência completa em `evidencias/T003.md`.
 
 ## T004 — Migrar solicitações de empréstimo com ações e navegação
 
@@ -246,6 +258,10 @@ Seleção preserva estado em 375 → 768 → 375, sem nova consulta ou ação du
 ### Notas
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
+
+### Retomada — 2026-11-24
+
+A suíte E2E completa voltou a registrar falhas nos cenários responsivos T005. A retomada confirmou e corrigiu o overflow da coluna de Status; a matriz passou 5/5. Evidência completa em `evidencias/T005.md`.
 
 ## T006 — Migrar remoção de itens na criação de empréstimos
 
@@ -379,6 +395,10 @@ Nenhum valor desloca para o rótulo vizinho ao variar tipo/perfil; estados vazio
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
 
+### Retomada — 2026-11-24
+
+A validação cruzada de Visibilidade T006 encontrou timeouts nos cenários T009 antes de abrir o detalhe: a fixture de listagem ainda intercepta `GET /api/Produtos` como array, mas o catálogo atual usa envelope paginado e rota administrativa própria. Corrigir e testar os mocks desta jornada sem alterar o contrato de produto.
+
 ## T010 — Migrar acompanhamento e visualização de turmas
 
 - Issue: #231
@@ -411,6 +431,10 @@ As três páginas exibem todos os campos e mantêm destinos por clique e teclado
 ### Notas
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
+
+### Retomada — 2026-11-24
+
+A validação cruzada de Visibilidade T006 identificou que o cenário T010 de acompanhamento intercepta somente `GET /api/Produtos/emAlerta`, mas a tela atual usa o catálogo administrativo paginado. Atualizar a fixture e as expectativas desta jornada, preservando o contrato atual da tela.
 
 ## T011 — Migrar consultas administrativas de empréstimos e mentorias
 
@@ -578,10 +602,14 @@ Nenhum consumidor de produção usa columnWidths nem Header.columns legado; todo
 
 Ler os contratos entregues nas dependências; não modificar uma primitiva fora da posse para acomodar uma correção pontual do consumidor.
 
+### Retomada — 2026-11-24
+
+A validação integral encontrou que o cenário T015 ainda interceptava `GET /api/Usuarios/4242/dependentes/aprovacao`, rota de Mentor, embora a tela administrativa use `GET /api/Usuarios/aprovacao`. O handler foi corrigido e a matriz passou 5/5. Evidência completa em `evidencias/T015.md`.
+
 ## T016 — Validar integração, cobertura integral e proteção pré-merge
 
 - Issue: #231
-- Status: concluida
+- Status: concluída localmente
 - Dependências: T015
 - Paralela: não
 - Requisitos: RF-001, RF-002, RF-003, RNF-001, RNF-002, CA-001, CA-002, CA-003
@@ -663,3 +691,15 @@ Auditoria inicial da orquestração (2026-09-06): Docker Engine 29.7.2 respondeu
 | 2026-09-07 | T014 | Concluida | [Evidencia T014](./evidencias/T014.md): 2 testes dirigidos, 204 globais, lint/build e 5 E2E verdes | Cards e dialogo responsivos; overflow em 768 corrigido; #231 permanece In Progress |
 | 2026-09-07 | T015 | Concluida | [Evidencia T015](./evidencias/T015.md): auditoria sem fallbacks, 30 testes de tabela, 204 globais, lint/build e 5 E2E verdes | Primitivas exigem contexto responsivo; columnWidths restante e apenas exportacao PDF; #231 permanece In Progress |
 | 2026-09-07 | T016 | Concluida | [Evidencia T016](./evidencias/T016.md): inventario, workflow/ruleset, 204 testes globais, lint/build e 166 E2E verdes | Suite completa validada em 1,5 min com SMTP 28025; #231 permanece In Progress |
+| 2026-11-24 | T001 retomada | concluída | RED: E2E reproduziu o endpoint de catálogo legado e falhou em admin 320; após alinhar fixtures, 28/30 expuseram overflow real do link de ID em 768. GREEN: matriz T001 30/30, Vitest direcionado 34/34, lint, build e `git diff --check` aprovados. | Fixture passou a usar envelope paginado por perfil; coluna ID 12→16 preserva o alvo de 44 px sem overflow em 768. `tsconfig.app.tsbuildinfo` restaurado byte a byte; stack isolada removida. Evidência em `evidencias/T001.md`; nenhuma sincronização remota. |
+| 2026-11-24 | T009 retomada | concluída | RED: timeout de 30 s ao abrir o produto; correção da rota paginada revelou fixture de histórico com formato de data/solicitante obsoleto. GREEN: E2E 20/20, React 13/13, lint, build e `git diff --check` aprovados. | Fixtures alinhadas ao catálogo por perfil e ao histórico atual; nenhuma mudança de produção. Hash do `tsbuildinfo` preservado; artefatos e composição exclusiva removidos. Evidência em `evidencias/T009.md`; sem GitHub/Wiki. |
+| 2026-11-24 | T010 retomada | concluída | RED: acompanhamento 320 recebeu zero linhas porque o mock respondia ao endpoint de alertas removido. GREEN: matriz T010 15/15, RTL 7/7, lint, build e `git diff --check` aprovados. | Fixture usa o catálogo paginado com `motivosAlerta` e confirma rota/parâmetros. Sem alteração de produção; hash do `tsbuildinfo` mantido; composição/artefatos isolados removidos. Evidência em `evidencias/T010.md`; sem GitHub/Wiki. |
+| 2026-11-24 | T002 retomada | concluída | RED: timeout tentando preencher `emailMentor` no perfil Mentor; o campo pertence ao Mentorado. GREEN: E2E 6/6, React 45/45, lint, build e `git diff --check` aprovados. | Fixture manteve Mentor, confirmou ausência do campo e verificou `responsavelEmail` vazio nos dois envios. Sem mudança de produção; hash do `tsbuildinfo` preservado; composição/artefatos removidos. Evidência em `evidencias/T002.md`; sem GitHub/Wiki. |
+
+| 2026-11-24 | T003 retomada | concluída | RED: cenário administrativo usava a rota antiga de Mentor; GREEN: E2E 5/5, RTL 5/5, lint, build e git diff --check aprovados. | Fixture alinhada a GET /api/Usuarios/aprovacao e ao campo tipoUsuario; coluna de ações ajustada para eliminar overflow real em 768 px. tsbuildinfo preservado, stack/artefatos removidos; evidência em evidencias/T003.md. |
+| 2026-11-24 | T005 retomada | concluída | RED: 2 de 5 cenários falharam por overflow a 768 px; GREEN: E2E 5/5, RTL 13/13, lint, build e git diff --check aprovados. | Coluna Status 2→3,5 comporta o botão Alterar e-mail e elimina 24 px de rolagem. tsbuildinfo preservado e stack/artefatos removidos; evidência em evidencias/T005.md. |
+| 2026-11-24 | T006 retomada | concluída | RED: os cinco viewports falharam porque a rota mockada devolvia array e a tela não carregava os produtos. GREEN: E2E 5/5, RTL 5/5, lint, build e git diff --check aprovados. | Mock atualizado para Produtos?pagina=1&tamanhoPagina=100 com envelope paginado e asserção dos parâmetros. tsbuildinfo preservado e stack/artefatos removidos; evidência em evidencias/T006.md. |
+| 2026-11-24 | T015 retomada | concluída | RED: 5/5 viewports mostravam 0 solicitações por mock na rota de Mentor; GREEN: E2E 5/5, 30 testes de tabela, lint, build e git diff --check aprovados. | Handler alinhado à rota administrativa `/api/Usuarios/aprovacao` com asserção explícita do caminho; sem alterações de produção. tsbuildinfo preservado e stack/artefatos removidos; evidência em evidencias/T015.md. |
+| 2026-11-24 | T016 retomada | em andamento | Reaberta após as correções de regressões nos cenários responsivos; validação integrada completa pendente. | Executar suíte global, E2E, lint/build e verificar matriz; devolver falhas à tarefa proprietária. |
+| 2026-11-24 | T016 fechamento | concluída localmente | Vitest 1.021/1.021, lint, build, descoberta 255 testes/21 arquivos, Playwright completo 255/255 em 5,6 min, `git diff --check` aprovado. | Falhas anteriores foram corrigidas nas tarefas proprietárias e a rodada integrada não encontrou regressões. Stacks sintéticas exclusivas encerradas; não houve CI remota, alteração no GitHub nem revisão física/leitor de tela. A captura passiva incompleta da T007 permanece registrada no plano de cobertura como bloqueio independente. |
+| 2026-11-24 | T016 revalidação após CDP Fetch | concluída localmente | Suíte E2E completa repetida com a captura T007 final: 255/255 em 5,6 min. | Captura ainda registra os 18 corpos binários indisponíveis na jornada de exportações, mas não há falha funcional; stacks/volumes/redes exclusivos encerrados. T007 segue inconclusiva. |

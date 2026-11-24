@@ -1,0 +1,12 @@
+T007 final security run, 2026-11-24
+compose_project=lab-solos-t007-final-20261124
+compose_subnet=172.30.242.0/24
+https_port=18443
+playwright_security=6_passed
+sanitized_report=T007-zap-passive-2026-11-24-final.json
+zap_status=inconclusive
+report_messages={"api_request_context":47,"api_routes":88,"body_unavailable":19,"body_unavailable_cache_skipped":0,"browser":185,"cache_evidence_ambiguous":52,"cache_skipped":0,"frontend_routes":144,"wire_304_ambiguous":0,"wire_304_responses":0}
+profiles_exports_test={"observed":100,"captured":100,"cache_skipped":0,"body_unavailable":18,"temporal_cache_unspecified_body_unavailable":18,"extra_info_expected":100,"extra_info_received":58,"extra_info_missing":42,"extra_info_unexpected":2,"wire_304_responses":0,"wire_304_ambiguous":0,"cache_evidence_ambiguous":44,"calibration_pairs":21,"temporal_tolerance_ms":14.77490234375}
+conclusion=No responses were omitted; the 18 unavailable binary bodies had unique temporal cache_unspecified matches, but incomplete/extra ExtraInfo evidence made the cache decision ambiguous and prevented fail-closed skipping. T007 remains inconclusive.
+extra_network_requests=none; the capture did not invoke Network.loadNetworkResource. ZAP imported captured traffic in its isolated analyzer.
+cleanup=compose_down_without_volumes; project containers and networks removed; four project volumes retained.

@@ -1,22 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Bell } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Notificacao,
-  getMinhasNotificacoes,
-  getCountNotificacoesNaoLidas,
-  marcarNotificacaoComoLida,
-} from '@/integration/Notifications';
+import type { Notificacao } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
-// import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { OPERATION_IDS } from '@/errors/errorCatalog';
-import { notifyError } from '@/errors/presentError';
+import {
+  NotificationFailureFeedback,
+  useNotificationReading,
+} from './NotificationIcon';
 
 const getTipoIcon = (tipo: string) => {
   switch (tipo) {
@@ -46,36 +42,15 @@ const getTipoIcon = (tipo: string) => {
 };
 
 export function SidebarNotificationButton(): React.JSX.Element {
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate();
-
-  const fetchNotificacoes = async () => {
-    try {
-      setLoading(true);
-      const [notifs, countData] = await Promise.all([
-        getMinhasNotificacoes(false),
-        getCountNotificacoesNaoLidas(),
-      ]);
-
-      // O backend já está filtrando as notificações baseado no nível do usuário
-      setNotificacoes(notifs);
-      setCountNaoLidas(countData.count);
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.notifications);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotificacoes();
-    // Buscar notificações a cada 60 segundos
-    const interval = setInterval(fetchNotificacoes, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const {
+    notificacoes,
+    countNaoLidas,
+    loading,
+    failure,
+    refresh,
+    markAsRead,
+  } = useNotificationReading();
 
   const handleMarcarComoLida = async (
     notificacaoId: number,
@@ -84,12 +59,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
     if (event) {
       event.stopPropagation();
     }
-    try {
-      await marcarNotificacaoComoLida(notificacaoId);
-      await fetchNotificacoes();
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.markNotificationRead);
-    }
+    await markAsRead(notificacaoId);
   };
 
   const handleNotificacaoClick = async (notificacao: Notificacao) => {
@@ -129,7 +99,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
             aria-label='Notificações'
           >
             <Bell className='h-4 w-4' />
-            {countNaoLidas > 0 && (
+            {!failure && countNaoLidas > 0 && (
               <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger p-0 text-xs font-medium text-white'>
                 {countNaoLidas > 99 ? '99+' : countNaoLidas}
               </span>
@@ -143,7 +113,7 @@ export function SidebarNotificationButton(): React.JSX.Element {
         >
           <div className='flex items-center justify-between border-b border-borderMy p-4'>
             <h3 className='font-semibold text-sm'>Notificações</h3>
-            {countNaoLidas > 0 && (
+            {!failure && countNaoLidas > 0 && (
               <span className='rounded-full bg-surface-selected px-2 py-1 text-xs text-clt-1'>
                 {countNaoLidas} não lida{countNaoLidas !== 1 ? 's' : ''}
               </span>
@@ -155,6 +125,8 @@ export function SidebarNotificationButton(): React.JSX.Element {
               <div className='flex items-center justify-center p-8'>
                 <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
               </div>
+            ) : failure ? (
+              <NotificationFailureFeedback failure={failure} onRetry={refresh} />
             ) : notificacoes.length === 0 ? (
               <div className='flex flex-col items-center justify-center p-8 text-center'>
                 <Bell className='h-12 w-12 text-muted-foreground mb-3' />
@@ -197,7 +169,11 @@ export function SidebarNotificationButton(): React.JSX.Element {
                             {notificacao.titulo}
                           </p>
                           {!notificacao.lida && (
-                            <div className='w-2 h-2 bg-primary rounded-full shrink-0 mt-1'></div>
+                            <div
+                              role='img'
+                              aria-label='Não lida'
+                              className='w-2 h-2 bg-primary rounded-full shrink-0 mt-1'
+                            ></div>
                           )}
                         </div>
                         <p className='mt-1 line-clamp-2 text-xs text-clt-1'>

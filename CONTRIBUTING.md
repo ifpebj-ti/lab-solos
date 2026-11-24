@@ -62,7 +62,8 @@ Este projeto usa uma variação da estratégia **trunk-based** com integração 
      ```
 
 7. **Criação de Pull Request**
-   - Abra uma issue antes do PR, usando o template do repositório. Preencha contexto, problema, resultado esperado, escopo e critérios de aceitação; defina labels, prioridade, responsável e sprint no Project quando aplicável.
+   - Abra uma issue antes do PR. Use [Relato de bug](.github/ISSUE_TEMPLATE/bug.md) para registrar uma falha, com passos de reprodução ou o comportamento observado. Use [Proposta de melhoria](.github/ISSUE_TEMPLATE/melhoria.md) para sugerir uma funcionalidade ou aprimorar um fluxo existente.
+   - Em ambos os modelos, preencha contexto, problema, objetivo, resultado esperado e escopo e inclua critérios de aceitação verificáveis. Defina labels, prioridade, responsável e sprint no Project quando aplicável.
    - Acesse seu repositório no GitHub e abra um Pull Request para a branch `develop` do repositório original. Nunca use `main` como base de uma contribuição.
    - Preserve a estrutura de `.github/pull_request_template.md`, marque exatamente um tipo de mudança e substitua o campo de descrição por um texto claro sobre contexto, propósito e impactos.
    - Vincule a issue na descrição, por exemplo `Closes #425`, e registre testes, pipeline e demonstração quando aplicável.

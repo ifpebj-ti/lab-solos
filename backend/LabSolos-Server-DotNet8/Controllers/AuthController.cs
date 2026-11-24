@@ -24,34 +24,39 @@ namespace LabSolos_Server_DotNet8.Controllers
     {
         private readonly JwtService _jwtService;
         private readonly IUnitOfWork _uow;
-        private readonly ICredentialService _credentialService;
+        private readonly IPasswordChangeRateLimitService _passwordChangeRateLimitService;
         private readonly IPasswordHasher<Usuario> _passwordHasher;
         private readonly IOptions<AuthenticationProtectionOptions> _protectionOptions;
         private readonly ISecretFileReader _secretFileReader;
         private readonly IHostEnvironment _hostEnvironment;
         private readonly AuthenticationProtectionTelemetry _telemetry;
+        private readonly ISessaoService? _sessaoService;
 
         public AuthController(
             JwtService jwtService,
             IUnitOfWork uow,
-            ICredentialService credentialService,
+            IPasswordChangeRateLimitService passwordChangeRateLimitService,
             IPasswordHasher<Usuario> passwordHasher,
             IOptions<AuthenticationProtectionOptions> protectionOptions,
             ISecretFileReader secretFileReader,
             IHostEnvironment hostEnvironment,
-            AuthenticationProtectionTelemetry telemetry)
+            AuthenticationProtectionTelemetry telemetry,
+            ISessaoService? sessaoService = null)
         {
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
-            _credentialService = credentialService ?? throw new ArgumentNullException(nameof(credentialService));
+            _passwordChangeRateLimitService = passwordChangeRateLimitService ??
+                throw new ArgumentNullException(nameof(passwordChangeRateLimitService));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _protectionOptions = protectionOptions ?? throw new ArgumentNullException(nameof(protectionOptions));
             _secretFileReader = secretFileReader ?? throw new ArgumentNullException(nameof(secretFileReader));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
             _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+            _sessaoService = sessaoService;
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(
             [FromBody] LoginDTO? requestDto,
             CancellationToken cancellationToken)
@@ -157,11 +162,21 @@ namespace LabSolos_Server_DotNet8.Controllers
                         AuthenticationProtectionOperation.Login,
                         AuthenticationProtectionResult.Success);
                     var token = _jwtService.GenerateToken(user);
-                    return Ok(new
-                    {
-                        token,
-                        requiresPasswordChange = user.ExigeTrocaSenha
-                    });
+                    var jwtId = new JwtSecurityTokenHandler().ReadJwtToken(token).Id;
+                    var session = await RequiredSessionService().CriarAsync(
+                        user.Id,
+                        user.VersaoSessao,
+                        jwtId,
+                        cancellationToken);
+                    SessaoCookie.Gravar(
+                        Response,
+                        Request,
+                        _hostEnvironment,
+                        session.Identificador,
+                        SessaoCookie.LimiteCookie(session));
+                    return Request.Headers.ContainsKey("Origin")
+                        ? Ok(new { requiresPasswordChange = user.ExigeTrocaSenha })
+                        : Ok(new { token, requiresPasswordChange = user.ExigeTrocaSenha });
                 }
                 finally
                 {
@@ -196,6 +211,106 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
         }
 
+        [HttpGet("session")]
+        [Authorize]
+        public IActionResult Session(CancellationToken cancellationToken)
+        {
+            _ = cancellationToken;
+            AuthenticationProtectionResponses.ApplyNoStore(Response);
+            var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var sessionCookie = Request.Cookies.TryGetValue(
+                SessaoAutenticacaoDefaults.CookieName,
+                out var cookieValue)
+                ? cookieValue
+                : null;
+            if (!int.TryParse(subject, out var userId) || string.IsNullOrWhiteSpace(sessionCookie))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new
+            {
+                userId,
+                role = User.FindFirstValue(ClaimTypes.Role),
+                requiresPasswordChange = User.FindFirstValue(JwtClaimNames.PasswordChangeRequired) == "true",
+                csrfToken = SessaoCsrfProof.Create(sessionCookie)
+            });
+        }
+
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+        {
+            AuthenticationProtectionResponses.ApplyNoStore(Response);
+            var rawCookie = Request.Cookies.TryGetValue(SessaoAutenticacaoDefaults.CookieName, out var value)
+                ? value
+                : null;
+            var sessionId = User.FindFirstValue(SessaoAutenticacaoDefaults.SessionIdClaim);
+            var jwtId = User.FindFirstValue(JwtRegisteredClaimNames.Jti);
+            try
+            {
+                await RequiredSessionService().RevogarAsync(
+                    Guid.TryParseExact(sessionId, "N", out var parsedSessionId) ? parsedSessionId : null,
+                    rawCookie,
+                    jwtId,
+                    cancellationToken);
+                SessaoCookie.Remover(Response, Request, _hostEnvironment);
+                return NoContent();
+            }
+            catch (Exception exception) when (IsProtectionFailure(exception))
+            {
+                return AuthenticationProtectionResponses.Unavailable(Response);
+            }
+        }
+
+        [HttpPost("renew")]
+        [Authorize]
+        public async Task<IActionResult> Renew(CancellationToken cancellationToken)
+        {
+            AuthenticationProtectionResponses.ApplyNoStore(Response);
+            if (!Guid.TryParseExact(User.FindFirstValue(SessaoAutenticacaoDefaults.SessionIdClaim), "N", out var sessionId))
+            {
+                return Unauthorized();
+            }
+
+            var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(subject, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var user = await _uow.UsuarioRepository.ObterAsync(candidate => candidate.Id == userId);
+                if (user is null)
+                {
+                    return Unauthorized();
+                }
+
+                var token = _jwtService.GenerateToken(user);
+                var jwtId = new JwtSecurityTokenHandler().ReadJwtToken(token).Id;
+                var renewed = await RequiredSessionService().RenovarAsync(sessionId, jwtId, cancellationToken);
+                if (renewed is null)
+                {
+                    return Unauthorized();
+                }
+
+                SessaoCookie.Gravar(
+                    Response,
+                    Request,
+                    _hostEnvironment,
+                    renewed.Identificador,
+                    SessaoCookie.LimiteCookie(renewed));
+                return NoContent();
+            }
+            catch (Exception exception) when (IsProtectionFailure(exception))
+            {
+                return AuthenticationProtectionResponses.Unavailable(Response);
+            }
+        }
+
         [HttpPost("change-password")]
         [Authorize(Policy = CredentialAuthorizationPolicies.ChangeOwnPassword)]
         public async Task<IActionResult> ChangePassword(
@@ -211,17 +326,19 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
 
             requestDto ??= new ChangePasswordDTO();
-            var result = await _credentialService.ChangePasswordAsync(
+            var result = await _passwordChangeRateLimitService.ChangePasswordAsync(
                 userId,
-                requestDto.CurrentPassword,
-                requestDto.NewPassword,
-                requestDto.Confirmation,
+                requestDto,
                 cancellationToken);
 
             return result.Status switch
             {
                 CredentialChangeStatus.Success => NoContent(),
                 CredentialChangeStatus.Conflict => ConflictProblem(),
+                CredentialChangeStatus.RateLimited => AuthenticationProtectionResponses.RateLimited(
+                    Response,
+                    result.RetryAfterSeconds),
+                CredentialChangeStatus.Unavailable => AuthenticationProtectionResponses.Unavailable(Response),
                 _ => ValidationProblem(result.Code ?? "password_invalid")
             };
         }
@@ -277,6 +394,9 @@ namespace LabSolos_Server_DotNet8.Controllers
             && email.Length <= 254
             && email.Trim().Length > 0
             && !email.Any(char.IsControl);
+
+        private ISessaoService RequiredSessionService() =>
+            _sessaoService ?? throw new InvalidOperationException("Session service is not configured.");
 
         private static bool IsProtectionFailure(Exception exception)
         {
@@ -365,5 +485,30 @@ namespace LabSolos_Server_DotNet8.Controllers
                 ContentTypes = { "application/problem+json" }
             };
         }
+    }
+}
+
+public static class SessaoCsrfProof
+{
+    private static readonly byte[] Context = Encoding.UTF8.GetBytes("lab-solos-browser-csrf-v1");
+
+    public static string Create(string opaqueSessionId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(opaqueSessionId);
+
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(opaqueSessionId));
+        var digest = hmac.ComputeHash(Context);
+        return Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(digest);
+    }
+
+    public static bool Matches(string opaqueSessionId, string? submittedProof)
+    {
+        if (string.IsNullOrWhiteSpace(opaqueSessionId) || string.IsNullOrWhiteSpace(submittedProof))
+            return false;
+
+        var expected = Encoding.UTF8.GetBytes(Create(opaqueSessionId));
+        var submitted = Encoding.UTF8.GetBytes(submittedProof);
+        return expected.Length == submitted.Length &&
+            CryptographicOperations.FixedTimeEquals(expected, submitted);
     }
 }

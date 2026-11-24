@@ -30,6 +30,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task<Lote?> GetLoteByIdAsync(int id)
         {
             return await _context.Lotes
+                .AsNoTracking()
                 .Include(l => l.Produtos) // Inclui os produtos relacionados ao lote
                 .FirstOrDefaultAsync(l => l.Id == id);
 
@@ -37,9 +38,11 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<Lote?> GetLoteByCodigoAsync(string codigoLote)
         {
+            var normalized = codigoLote.Trim().ToLowerInvariant();
             return await _context.Lotes
+                .AsNoTracking()
                 .Include(l => l.Produtos) // Inclui os produtos relacionados ao lote
-                .FirstOrDefaultAsync(l => l.CodigoLote == codigoLote);
+                .FirstOrDefaultAsync(l => EF.Property<string>(l, "CodigoNormalizado") == normalized);
         }
     }
 }

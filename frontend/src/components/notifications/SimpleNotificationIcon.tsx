@@ -1,23 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Bell } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Notificacao,
-  getMinhasNotificacoes,
-  getCountNotificacoesNaoLidas,
-  marcarNotificacaoComoLida,
-} from '@/integration/Notifications';
+import type { Notificacao } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
-// import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import Cookie from 'js-cookie';
-import { OPERATION_IDS } from '@/errors/errorCatalog';
-import { notifyError } from '@/errors/presentError';
+import {
+  NotificationFailureFeedback,
+  useNotificationReading,
+} from './NotificationIcon';
 
 const getTipoIcon = (tipo: string) => {
   switch (tipo) {
@@ -46,81 +41,16 @@ const getTipoIcon = (tipo: string) => {
   }
 };
 
-// Função para verificar se o usuário é administrador
-const isUserAdmin = (): boolean => {
-  try {
-    const userInfo = Cookie.get('userInfo');
-    if (userInfo) {
-      const user = JSON.parse(userInfo);
-      return (
-        user.nivelUsuario === 'Administrador' ||
-        user.tipoUsuario === 'Administrador'
-      );
-    }
-  } catch (error) {
-    notifyError(error, OPERATION_IDS.notifications);
-  }
-  return false;
-};
-
-// Função para filtrar notificações baseado no tipo de usuário
-const filterNotificationsByUserLevel = (
-  notificacoes: Notificacao[]
-): Notificacao[] => {
-  const isAdmin = isUserAdmin();
-
-  if (isAdmin) {
-    // Administradores veem todas as notificações
-    return notificacoes;
-  }
-
-  // Usuários não-administradores só veem notificações pessoais (não relacionadas a administração)
-  return notificacoes.filter((notif) => {
-    const adminOnlyTypes = [
-      'EstoqueBaixo',
-      'ProdutoVencido',
-      'ProdutoProximoVencimento',
-      'SolicitacaoUsuario',
-      'NovoEmprestimo',
-    ];
-    return !adminOnlyTypes.includes(notif.tipo);
-  });
-};
-
 export function SimpleNotificationIcon(): React.JSX.Element {
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate();
-
-  const fetchNotificacoes = async () => {
-    try {
-      setLoading(true);
-      const [notifs] = await Promise.all([
-        getMinhasNotificacoes(false),
-        getCountNotificacoesNaoLidas(),
-      ]);
-
-      // Filtrar notificações baseado no nível do usuário
-      const filteredNotifs = filterNotificationsByUserLevel(notifs);
-      const filteredCount = filteredNotifs.filter((n) => !n.lida).length;
-
-      setNotificacoes(filteredNotifs);
-      setCountNaoLidas(filteredCount);
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.notifications);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotificacoes();
-    // Buscar notificações a cada 60 segundos
-    const interval = setInterval(fetchNotificacoes, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const {
+    notificacoes,
+    countNaoLidas,
+    loading,
+    failure,
+    refresh,
+    markAsRead,
+  } = useNotificationReading();
 
   const handleMarcarComoLida = async (
     notificacaoId: number,
@@ -129,12 +59,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
     if (event) {
       event.stopPropagation();
     }
-    try {
-      await marcarNotificacaoComoLida(notificacaoId);
-      await fetchNotificacoes();
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.markNotificationRead);
-    }
+    await markAsRead(notificacaoId);
   };
 
   const handleNotificacaoClick = async (notificacao: Notificacao) => {
@@ -176,7 +101,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
             <Bell className='h-4 w-4' />
             <span>Notificações</span>
           </div>
-          {countNaoLidas > 0 && (
+          {!failure && countNaoLidas > 0 && (
             <span className='flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-xs font-bold text-white'>
               {countNaoLidas > 99 ? '99+' : countNaoLidas}
             </span>
@@ -190,7 +115,7 @@ export function SimpleNotificationIcon(): React.JSX.Element {
       >
         <div className='flex items-center justify-between border-b border-borderMy p-4'>
           <h3 className='font-semibold text-sm'>Notificações</h3>
-          {countNaoLidas > 0 && (
+          {!failure && countNaoLidas > 0 && (
             <span className='text-xs text-clt-1'>
               {countNaoLidas} não lida{countNaoLidas !== 1 ? 's' : ''}
             </span>
@@ -202,6 +127,8 @@ export function SimpleNotificationIcon(): React.JSX.Element {
             <div className='flex items-center justify-center p-8'>
               <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
             </div>
+          ) : failure ? (
+            <NotificationFailureFeedback failure={failure} onRetry={refresh} />
           ) : notificacoes.length === 0 ? (
             <div className='flex flex-col items-center justify-center p-8 text-center'>
               <Bell className='mb-3 h-12 w-12 text-clt-1' />
@@ -240,7 +167,11 @@ export function SimpleNotificationIcon(): React.JSX.Element {
                           {notificacao.titulo}
                         </p>
                         {!notificacao.lida && (
-                          <div className='mt-1 h-2 w-2 shrink-0 rounded-full bg-primaryMy'></div>
+                          <div
+                            role='img'
+                            aria-label='Não lida'
+                            className='mt-1 h-2 w-2 shrink-0 rounded-full bg-primaryMy'
+                          ></div>
                         )}
                       </div>
                       <p className='mt-1 line-clamp-2 text-xs text-clt-1'>

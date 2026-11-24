@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Middlewares;
+using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,120 +15,88 @@ namespace Tests.Middlewares;
 public sealed class AuditoriaMiddlewareTests
 {
     [Fact]
-    public async Task InvokeAsyncPreservesBodyForPipelineAndSanitizesAuditLog()
+    public async Task InvokeAsyncPreservesRequestBodyForPipelineWithoutSavingIt()
     {
-        const string requestBody = "{\"nome\":\"Alice\",\"senha\":\"nao registrar\"}";
+        const string requestBody = "{\"nome\":\"Alice\",\"senha\":\"CANARY_PASSWORD\"}";
         var bodySeenByPipeline = string.Empty;
-        TrackingStreamReader? bodyReader = null;
         var loggedData = CreateLoggedDataSource();
-        var auditLog = loggedData.AuditLog;
         using var services = loggedData.Services;
         var middleware = CreateMiddleware(
             services,
             async context =>
             {
-                using var reader = new StreamReader(
-                    context.Request.Body,
-                    Encoding.UTF8,
-                    detectEncodingFromByteOrderMarks: true,
-                    bufferSize: 1024,
-                    leaveOpen: true);
+                using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true);
                 bodySeenByPipeline = await reader.ReadToEndAsync();
-            },
-            body => bodyReader = new TrackingStreamReader(body));
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            });
         var context = CreatePostContext(new MemoryStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos");
 
         await middleware.InvokeAsync(context);
-        var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        var log = await loggedData.AuditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         Assert.Equal(requestBody, bodySeenByPipeline);
-        Assert.Contains("\"senha\":\"***\"", log.DadosRequisicao);
-        Assert.DoesNotContain("nao registrar", log.DadosRequisicao);
-        Assert.NotNull(bodyReader);
-        Assert.True(bodyReader!.IsDisposed);
+        Assert.DoesNotContain("CANARY_PASSWORD", JsonSerializer.Serialize(log), StringComparison.Ordinal);
+        Assert.Equal(CodigoEventoAuditoria.FalhaOperacao, log.CodigoEvento);
     }
 
     [Fact]
-    public async Task InvokeAsyncSanitizesSensitiveFieldsWithoutChangingBodyFieldOrder()
+    public async Task InvokeAsyncDoesNotCaptureBodyFieldsOrResponsePayload()
     {
-        const string requestBody = "{\"primeiro\":\"1\",\"senha\":\"segredo\",\"meio\":\"2\",\"PASSWORD\":\"segredo2\",\"ultimo\":\"3\"}";
+        const string requestBody = "{\"primeiro\":\"CANARY_BODY\",\"senha\":\"CANARY_PASSWORD\"}";
         var loggedData = CreateLoggedDataSource();
-        var auditLog = loggedData.AuditLog;
         using var services = loggedData.Services;
-        var middleware = CreateMiddleware(services, _ => Task.CompletedTask);
+        var middleware = CreateMiddleware(services, context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            return Task.CompletedTask;
+        });
 
         await middleware.InvokeAsync(CreatePostContext(
             new MemoryStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos"));
 
-        var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
-        Assert.NotNull(log.DadosRequisicao);
-        using var document = JsonDocument.Parse(log.DadosRequisicao!);
-        var fields = document.RootElement
-            .GetProperty("Body")
-            .EnumerateObject()
-            .ToArray();
-
-        Assert.Collection(
-            fields,
-            field => Assert.Equal("primeiro", field.Name),
-            field => Assert.Equal("senha", field.Name),
-            field => Assert.Equal("meio", field.Name),
-            field => Assert.Equal("PASSWORD", field.Name),
-            field => Assert.Equal("ultimo", field.Name));
-        Assert.Equal("1", fields[0].Value.GetString());
-        Assert.Equal("***", fields[1].Value.GetString());
-        Assert.Equal("2", fields[2].Value.GetString());
-        Assert.Equal("***", fields[3].Value.GetString());
-        Assert.Equal("3", fields[4].Value.GetString());
+        var log = await loggedData.AuditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        var serialized = JsonSerializer.Serialize(log);
+        Assert.DoesNotContain("CANARY_BODY", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("CANARY_PASSWORD", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("DadosRequisicao", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("DadosResposta", serialized, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task InvokeAsyncPreservesBodyForPipelineWhenAuditCaptureThrows()
+    public async Task InvokeAsyncDoesNotReadRequestBodyBeforePipeline()
     {
-        const string requestBody = "{\"nome\":\"Alice\"}";
-        var bodySeenByPipeline = string.Empty;
-        TrackingStreamReader? bodyReader = null;
         var loggedData = CreateLoggedDataSource();
-        var auditLog = loggedData.AuditLog;
         using var services = loggedData.Services;
-        var middleware = CreateMiddleware(
-            services,
-            async context =>
-            {
-                using var reader = new StreamReader(
-                    context.Request.Body,
-                    Encoding.UTF8,
-                    detectEncodingFromByteOrderMarks: true,
-                    bufferSize: 1024,
-                    leaveOpen: true);
-                bodySeenByPipeline = await reader.ReadToEndAsync();
-            },
-            body => bodyReader = new TrackingStreamReader(body));
-        var context = CreatePostContext(
-            new ThrowOnceOnReadStream(Encoding.UTF8.GetBytes(requestBody)), "/api/produtos");
+        var middleware = CreateMiddleware(services, context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            return Task.CompletedTask;
+        });
+        var body = new ReadTrackingStream(Encoding.UTF8.GetBytes("synthetic"));
 
-        await middleware.InvokeAsync(context);
-        var log = await auditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        await middleware.InvokeAsync(CreatePostContext(body, "/api/produtos"));
+        _ = await loggedData.AuditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
-        Assert.Equal(requestBody, bodySeenByPipeline);
-        Assert.Equal("Erro ao capturar dados da requisição", log.DadosRequisicao);
-        Assert.NotNull(bodyReader);
-        Assert.True(bodyReader!.IsDisposed);
+        Assert.Equal(0, body.ReadAttempts);
     }
 
     [Fact]
-    public async Task InvokeAsyncPropagatesUnexpectedCaptureFailure()
+    public async Task InvokeAsyncRecordsPipelineExceptionAndRethrowsItUnchanged()
     {
         var loggedData = CreateLoggedDataSource();
         using var services = loggedData.Services;
-        var middleware = CreateMiddleware(
-            services,
-            _ => Task.CompletedTask,
-            _ => throw new InvalidOperationException("falha inesperada de captura"));
-        var context = CreatePostContext(
-            new MemoryStream(Encoding.UTF8.GetBytes("{\"nome\":\"Alice\"}")), "/api/produtos");
+        var expected = new InvalidOperationException("synthetic operation failure");
+        var middleware = CreateMiddleware(services, _ => throw expected);
+        var context = new DefaultHttpContext();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => middleware.InvokeAsync(context));
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => middleware.InvokeAsync(context));
+        var auditEvent = await loggedData.AuditLog.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.Same(expected, actual);
+        Assert.Equal(200, context.Response.StatusCode);
+        Assert.Equal(CodigoEventoAuditoria.FalhaOperacao, auditEvent.CodigoEvento);
+        Assert.Equal(ResultadoOperacaoAuditoria.Falha, auditEvent.Resultado);
     }
 
     [Fact]
@@ -140,23 +110,23 @@ public sealed class AuditoriaMiddlewareTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
             .ThrowsAsync(new DbUpdateException("falha esperada de persistência"));
+        service.Setup(instance => instance.ExpurgarEventosExpiradosAsync(It.IsAny<DateTimeOffset?>()))
+            .ReturnsAsync(0);
         using var services = CreateServices(service.Object);
-        var middleware = CreateMiddleware(
-            services,
-            context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status204NoContent;
-                return Task.CompletedTask;
-            });
+        var middleware = CreateMiddleware(services, context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            return Task.CompletedTask;
+        });
         var context = new DefaultHttpContext();
 
         await middleware.InvokeAsync(context);
 
-        Assert.Equal(StatusCodes.Status204NoContent, context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
     }
 
     [Fact]
-    public async Task InvokeAsyncPropagatesUnexpectedAuditPersistenceFailure()
+    public async Task InvokeAsyncKeepsPipelineResponseWhenUnexpectedAuditFailureOccurs()
     {
         var service = new Mock<IAuditoriaService>();
         service
@@ -166,23 +136,24 @@ public sealed class AuditoriaMiddlewareTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
             .ThrowsAsync(new InvalidOperationException("falha inesperada de persistência"));
+        service.Setup(instance => instance.ExpurgarEventosExpiradosAsync(It.IsAny<DateTimeOffset?>()))
+            .ReturnsAsync(0);
         using var services = CreateServices(service.Object);
-        var middleware = CreateMiddleware(services, _ => Task.CompletedTask);
+        var middleware = CreateMiddleware(services, context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            return Task.CompletedTask;
+        });
+        var context = new DefaultHttpContext();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => middleware.InvokeAsync(new DefaultHttpContext()));
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
     }
 
-    private static AuditoriaMiddleware CreateMiddleware(
-        ServiceProvider services,
-        RequestDelegate next,
-        Func<Stream, TextReader>? bodyReaderFactory = null)
-    {
-        return new AuditoriaMiddleware(
-            next,
-            services.GetRequiredService<IServiceScopeFactory>(),
-            bodyReaderFactory);
-    }
+    private static AuditoriaMiddleware CreateMiddleware(ServiceProvider services, RequestDelegate next) => new(
+        next,
+        services.GetRequiredService<IServiceScopeFactory>());
 
     private static DefaultHttpContext CreatePostContext(Stream body, string path = "/api/usuarios")
     {
@@ -210,69 +181,33 @@ public sealed class AuditoriaMiddlewareTests
             .Callback<CreateLogAuditoriaDTO, int?, string?, string?>(
                 (log, _, _, _) => auditLog.TrySetResult(log))
             .Returns(Task.CompletedTask);
+        service.Setup(instance => instance.ExpurgarEventosExpiradosAsync(It.IsAny<DateTimeOffset?>()))
+            .ReturnsAsync(0);
 
         var services = CreateServices(service.Object);
         return (services, auditLog);
     }
 
-    private static ServiceProvider CreateServices(IAuditoriaService service)
-    {
-        return new ServiceCollection()
-            .AddSingleton(service)
-            .BuildServiceProvider();
-    }
+    private static ServiceProvider CreateServices(IAuditoriaService service) => new ServiceCollection()
+        .AddSingleton(service)
+        .BuildServiceProvider();
 
-    private sealed class ThrowOnceOnReadStream(byte[] content) : MemoryStream(content)
+    private sealed class ReadTrackingStream(byte[] content) : MemoryStream(content)
     {
-        private bool _shouldThrow = true;
-
-        public override int Read(Span<byte> buffer)
-        {
-            ThrowIfRequired();
-            return base.Read(buffer);
-        }
+        public int ReadAttempts { get; private set; }
 
         public override ValueTask<int> ReadAsync(
             Memory<byte> buffer,
             CancellationToken cancellationToken = default)
         {
-            ThrowIfRequired();
+            ReadAttempts++;
             return base.ReadAsync(buffer, cancellationToken);
         }
 
-        public override Task<int> ReadAsync(
-            byte[] buffer,
-            int offset,
-            int count,
-            CancellationToken cancellationToken)
+        public override int Read(Span<byte> buffer)
         {
-            ThrowIfRequired();
-            return base.ReadAsync(buffer, offset, count, cancellationToken);
-        }
-
-        private void ThrowIfRequired()
-        {
-            if (_shouldThrow)
-            {
-                _shouldThrow = false;
-                throw new IOException("Falha sintética de leitura do corpo");
-            }
-        }
-    }
-
-    private sealed class TrackingStreamReader(Stream stream) : StreamReader(
-        stream,
-        Encoding.UTF8,
-        detectEncodingFromByteOrderMarks: true,
-        bufferSize: 1024,
-        leaveOpen: true)
-    {
-        public bool IsDisposed { get; private set; }
-
-        protected override void Dispose(bool disposing)
-        {
-            IsDisposed = true;
-            base.Dispose(disposing);
+            ReadAttempts++;
+            return base.Read(buffer);
         }
     }
 }

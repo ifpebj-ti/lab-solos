@@ -150,6 +150,30 @@ services:
         ipv4_address: 172.29.240.10
       security_edge: {}
 
+  zap-passive:
+    image: ghcr.io/zaproxy/zaproxy:stable@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af
+    profiles:
+      - zap-passive
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m,mode=1777
+    command:
+      - zap.sh
+      - -daemon
+      - -host
+      - 127.0.0.1
+      - -port
+      - "8080"
+      - -dir
+      - /tmp/zap-home
+      - -config
+      - api.key=lab-solos-local-passive-key
+      - -config
+      - api.addrs.addr.name=127.0.0.1
+      - -config
+      - api.addrs.addr.regex=false
+
 volumes:
   security_e2e_secrets:
   security_e2e_postgres_data:

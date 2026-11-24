@@ -1,4 +1,4 @@
-import Cookie from 'js-cookie';
+import { establishTestSession } from '@/test/session';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -10,7 +10,7 @@ const API_ORIGIN = 'http://localhost:8080/api';
 
 describe('Loans: contrato de resposta', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession();
   });
 
   it('valida lista real e preserva lista vazia', async () => {

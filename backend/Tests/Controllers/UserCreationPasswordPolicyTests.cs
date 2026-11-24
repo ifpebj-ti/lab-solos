@@ -140,13 +140,16 @@ public class UserCreationPasswordPolicyTests
             NomeCompleto = "Pessoa de teste",
             Email = "pessoa@example.test",
             Senha = password,
-            NivelUsuario = NivelUsuario.Comum.ToString(),
-            TipoUsuario = TipoUsuario.Comum.ToString()
+            NivelUsuario = NivelUsuario.Mentor.ToString(),
+            TipoUsuario = TipoUsuario.Academico.ToString(),
+            Instituicao = "IFPE",
+            Cidade = "Belo Jardim",
+            Curso = "ES"
         };
         var user = CreateUser();
 
         var mapper = new Mock<IMapper>();
-        mapper.Setup(instance => instance.Map<Usuario>(request)).Returns(user);
+        mapper.Setup(instance => instance.Map<Academico>(request)).Returns(user);
         mapper.Setup(instance => instance.Map<UsuarioDTO>(user)).Returns(new UsuarioDTO
         {
             NomeCompleto = user.NomeCompleto,
@@ -188,13 +191,16 @@ public class UserCreationPasswordPolicyTests
         return new Fixture(controller, request, user, repository, unitOfWork);
     }
 
-    private static Usuario CreateUser() => new()
+    private static Academico CreateUser() => new()
     {
         NomeCompleto = "Pessoa de teste",
         Email = "pessoa@example.test",
         SenhaHash = string.Empty,
-        NivelUsuario = NivelUsuario.Comum,
-        TipoUsuario = TipoUsuario.Comum,
+        NivelUsuario = NivelUsuario.Mentor,
+        TipoUsuario = TipoUsuario.Academico,
+        Instituicao = "IFPE",
+        Cidade = "Belo Jardim",
+        Curso = "ES",
         ExigeTrocaSenha = false
     };
 

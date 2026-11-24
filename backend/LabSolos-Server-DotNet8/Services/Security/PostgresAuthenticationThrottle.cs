@@ -21,7 +21,14 @@ public sealed class PostgresAuthenticationThrottle
         AuthenticationProtectionCapacity.RecoveryRequestRecipient,
         AuthenticationProtectionCapacity.RecoveryRequestIp,
         AuthenticationProtectionCapacity.RecoveryCodeRecipient,
-        AuthenticationProtectionCapacity.RecoveryCodeIp
+        AuthenticationProtectionCapacity.RecoveryCodeIp,
+        AuthenticationProtectionCapacity.PasswordChange,
+        AuthenticationProtectionCapacity.PublicRegistrationIp,
+        AuthenticationProtectionCapacity.LoanCreationAccount,
+        AuthenticationProtectionCapacity.NotificationManualAdministrator,
+        AuthenticationProtectionCapacity.NotificationAutomaticService,
+        AuthenticationProtectionCapacity.AuditQueryAdministrator,
+        AuthenticationProtectionCapacity.AuditExportAdministrator
     ];
 
     private readonly AppDbContext _context;

@@ -4,9 +4,12 @@ import infra/proxy/security-headers.caddy # shared security header snippets
 	encode zstd gzip
 
 	import common_security_headers
+	import api_proxy_error_contract
 
-	@api path /api/*
+	@api path /api /api/*
 	handle @api {
+		import api_security_policy
+		import api_request_body_limit
 		reverse_proxy backend:8080
 	}
 

@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
 import FormVidrarias from './FormVidraria';
 
 const API_URL = 'http://localhost:8080/api/produtos';
@@ -55,11 +56,11 @@ describe('FormVidrarias: experiência de erros', () => {
         disconnect() {}
       }
     );
-    document.cookie = 'doorKey=test-token; path=/';
+    establishTestSession('42', 'Administrador');
     window.history.replaceState({}, '', '/admin/insert');
   });
 
-  it('caracteriza criação bem-sucedida e mantém o reset existente', async () => {
+  it('envia a categoria escolhida sem altura e limpa o formulário após criar', async () => {
     let requestBody: unknown;
     server.use(
       http.post(API_URL, async ({ request }) => {
@@ -70,6 +71,12 @@ describe('FormVidrarias: experiência de erros', () => {
 
     render(<FormVidrarias />);
     fillForm();
+    const category = screen.getByRole('combobox', { name: 'Categoria' });
+    expect(screen.queryByLabelText('Formato')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Altura')).not.toBeInTheDocument();
+    fireEvent.click(category);
+    fireEvent.click(await screen.findByRole('option', { name: 'Cônica' }));
+    expect(category).toHaveTextContent('Cônica');
     submitForm();
 
     await waitFor(() => {
@@ -85,9 +92,12 @@ describe('FormVidrarias: experiência de erros', () => {
       quantidade: 12,
       quantidadeMinima: 2,
       capacidade: 500,
+      formato: 'Conica',
     });
+    expect(requestBody).not.toHaveProperty('altura');
     expect(screen.getByLabelText(/^Nome/)).toHaveValue('');
     expect(screen.getByLabelText(/^Quantidade \(Un\)/)).toHaveValue(null);
+    expect(category).toHaveTextContent('Selecione...');
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeEnabled();
   });
 
@@ -167,7 +177,7 @@ describe('FormVidrarias: experiência de erros', () => {
     submitForm();
 
     await expectFailureToast(description);
-    expect(document.cookie).toContain('doorKey=test-token');
+    expect(sessionStorage.getItem('auth:session-context')).toContain('42');
     expect(window.location.pathname).toBe('/admin/insert');
     expect(screen.getByLabelText(/^Nome/)).toHaveValue('Béquer de vidro');
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeEnabled();

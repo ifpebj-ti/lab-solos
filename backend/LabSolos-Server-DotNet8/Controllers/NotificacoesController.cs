@@ -1,5 +1,6 @@
 using LabSolos_Server_DotNet8.DTOs.Notificacoes;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,14 +38,31 @@ namespace LabSolos_Server_DotNet8.Controllers
                 if (usuarioId == null)
                     return Unauthorized("Usuário não encontrado");
 
-                var nivelUsuario = GetCurrentUserLevel();
-                var notificacoes = await _notificacaoService.ObterNotificacoesFiltradas(usuarioId.Value, nivelUsuario, apenasNaoLidas);
+                var notificacoes = await _notificacaoService.ObterNotificacoesUsuarioAsync(usuarioId.Value, apenasNaoLidas);
 
                 return Ok(notificacoes);
             }
             catch (InvalidOperationException ex)
             {
                 return InternalServerErrorResponse("obter notificações do usuário", ex);
+            }
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> ObterNotificacao(int id)
+        {
+            try
+            {
+                var usuarioId = GetCurrentUserId();
+                if (usuarioId == null)
+                    return Unauthorized("Usuário não encontrado");
+
+                var notificacao = await _notificacaoService.ObterNotificacaoDestinatarioAsync(id, usuarioId.Value);
+                return notificacao is null ? NotFound() : Ok(notificacao);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return InternalServerErrorResponse("obter notificação do usuário", ex);
             }
         }
 
@@ -58,8 +76,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 if (usuarioId == null)
                     return Unauthorized("Usuário não encontrado");
 
-                var nivelUsuario = GetCurrentUserLevel();
-                var count = await _notificacaoService.ContarNaoLidasFiltradas(usuarioId.Value, nivelUsuario);
+                var count = await _notificacaoService.ContarNaoLidasUsuarioAsync(usuarioId.Value);
                 return Ok(new { count });
             }
             catch (InvalidOperationException ex)
@@ -74,12 +91,55 @@ namespace LabSolos_Server_DotNet8.Controllers
         {
             try
             {
-                var notificacao = await _notificacaoService.CriarNotificacaoAsync(createDto);
+                var usuarioId = GetCurrentUserId();
+                if (usuarioId is null)
+                    return Unauthorized("Usuário não encontrado");
+
+                var notificacao = await _notificacaoService.CriarNotificacaoManualAsync(createDto, usuarioId.Value);
                 return CreatedAtAction(nameof(ObterMinhasNotificacoes), new { id = notificacao.Id }, notificacao);
+            }
+            catch (NotificationQuotaExceededException ex)
+            {
+                return OperationAdmissionResponses.RateLimited(Response, ex.RetryAfterSeconds);
+            }
+            catch (NotificationQuotaUnavailableException)
+            {
+                return OperationAdmissionResponses.Unavailable(Response);
+            }
+            catch (NotificationRecipientNotEligibleException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
             }
             catch (DbUpdateException ex)
             {
                 return InternalServerErrorResponse("criar notificação", ex);
+            }
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize("ApenasAdministradores")]
+        public async Task<IActionResult> ExcluirNotificacao(int id)
+        {
+            try
+            {
+                var administradorId = GetCurrentUserId();
+                if (administradorId is null)
+                    return Unauthorized("Usuário não encontrado");
+
+                var excluida = await _notificacaoService.ExcluirNotificacaoAsync(id, administradorId.Value);
+                return excluida ? NoContent() : NotFound();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (DbUpdateException ex)
+            {
+                return InternalServerErrorResponse("excluir notificação", ex);
             }
         }
 
@@ -95,7 +155,7 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 var sucesso = await _notificacaoService.MarcarComoLidaComVerificacaoAsync(id, usuarioId.Value);
                 if (!sucesso)
-                    return Forbid("Você não tem permissão para marcar esta notificação como lida");
+                    return Forbid();
 
                 return Ok(new { message = "Notificação marcada como lida" });
             }
@@ -121,6 +181,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 var marcadasCount = await _notificacaoService.MarcarVariasComoLidaComVerificacaoAsync(marcarLidaDto.NotificacaoIds, usuarioId.Value);
                 return Ok(new { message = $"{marcadasCount} notificações marcadas como lidas" });
             }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
             catch (DbUpdateException ex)
             {
                 return InternalServerErrorResponse("marcar notificações como lidas", ex);
@@ -136,6 +200,14 @@ namespace LabSolos_Server_DotNet8.Controllers
                 await _notificacaoService.GerarNotificacoesAutomaticasAsync();
                 return Ok(new { message = "Notificações automáticas geradas com sucesso" });
             }
+            catch (NotificationQuotaExceededException ex)
+            {
+                return OperationAdmissionResponses.RateLimited(Response, ex.RetryAfterSeconds);
+            }
+            catch (NotificationQuotaUnavailableException)
+            {
+                return OperationAdmissionResponses.Unavailable(Response);
+            }
             catch (DbUpdateException ex)
             {
                 return InternalServerErrorResponse("gerar notificações automáticas", ex);
@@ -150,6 +222,14 @@ namespace LabSolos_Server_DotNet8.Controllers
             {
                 await _notificacaoService.VerificarEmprestimosVencidosAsync();
                 return Ok(new { message = "Verificação de empréstimos vencidos executada com sucesso" });
+            }
+            catch (NotificationQuotaExceededException ex)
+            {
+                return OperationAdmissionResponses.RateLimited(Response, ex.RetryAfterSeconds);
+            }
+            catch (NotificationQuotaUnavailableException)
+            {
+                return OperationAdmissionResponses.Unavailable(Response);
             }
             catch (DbUpdateException ex)
             {
@@ -169,18 +249,5 @@ namespace LabSolos_Server_DotNet8.Controllers
             return int.TryParse(userIdClaim, out var userId) ? userId : null;
         }
 
-        private string GetCurrentUserLevel()
-        {
-            // Verificar pelo role se é administrador
-            if (User.IsInRole("Administrador"))
-                return "Administrador";
-
-            // Buscar por claims específicos do nível
-            var nivelClaim = User.FindFirst("NivelUsuario")?.Value ??
-                            User.FindFirst("TipoUsuario")?.Value ??
-                            User.FindFirst(ClaimTypes.Role)?.Value;
-
-            return nivelClaim ?? "Usuario";
-        }
     }
 }

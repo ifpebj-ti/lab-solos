@@ -1,4 +1,3 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
@@ -7,13 +6,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
 import { loanFixture } from '@/test/fixtures/loan';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import AllLoans from './AllLoans';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 const loansUrl = `${API_ORIGIN}/Emprestimos`;
-const sessionToken =
-  'eyJhbGciOiJub25lIn0.eyJzdWIiOiIxIiwicm9sZSI6IkFkbWluaXN0cmFkb3IifQ.signature';
 
 const loan = {
   ...loanFixture,
@@ -52,11 +51,10 @@ function LocationProbe() {
 
 describe('AllLoans: estados de consulta', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', sessionToken);
+    establishTestSession('1', 'Administrador');
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('distingue uma resposta vazia de uma falha', async () => {
@@ -111,7 +109,7 @@ describe('AllLoans: estados de consulta', () => {
     expect(feedback).toHaveTextContent(ERROR_CATALOG.authorization.message);
     expect(feedback).toHaveTextContent('Voltar');
     expect(feedback).not.toHaveTextContent('SENTINELA_REMOTA');
-    expect(Cookie.get('doorKey')).toBe(sessionToken);
+    expect(readSession()?.userId).toBe('1');
   });
 
   it('repete a consulta e substitui o feedback por dados recuperados', async () => {

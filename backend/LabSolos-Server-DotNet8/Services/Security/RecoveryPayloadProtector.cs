@@ -7,7 +7,8 @@ namespace LabSolos_Server_DotNet8.Services.Security;
 public enum RecoveryPayloadPurpose
 {
     Request,
-    Delivery
+    Delivery,
+    EmailChangeNotice
 }
 
 public sealed record ProtectedRecoveryPayload(
@@ -290,7 +291,10 @@ public sealed class RecoveryPayloadProtector
 
     private static void ValidateContext(Guid workId, RecoveryPayloadPurpose purpose)
     {
-        if (workId == Guid.Empty || purpose is not (RecoveryPayloadPurpose.Request or RecoveryPayloadPurpose.Delivery))
+        if (workId == Guid.Empty || purpose is not (
+                RecoveryPayloadPurpose.Request or
+                RecoveryPayloadPurpose.Delivery or
+                RecoveryPayloadPurpose.EmailChangeNotice))
         {
             throw new CryptographicException("The recovery payload context is invalid.");
         }
@@ -323,6 +327,7 @@ public sealed class RecoveryPayloadProtector
         {
             RecoveryPayloadPurpose.Request => "request",
             RecoveryPayloadPurpose.Delivery => "delivery",
+            RecoveryPayloadPurpose.EmailChangeNotice => "email-change-notice",
             _ => throw new CryptographicException("The recovery payload context is invalid.")
         };
         return Encoding.UTF8.GetBytes($"{FormatVersion}|{workId:N}|{purposeName}|{keyId}");

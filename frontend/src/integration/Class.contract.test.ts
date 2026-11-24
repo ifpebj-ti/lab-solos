@@ -1,18 +1,17 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { getLoansByClass, getLoansByDependentes } from './Class';
 import { server } from '@/test/msw/server';
 import { loanListFixture } from '@/test/fixtures/loan';
+import { establishTestSession } from '@/test/session';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 const loansByClassPath = `${API_ORIGIN}/Usuarios/7/dependentes/emprestimos`;
 
 describe('Class: contrato de empréstimos', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '7');
+    establishTestSession('7', 'Mentor');
   });
 
   it('rejeita resposta incompatível ao consultar uma turma por ID', async () => {

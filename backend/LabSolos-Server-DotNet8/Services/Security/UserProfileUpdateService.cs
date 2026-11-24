@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Security.Claims;
 using AutoMapper;
 using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -22,6 +23,7 @@ public enum UserProfileUpdateStatus
     Forbidden,
     Invalid,
     Conflict,
+    ContinuityRequired,
     Unavailable
 }
 
@@ -68,17 +70,26 @@ public sealed class UserProfileUpdateService
     private readonly IMapper _mapper;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
     private readonly ThrottleKeyFactory? _throttleKeyFactory;
+    private readonly AdminContinuityGuard _continuityGuard;
+    private readonly EmailAddressReservationService? _emailAddressReservations;
+    private readonly IAuditoriaService? _auditoriaService;
 
     public UserProfileUpdateService(
         AppDbContext context,
         IMapper mapper,
         IPasswordHasher<Usuario> passwordHasher,
-        ThrottleKeyFactory? throttleKeyFactory = null)
+        AdminContinuityGuard continuityGuard,
+        ThrottleKeyFactory? throttleKeyFactory = null,
+        EmailAddressReservationService? emailAddressReservations = null,
+        IAuditoriaService? auditoriaService = null)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+        _continuityGuard = continuityGuard ?? throw new ArgumentNullException(nameof(continuityGuard));
         _throttleKeyFactory = throttleKeyFactory;
+        _emailAddressReservations = emailAddressReservations;
+        _auditoriaService = auditoriaService;
     }
 
     public async Task<UserProfileUpdateResult> UpdateAsync(
@@ -95,12 +106,22 @@ public sealed class UserProfileUpdateService
             throw new InvalidOperationException("Profile updates require transactional relational storage.");
         }
 
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _continuityGuard.BeginTransactionAsync(cancellationToken);
         try
         {
-            if (!await LockUserAsync(userId, transaction, cancellationToken))
+            var isAdministrator = principal.IsInRole(NivelUsuario.Administrador.ToString());
+            var hasCallerId = TryGetCallerId(principal, out var callerId);
+            var idsToLock = isAdministrator && hasCallerId
+                ? new[] { userId, callerId }.Distinct().Order().ToArray()
+                : [userId];
+            foreach (var idToLock in idsToLock)
             {
-                return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
+                if (!await LockUserAsync(idToLock, transaction, cancellationToken))
+                {
+                    if (idToLock == userId)
+                        return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
+                    return await RollbackAsync(transaction, UserProfileUpdateResult.Forbidden(), cancellationToken);
+                }
             }
 
             var user = await _context.Usuarios.SingleOrDefaultAsync(
@@ -111,8 +132,9 @@ public sealed class UserProfileUpdateService
                 return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
             }
 
-            var isAdministrator = principal.IsInRole(NivelUsuario.Administrador.ToString());
-            if (!isAdministrator && (!TryGetCallerId(principal, out var callerId) || callerId != user.Id))
+            await _context.Entry(user).ReloadAsync(cancellationToken);
+
+            if (!isAdministrator && (!hasCallerId || callerId != user.Id))
             {
                 return await RollbackAsync(transaction, UserProfileUpdateResult.NotFound(), cancellationToken);
             }
@@ -134,6 +156,9 @@ public sealed class UserProfileUpdateService
                     cancellationToken);
             }
 
+            if (!string.IsNullOrWhiteSpace(patchRequest.Email))
+                patchRequest.Email = EmailAddressReservationService.Normalize(patchRequest.Email);
+
             var validation = ValidatePatchedProfile(patchRequest);
             if (validation is not null)
             {
@@ -141,9 +166,21 @@ public sealed class UserProfileUpdateService
             }
 
             var previousEmail = user.Email;
-            var emailChanged = !string.Equals(previousEmail, patchRequest.Email, StringComparison.Ordinal);
-            var isOwnProfile = TryGetCallerId(principal, out var ownerId) && ownerId == user.Id;
-            if (emailChanged && isOwnProfile && !HasCorrectCurrentPassword(user, patchRequest.SenhaAtual))
+            var emailChanged = !string.Equals(
+                EmailAddressReservationService.Normalize(previousEmail),
+                patchRequest.Email,
+                StringComparison.Ordinal);
+            if (!emailChanged)
+                patchRequest.Email = previousEmail;
+
+            var confirmer = hasCallerId
+                ? callerId == user.Id
+                    ? user
+                    : await _context.Usuarios.SingleOrDefaultAsync(
+                        candidate => candidate.Id == callerId,
+                        cancellationToken)
+                : null;
+            if (emailChanged && (confirmer is null || !HasCorrectCurrentPassword(confirmer, patchRequest.SenhaAtual)))
             {
                 return await RollbackAsync(
                     transaction,
@@ -159,11 +196,33 @@ public sealed class UserProfileUpdateService
                 return await RollbackAsync(transaction, UserProfileUpdateResult.Unavailable(), cancellationToken);
             }
 
-            if (emailChanged && await _context.Usuarios.AnyAsync(
-                    candidate => candidate.Id != user.Id && candidate.Email == patchRequest.Email,
-                    cancellationToken))
+            if (emailChanged && (_emailAddressReservations is null || _auditoriaService is null))
+            {
+                return await RollbackAsync(transaction, UserProfileUpdateResult.Unavailable(), cancellationToken);
+            }
+
+            if (emailChanged)
+            {
+                await _emailAddressReservations!.LockAddressAsync(patchRequest.Email!, cancellationToken);
+            }
+
+            if (emailChanged && await _emailAddressReservations!.IsUnavailableToAsync(
+                    patchRequest.Email!, user.Id, cancellationToken))
             {
                 return await RollbackAsync(transaction, UserProfileUpdateResult.Conflict(), cancellationToken);
+            }
+
+            if (!await _continuityGuard.CanApplyAsync(user.Id, user.NivelUsuario,
+                    Enum.Parse<StatusUsuario>(patchRequest.Status!), cancellationToken: cancellationToken))
+            {
+                return await RollbackAsync(transaction,
+                    new UserProfileUpdateResult(UserProfileUpdateStatus.ContinuityRequired), cancellationToken);
+            }
+
+            if (emailChanged)
+            {
+                await _emailAddressReservations!.ReleaseReservationForOwnerAsync(
+                    patchRequest.Email!, user.Id, cancellationToken);
             }
 
             _mapper.Map(patchRequest, user);
@@ -171,18 +230,31 @@ public sealed class UserProfileUpdateService
             {
                 user.TokenRedefinicaoHash = null;
                 user.TokenExpiracao = null;
-            }
 
-            await _context.SaveChangesAsync(cancellationToken);
-            if (emailChanged)
-            {
+                var now = _emailAddressReservations!.GetUtcNow();
+                var operationId = Guid.NewGuid();
+                await _emailAddressReservations!.ReserveFormerAddressAsync(
+                    previousEmail, user.Id, now, cancellationToken);
+                _emailAddressReservations.AddNoticeJobs(
+                    operationId, user.Id, previousEmail, patchRequest.Email!, now);
+                await _auditoriaService!.RegistrarEventoObrigatorioAsync(new CreateLogAuditoriaDTO
+                {
+                    CodigoEvento = CodigoEventoAuditoria.TrocaEmail,
+                    OrigemConfiavel = OrigemConfiavelAuditoria.UsuarioAutenticado,
+                    Resultado = ResultadoOperacaoAuditoria.Sucesso,
+                    UsuarioId = callerId,
+                    ReferenciaRecurso = $"usuario:{user.Id}",
+                    CorrelationId = operationId.ToString("N")
+                });
+
                 await CancelRecoveryJobsAsync(user.Id, previousEmail, transaction, cancellationToken);
             }
 
+            await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return UserProfileUpdateResult.Updated(user);
         }
-        catch (DbUpdateException exception) when (IsEmailUniqueViolation(exception))
+        catch (DbUpdateException exception) when (IsEmailRelatedUniqueViolation(exception))
         {
             await transaction.RollbackAsync(cancellationToken);
             _context.ChangeTracker.Clear();
@@ -193,6 +265,19 @@ public sealed class UserProfileUpdateService
             await transaction.RollbackAsync(cancellationToken);
             _context.ChangeTracker.Clear();
             return UserProfileUpdateResult.Conflict();
+        }
+        catch (InvalidOperationException exception) when (
+            exception.Message == "The former email address is reserved by another account.")
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _context.ChangeTracker.Clear();
+            return UserProfileUpdateResult.Conflict();
+        }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _context.ChangeTracker.Clear();
+            return UserProfileUpdateResult.Unavailable();
         }
     }
 
@@ -375,11 +460,13 @@ public sealed class UserProfileUpdateService
             userId > 0;
     }
 
-    private static bool IsEmailUniqueViolation(DbUpdateException exception) =>
+    private static bool IsEmailRelatedUniqueViolation(DbUpdateException exception) =>
         exception.InnerException is PostgresException
         {
             SqlState: PostgresErrorCodes.UniqueViolation,
-            ConstraintName: "IX_Usuarios_Email"
+            ConstraintName: "IX_Usuarios_Email" or
+                "PK_EmailAddressReservations" or
+                "UX_EmailChangeNoticeJobs_Operation_Recipient"
         };
 
     private static UserProfileUpdateResult InvalidPatch() =>

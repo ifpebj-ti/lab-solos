@@ -1,3 +1,5 @@
+import { isCivilDate } from '@/function/date';
+
 export const ERROR_CATEGORIES = [
   'validation',
   'authentication',
@@ -5,6 +7,7 @@ export const ERROR_CATEGORIES = [
   'not_found',
   'conflict',
   'rate_limited',
+  'request_too_large',
   'network',
   'timeout',
   'server',
@@ -21,8 +24,14 @@ export type ApplicationError = Readonly<{
   retryAfterSeconds?: number;
   code?: string;
   requestId?: string;
+  productExpiryConfirmation?: ProductExpiryConfirmationData;
   fieldErrors?: Readonly<Record<string, readonly string[]>>;
   retryable: boolean;
+}>;
+
+export type ProductExpiryConfirmationData = Readonly<{
+  dataValidade: string;
+  diaCivil: string;
 }>;
 
 const categorySet = new Set<string>(ERROR_CATEGORIES);
@@ -54,6 +63,15 @@ const isFieldErrors = (value: unknown): value is ApplicationError['fieldErrors']
   );
 };
 
+const isProductExpiryConfirmationData = (
+  value: unknown
+): value is ProductExpiryConfirmationData =>
+  isRecord(value) &&
+  typeof value.dataValidade === 'string' &&
+  isCivilDate(value.dataValidade) &&
+  typeof value.diaCivil === 'string' &&
+  isCivilDate(value.diaCivil);
+
 export const isApplicationError = (value: unknown): value is ApplicationError => {
   if (!isRecord(value)) return false;
 
@@ -66,6 +84,9 @@ export const isApplicationError = (value: unknown): value is ApplicationError =>
     isRetryAfterSeconds(value.retryAfterSeconds) &&
     (value.code === undefined || typeof value.code === 'string') &&
     (value.requestId === undefined || isRequestId(value.requestId)) &&
+    (value.productExpiryConfirmation === undefined ||
+      (value.code === 'product_expiration_confirmation_required' &&
+        isProductExpiryConfirmationData(value.productExpiryConfirmation))) &&
     isFieldErrors(value.fieldErrors) &&
     typeof value.retryable === 'boolean'
   );
@@ -83,6 +104,7 @@ export const createApplicationError = (
     retryAfterSeconds,
     code,
     requestId,
+    productExpiryConfirmation,
     fieldErrors,
     retryable,
   } = fields;
@@ -94,6 +116,13 @@ export const createApplicationError = (
     ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
     ...(code === undefined ? {} : { code }),
     ...(requestId === undefined ? {} : { requestId }),
+    ...(productExpiryConfirmation === undefined
+      ? {}
+      : {
+          productExpiryConfirmation: Object.freeze({
+            ...productExpiryConfirmation,
+          }),
+        }),
     ...(fieldErrors === undefined ? {} : { fieldErrors }),
     retryable,
   });

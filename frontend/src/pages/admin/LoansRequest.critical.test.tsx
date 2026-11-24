@@ -1,10 +1,10 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
 
 import LoansRequest from './LoansRequest';
 
@@ -53,8 +53,7 @@ const lastToast = () => toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[
 describe('LoansRequest: decisoes criticas', () => {
   beforeEach(() => {
     toastMock.mockReset();
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '12');
+    establishTestSession('12', 'Administrador');
     server.use(http.get(loansUrl, pendingLoansResponse));
   });
 

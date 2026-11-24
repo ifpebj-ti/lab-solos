@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
-import { getUnidadePlural } from '@/mocks/Unidades';
-import SelectInput from '@/components/global/inputs/SelectInput';
+import { formatos, getUnidadePlural, grausPureza } from '@/mocks/Unidades';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import HeaderTable from '@/components/global/table/Header';
 import ItemOnly from '@/components/global/table/ItemOnly';
@@ -17,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import {
   getProductById,
   getProductHistoricoSaida,
+  type HistoricoSaidaItem,
+  type HistoricoSaidaProdutoResponse,
 } from '@/integration/Product';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,44 +39,12 @@ import {
 
 const verificationHistoryColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data', weight: 15 },
-  { key: 'user', label: 'Utilizador', weight: 25 },
-  { key: 'identifier', label: 'Identificador', weight: 20 },
+  { key: 'loan', label: 'Empréstimo', weight: 12 },
+  { key: 'user', label: 'Solicitante', weight: 25 },
   { key: 'batch', label: 'Lote', weight: 15 },
   { key: 'quantity', label: 'Quantidade', weight: 12 },
   { key: 'unit', label: 'Unidade', weight: 13 },
 ];
-
-// Interfaces
-interface UsuarioEmprestimo {
-  id: number;
-  nome: string;
-  email: string;
-  instituicao: string | null;
-}
-
-interface HistoricoSaidaItem {
-  emprestimoId: number;
-  dataEmprestimo: string;
-  dataPrevistaDevolucao: string | null;
-  dataDevolucao: string | null;
-  quantidadeEmprestada: number;
-  statusEmprestimo: string;
-  solicitante: UsuarioEmprestimo;
-  aprovador: UsuarioEmprestimo | null;
-  identificador: string;
-  lote: string | null;
-}
-
-interface HistoricoSaidaProdutoResponse {
-  produtoId: number;
-  nomeProduto: string;
-  tipoProduto: string;
-  estoqueAtual: number;
-  unidadeMedida: string;
-  historico: HistoricoSaidaItem[];
-  totalEmprestimos: number;
-  totalQuantidadeEmprestada: number;
-}
 
 interface IProduto {
   catmat: string;
@@ -84,10 +53,10 @@ interface IProduto {
   cor: number;
   odor: number;
   densidade: number;
-  pesoMolecular: number;
+  pesoMolecular?: number | null;
   grauPureza: string;
   formulaQuimica: string;
-  grupo: number;
+  grupo?: string | number;
   id: number;
   nomeProduto: string;
   fornecedor: string;
@@ -103,8 +72,8 @@ interface IProduto {
   lote: string | null;
   emprestimo: string | null;
   capacidade: string | number;
-  altura: string;
-  formato: string;
+  altura?: string | null;
+  formato?: string | null;
   graduada: string;
   material: string;
 }
@@ -123,6 +92,11 @@ type ProductInfo = {
   width: string;
 };
 
+const formatPesoMolecular = (value?: number | null) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 }).format(value)
+    : 'Não informado';
+
 // Configuração do gráfico
 const chartConfig = {
   desktop: {
@@ -133,7 +107,6 @@ const chartConfig = {
 
 function VerificationPage({ userType }: VerificationProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [value, setValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [productsById, setProductsById] = useState<IProduto>();
   const [historicoData, setHistoricoData] =
@@ -151,6 +124,7 @@ function VerificationPage({ userType }: VerificationProps) {
     idResolution.source === 'state' && idResolution.id !== null;
   const requestSequence = useRef(0);
   const [loadError, setLoadError] = useState<unknown | null>(null);
+  const [historyError, setHistoryError] = useState<unknown | null>(null);
 
   // Configurações específicas por tipo de usuário
   const getBackRoute = () => {
@@ -179,21 +153,34 @@ function VerificationPage({ userType }: VerificationProps) {
     }
   };
 
-  // Determina se deve mostrar o histórico detalhado (apenas admin)
-  const showHistoricoDetalhado = userType === 'admin';
-
-  // Determina se deve buscar histórico para gráfico (apenas admin)
-  const needsHistoricoForChart = userType === 'admin';
+  // A API aplica o recorte permitido ao perfil autenticado.
+  const showHistoricoDetalhado = true;
+  const canEditProduct = userType === 'admin';
 
   // Determina quais informações do produto mostrar baseado no tipo de usuário
   const getProductInfo = (): ProductInfo[] => {
     if (!productsById) return [];
 
     // Verifica se deve mostrar fórmula (apenas para produtos químicos com valor)
+    const isChemical = productsById.tipoProduto === 'Quimico';
+    const isGlassware = productsById.tipoProduto === 'Vidraria';
     const shouldShowFormula =
-      productsById.tipoProduto === 'Quimico' &&
+      isChemical &&
       productsById.formulaQuimica &&
       productsById.formulaQuimica.trim() !== '';
+    const classification = isGlassware
+      ? {
+          key: 'category',
+          title: 'Categoria',
+          value:
+            formatos.find((item) => item.value === productsById.formato)
+              ?.label ?? productsById.formato ?? '',
+        }
+      : {
+          key: 'group',
+          title: 'Grupo',
+          value: productsById.grupo?.toString() || 'N/A',
+        };
 
     switch (userType) {
       case 'admin': {
@@ -203,7 +190,11 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
-            width: shouldShowFormula ? '25%' : '30%',
+            width: shouldShowFormula
+              ? '20%'
+              : isChemical
+                ? '25%'
+                : '30%',
           },
         ];
 
@@ -212,30 +203,57 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
-            width: '20%',
+            width: '15%',
+          });
+        }
+
+        if (isChemical) {
+          adminInfo.push({
+            key: 'molecular-weight',
+            title: 'Peso Molecular (g/mol)',
+            value: formatPesoMolecular(productsById.pesoMolecular),
+            width: '15%',
           });
         }
 
         adminInfo.push(
           {
             key: 'supplier',
-            title: 'Fornecedor',
+            title: isChemical ? 'Marca' : 'Fornecedor',
             value: productsById.fornecedor,
-            width: shouldShowFormula ? '20%' : '25%',
+            width: shouldShowFormula
+              ? '17%'
+              : isChemical
+                ? '20%'
+                : '25%',
           },
           {
-            key: 'group',
-            title: 'Grupo',
-            value: productsById.grupo?.toString() || 'N/A',
-            width: '15%',
+            ...classification,
+            width: isChemical ? '13%' : '15%',
           },
           {
             key: 'status',
             title: 'Situação',
             value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula ? '20%' : '30%',
+            width: shouldShowFormula
+              ? '20%'
+              : isChemical
+                ? '27%'
+                : '30%',
           }
         );
+
+        const { altura } = productsById;
+        if (isGlassware && altura && altura !== 'Indefinido') {
+          adminInfo.push({
+            key: 'height',
+            title: 'Altura',
+            value:
+              grausPureza.find((item) => item.value === altura)?.label ??
+              altura,
+            width: '15%',
+          });
+        }
 
         return adminInfo;
       }
@@ -247,7 +265,11 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
-            width: shouldShowFormula ? '30%' : '40%',
+            width: shouldShowFormula
+              ? '25%'
+              : isChemical
+                ? '35%'
+                : '40%',
           },
         ];
 
@@ -256,22 +278,37 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
-            width: '25%',
+            width: '20%',
+          });
+        }
+
+        if (isChemical) {
+          mentorInfo.push({
+            key: 'molecular-weight',
+            title: 'Peso Molecular (g/mol)',
+            value: formatPesoMolecular(productsById.pesoMolecular),
+            width: '15%',
           });
         }
 
         mentorInfo.push(
           {
-            key: 'group',
-            title: 'Grupo',
-            value: productsById.grupo?.toString() || 'N/A',
-            width: shouldShowFormula ? '25%' : '30%',
+            ...classification,
+            width: shouldShowFormula
+              ? '20%'
+              : isChemical
+                ? '25%'
+                : '30%',
           },
           {
             key: 'status',
             title: 'Situação',
             value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula ? '20%' : '30%',
+            width: shouldShowFormula
+              ? '20%'
+              : isChemical
+                ? '25%'
+                : '30%',
           }
         );
 
@@ -285,7 +322,11 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'item',
             title: 'Item',
             value: productsById.nomeProduto,
-            width: shouldShowFormula ? '40%' : '50%',
+            width: shouldShowFormula
+              ? '30%'
+              : isChemical
+                ? '45%'
+                : '50%',
           },
         ];
 
@@ -294,15 +335,26 @@ function VerificationPage({ userType }: VerificationProps) {
             key: 'formula',
             title: 'Fórmula',
             value: productsById.formulaQuimica,
-            width: '30%',
+            width: '25%',
+          });
+        }
+
+        if (isChemical) {
+          menteeInfo.push({
+            key: 'molecular-weight',
+            title: 'Peso Molecular (g/mol)',
+            value: formatPesoMolecular(productsById.pesoMolecular),
+            width: '15%',
           });
         }
 
         menteeInfo.push({
-          key: 'group',
-          title: 'Grupo',
-          value: productsById.grupo?.toString() || 'N/A',
-          width: shouldShowFormula ? '30%' : '50%',
+          ...classification,
+          width: shouldShowFormula
+            ? '30%'
+            : isChemical
+              ? '40%'
+              : '50%',
         });
 
         return menteeInfo;
@@ -332,6 +384,7 @@ function VerificationPage({ userType }: VerificationProps) {
       setIsLoading(false);
       setProductsById(undefined);
       setHistoricoData(null);
+      setHistoryError(null);
       setLoadError(null);
       return;
     }
@@ -340,20 +393,24 @@ function VerificationPage({ userType }: VerificationProps) {
     setIsLoading(true);
     setProductsById(undefined);
     setHistoricoData(null);
+    setHistoryError(null);
     setLoadError(null);
     try {
       const productResponse = await getProductById({ id: idResolution.id });
       if (sequence !== requestSequence.current) return;
       setProductsById(productResponse);
 
-      // Busca histórico para admin (tabela detalhada e gráfico)
-      if (showHistoricoDetalhado || needsHistoricoForChart) {
-        const historicoResponse = await getProductHistoricoSaida({
-          id: idResolution.id,
-        });
+      try {
+        const historicoResponse = await getProductHistoricoSaida({ id: idResolution.id });
         if (sequence !== requestSequence.current) return;
         setHistoricoData(historicoResponse);
         setFilteredHistorico(historicoResponse.historico);
+      } catch (error) {
+        if (sequence === requestSequence.current) {
+          setHistoryError(error);
+          setHistoricoData(null);
+          setFilteredHistorico([]);
+        }
       }
     } catch (error) {
       if (sequence === requestSequence.current) setLoadError(error);
@@ -363,8 +420,6 @@ function VerificationPage({ userType }: VerificationProps) {
   }, [
     hasValidQueryId,
     idResolution.id,
-    needsHistoricoForChart,
-    showHistoricoDetalhado,
   ]);
 
   useEffect(() => {
@@ -381,24 +436,25 @@ function VerificationPage({ userType }: VerificationProps) {
     let filtered = historicoData.historico;
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (item) =>
-          item.solicitante.nome
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          item.solicitante.email
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          item.identificador.toLowerCase().includes(searchTerm.toLowerCase())
+      const query = searchTerm.trim().toLocaleLowerCase('pt-BR');
+      filtered = filtered.filter((item) =>
+        [
+          item.emprestimoId.toString(),
+          item.dataSaida,
+          format(new Date(item.dataSaida), 'dd/MM/yyyy', { locale: ptBR }),
+          item.solicitanteNome ?? '',
+          item.lote ?? '',
+          item.quantidadeEmprestada.toString(),
+          item.unidadeMedida,
+        ]
+          .join(' ')
+          .toLocaleLowerCase('pt-BR')
+          .includes(query)
       );
     }
 
-    if (value && value !== 'all') {
-      filtered = filtered.filter((item) => item.statusEmprestimo === value);
-    }
-
     setFilteredHistorico(filtered);
-  }, [searchTerm, value, historicoData]);
+  }, [searchTerm, historicoData]);
 
   // Função para recarregar dados do produto após edição
   const handleProductUpdate = async () => {
@@ -462,14 +518,6 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  const statusOptions = [
-    { value: 'all', label: 'Todos' },
-    { value: 'Emprestado', label: 'Emprestado' },
-    { value: 'Devolvido', label: 'Devolvido' },
-    { value: 'Atrasado', label: 'Atrasado' },
-    { value: 'Perdido', label: 'Perdido' },
-  ];
-
   // Gera dados do gráfico baseados no histórico real
   const generateChartData = () => {
     if (!historicoData || !historicoData.historico.length) {
@@ -481,7 +529,7 @@ function VerificationPage({ userType }: VerificationProps) {
     } = {};
 
     historicoData.historico.forEach((item) => {
-      const date = new Date(item.dataEmprestimo);
+      const date = new Date(item.dataSaida);
       const month = format(date, 'MMMM', { locale: ptBR });
       const monthNumber = date.getMonth();
 
@@ -538,7 +586,7 @@ function VerificationPage({ userType }: VerificationProps) {
           <h2 className='text-xl font-rajdhani-medium text-clt-2'>
             Informações do Produto
           </h2>
-          {showHistoricoDetalhado && productsById && (
+          {canEditProduct && productsById && (
             <Button
               onClick={() => setIsEditModalOpen(true)}
               variant='outline'
@@ -559,7 +607,17 @@ function VerificationPage({ userType }: VerificationProps) {
         </ResponsiveTable>
       </section>
 
-      {/* Seção de Histórico - apenas para admin */}
+      {historyError !== null && (
+        <section className='mt-7 w-full max-w-6xl px-4 sm:px-6 lg:px-8'>
+          <ErrorFeedback
+            error={historyError}
+            operationId={OPERATION_IDS.productHistory}
+            onRetry={fetchData}
+          />
+        </section>
+      )}
+
+      {/* A API retorna somente o histórico autorizado ao perfil autenticado. */}
       {showHistoricoDetalhado && historicoData && (
         <>
           {/* Cards de Estatísticas */}
@@ -608,7 +666,7 @@ function VerificationPage({ userType }: VerificationProps) {
             </Card>
           </div>
 
-          {/* Gráfico de Uso - apenas para admin */}
+          {/* Gráfico calculado sobre o mesmo recorte autorizado da consulta. */}
           <div className='w-11/12 min-w-0 mt-7'>
             <Card className='min-w-0'>
               <CardHeader>
@@ -675,16 +733,6 @@ function VerificationPage({ userType }: VerificationProps) {
                 value={searchTerm}
               />
             </div>
-            <div className='w-full min-w-0 md:w-48'>
-              <label className='block text-sm font-medium text-clt-2 mb-2'>
-                Status
-              </label>
-              <SelectInput
-                options={statusOptions}
-                onValueChange={setValue}
-                value={value}
-              />
-            </div>
           </div>
 
           {/* Tabela de Histórico */}
@@ -716,16 +764,14 @@ function VerificationPage({ userType }: VerificationProps) {
                       <ItemTable
                         key={item.emprestimoId}
                         data={[
-                          format(new Date(item.dataEmprestimo), 'dd/MM/yyyy', {
+                          format(new Date(item.dataSaida), 'dd/MM/yyyy', {
                             locale: ptBR,
                           }),
-                          item.solicitante.nome,
-                          item.identificador,
-                          item.lote || 'N/A',
+                          item.emprestimoId.toString(),
+                          item.solicitanteNome || '—',
+                          item.lote || 'Sem lote',
                           item.quantidadeEmprestada.toString(),
-                          historicoData?.unidadeMedida
-                            ? historicoData.unidadeMedida
-                            : 'N/A',
+                          item.unidadeMedida,
                         ]}
                         rowIndex={index}
                       />

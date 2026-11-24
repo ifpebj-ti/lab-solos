@@ -413,6 +413,11 @@ function AppRoutes() {
           />
         </Route>
 
+        {/* Evita montar layouts autenticados em caminhos desconhecidos. */}
+        <Route path='/admin/*' element={<Page404 />} />
+        <Route path='/mentor/*' element={<Page404 />} />
+        <Route path='/mentee/*' element={<Page404 />} />
+
         {/* Rotas sem autenticação */}
         <Route index path='/' element={<Login />} />
         <Route

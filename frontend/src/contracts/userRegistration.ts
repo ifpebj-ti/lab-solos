@@ -21,7 +21,13 @@ export const userRegistrationSchema = z
     email: z.string().email('Digite um email válido').toLowerCase(),
     senha: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
     repeat: z.string(),
-    tipoUsuario: z.string().min(1, 'Selecione o tipo de usuário'),
+    tipoUsuario: z
+      .string()
+      .refine(
+        (tipoUsuario): tipoUsuario is 'mentor' | 'mentorado' =>
+          tipoUsuario === 'mentor' || tipoUsuario === 'mentorado',
+        'Selecione o tipo de usuário'
+      ),
     telefone: z
       .string()
       .regex(
@@ -42,7 +48,9 @@ export const userRegistrationSchema = z
       .trim()
       .min(2, registrationMessages.course)
       .max(100, registrationMessages.course),
-    emailMentor: z.string().email('Digite um email válido'),
+    emailMentor: z
+      .union([z.string().email('Digite um email válido'), z.literal('')])
+      .default(''),
   })
   .superRefine((data, ctx) => {
     const nomeParts = data.nome
@@ -63,6 +71,14 @@ export const userRegistrationSchema = z
         code: 'custom',
         path: ['repeat'],
         message: 'As senhas não coincidem',
+      });
+    }
+
+    if (data.tipoUsuario === 'mentorado' && !data.emailMentor.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['emailMentor'],
+        message: 'Informe o e-mail do responsável.',
       });
     }
   });

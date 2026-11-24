@@ -2,6 +2,7 @@ import Cookie from 'js-cookie';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/services/BaseApi';
+import { readSession } from '@/auth/session';
 import {
   approveDependente,
   getDependentesForApproval,
@@ -13,7 +14,7 @@ import {
 } from './Users';
 
 vi.mock('@/services/BaseApi', () => ({ api: vi.fn() }));
-vi.mock('js-cookie', () => ({ default: { get: vi.fn() } }));
+vi.mock('@/auth/session', () => ({ readSession: vi.fn() }));
 
 const ownProfile = (userId: number) => ({
   userId,
@@ -64,9 +65,11 @@ const invalidIdentifiers = [
 
 describe('user request identifiers cannot change the API endpoint', () => {
   beforeEach(() => {
-    vi.mocked(Cookie.get).mockImplementation(
-      (name?: string) => (name === 'rankID' ? '7' : 'synthetic-token') as never
-    );
+    vi.mocked(readSession).mockReturnValue({
+      userId: '7',
+      role: 'Mentor',
+      requiresPasswordChange: false,
+    });
     vi.mocked(api).mockReset();
     vi.mocked(api).mockResolvedValue({ data: {} });
   });
@@ -104,12 +107,15 @@ describe('user request identifiers cannot change the API endpoint', () => {
     }
   );
 
-  it('rejects a forged approver cookie before HTTP', async () => {
-    vi.mocked(Cookie.get).mockImplementation(
-      (name?: string) =>
-        (name === 'rankID' ? '../Auth' : 'synthetic-token') as never
+  it('ignores a forged legacy approver cookie and uses the server session context', async () => {
+    Cookie.set('rankID', '../Auth', { path: '/' });
+    await expect(approveDependente(42)).resolves.toBeDefined();
+    expect(api).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PATCH',
+        url: 'Usuarios/dependentes/42/aprovar',
+        data: { aprovadorId: 7 },
+      })
     );
-    await expect(approveDependente(42)).rejects.toBeDefined();
-    expect(api).not.toHaveBeenCalled();
   });
 });

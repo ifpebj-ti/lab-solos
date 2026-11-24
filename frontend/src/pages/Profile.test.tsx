@@ -10,14 +10,14 @@ import ProfileMentor from '@/pages/mentor/Profile';
 import ProfileMentee from '@/pages/mentee/Profile';
 
 const {
-  cookieGetMock,
+  readSessionMock,
   getUserByIdMock,
   updateOwnUserProfileMock,
   getLoansByUserIdMock,
   verificarEmprestimosVencidosMock,
   toastMock,
 } = vi.hoisted(() => ({
-  cookieGetMock: vi.fn(),
+  readSessionMock: vi.fn(),
   getUserByIdMock: vi.fn(),
   updateOwnUserProfileMock: vi.fn(),
   getLoansByUserIdMock: vi.fn(),
@@ -25,10 +25,8 @@ const {
   toastMock: vi.fn(),
 }));
 
-vi.mock('js-cookie', () => ({
-  default: {
-    get: cookieGetMock,
-  },
+vi.mock('@/auth/session', () => ({
+  readSession: readSessionMock,
 }));
 
 vi.mock('@/integration/Users', () => ({
@@ -94,7 +92,11 @@ const renderProfile = () =>
   );
 
 beforeEach(() => {
-  cookieGetMock.mockReturnValue('7');
+  readSessionMock.mockReturnValue({
+    userId: '7',
+    role: 'Administrador',
+    requiresPasswordChange: false,
+  });
   getUserByIdMock.mockResolvedValue(user);
   verificarEmprestimosVencidosMock.mockResolvedValue({
     message: 'Nenhum empréstimo vencido encontrado.',
@@ -161,6 +163,60 @@ describe('Profile', () => {
       email: 'ada@example.com',
       telefone: null,
     });
+  });
+
+  it('permite ao administrador confirmar a troca do próprio e-mail', async () => {
+    renderProfile();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Editar meus dados' })
+    );
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'ada.admin@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Senha atual'), {
+      target: { value: 'admin-current-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByText('ada.admin@example.com')).toBeInTheDocument();
+    expect(updateOwnUserProfileMock).toHaveBeenCalledWith({
+      userId: 7,
+      currentName: 'Ada Lovelace',
+      currentEmail: 'ada@example.com',
+      currentPhone: null,
+      nomeCompleto: 'Ada Lovelace',
+      email: 'ada.admin@example.com',
+      telefone: null,
+      currentPassword: 'admin-current-password',
+    });
+  });
+
+  it('mantém o e-mail vigente do administrador se a confirmação falha', async () => {
+    updateOwnUserProfileMock.mockRejectedValue({
+      response: {
+        status: 400,
+        data: { code: 'current_password_invalid' },
+      },
+    });
+    renderProfile();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Editar meus dados' })
+    );
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'ada.admin@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Senha atual'), {
+      target: { value: 'wrong-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'A senha atual está incorreta. O perfil não foi alterado.'
+    );
+    expect(screen.getByLabelText('E-mail')).toHaveValue('ada.admin@example.com');
+    expect(screen.getByText('ada@example.com')).toBeInTheDocument();
   });
 
   it('alinha os dados do perfil em painéis consistentes e não duplica telefone', async () => {

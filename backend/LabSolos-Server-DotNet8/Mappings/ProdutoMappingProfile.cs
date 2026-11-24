@@ -18,6 +18,11 @@ namespace Core.DTOs.Mappings
                 .ReverseMap()
                 .ForMember(dest => dest.Tipo, opt => opt.MapFrom(src => src.TipoProduto));
 
+            CreateMap<Produto, ProdutoAlertaDTO>()
+                .IncludeBase<Produto, ProdutoDTO>()
+                .ForMember(dest => dest.CapacidadeMl, opt => opt.Ignore())
+                .ForMember(dest => dest.MotivosAlerta, opt => opt.Ignore());
+
             // Mapeamento específico para Quimico -> QuimicoDTO
             CreateMap<Quimico, QuimicoDTO>()
                 .ForMember(dest => dest.Lote, opt => opt.MapFrom(src => src.Lote))
@@ -57,7 +62,8 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.Cor, opt => opt.MapFrom(src => src.Cor))
                 .ForMember(dest => dest.Odor, opt => opt.MapFrom(src => src.Odor))
                 .ForMember(dest => dest.Densidade, opt => opt.MapFrom(src => src.Densidade))
-                .ForMember(dest => dest.PesoMolecular, opt => opt.MapFrom(src => src.PesoMolecular))
+                .ForMember(dest => dest.PesoMolecular, opt => opt.MapFrom(src =>
+                    src.PesoMolecular.HasValue ? (float?)src.PesoMolecular.Value : null))
                 .ForMember(dest => dest.GrauPureza, opt => opt.MapFrom(src => src.GrauPureza))
                 .ForMember(dest => dest.FormulaQuimica, opt => opt.MapFrom(src => src.FormulaQuimica))
                 .ForMember(dest => dest.Grupo, opt => opt.MapFrom(src => src.Grupo));
@@ -67,7 +73,8 @@ namespace Core.DTOs.Mappings
                 .IncludeBase<AddProdutoDTO, Produto>()
                 .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Material))
                 .ForMember(dest => dest.Formato, opt => opt.MapFrom(src => src.Formato))
-                .ForMember(dest => dest.Altura, opt => opt.MapFrom(src => src.Altura))
+                .ForMember(dest => dest.Altura, opt => opt.MapFrom(src =>
+                    string.IsNullOrEmpty(src.Altura) ? nameof(AlturaVidraria.Indefinido) : src.Altura))
                 .ForMember(dest => dest.Capacidade, opt => opt.MapFrom(src => src.Capacidade))
                 .ForMember(dest => dest.Graduada, opt => opt.MapFrom(src => src.Graduada));
 
@@ -81,9 +88,9 @@ namespace Core.DTOs.Mappings
             // Mapeamentos para JSON Patch
             CreateMap<Produto, ProdutoDTOPatchRequest>()
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
-                    src.DataFabricacao.HasValue ? src.DataFabricacao.ToString() : null))
+                    FormatCivilDate(src.DataFabricacao)))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
-                    src.DataValidade.ToString()))
+                    FormatCivilDate(src.DataValidade)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<ProdutoDTOPatchRequest, Produto>(MemberList.None)
@@ -97,13 +104,16 @@ namespace Core.DTOs.Mappings
 
             CreateMap<Produto, ProdutoDTOPatchResponse>()
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
-                    src.DataFabricacao.HasValue ? src.DataFabricacao.Value.Date.ToString("yyyy-MM-dd") : string.Empty))
+                    FormatCivilDate(src.DataFabricacao)))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
-                    src.DataValidade.ToString()))
+                    FormatCivilDate(src.DataValidade)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.UltimaModificacao, opt => opt.MapFrom(src =>
                     src.UltimaModificacao.ToString("yyyy-MM-dd HH:mm:ss")));
         }
+
+        private static string? FormatCivilDate(DateTime? value) =>
+            value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         private static DateTime? ParseOptionalUtcDate(string? value)
         {

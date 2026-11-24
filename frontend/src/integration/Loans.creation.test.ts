@@ -1,4 +1,4 @@
-import Cookie from 'js-cookie';
+import { establishTestSession } from '@/test/session';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -14,16 +14,18 @@ const payload = {
 
 describe('Loans: contrato de criação', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession();
   });
 
-  it('envia o corpo conhecido e a sessão existente', async () => {
+  it('envia o corpo conhecido com prova CSRF e sem bearer', async () => {
     let receivedBody: unknown;
     let authorization: string | null = null;
+    let csrfToken: string | null = null;
     server.use(
       http.post(`${API_ORIGIN}/Emprestimos`, async ({ request }) => {
         receivedBody = await request.json();
         authorization = request.headers.get('authorization');
+        csrfToken = request.headers.get('x-csrf-token');
         return HttpResponse.json({ id: 101 }, { status: 201 });
       })
     );
@@ -31,7 +33,8 @@ describe('Loans: contrato de criação', () => {
     await expect(createLoan(payload)).resolves.toMatchObject({ status: 201 });
 
     expect(receivedBody).toEqual(payload);
-    expect(authorization).toBe('Bearer session-token');
+    expect(authorization).toBeNull();
+    expect(csrfToken).toBe('test-session-bound-proof');
   });
 
   it.each([400, 403, 500])(
@@ -51,6 +54,34 @@ describe('Loans: contrato de criação', () => {
     }
   );
 
+  it('preserva o código de domínio da validação de saldo para o formulário', async () => {
+    server.use(
+      http.post(`${API_ORIGIN}/Emprestimos`, () =>
+        HttpResponse.json(
+          {
+            type: 'about:blank',
+            title: 'Dados do empréstimo inválidos.',
+            status: 400,
+            errors: {
+              'produtos[0].quantidade': [
+                'A quantidade solicitada excede o saldo disponível.',
+              ],
+            },
+            code: 'loan_insufficient_stock',
+          },
+          { status: 400 }
+        )
+      )
+    );
+
+    await expect(createLoan(payload)).rejects.toMatchObject({
+      name: 'ApplicationError',
+      category: 'validation',
+      status: 400,
+      code: 'loan_insufficient_stock',
+    });
+  });
+
   it('normaliza indisponibilidade da API como falha retentável', async () => {
     server.use(
       http.post(`${API_ORIGIN}/Emprestimos`, () => HttpResponse.error())
@@ -63,11 +94,13 @@ describe('Loans: contrato de criação', () => {
     });
   });
 
-  it('recusa a criação local quando a sessão não existe', async () => {
-    Cookie.remove('doorKey');
+  it('deixa a sessão ausente ser recusada pela API', async () => {
+    server.use(
+      http.post(`${API_ORIGIN}/Emprestimos`, () =>
+        new HttpResponse(null, { status: 401 })
+      )
+    );
 
-    await expect(createLoan(payload)).rejects.toMatchObject({
-      name: 'ApplicationError',
-    });
+    await expect(createLoan(payload)).rejects.toMatchObject({ status: 401 });
   });
 });

@@ -1,76 +1,103 @@
 using AutoMapper;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.DTOs.Lotes;
+using LabSolos_Server_DotNet8.DTOs.Produtos;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
-namespace LabSolos_Server_DotNet8.Controllers
+namespace LabSolos_Server_DotNet8.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class LoteController(
+    ILoteService loteService, IUnitOfWork uow, IMapper mapper, AppDbContext context) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class LoteController : ControllerBase
+    [HttpPost("AddLote")]
+    [Authorize("ApenasAdministradores")]
+    public async Task<IActionResult> AdicionarLote([FromBody] AddLoteDTO dto)
     {
-        private readonly IUnitOfWork _uow;
-        private readonly IMapper _mapper;
-        private readonly ILoteService _loteService;
+        var validation = loteService.ValidarEstruturaLote(dto);
+        if (!validation.Validado)
+            return InvalidFields(validation.ErrosPorCampo!);
 
-        public LoteController(ILoteService loteService, IUnitOfWork uow, IMapper mapper)
+        await using var transaction = await uow.BeginTransactionAsync(HttpContext.RequestAborted);
+        await uow.LockProductsForMutationAsync(dto.ProdutoIds!, HttpContext.RequestAborted);
+        var ids = dto.ProdutoIds!;
+        var products = await context.Produtos.Where(product => ids.Contains(product.Id)).ToListAsync();
+        if (products.Count != ids.Length || products.Any(product => product.Desativado ||
+                product.Tipo != Enum.Parse<TipoProduto>(dto.Tipo, true)))
+            return InvalidFields(new() { ["produtoIds"] = ["Selecione produtos existentes, ativos e do tipo informado."] });
+        if (products.Any(product => product.LoteId.HasValue))
+            return ConflictProblem("produtoIds", "Os produtos selecionados já possuem um lote corrente.");
+
+        var lot = mapper.Map<Lote>(dto);
+        lot.Produtos = products;
+        context.Lotes.Add(lot);
+        try
         {
-            _loteService = loteService;
-            _uow = uow;
-            _mapper = mapper;
+            await uow.CommitAsync();
+            await transaction.CommitAsync(HttpContext.RequestAborted);
         }
-
-        [HttpPost("AddLote")]
-        [Authorize("ApenasAdministradores")]
-        public async Task<IActionResult> AdicionarLote([FromBody] AddLoteDTO loteDto)
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "UX_Lotes_CodigoNormalizado" })
         {
-            // Validar os dados do usuário através do serviço
-            var resultadoValidacao = _loteService.ValidarEstruturaLote(loteDto);
-            if (!resultadoValidacao.Validado)
-            {
-                return BadRequest(new { Message = resultadoValidacao.Mensagem });
-            }
-
-            var lote = _mapper.Map<Lote>(loteDto);
-
-            _uow.LoteRepository.Criar(lote);
-            await _uow.CommitAsync();
-
-            return CreatedAtAction(nameof(ObterLotePeloCodigo), new { lote.CodigoLote }, new { Message = "Lote de produtos adicionado com sucesso." });
+            await transaction.RollbackAsync(HttpContext.RequestAborted);
+            context.ChangeTracker.Clear();
+            return ConflictProblem("codigoLote", "Já existe um lote com o código informado.");
         }
+        return CreatedAtAction(nameof(ObterLotePeloCodigo), new { codigoLote = lot.CodigoLote }, Project(lot));
+    }
 
-        [HttpGet("GetById/{id}")]
-        [Authorize]
-        public async Task<IActionResult> ObterLotePeloId(int id)
+    [HttpGet("GetById/{id}")]
+    [Authorize]
+    public async Task<IActionResult> ObterLotePeloId(int id)
+    {
+        var lot = await new LoteRepository(context).GetLoteByIdAsync(id);
+        return lot is null ? NotFound() : Ok(Project(lot));
+    }
+
+    [HttpGet("GetByCodigo/{codigoLote}")]
+    [Authorize]
+    public async Task<IActionResult> ObterLotePeloCodigo(string codigoLote)
+    {
+        var lot = await new LoteRepository(context).GetLoteByCodigoAsync(codigoLote);
+        return lot is null ? NotFound() : Ok(Project(lot));
+    }
+
+    private LoteDTO Project(Lote lot)
+    {
+        var result = mapper.Map<LoteDTO>(lot);
+        result.Produtos = (lot.Produtos ?? []).OrderBy(product => product.Id).Select(product =>
         {
-            // Busca o lote pelo ID no repositório
-            var lote = await _uow.LoteRepository.ObterAsync(l => l.Id == id);
+            var item = mapper.Map<ProdutoDTO>(product);
+            item.Lote = null;
+            return item;
+        }).ToList();
+        return result;
+    }
 
-            if (lote == null)
-            {
-                return NotFound(new { Message = $"Lote com ID {id} não encontrado." });
-            }
-
-            return Ok(_mapper.Map<LoteDTO>(lote));
-        }
-
-        [HttpGet("GetByCodigo/{codigoLote}")]
-        [Authorize]
-        public async Task<IActionResult> ObterLotePeloCodigo(string codigoLote)
+    private IActionResult InvalidFields(Dictionary<string, string[]> fields)
+    {
+        var problem = new ValidationProblemDetails(fields)
         {
-            var lote = await _uow.LoteRepository.ObterAsync(l => l.CodigoLote == codigoLote);
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Revise os campos indicados para cadastrar o lote."
+        };
+        problem.Extensions["code"] = "validation_failed";
+        return BadRequest(problem);
+    }
 
-            if (lote == null)
-            {
-                return NotFound(new { Message = "Lote não encontrado." });
-            }
-
-            return Ok(_mapper.Map<LoteDTO>(lote));
-        }
+    private IActionResult ConflictProblem(string field, string guidance)
+    {
+        var problem = new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = guidance };
+        problem.Extensions["code"] = "operation_conflict";
+        problem.Extensions["errors"] = new Dictionary<string, string[]> { [field] = [guidance] };
+        return Conflict(problem);
     }
 }

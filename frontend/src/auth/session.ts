@@ -1,114 +1,131 @@
 import Cookie from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 
 import {
   discardAuthNotice,
   discardIntendedRoute,
 } from './intendedRoute';
 
-const AUTH_COOKIE_KEYS = ['doorKey', 'rankID', 'level'] as const;
-type CookieOptions = NonNullable<Parameters<typeof Cookie.set>[2]>;
+const SESSION_STORAGE_KEY = 'auth:session-context';
+const CSRF_STORAGE_KEY = 'auth:csrf-token';
+const LEGACY_AUTH_COOKIE_KEYS = ['doorKey', 'rankID', 'level'] as const;
 
-type SessionJwtPayload = {
-  sub?: unknown;
-  role?: unknown;
-  password_change_required?: unknown;
-};
-
-export type Session = {
-  token: string;
+export type Session = Readonly<{
   userId: string;
   role: string;
   requiresPasswordChange: boolean;
-};
+}>;
+
+export type SessionBootstrap = Omit<Session, 'userId'> &
+  Readonly<{ userId: string | number; csrfToken: string }>;
 
 export type ClearSessionOptions = Readonly<{
   discardAuthContext?: boolean;
 }>;
 
-const cookieOptions = (): CookieOptions => ({
-  path: '/',
-  sameSite: 'Strict',
-  secure: window.location.protocol === 'https:',
-});
+const isSessionBootstrap = (value: unknown): value is SessionBootstrap => {
+  if (!value || typeof value !== 'object') return false;
 
-const decodeSession = (token: string): Session | null => {
-  if (!token) return null;
+  const candidate = value as Record<string, unknown>;
+  return (
+    ((typeof candidate.userId === 'string' && candidate.userId.length > 0) ||
+      (typeof candidate.userId === 'number' &&
+        Number.isSafeInteger(candidate.userId) &&
+        candidate.userId > 0)) &&
+    typeof candidate.role === 'string' &&
+    candidate.role.length > 0 &&
+    typeof candidate.requiresPasswordChange === 'boolean' &&
+    typeof candidate.csrfToken === 'string' &&
+    candidate.csrfToken.length > 0
+  );
+};
+
+/** Store only display/navigation context and the session-bound CSRF proof. */
+export const startSession = (value: unknown): Session | null => {
+  if (!isSessionBootstrap(value)) {
+    clearSession();
+    return null;
+  }
+
+  const session: Session = {
+    userId: String(value.userId),
+    role: value.role,
+    requiresPasswordChange: value.requiresPasswordChange,
+  };
 
   try {
-    const payload = jwtDecode<SessionJwtPayload>(token);
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    sessionStorage.setItem(CSRF_STORAGE_KEY, value.csrfToken);
+  } catch {
+    clearSession();
+    return null;
+  }
 
-    if (typeof payload.sub !== 'string' || typeof payload.role !== 'string') {
-      return null;
-    }
+  clearLegacyAuthCookies();
+  return session;
+};
 
-    const passwordChangeRequired = payload.password_change_required;
+export const readSession = (): Session | null => {
+  try {
+    const value: unknown = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY) ?? 'null'
+    );
+    if (!value || typeof value !== 'object') return null;
+
+    const candidate = value as Record<string, unknown>;
     if (
-      passwordChangeRequired !== undefined &&
-      typeof passwordChangeRequired !== 'boolean' &&
-      passwordChangeRequired !== 'true' &&
-      passwordChangeRequired !== 'false'
+      typeof candidate.userId !== 'string' ||
+      candidate.userId.length === 0 ||
+      typeof candidate.role !== 'string' ||
+      candidate.role.length === 0 ||
+      typeof candidate.requiresPasswordChange !== 'boolean'
     ) {
       return null;
     }
 
     return {
-      token,
-      userId: payload.sub,
-      role: payload.role,
-      requiresPasswordChange:
-        passwordChangeRequired === true || passwordChangeRequired === 'true',
+      userId: candidate.userId,
+      role: candidate.role,
+      requiresPasswordChange: candidate.requiresPasswordChange,
     };
   } catch {
     return null;
   }
 };
 
-export const startSession = (token: string): Session | null => {
-  const session = decodeSession(token);
-  if (!session) {
-    clearSession();
+export const readCsrfToken = (): string | null => {
+  try {
+    const token = sessionStorage.getItem(CSRF_STORAGE_KEY);
+    return token && token.length > 0 ? token : null;
+  } catch {
     return null;
   }
-
-  const options = cookieOptions();
-  Cookie.set('doorKey', session.token, options);
-  Cookie.set('rankID', session.userId, options);
-  Cookie.set('level', session.role, options);
-
-  return session;
 };
 
-export const readSession = (): Session | null => {
-  const session = decodeSession(Cookie.get('doorKey') ?? '');
-  if (!session) return null;
-
-  if (
-    Cookie.get('rankID') !== session.userId ||
-    Cookie.get('level') !== session.role
-  ) {
-    return null;
+const clearLegacyAuthCookies = (): void => {
+  const options = { path: '/', sameSite: 'Lax' as const, secure: window.location.protocol === 'https:' };
+  for (const key of LEGACY_AUTH_COOKIE_KEYS) {
+    try {
+      Cookie.remove(key, options);
+    } catch {
+      // Continue cleanup if a browser blocks one legacy cookie operation.
+    }
   }
-
-  return session;
 };
 
 export const clearSession = (
   options: ClearSessionOptions = {}
 ): void => {
-  let cookieAttributes: CookieOptions;
   try {
-    cookieAttributes = cookieOptions();
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    sessionStorage.removeItem(CSRF_STORAGE_KEY);
   } catch {
-    cookieAttributes = { path: '/' };
+    // A storage failure must not prevent legacy cookie cleanup or navigation.
   }
 
-  for (const key of AUTH_COOKIE_KEYS) {
-    try {
-      Cookie.remove(key, cookieAttributes);
-    } catch {
-      // One unavailable cookie must not prevent the remaining cleanup.
-    }
+  try {
+    clearLegacyAuthCookies();
+  } catch {
+    // A cleanup failure must not prevent the remaining auth cleanup.
   }
 
   if (options.discardAuthContext) {

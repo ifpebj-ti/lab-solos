@@ -42,7 +42,28 @@ jobs:
         run: npm ci
 
       - name: Run frontend tests
-        run: npm run test -- --run
+        run: npm run test -- --run --coverage
+
+      - name: Collect frontend coverage report
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: >-
+          python -B .github/scripts/collect_frontend_coverage.py
+          --summary ".tmp/coverage/frontend/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/coverage-summary.json"
+          --output .tmp/coverage/frontend.json
+          --repository-root "$GITHUB_WORKSPACE"
+          --sha "$GITHUB_SHA"
+          --run-id "$GITHUB_RUN_ID"
+          --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Upload normalized frontend coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frontend-coverage
+          path: .tmp/coverage/frontend.json
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Run frontend lint
         run: npm run lint
@@ -86,7 +107,146 @@ jobs:
           --filter "FullyQualifiedName~Integration|FullyQualifiedName~CredentialLifecycleMigrationTests"
 
       - name: Test backend solution
-        run: dotnet test backend/backend.sln --no-build --no-restore -c Release --nologo --disable-build-servers
+        run: >-
+          dotnet test backend/backend.sln --no-build --no-restore -c Release
+          --nologo --disable-build-servers --collect:"XPlat Code Coverage"
+          --results-directory ".tmp/coverage/backend/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}"
+
+      - name: Collect backend coverage report
+        if: always()
+        shell: bash
+        run: |
+          results_directory=".tmp/coverage/backend/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}"
+          mapfile -t coverage_reports < <(
+            find "$results_directory" -mindepth 2 -maxdepth 2 -type f \
+              -name coverage.cobertura.xml -print 2>/dev/null
+          )
+          if [[ ${#coverage_reports[@]} -ne 1 ]]; then
+            printf 'expected one complete-solution coverage report; found %s\n' \
+              "${#coverage_reports[@]}" >&2
+            exit 2
+          fi
+          python -B .github/scripts/collect_backend_coverage.py \
+            --coverage-file "${coverage_reports[0]}" \
+            --output "$results_directory/backend-coverage.json" \
+            --repository-root "$GITHUB_WORKSPACE" \
+            --results-directory "$results_directory" \
+            --sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Upload normalized backend coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-coverage
+          path: .tmp/coverage/backend/${{ github.run_id }}/${{ github.run_attempt }}/backend-coverage.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  coverage-gate:
+    name: Coverage policy
+    if: always()
+    needs:
+      - frontend-quality
+      - backend-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        if: always()
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Download frontend coverage
+        if: always()
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: frontend-coverage
+          path: .tmp/coverage
+
+      - name: Download backend coverage
+        if: always()
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: backend-coverage
+          path: .tmp/coverage/backend
+
+      - name: Enforce the coverage threshold for both modules
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          python -B .github/scripts/check_coverage.py \
+            --frontend .tmp/coverage/frontend.json \
+            --backend .tmp/coverage/backend/backend-coverage.json \
+            --metric lines \
+            --sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --run-attempt "$GITHUB_RUN_ATTEMPT" \
+            > "$RUNNER_TEMP/coverage-summary.txt" 2>&1
+          result=$?
+          cat "$RUNNER_TEMP/coverage-summary.txt"
+          exit "$result"
+
+      - name: Upload coverage decision summary
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-summary
+          path: ${{ runner.temp }}/coverage-summary.txt
+          if-no-files-found: ignore
+          retention-days: 30
+
+  semgrep:
+    name: Semgrep security policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      SEMGREP_IMAGE: semgrep/semgrep:1.185.0@sha256:67518c174185a2043fdbed16c70631b79209499b3671178e7194379b48295a0d
+      SEMGREP_SUMMARY: ${{ runner.temp }}/semgrep-summary.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run both pinned Semgrep module policies
+        id: semgrep-analysis
+        shell: bash
+        run: |
+          set +e
+          docker run --rm --network none \
+            --entrypoint python \
+            --mount type=bind,source="$GITHUB_WORKSPACE",target=/src,readonly \
+            --workdir /src \
+            "$SEMGREP_IMAGE" \
+            .github/scripts/check_semgrep.py scan \
+              --sha "$GITHUB_SHA" \
+              --run-id "$GITHUB_RUN_ID" \
+              --run-attempt "$GITHUB_RUN_ATTEMPT" \
+              > "$SEMGREP_SUMMARY"
+          result=$?
+          if [[ ! -s "$SEMGREP_SUMMARY" ]]; then
+            printf '{"status":"incomplete","reason":"scanner_execution_failed"}\n' \
+              > "$SEMGREP_SUMMARY"
+            if [[ "$result" -eq 0 ]]; then result=2; fi
+          fi
+          cat "$SEMGREP_SUMMARY"
+          exit "$result"
+
+      - name: Upload sanitized Semgrep result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: semgrep-summary
+          path: ${{ runner.temp }}/semgrep-summary.json
+          if-no-files-found: error
+          retention-days: 7
 
   auth-e2e:
     name: Authentication E2E
@@ -162,6 +322,7 @@ jobs:
       contents: read
     env:
       SECURITY_E2E_HTTPS_PORT: "18443"
+      SECURITY_E2E_COMPOSE_PROJECT: lab-solos-ci-browser-security
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -208,18 +369,80 @@ jobs:
           docker compose --project-name lab-solos-ci-browser-security
           --file docker-compose-security-e2e.yml up --detach --build --wait
 
-      - name: Run focused browser security E2E tests
+      - name: Run browser security E2E and passive ZAP analysis
         env:
           BUILDX_BUILDER: ${{ steps.e2e-builder.outputs.name }}
         id: security-tests
-        working-directory: frontend
-        run: npm run test:e2e -- --project=security
+        run: >-
+          python -B .github/scripts/run_security_zap_e2e.py
+          --compose-project lab-solos-ci-browser-security
+          --report-root "${RUNNER_TEMP}/zap-passive"
 
       - name: Write sanitized result summary
         if: always()
         env:
-          SECURITY_E2E_OUTCOME: ${{ steps.security-tests.outcome }}
-        run: printf 'browser-security=%s\n' "$SECURITY_E2E_OUTCOME" > "${RUNNER_TEMP}/browser-security-summary.txt"
+          SECURITY_ANALYSIS_OUTCOME: ${{ steps.security-tests.outcome }}
+          SECURITY_REPORT_ROOT: ${{ runner.temp }}/zap-passive
+          SECURITY_SUMMARY_PATH: ${{ runner.temp }}/browser-security-summary.json
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report_root = Path(os.environ["SECURITY_REPORT_ROOT"])
+          report_files = sorted(report_root.glob("lab-solos-zap-passive-*.json"))
+          policy = json.loads(Path(".github/quality/zap/passive-policy.json").read_text(encoding="utf-8"))
+          summary = {
+              "sha": os.environ["GITHUB_SHA"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+              "workflow_outcome": os.environ["SECURITY_ANALYSIS_OUTCOME"],
+              "policy_version": policy["schema_version"],
+              "status": "incomplete",
+              "reason": "report_unavailable",
+          }
+          safe_message_fields = (
+              "api_request_context", "api_routes", "body_unavailable",
+              "body_unavailable_cache_skipped", "browser", "cache_evidence_ambiguous",
+              "cache_skipped", "frontend_routes", "wire_304_ambiguous", "wire_304_responses",
+          )
+          if len(report_files) == 1:
+              try:
+                  report = json.loads(report_files[0].read_text(encoding="utf-8"))
+              except (OSError, UnicodeError, json.JSONDecodeError):
+                  summary["reason"] = "report_invalid"
+              else:
+                  if isinstance(report, dict) and report.get("schema_version") == 1:
+                      summary["report"] = report_files[0].name
+                      if report.get("status") in {"passed", "failed", "inconclusive"}:
+                          summary["status"] = report["status"]
+                      reason = report.get("reason")
+                      if isinstance(reason, str):
+                          summary["reason"] = reason
+                      messages = report.get("messages")
+                      if isinstance(messages, dict):
+                          summary["messages"] = {
+                              key: messages[key]
+                              for key in safe_message_fields
+                              if key in messages and type(messages[key]) is int and messages[key] >= 0
+                          }
+                      processing_seconds = report.get("processing_seconds")
+                      if type(processing_seconds) in (int, float) and processing_seconds >= 0:
+                          summary["processing_seconds"] = processing_seconds
+                  else:
+                      summary["reason"] = "report_invalid"
+          summary_text = json.dumps(summary, ensure_ascii=False, sort_keys=True)
+          Path(os.environ["SECURITY_SUMMARY_PATH"]).write_text(summary_text + "\n", encoding="utf-8")
+          print(summary_text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write("### Browser security and passive ZAP\n\n")
+              output.write(f"- Status: `{summary['status']}`\n")
+              output.write(f"- Run/attempt: `{summary['run_id']}/{summary['run_attempt']}`\n")
+              output.write(f"- SHA: `{summary['sha']}`\n")
+              output.write(f"- Policy version: `{summary['policy_version']}`\n")
+              output.write(f"- Reason: `{summary['reason']}`\n")
+          PY
 
       - name: Upload sanitized browser security artifacts
         if: always()
@@ -227,7 +450,8 @@ jobs:
         with:
           name: browser-security-artifacts
           path: |
-            ${{ runner.temp }}/browser-security-summary.txt
+            ${{ runner.temp }}/browser-security-summary.json
+            ${{ runner.temp }}/zap-passive/*.json
             frontend/e2e/infra/artifacts/report
           if-no-files-found: ignore
           retention-days: 7
@@ -284,8 +508,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/install_actionlint.sh .tmp/actionlint
 
-      - name: Lint container CI workflow
-        run: .tmp/actionlint/actionlint .github/workflows/container-ci.yml
+      - name: Lint container CI and release workflows
+        run: .tmp/actionlint/actionlint .github/workflows/container-ci.yml .github/workflows/container-release.yml
 
   quality-baseline:
     name: Code quality baseline
@@ -371,6 +595,8 @@ jobs:
     needs:
       - frontend-quality
       - backend-quality
+      - coverage-gate
+      - semgrep
       - auth-e2e
       - browser-security
       - workflow-quality
@@ -391,6 +617,8 @@ jobs:
         env:
           FRONTEND_RESULT: ${{ needs.frontend-quality.result }}
           BACKEND_RESULT: ${{ needs.backend-quality.result }}
+          COVERAGE_RESULT: ${{ needs.coverage-gate.result }}
+          SEMGREP_RESULT: ${{ needs.semgrep.result }}
           E2E_RESULT: ${{ needs.auth-e2e.result }}
           BROWSER_SECURITY_RESULT: ${{ needs.browser-security.result }}
           WORKFLOW_RESULT: ${{ needs.workflow-quality.result }}
@@ -398,10 +626,12 @@ jobs:
           CONTAINER_RESULT: ${{ needs.container-scan.result }}
         run: >-
           python -B .github/scripts/check_quality_gate.py
-          --required frontend-quality backend-quality auth-e2e browser-security workflow-quality
+          --required frontend-quality backend-quality coverage-gate semgrep auth-e2e browser-security workflow-quality
           quality-baseline container-scan
           --job "frontend-quality=$FRONTEND_RESULT"
           --job "backend-quality=$BACKEND_RESULT"
+          --job "coverage-gate=$COVERAGE_RESULT"
+          --job "semgrep=$SEMGREP_RESULT"
           --job "auth-e2e=$E2E_RESULT"
           --job "browser-security=$BROWSER_SECURITY_RESULT"
           --job "workflow-quality=$WORKFLOW_RESULT"

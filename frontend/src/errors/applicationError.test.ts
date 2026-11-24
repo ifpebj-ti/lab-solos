@@ -15,6 +15,7 @@ describe('isApplicationError', () => {
       'not_found',
       'conflict',
       'rate_limited',
+      'request_too_large',
       'network',
       'timeout',
       'server',
@@ -83,5 +84,32 @@ describe('isApplicationError', () => {
     expect(
       isApplicationError({ ...base, fieldErrors: { email: ['ok', 42] } })
     ).toBe(false);
+  });
+
+  it('aceita datas de confirmação apenas no código de vencimento e como dias civis', () => {
+    const error: ApplicationError = {
+      name: 'ApplicationError',
+      category: 'conflict',
+      message: 'Mensagem local.',
+      status: 409,
+      code: 'product_expiration_confirmation_required',
+      productExpiryConfirmation: {
+        dataValidade: '2026-09-08',
+        diaCivil: '2026-09-09',
+      },
+      retryable: false,
+    };
+
+    expect(isApplicationError(error)).toBe(true);
+    expect(isApplicationError({
+      ...error,
+      productExpiryConfirmation: {
+        dataValidade: '31/02/2026',
+        diaCivil: '2026-09-09',
+      },
+    })).toBe(false);
+    expect(isApplicationError({ ...error, code: 'operation_conflict' })).toBe(
+      false
+    );
   });
 });

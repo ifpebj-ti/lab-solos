@@ -267,10 +267,15 @@ test.describe('cadastro e aprovação reais — CT-002 e CT-003', () => {
       invalidResponsible
     );
 
-    expect(registrationResponse.status()).toBe(404);
+    expect(registrationResponse.status()).toBe(400);
+    await expect(registrationResponse.json()).resolves.toMatchObject({
+      code: 'registration_responsible_invalid',
+    });
     await expect(page).toHaveURL(/\/create-account$/);
     await expect(page.getByRole('alert')).toBeVisible();
-    await expect(page.getByRole('alert')).toContainText('recurso solicitado');
+    await expect(page.getByRole('alert')).toContainText(
+      'Verifique o e-mail do responsável informado.'
+    );
 
     const adminLogin = await loginViaApi(request, e2eScenario.administrator);
     const users = await usersForAdmin(request, adminLogin.token);

@@ -1,4 +1,5 @@
 import { isAxiosError } from 'axios';
+import { isCivilDate } from '@/function/date';
 
 import {
   createApplicationError,
@@ -22,6 +23,7 @@ const PROBLEM_DETAILS_KEYS = new Set([
   'status',
   'detail',
   'code',
+  'correlationId',
   'traceId',
   'errors',
   'ModelState',
@@ -43,6 +45,7 @@ const categoryForStatus = (status: number): ErrorCategory => {
   if (status === 404) return 'not_found';
   if (status === 409) return 'conflict';
   if (status === 429) return 'rate_limited';
+  if (status === 413) return 'request_too_large';
   if (status >= 500 && status <= 599) return 'server';
   return 'unknown';
 };
@@ -158,6 +161,7 @@ const extractRequestId = (
     : undefined;
 
   const candidates = [
+    read(body, 'correlationId'),
     read(body, 'traceId'),
     readHeader(headers, 'x-correlation-id'),
     readHeader(headers, 'x-request-id'),
@@ -166,6 +170,26 @@ const extractRequestId = (
   return candidates.map(requestIdFromCandidate).find(
     (candidate): candidate is string => candidate !== undefined
   );
+};
+
+const extractProductExpiryConfirmation = (
+  body: UnknownRecord | undefined,
+  code: KnownErrorCode | undefined
+): { dataValidade: string; diaCivil: string } | undefined => {
+  if (code !== 'product_expiration_confirmation_required') return undefined;
+
+  const dataValidade = read(body, 'dataValidade');
+  const diaCivil = read(body, 'diaCivil');
+  if (
+    typeof dataValidade !== 'string' ||
+    !isCivilDate(dataValidade) ||
+    typeof diaCivil !== 'string' ||
+    !isCivilDate(diaCivil)
+  ) {
+    return undefined;
+  }
+
+  return Object.freeze({ dataValidade, diaCivil });
 };
 
 const isHttpDate = (value: string): boolean =>
@@ -260,6 +284,7 @@ export const normalizeError = (error: unknown): ApplicationError => {
       category === 'rate_limited'
         ? extractRetryAfterSeconds(body, response)
         : undefined;
+    const productExpiryConfirmation = extractProductExpiryConfirmation(body, code);
     const catalogEntry = ERROR_CATALOG[category];
 
     return createApplicationError({
@@ -270,6 +295,9 @@ export const normalizeError = (error: unknown): ApplicationError => {
       ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
       ...(code === undefined ? {} : { code }),
       ...(requestId === undefined ? {} : { requestId }),
+      ...(productExpiryConfirmation === undefined
+        ? {}
+        : { productExpiryConfirmation }),
       ...(fieldErrors === undefined ? {} : { fieldErrors }),
     });
   } catch {

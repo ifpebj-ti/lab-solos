@@ -21,7 +21,11 @@ import { useContext, useEffect, useState } from 'react';
 import { clearSession } from '@/auth/session';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import type { ApplicationError } from '@/errors/applicationError';
-import { OPERATION_IDS } from '@/errors/errorCatalog';
+import {
+  getFieldErrorMessage,
+  getRegistrationErrorMessage,
+  OPERATION_IDS,
+} from '@/errors/errorCatalog';
 import { normalizeError } from '@/errors/normalizeError';
 import {
   presentError,
@@ -81,6 +85,7 @@ function CreateAccount() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
     setValue,
     setError,
     clearErrors,
@@ -88,6 +93,7 @@ function CreateAccount() {
     resolver: userRegistrationResolver,
   });
   const navigate = useNavigate();
+  const selectedAccountType = watch('tipoUsuario');
 
   const postCreateAccount = async (data: UserRegistrationFormData) => {
     setLoading(true);
@@ -105,7 +111,8 @@ function CreateAccount() {
       instituicao: data.instituicao,
       cidade: data.cidade,
       curso: data.curso,
-      responsavelEmail: data.emailMentor,
+      responsavelEmail:
+        data.tipoUsuario === 'mentorado' ? data.emailMentor : '',
     };
 
     try {
@@ -120,8 +127,30 @@ function CreateAccount() {
     } catch (error: unknown) {
       const normalizedError = normalizeError(error);
       applyCreateAccountFieldErrors(normalizedError.fieldErrors, setError);
+      if (
+        normalizedError.code === 'registration_responsible_invalid' &&
+        !normalizedError.fieldErrors?.emailMentor
+      ) {
+        setError('emailMentor', {
+          type: 'server',
+          message:
+            getFieldErrorMessage(
+              'emailMentor',
+              normalizedError.code
+            ) ?? 'Verifique o e-mail do responsável informado.',
+        });
+      }
+      const presentation = presentError(
+        normalizedError,
+        OPERATION_IDS.createMentor
+      );
+      const registrationMessage = getRegistrationErrorMessage(
+        normalizedError.code
+      );
       setErrorPresentation(
-        presentError(normalizedError, OPERATION_IDS.createMentor)
+        registrationMessage
+          ? { ...presentation, description: registrationMessage }
+          : presentation
       );
     } finally {
       setLoading(false);
@@ -152,7 +181,23 @@ function CreateAccount() {
               Selecione seu tipo de usuário e crie sua conta.
             </p>
             <div className='w-full md:w-44 shrink-0 min-w-0'>
-              <Select onValueChange={(value) => setValue('tipoUsuario', value)}>
+              <Select
+                onValueChange={(value) => {
+                  if (value !== 'mentor' && value !== 'mentorado') return;
+                  setValue('tipoUsuario', value, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                  clearErrors(['tipoUsuario', 'emailMentor']);
+                  if (value === 'mentor') {
+                    setValue('emailMentor', '', {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+              >
                 <SelectTrigger
                   aria-label='Tipo de usuário'
                   aria-invalid={Boolean(errors.tipoUsuario)}
@@ -199,6 +244,7 @@ function CreateAccount() {
           ) : null}
           <form
             onSubmit={handleSubmit(postCreateAccount)}
+            noValidate
             className='w-full gap-y-3 flex flex-col mt-1'
           >
             <div className='gap-y-2 gap-x-5 grid grid-cols-1 md:grid-cols-2 w-full min-w-0'>
@@ -258,13 +304,16 @@ function CreateAccount() {
                 error={errors.telefone?.message}
                 name='telefone'
               />
-              <InputText
-                label='Email do Mentor Responsável'
-                type='email'
-                register={register}
-                error={errors.emailMentor?.message}
-                name='emailMentor'
-              />
+              {selectedAccountType === 'mentorado' ? (
+                <InputText
+                  label='Email do responsável habilitado'
+                  type='email'
+                  register={register}
+                  error={errors.emailMentor?.message}
+                  name='emailMentor'
+                  required
+                />
+              ) : null}
             </div>
             <div className='flex flex-wrap items-center gap-x-1 justify-center mt-4 min-w-0'>
               <label

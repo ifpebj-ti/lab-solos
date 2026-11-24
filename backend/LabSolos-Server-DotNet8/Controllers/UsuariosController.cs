@@ -1,4 +1,5 @@
 using AutoMapper;
+using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using LabSolos_Server_DotNet8.DTOs.Emprestimos;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace LabSolos_Server_DotNet8.Controllers
 {
@@ -25,10 +27,13 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly IUsuarioService _usuarioService;
-        private readonly IUtilitiesService _utilsService;
         private readonly INotificacaoService _notificacaoService;
         private readonly UserResourceAccessService _userResourceAccess;
         private readonly UserProfileUpdateService? _profileUpdateService;
+        private readonly AdminContinuityGuard? _adminContinuityGuard;
+        private readonly IAuditoriaService? _auditoriaService;
+        private readonly OperationAdmissionPolicy? _operationAdmissionPolicy;
+        private readonly EmailAddressReservationService? _emailAddressReservations;
         private readonly TimeProvider _timeProvider;
         private const string DependentDecisionUnauthorizedMessage =
             "Você não tem permissão para processar este usuário dependente.";
@@ -47,10 +52,14 @@ namespace LabSolos_Server_DotNet8.Controllers
             INotificacaoService notificacaoService,
             TimeProvider? timeProvider = null,
             UserResourceAccessService? userResourceAccess = null,
-            UserProfileUpdateService? profileUpdateService = null)
+            UserProfileUpdateService? profileUpdateService = null,
+            AdminContinuityGuard? adminContinuityGuard = null,
+            IAuditoriaService? auditoriaService = null,
+            OperationAdmissionPolicy? operationAdmissionPolicy = null,
+            EmailAddressReservationService? emailAddressReservations = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _utilsService = utilsService ?? throw new ArgumentNullException(nameof(utilsService));
+            ArgumentNullException.ThrowIfNull(utilsService);
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _usuarioService = usuarioService ?? throw new ArgumentNullException(nameof(usuarioService));
@@ -58,6 +67,10 @@ namespace LabSolos_Server_DotNet8.Controllers
             _timeProvider = timeProvider ?? TimeProvider.System;
             _userResourceAccess = userResourceAccess ?? new UserResourceAccessService();
             _profileUpdateService = profileUpdateService;
+            _adminContinuityGuard = adminContinuityGuard;
+            _auditoriaService = auditoriaService;
+            _operationAdmissionPolicy = operationAdmissionPolicy;
+            _emailAddressReservations = emailAddressReservations;
         }
 
         [HttpGet]
@@ -175,31 +188,53 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentesParaAprovacao(int usuarioId)
         {
+            var actorId = GetAuthenticatedUserId();
+            if (actorId is null)
+                return Forbid();
+
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            if (actor is not { Status: StatusUsuario.Habilitado } ||
+                actor.NivelUsuario is not (NivelUsuario.Mentor or NivelUsuario.Administrador))
+                return Forbid();
+
             var responsavel = await ObterResponsavelAutorizadoAsync(usuarioId);
             if (responsavel is null)
-            {
                 return ResourceNotFound();
-            }
 
-            var pendingMentees = AndAlso(
-                _userResourceAccess.ForLinkedMentees(User),
-                dependente => dependente.ResponsavelId == responsavel.Id &&
-                    dependente.Status == StatusUsuario.Pendente);
-            var dependentesPendentes = await _uow.UsuarioRepository.ObterTodosAsync(pendingMentees);
-            return Ok(_mapper.Map<IEnumerable<UsuarioAcompanhamentoDTO>>(dependentesPendentes));
+            if (actor.NivelUsuario == NivelUsuario.Mentor && actor.Id != responsavel.Id)
+                return Forbid();
+
+            var pendingMentees = await _uow.UsuarioRepository.ObterTodosAsync(
+                user => user.Status == StatusUsuario.Pendente &&
+                    user.NivelUsuario == NivelUsuario.Mentorado &&
+                    user.ResponsavelId == responsavel.Id,
+                query => query.Include(user => user.Responsavel));
+            var eligibleRequests = _usuarioService.FiltrarSolicitacoesElegiveis(actor, pendingMentees);
+            return Ok(_mapper.Map<IEnumerable<UsuarioAprovacaoDTO>>(eligibleRequests));
         }
 
         [HttpGet("aprovacao")]
         [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
-            var usuarios = await _uow.UsuarioRepository.ObterTodosAsync(u => u.Status == StatusUsuario.Pendente);
-            var usuariosDto = _mapper.Map<IEnumerable<UsuarioDTO>>(usuarios);
+            var actorId = GetAuthenticatedUserId();
+            if (actorId is null)
+                return Forbid();
 
-            return Ok(usuariosDto);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            if (actor is null || !PoliticaContas.IsEnabledAdministrator(actor))
+                return Forbid();
+
+            var pendingRequests = await _uow.UsuarioRepository.ObterTodosAsync(
+                user => user.Status == StatusUsuario.Pendente,
+                query => query.Include(user => user.Responsavel));
+            var eligibleRequests = _usuarioService.FiltrarSolicitacoesElegiveis(actor, pendingRequests);
+
+            return Ok(_mapper.Map<IEnumerable<UsuarioAprovacaoDTO>>(eligibleRequests));
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Adicionar(AddUsuarioDTO addUsuarioDTO)
         {
             try
@@ -212,21 +247,31 @@ namespace LabSolos_Server_DotNet8.Controllers
                         "Você não tem permissão para adicionar um usuário do tipo Administrador. Apenas administradores podem realizar essa ação.");
                 }
 
-                int? responsavelId = null;
+                if (!PoliticaContas.TryGetPublicRole(addUsuarioDTO, out var publicRole))
+                    return RegistrationProblem(400, "registration_account_invalid", "Selecione Mentor ou Mentorado para o cadastro acadêmico.");
 
-                // Verificar se um responsável foi informado (aplicável para Mentorados que precisam de um Mentor responsável)
-                if (addUsuarioDTO.ResponsavelEmail is not null)
+                if (_operationAdmissionPolicy is not null)
                 {
-                    var responsavel = await _uow.UsuarioRepository.ObterAsync(u => u.Email == addUsuarioDTO.ResponsavelEmail);
+                    var admission = await _operationAdmissionPolicy.AdmitPublicRegistrationAsync(
+                        HttpContext.Connection.RemoteIpAddress,
+                        HttpContext.RequestAborted);
+                    if (admission.Status == OperationAdmissionStatus.RateLimited)
+                        return OperationAdmissionResponses.RateLimited(Response, admission.RetryAfterSeconds);
+                    if (admission.Status == OperationAdmissionStatus.Unavailable)
+                        return OperationAdmissionResponses.Unavailable(Response);
+                }
 
-                    if (responsavel == null)
-                        return NotFound("O email do responsável informado não pertence a nenhum usuário válido");
+                int? responsavelId = null;
+                if (publicRole == NivelUsuario.Mentorado)
+                {
+                    var email = addUsuarioDTO.ResponsavelEmail?.Trim();
+                    var responsavel = string.IsNullOrEmpty(email)
+                        ? null
+                        : await _uow.UsuarioRepository.ObterAsync(u => u.Email == email);
+                    if (!PoliticaContas.IsEligibleResponsible(responsavel))
+                        return RegistrationProblem(400, "registration_responsible_invalid", "Verifique o e-mail do responsável informado.");
 
-                    // Validar se o responsável tem nível adequado para ser responsável
-                    if (responsavel.NivelUsuario != NivelUsuario.Mentor && responsavel.NivelUsuario != NivelUsuario.Administrador)
-                        return BadRequest("O usuário informado como responsável deve ser um Mentor ou Administrador");
-
-                    responsavelId = responsavel.Id;
+                    responsavelId = responsavel!.Id;
                 }
 
                 // Validar os dados do usuário através do serviço
@@ -244,22 +289,20 @@ namespace LabSolos_Server_DotNet8.Controllers
                     return BadRequest(new { Message = resultadoValidacao.Mensagem });
                 }
 
-                TipoUsuario tipoUsuario;
+                await using var registrationTransaction = _emailAddressReservations is null
+                    ? null
+                    : await _uow.BeginTransactionAsync(HttpContext.RequestAborted);
+                if (_emailAddressReservations is not null)
+                    await _emailAddressReservations.LockAddressAsync(addUsuarioDTO.Email, HttpContext.RequestAborted);
 
-                try
-                {
-                    tipoUsuario = _utilsService.ValidarEnum<TipoUsuario>(addUsuarioDTO.TipoUsuario, "TipoUsuario", TipoUsuario.Comum);
-                }
-                catch (ArgumentException ex)
-                {
-                    return BadRequest(new { Message = ex.Message });
-                }
+                if (await _uow.UsuarioRepository.ObterAsync(u => u.Email.Trim().ToLower() == addUsuarioDTO.Email) is not null ||
+                    (_emailAddressReservations is not null &&
+                     await _emailAddressReservations.IsUnavailableToAsync(
+                         addUsuarioDTO.Email, null, HttpContext.RequestAborted)))
+                    return RegistrationConflict();
 
-                Usuario usuario = tipoUsuario switch
-                {
-                    TipoUsuario.Academico => _mapper.Map<Academico>(addUsuarioDTO),
-                    _ => _mapper.Map<Usuario>(addUsuarioDTO)
-                };
+                Usuario usuario = _mapper.Map<Academico>(addUsuarioDTO);
+                PoliticaContas.ApplyRegistration(usuario, publicRole, responsavelId);
 
                 var passwordResult = _usuarioService.PrepararSenhaCadastro(usuario, addUsuarioDTO.Senha);
                 if (!passwordResult.IsValid)
@@ -268,11 +311,11 @@ namespace LabSolos_Server_DotNet8.Controllers
                 }
 
                 usuario.DataIngresso = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
-                usuario.ResponsavelId = responsavelId;
-                usuario.Status = StatusUsuario.Pendente;
 
                 _uow.UsuarioRepository.Criar(usuario);
                 await _uow.CommitAsync();
+                if (registrationTransaction is not null)
+                    await registrationTransaction.CommitAsync(HttpContext.RequestAborted);
 
                 // Criar notificação para administradores sobre nova solicitação de usuário
                 try
@@ -288,10 +331,34 @@ namespace LabSolos_Server_DotNet8.Controllers
 
                 return CreatedAtAction(nameof(ObterPeloId), new { id = usuario.Id }, _mapper.Map<UsuarioDTO>(usuario));
             }
+            catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+                { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Usuarios_Email" })
+            {
+                return RegistrationConflict();
+            }
             catch (ArgumentException e)
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        private static ObjectResult RegistrationConflict() => RegistrationProblem(
+            409, "registration_conflict", "Não foi possível concluir o cadastro com os dados informados.");
+
+        private static ObjectResult RegistrationProblem(int status, string code, string message)
+        {
+            var details = new ProblemDetails
+            {
+                Status = status,
+                Title = "Não foi possível cadastrar o usuário.",
+                Detail = message
+            };
+            details.Extensions["code"] = code;
+            return new ObjectResult(details)
+            {
+                StatusCode = status,
+                ContentTypes = { "application/problem+json" }
+            };
         }
 
         private static ObjectResult PasswordValidationProblem(string code)
@@ -361,6 +428,7 @@ namespace LabSolos_Server_DotNet8.Controllers
                 UserProfileUpdateStatus.Forbidden => StatusCode(StatusCodes.Status403Forbidden),
                 UserProfileUpdateStatus.Invalid => ProfileUpdateValidationProblem(update.Errors!),
                 UserProfileUpdateStatus.Conflict => ProfileUpdateConflictProblem(),
+                UserProfileUpdateStatus.ContinuityRequired => AdminContinuityProblem(),
                 UserProfileUpdateStatus.Unavailable => ProfileUpdateUnavailableProblem(),
                 _ => StatusCode(StatusCodes.Status500InternalServerError)
             };
@@ -413,143 +481,187 @@ namespace LabSolos_Server_DotNet8.Controllers
             ContentTypes = { "application/problem+json" }
         };
 
+        private AdminContinuityGuard ContinuityGuard => _adminContinuityGuard ??
+            throw new InvalidOperationException("The administrative continuity guard is not configured.");
+
+        private static ObjectResult AdminContinuityProblem()
+        {
+            var details = new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "É necessário manter ao menos um administrador habilitado."
+            };
+            details.Extensions["code"] = AdminContinuityGuard.ConflictCode;
+            return new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status409Conflict,
+                ContentTypes = { "application/problem+json" }
+            };
+        }
+
         [HttpPatch("dependentes/{dependenteId}/aprovar")]
         [Authorize(Policy = "ApenasResponsaveis")]
-        public async Task<IActionResult> AprovarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
-        {
-            // Buscar o usuário dependente pelo ID
-            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == dependenteId);
-            if (dependente == null)
-            {
-                return NotFound("Usuário dependente não encontrado.");
-            }
-
-            var authorizationError = ValidateDependentDecision(dependente, aprovadorDto);
-            if (authorizationError is not null)
-            {
-                return authorizationError;
-            }
-
-            // Verificar se o usuário já foi aprovado
-            if (dependente.Status != StatusUsuario.Pendente)
-            {
-                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
-            }
-
-            // Atualizar o status do usuário para aprovado
-            dependente.Status = StatusUsuario.Habilitado;
-
-            // Salvar a mudança no banco de dados
-            _uow.UsuarioRepository.Atualizar(dependente);
-            await _uow.CommitAsync();
-
-            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
-        }
+        public Task<IActionResult> AprovarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto) =>
+            ProcessarSolicitacaoAsync(
+                dependenteId,
+                aprovadorDto.AprovadorId,
+                StatusUsuario.Habilitado,
+                "Usuário aprovado com sucesso.");
 
         [HttpPatch("{usuarioId}/aprovar")]
         [Authorize(Policy = "ApenasAdministradores")]
-        public async Task<IActionResult> AdminAprovarUsuario(int usuarioId)
-        {
-            // Buscar o usuário dependente pelo ID
-            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
-            if (dependente == null)
-            {
-                return NotFound("Usuário dependente não encontrado.");
-            }
-
-            // Verificar se o usuário já foi aprovado
-            if (dependente.Status != StatusUsuario.Pendente)
-            {
-                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
-            }
-
-            // Atualizar o status do usuário para aprovado
-            dependente.Status = StatusUsuario.Habilitado;
-
-            // Salvar a mudança no banco de dados
-            _uow.UsuarioRepository.Atualizar(dependente);
-            await _uow.CommitAsync();
-
-            return Ok(new { Message = "Usuário aprovado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
-        }
+        public Task<IActionResult> AdminAprovarUsuario(int usuarioId) =>
+            ProcessarSolicitacaoAsync(
+                usuarioId,
+                expectedActorId: null,
+                StatusUsuario.Habilitado,
+                "Usuário aprovado com sucesso.");
 
         [HttpPatch("dependentes/{dependenteId}/rejeitar")]
         [Authorize(Policy = "ApenasResponsaveis")]
-        public async Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto)
-        {
-            // Buscar o usuário dependente pelo ID
-            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == dependenteId);
-            if (dependente == null)
-            {
-                return NotFound("Usuário dependente não encontrado.");
-            }
-
-            var authorizationError = ValidateDependentDecision(dependente, aprovadorDto);
-            if (authorizationError is not null)
-            {
-                return authorizationError;
-            }
-
-            // Verificar se o usuário já foi aprovado
-            if (dependente.Status != StatusUsuario.Pendente)
-            {
-                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
-            }
-
-            // Atualizar o status do usuário para rejeitado
-            dependente.Status = StatusUsuario.Desabilitado;
-
-            // Salvar a mudança no banco de dados
-            _uow.UsuarioRepository.Atualizar(dependente);
-            await _uow.CommitAsync();
-
-            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
-        }
+        public Task<IActionResult> RejeitarUsuario(int dependenteId, [FromBody] AprovarDTO aprovadorDto) =>
+            ProcessarSolicitacaoAsync(
+                dependenteId,
+                aprovadorDto.AprovadorId,
+                StatusUsuario.Desabilitado,
+                "Usuário rejeitado com sucesso.");
 
         [HttpPatch("{usuarioId}/rejeitar")]
         [Authorize(Policy = "ApenasAdministradores")]
-        public async Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto)
+        public Task<IActionResult> AdminRejeitarUsuario(int usuarioId, [FromBody] AprovarDTO aprovadorDto) =>
+            ProcessarSolicitacaoAsync(
+                usuarioId,
+                aprovadorDto.AprovadorId,
+                StatusUsuario.Desabilitado,
+                "Usuário rejeitado com sucesso.");
+
+        [HttpPatch("{usuarioId}/conceder-administrador")]
+        [Authorize(Policy = "ApenasAdministradores")]
+        public async Task<IActionResult> ConcederPapelAdministrador(int usuarioId)
         {
-            // Buscar o usuário dependente pelo ID
-            var dependente = await _uow.UsuarioRepository.ObterAsync(u => u.Id == usuarioId);
-            if (dependente == null)
+            var actorId = GetAuthenticatedUserId();
+            if (actorId is null)
+                return Forbid();
+
+            await using var transaction = await ContinuityGuard.BeginTransactionAsync(HttpContext.RequestAborted);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            if (actor is null || !PoliticaContas.IsEnabledAdministrator(actor))
+                return Forbid();
+
+            var target = await _uow.UsuarioRepository.ObterAsync(user => user.Id == usuarioId);
+            if (target is null)
+                return ResourceNotFound();
+
+            if (target.Id == actor.Id ||
+                target.Status != StatusUsuario.Habilitado ||
+                target.NivelUsuario == NivelUsuario.Administrador)
             {
-                return NotFound("Usuário dependente não encontrado.");
+                return AccountGrantConflict();
             }
 
-            // Verificar se o usuário já foi aprovado
-            if (dependente.Status != StatusUsuario.Pendente)
+            if (!await ContinuityGuard.CanApplyAsync(
+                    target.Id,
+                    NivelUsuario.Administrador,
+                    target.Status,
+                    cancellationToken: HttpContext.RequestAborted))
             {
-                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+                return AdminContinuityProblem();
             }
 
-            // Atualizar o status do usuário para rejeitado
-            dependente.Status = StatusUsuario.Desabilitado;
-
-            // Salvar a mudança no banco de dados
-            _uow.UsuarioRepository.Atualizar(dependente);
+            target.NivelUsuario = NivelUsuario.Administrador;
+            _uow.UsuarioRepository.Atualizar(target);
+            await RegistrarAuditoriaObrigatoriaAsync(
+                CodigoEventoAuditoria.ConcessaoConta,
+                actor.Id,
+                $"usuario:{target.Id}:Administrador");
             await _uow.CommitAsync();
+            await transaction.CommitAsync(HttpContext.RequestAborted);
 
-            return Ok(new { Message = "Usuário rejeitado com sucesso.", Usuario = _mapper.Map<DependenteDTO>(dependente) });
+            return NoContent();
         }
 
-        private UnauthorizedObjectResult? ValidateDependentDecision(Usuario dependente, AprovarDTO aprovadorDto)
+        private async Task<IActionResult> ProcessarSolicitacaoAsync(
+            int solicitacaoId,
+            int? expectedActorId,
+            StatusUsuario resultingStatus,
+            string message)
         {
-            var authenticatedUserId = GetAuthenticatedUserId();
-            if (authenticatedUserId is null || aprovadorDto.AprovadorId != authenticatedUserId.Value)
-            {
+            var actorId = GetAuthenticatedUserId();
+            if (actorId is null || expectedActorId is not null && expectedActorId != actorId.Value)
                 return Unauthorized(DependentDecisionUnauthorizedMessage);
-            }
 
-            if (User.IsInRole(NivelUsuario.Administrador.ToString()))
+            await using var transaction = await ContinuityGuard.BeginTransactionAsync(HttpContext.RequestAborted);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            if (actor is null || actor.Status != StatusUsuario.Habilitado ||
+                actor.NivelUsuario is not (NivelUsuario.Administrador or NivelUsuario.Mentor))
             {
-                return null;
+                return Forbid();
             }
 
-            return dependente.ResponsavelId == authenticatedUserId.Value
-                ? null
-                : Unauthorized(DependentDecisionUnauthorizedMessage);
+            var solicitacao = await _uow.UsuarioRepository.ObterAsync(
+                user => user.Id == solicitacaoId,
+                query => query.Include(user => user.Responsavel));
+            if (solicitacao is null)
+                return ResourceNotFound();
+
+            if (solicitacao.Status != StatusUsuario.Pendente)
+                return BadRequest("Este usuário já foi processado (aprovado ou rejeitado).");
+
+            if (!_usuarioService.PodeDecidir(actor, solicitacao))
+            {
+                return actor.NivelUsuario == NivelUsuario.Mentor
+                    ? Unauthorized(DependentDecisionUnauthorizedMessage)
+                    : BadRequest("Este usuário não está elegível para decisão.");
+            }
+
+            if (!await ContinuityGuard.CanApplyAsync(
+                    solicitacao.Id,
+                    solicitacao.NivelUsuario,
+                    resultingStatus,
+                    cancellationToken: HttpContext.RequestAborted))
+            {
+                return AdminContinuityProblem();
+            }
+
+            solicitacao.Status = resultingStatus;
+            _uow.UsuarioRepository.Atualizar(solicitacao);
+            await RegistrarAuditoriaObrigatoriaAsync(
+                CodigoEventoAuditoria.DecisaoConta,
+                actor.Id,
+                $"usuario:{solicitacao.Id}:{resultingStatus}");
+            await _uow.CommitAsync();
+            await transaction.CommitAsync(HttpContext.RequestAborted);
+
+            return Ok(new { Message = message, Usuario = _mapper.Map<DependenteDTO>(solicitacao) });
         }
+
+        private Task RegistrarAuditoriaObrigatoriaAsync(
+            CodigoEventoAuditoria code,
+            int actorId,
+            string resourceReference)
+        {
+            var auditService = _auditoriaService ??
+                throw new InvalidOperationException("The mandatory account audit service is not configured.");
+
+            return auditService.RegistrarEventoObrigatorioAsync(new CreateLogAuditoriaDTO
+            {
+                CodigoEvento = code,
+                OrigemConfiavel = OrigemConfiavelAuditoria.UsuarioAutenticado,
+                Resultado = ResultadoOperacaoAuditoria.Sucesso,
+                UsuarioId = actorId,
+                ReferenciaRecurso = resourceReference
+            });
+        }
+
+        private static ConflictObjectResult AccountGrantConflict() => new(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "A concessão administrativa não pode ser aplicada a esta conta."
+        })
+        {
+            StatusCode = StatusCodes.Status409Conflict,
+            ContentTypes = { "application/problem+json" }
+        };
 
         private int? GetAuthenticatedUserId()
         {
@@ -608,12 +720,18 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> Delete(int id)
         {
+            await using var transaction = await ContinuityGuard.BeginTransactionAsync(HttpContext.RequestAborted);
             var usuario = await _uow.UsuarioRepository.ObterAsync(u => u.Id == id);
 
             if (usuario == null) return NotFound();
 
+            if (!await ContinuityGuard.CanApplyAsync(id, usuario.NivelUsuario, usuario.Status,
+                    delete: true, cancellationToken: HttpContext.RequestAborted))
+                return AdminContinuityProblem();
+
             _uow.UsuarioRepository.Remover(usuario);
             await _uow.CommitAsync();
+            await transaction.CommitAsync(HttpContext.RequestAborted);
             return NoContent();
         }
     }

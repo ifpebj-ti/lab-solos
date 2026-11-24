@@ -1,8 +1,9 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { clearSession } from '@/auth/session';
+import { establishTestSession } from '@/test/session';
 
 import { approveLoan, rejectLoan } from './Loans';
 
@@ -20,8 +21,7 @@ const decisionUrl = (action: (typeof decisions)[number][1]) =>
 
 describe('Loans: contrato de decisao administrativa', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', String(approverId));
+    establishTestSession(String(approverId), 'Administrador');
   });
 
   it.each(decisions)(
@@ -38,8 +38,9 @@ describe('Loans: contrato de decisao administrativa', () => {
             receivedBody = await request.json();
             receivedMethod = request.method;
             receivedUrl = request.url;
-            expect(request.headers.get('authorization')).toBe(
-              'Bearer session-token'
+            expect(request.headers.get('authorization')).toBeNull();
+            expect(request.headers.get('x-csrf-token')).toBe(
+              'test-session-bound-proof'
             );
             return new HttpResponse(null, { status: 204 });
           }
@@ -90,14 +91,8 @@ describe('Loans: contrato de decisao administrativa', () => {
     });
   });
 
-  it.each(decisions)('exige sessao e aprovador para %s', async (_label, _action, mutate) => {
-    Cookie.remove('doorKey');
-    await expect(mutate(loanId)).rejects.toMatchObject({
-      name: 'ApplicationError',
-    });
-
-    Cookie.set('doorKey', 'session-token');
-    Cookie.remove('rankID');
+  it.each(decisions)('exige contexto de sessão para %s', async (_label, _action, mutate) => {
+    clearSession();
     await expect(mutate(loanId)).rejects.toMatchObject({
       name: 'ApplicationError',
     });

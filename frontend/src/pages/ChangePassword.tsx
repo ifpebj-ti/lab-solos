@@ -50,17 +50,12 @@ function ChangePassword({ required = false }: ChangePasswordProps) {
 
   const submit = async (data: ChangePasswordForm) => {
     try {
-      const session = readSession();
-      if (!session) {
+      if (!readSession()) {
         endSession();
         return;
       }
 
-      await api.post('Auth/change-password', data, {
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
-      });
+      await api.post('Auth/change-password', data);
       endSession();
     } catch (error: unknown) {
       const normalizedError = normalizeError(error);

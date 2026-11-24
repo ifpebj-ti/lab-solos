@@ -1,10 +1,12 @@
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Extensions;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace LabSolos_Server_DotNet8.Controllers
@@ -16,6 +18,7 @@ namespace LabSolos_Server_DotNet8.Controllers
     {
         private readonly ILogger<AuditoriaController> _logger;
         private readonly IAuditoriaService _auditoriaService;
+        private readonly IAuditQueryPolicy _auditQueryPolicy;
         private static readonly Action<ILogger, string, Exception?> LogAuditOperationFailure =
             LoggerMessage.Define<string>(
                 LogLevel.Error,
@@ -24,51 +27,53 @@ namespace LabSolos_Server_DotNet8.Controllers
 
         public AuditoriaController(
             IAuditoriaService auditoriaService,
+            IAuditQueryPolicy auditQueryPolicy,
             ILogger<AuditoriaController> logger)
         {
             _auditoriaService = auditoriaService;
+            _auditQueryPolicy = auditQueryPolicy;
             _logger = logger;
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> RegistrarLog([FromBody] CreateLogAuditoriaDTO logDto)
-        {
-            try
-            {
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-                int? userId = null;
-                if (userIdClaim != null)
-                {
-                    if (!int.TryParse(userIdClaim.Value, out var parsedUserId))
-                        return BadRequest(new { message = "Erro ao registrar log." });
-
-                    userId = parsedUserId;
-                }
-
-                var enderecoIP = HttpContext.GetClientIpAddress();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditoriaService.RegistrarLogAsync(logDto, userId, enderecoIP, userAgent);
-
-                return Ok(new { message = "Log registrado com sucesso" });
-            }
-            catch (DbUpdateException ex)
-            {
-                return AuditOperationFailure("registrar log", "Erro ao registrar log.", ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return AuditOperationFailure("registrar log", "Erro ao registrar log.", ex);
-            }
-        }
+        public IActionResult RegistrarLog() => StatusCode(
+            StatusCodes.Status410Gone,
+            new { message = "Eventos de auditoria são derivados pelo servidor." });
 
         [HttpGet("logs")]
-        public async Task<IActionResult> ObterLogs([FromQuery] FiltroAuditoriaDTO filtro)
+        public async Task<IActionResult> ObterLogs(
+            [FromQuery] FiltroAuditoriaDTO filtro,
+            [FromQuery(Name = "pagina")] string? paginaInformada,
+            [FromQuery(Name = "tamanhoPagina")] string? tamanhoPaginaInformado)
         {
+            if (!_auditQueryPolicy.TryCreatePagination(
+                    paginaInformada,
+                    tamanhoPaginaInformado,
+                    out var parametros,
+                    out var parametroInvalido))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Os parâmetros de paginação são inválidos.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Extensions = { ["code"] = "pagination_invalid", ["parameter"] = parametroInvalido }
+                });
+            }
+
+            if (!TryGetAdministratorId(out var administratorId))
+                return Forbid();
+
+            var admission = await _auditQueryPolicy.AdmitQueryAsync(administratorId, HttpContext.RequestAborted);
+            var admissionFailure = AdmissionFailure(admission);
+            if (admissionFailure is not null)
+                return admissionFailure;
+
             try
             {
-                var logs = await _auditoriaService.ObterLogsFiltradosAsync(filtro);
-                return Ok(logs);
+                return Ok(await _auditQueryPolicy.ConsultarAsync(
+                    filtro,
+                    parametros,
+                    HttpContext.RequestAborted));
             }
             catch (InvalidOperationException ex)
             {
@@ -77,14 +82,25 @@ namespace LabSolos_Server_DotNet8.Controllers
         }
 
         [HttpGet("relatorio")]
-        public async Task<IActionResult> GerarRelatorio([FromQuery] DateTime? dataInicio, [FromQuery] DateTime? dataFim)
+        public async Task<IActionResult> GerarRelatorio([FromQuery] FiltroAuditoriaDTO filtro)
         {
+            if (!TryGetAdministratorId(out var administratorId))
+                return Forbid();
+
+            if (filtro.DataInicio is null && filtro.DataFim is null)
+            {
+                filtro.DataInicio = DateTime.UtcNow.AddDays(-30);
+                filtro.DataFim = DateTime.UtcNow;
+            }
+
+            var admission = await _auditQueryPolicy.AdmitQueryAsync(administratorId, HttpContext.RequestAborted);
+            var admissionFailure = AdmissionFailure(admission);
+            if (admissionFailure is not null)
+                return admissionFailure;
+
             try
             {
-                var inicio = dataInicio ?? DateTime.UtcNow.AddDays(-30);
-                var fim = dataFim ?? DateTime.UtcNow;
-
-                var relatorio = await _auditoriaService.GerarRelatorioAsync(inicio, fim);
+                var relatorio = await _auditQueryPolicy.GerarRelatorioAsync(filtro, HttpContext.RequestAborted);
                 return Ok(relatorio);
             }
             catch (InvalidOperationException ex)
@@ -93,33 +109,56 @@ namespace LabSolos_Server_DotNet8.Controllers
             }
         }
 
-        [HttpPatch("marcar-suspeito/{logId}")]
-        public async Task<IActionResult> MarcarComoSuspeito(int logId, [FromBody] string motivo)
+        [HttpGet("exportar")]
+        public async Task<IActionResult> Exportar([FromQuery] FiltroAuditoriaDTO filtro)
         {
+            if (!TryGetAdministratorId(out var administratorId))
+                return Forbid();
+
+            var admission = await _auditQueryPolicy.AdmitExportAsync(administratorId, HttpContext.RequestAborted);
+            var admissionFailure = AdmissionFailure(admission);
+            if (admissionFailure is not null)
+                return admissionFailure;
+
             try
             {
-                await _auditoriaService.MarcarComoSuspeitoAsync(logId, motivo);
-                return Ok(new { message = "Log marcado como suspeito" });
+                var exportacao = await _auditQueryPolicy.PrepararExportacaoAsync(filtro, HttpContext.RequestAborted);
+                if (exportacao.ExcedeLimite(AuditQueryPolicy.MaximumExportRecords))
+                {
+                    var problem = new ProblemDetails
+                    {
+                        Title = "O recorte excede o limite de exportação.",
+                        Detail = "Aplique filtros para exportar até 5.000 registros por solicitação.",
+                        Status = StatusCodes.Status400BadRequest
+                    };
+                    problem.Extensions["code"] = "audit_export_limit_exceeded";
+                    return BadRequest(problem);
+                }
+
+                Response.Headers.CacheControl = "no-store";
+                var csv = _auditQueryPolicy.SerializarCsv(exportacao.Itens);
+                return File(
+                    System.Text.Encoding.UTF8.GetBytes(csv),
+                    "text/csv; charset=utf-8",
+                    "auditoria.csv");
             }
-            catch (DbUpdateException ex)
+            catch (InvalidOperationException ex)
             {
-                return AuditOperationFailure("marcar log como suspeito", "Erro ao marcar log.", ex);
+                return AuditOperationFailure("exportar logs", "Erro ao exportar logs.", ex);
             }
         }
 
+        [HttpPatch("marcar-suspeito/{logId}")]
+        public Task<IActionResult> MarcarComoSuspeito(
+            int logId,
+            [FromBody] ReclassificarAuditoriaDTO solicitacao) =>
+            ReclassificarAsync(logId, solicitacao, suspeitaResultante: true);
+
         [HttpPatch("marcar-nao-suspeito/{logId}")]
-        public async Task<IActionResult> MarcarComoNaoSuspeito(int logId)
-        {
-            try
-            {
-                await _auditoriaService.MarcarComoNaoSuspeitoAsync(logId);
-                return Ok(new { message = "Log marcado como não suspeito" });
-            }
-            catch (DbUpdateException ex)
-            {
-                return AuditOperationFailure("marcar log como nao suspeito", "Erro ao marcar log.", ex);
-            }
-        }
+        public Task<IActionResult> MarcarComoNaoSuspeito(
+            int logId,
+            [FromBody] ReclassificarAuditoriaDTO solicitacao) =>
+            ReclassificarAsync(logId, solicitacao, suspeitaResultante: false);
 
         [HttpGet("verificar-atividade-suspeita")]
         public async Task<IActionResult> VerificarAtividadeSuspeita([FromQuery] int usuarioId)
@@ -158,6 +197,79 @@ namespace LabSolos_Server_DotNet8.Controllers
         {
             LogAuditOperationFailure(_logger, operation, exception);
             return BadRequest(new { message });
+        }
+
+        private IActionResult? AdmissionFailure(OperationAdmissionResult result) => result.Status switch
+        {
+            OperationAdmissionStatus.Allowed => null,
+            OperationAdmissionStatus.RateLimited => OperationAdmissionResponses.RateLimited(
+                Response,
+                result.RetryAfterSeconds),
+            OperationAdmissionStatus.Unavailable => OperationAdmissionResponses.Unavailable(Response),
+            _ => OperationAdmissionResponses.Unavailable(Response)
+        };
+
+        private bool TryGetAdministratorId(out int administratorId)
+        {
+            var identifier = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(
+                    identifier,
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out administratorId)
+                && administratorId > 0;
+        }
+
+        private async Task<IActionResult> ReclassificarAsync(
+            int logId,
+            ReclassificarAuditoriaDTO solicitacao,
+            bool suspeitaResultante)
+        {
+            var identificadorAtor = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(
+                    identificadorAtor,
+                    NumberStyles.None,
+                    CultureInfo.InvariantCulture,
+                    out var autorUsuarioId) || autorUsuarioId <= 0)
+                return Forbid();
+
+            try
+            {
+                var revisao = await _auditoriaService.ReclassificarClassificacaoAsync(
+                    logId,
+                    autorUsuarioId,
+                    solicitacao.RevisaoEsperada,
+                    suspeitaResultante,
+                    solicitacao.Justificativa);
+                if (revisao is null)
+                    return NotFound();
+
+                return Ok(new
+                {
+                    message = "Classificação atualizada",
+                    revisaoClassificacao = revisao.NumeroRevisao
+                });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict(new
+                {
+                    code = "audit_classification_conflict",
+                    message = "A classificação foi atualizada por outro administrador. Recarregue o evento."
+                });
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new
+                {
+                    code = "audit_classification_justification_invalid",
+                    message = "Informe uma justificativa válida com até 1.000 caracteres."
+                });
+            }
+            catch (DbUpdateException exception)
+            {
+                return AuditOperationFailure("reclassificar evento de auditoria", "Erro ao atualizar classificação.", exception);
+            }
         }
     }
 }

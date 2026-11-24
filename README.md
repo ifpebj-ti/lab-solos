@@ -1,4 +1,5 @@
 ![Container CI](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml/badge.svg)
+[![Coverage reports](https://img.shields.io/badge/coverage-reports-blue?logo=githubactions)](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml?query=branch%3Adevelop)
 ![Container Release](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-release.yml/badge.svg)
 ![License](https://img.shields.io/github/license/ifpebj-ti/lab-solos)
 ![Last Commit](https://img.shields.io/github/last-commit/ifpebj-ti/lab-solos)
@@ -40,6 +41,14 @@ O frontend usa Tailwind CSS 4, com requisitos de navegador Safari 16.4+, Chrome 
 
 ![XUnit](https://img.shields.io/badge/XUnit-5E5349?style=for-the-badge&logo=xunit&logoColor=white)
 
+## Cobertura de linhas
+
+Use o badge **Coverage reports** para abrir as execuções de `Container CI` na branch `develop`. Na execução desejada, consulte o job `Coverage policy` e os artefatos `coverage-summary`, `frontend-coverage` e `backend-coverage`; o acesso segue as permissões de leitura do repositório e os relatórios ficam disponíveis por 30 dias.
+
+A política mede cobertura de linhas separadamente para frontend e backend, exigindo no mínimo 70% em cada módulo. Os relatórios normalizados identificam o módulo, a métrica, numerador, denominador, SHA testado, `run_id` e `run_attempt`. Os coletores incluem arquivos de produção elegíveis mesmo sem linhas visitadas; excluem testes, código gerado, migrações e artefatos de build. As regras detalhadas estão em [coleta do frontend](.github/scripts/collect_frontend_coverage.py) e [coleta do backend](.github/scripts/collect_backend_coverage.py).
+
+Relatório ausente, inválido ou de outra execução, falha de infraestrutura ou resultado abaixo do limite deixa a verificação sem aprovação e bloqueia o `Quality gate`; não é tratado como cobertura zero nem como sucesso. O badge direciona à fonte das medidas, sem fixar percentuais que possam ficar desatualizados.
+
 ## Contribuição
 Para a contribuição do projeto foi adotado o fluxo de trabalho Trunk Based. 
 Visualizar o passo a passo em: [Fluxo de Contribuição](https://github.com/ifpebj-ti/lab-solos/blob/main/CONTRIBUTING.md)
@@ -66,7 +75,7 @@ O histórico das equipes anteriores permanece na [Wiki](https://github.com/ifpeb
 
 ## Telas e referências visuais
 
-As [telas documentadas no manual](docs/manual/README.md), o [sistema publicado](https://labon.nmvr.me) e os [sprint reports](https://lab-on-presentation.vercel.app/) permitem consultar a interface e a evolução do produto. O link de um protótipo independente (Figma ou equivalente) ainda precisa ser informado pelo responsável; capturas de tela e o sistema implementado não comprovam a validação de um protótipo com o cliente.
+O [sistema publicado](https://labon.nmvr.me), aprovado pelo cliente como referência do produto, e as [telas documentadas no manual](docs/manual/README.md) permitem consultar a interface. Não há protótipo independente aprovado. Os seis fluxos principais do sistema são: acesso e cadastro; empréstimo e devolução; materiais e estoque; consulta e acompanhamento; equipe e turma; conta e credenciais. Os [sprint reports](https://lab-on-presentation.vercel.app/) detalham as demonstrações feitas em cada período.
 
 ## Execução local e produção
 
@@ -94,7 +103,9 @@ Os exemplos validam nomes e estrutura; os placeholders não são credenciais de 
 
 ## Entregas, segurança e contribuição
 
-Consulte o [changelog](CHANGELOG.md), as [releases](https://github.com/ifpebj-ti/lab-solos/releases) e o [guia de contribuição](CONTRIBUTING.md). Abra uma issue antes do PR e vincule-a na descrição. O template de issue segue a estrutura usada no backlog do projeto.
+Consulte o [changelog](CHANGELOG.md), as [releases](https://github.com/ifpebj-ti/lab-solos/releases) e o [guia de contribuição](CONTRIBUTING.md).
+
+Abra uma issue antes do PR. Use [Relato de bug](.github/ISSUE_TEMPLATE/bug.md) para registrar uma falha, com passos de reprodução ou o comportamento observado. Use [Proposta de melhoria](.github/ISSUE_TEMPLATE/melhoria.md) para sugerir uma funcionalidade ou aprimorar um fluxo existente. Em ambos os modelos, descreva o contexto e o resultado esperado e inclua critérios de aceitação verificáveis. Vincule a issue na descrição do PR.
 
 Os scans Trivy incluem vulnerabilidades altas e críticas, mesmo quando não há correção disponível. O relatório completo é publicado na pipeline e o gate bloqueia esses achados. A situação do Dependabot deve ser consultada na data da entrega; ausência de alertas não substitui a modelagem de ameaças ou os testes de autorização.
 

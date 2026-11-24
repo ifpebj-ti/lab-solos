@@ -134,6 +134,35 @@ public sealed class AuthenticationProtectionStartupValidator : IHostedService, I
                 IpFailures = options.RecoveryCode?.IpFailures,
                 WindowSeconds = options.RecoveryCode?.WindowSeconds
             },
+            PasswordChange = new
+            {
+                AccountFailures = PasswordChangeRateLimitPolicy.FailureLimit,
+                WindowSeconds = (int)PasswordChangeRateLimitPolicy.Window.TotalSeconds
+            },
+            OperationAdmission = new
+            {
+                PublicRegistration = new
+                {
+                    Limit = OperationAdmissionPolicy.RegistrationLimit,
+                    WindowSeconds = (int)OperationAdmissionPolicy.OperationWindow.TotalSeconds
+                },
+                LoanCreation = new
+                {
+                    Limit = OperationAdmissionPolicy.LoanCreationLimit,
+                    WindowSeconds = (int)OperationAdmissionPolicy.OperationWindow.TotalSeconds,
+                    MaximumItems = OperationAdmissionPolicy.MaximumLoanItems
+                },
+                NotificationManual = new
+                {
+                    Limit = NotificationQuotaPolicy.ManualLimit,
+                    WindowSeconds = (int)NotificationQuotaPolicy.Window.TotalSeconds
+                },
+                NotificationAutomatic = new
+                {
+                    Limit = NotificationQuotaPolicy.AutomaticLimit,
+                    WindowSeconds = (int)NotificationQuotaPolicy.Window.TotalSeconds
+                }
+            },
             MaxBucketsPerScope = options.MaxBucketsPerScope,
             MaxActiveRecoveryJobs = options.MaxActiveRecoveryJobs,
             CleanupIntervalSeconds = options.CleanupIntervalSeconds,

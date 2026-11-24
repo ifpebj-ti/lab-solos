@@ -20,6 +20,20 @@ public class ProductDateMappingTests
         Assert.Equal(new DateTime(2027, 9, 14, 0, 0, 0, DateTimeKind.Utc), produto.DataValidade);
     }
 
+    [Fact]
+    public void AddQuimicoComDiaBissextoMapeiaMeiaNoiteUtc()
+    {
+        var dto = CriarDto(dataFabricacao: "2024-02-29", dataValidade: "2028-02-29");
+        dto.Tipo = nameof(TipoProduto.Quimico);
+
+        var produto = CriarMapper().Map<Quimico>(dto);
+
+        Assert.Equal(new DateTime(2024, 2, 29), produto.DataFabricacao);
+        Assert.Equal(DateTimeKind.Utc, produto.DataFabricacao?.Kind);
+        Assert.Equal(new DateTime(2028, 2, 29), produto.DataValidade);
+        Assert.Equal(DateTimeKind.Utc, produto.DataValidade?.Kind);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

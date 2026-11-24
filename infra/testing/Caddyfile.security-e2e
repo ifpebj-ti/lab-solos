@@ -7,11 +7,18 @@ import /etc/caddy/security-headers.caddy
 https://localhost {
 	tls internal
 	encode zstd gzip
+	log {
+		output stdout
+		format json
+	}
 
 	import common_security_headers
+	import api_proxy_error_contract
 
-	@api path /api/*
+	@api path /api /api/*
 	handle @api {
+		import api_security_policy
+		import api_request_body_limit
 		reverse_proxy api:8080
 	}
 

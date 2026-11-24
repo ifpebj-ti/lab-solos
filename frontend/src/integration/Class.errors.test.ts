@@ -1,4 +1,3 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,18 +8,16 @@ import {
   getDependentesID,
 } from './Class';
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 
 describe('Class: erros de integração', () => {
   beforeEach(() => {
-    Cookie.remove('doorKey');
-    Cookie.remove('rankID');
+    establishTestSession('42', 'Mentor');
   });
 
   it('preserva uma lista de dependentes bem-sucedida', async () => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '42');
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/42/dependentes`, () =>
         HttpResponse.json([])
@@ -31,8 +28,6 @@ describe('Class: erros de integração', () => {
   });
 
   it('propaga validação HTTP como ApplicationError', async () => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '42');
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/42/dependentes`, () =>
         HttpResponse.json(
@@ -54,8 +49,6 @@ describe('Class: erros de integração', () => {
   });
 
   it('normaliza validação local e não registra Error bruto', async () => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '42');
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/42/dependentes`, () =>
         HttpResponse.json({ invalid: true })
@@ -79,7 +72,6 @@ describe('Class: erros de integração', () => {
       () => getDependentesForApproval('42'),
     ],
   ] as const)('propaga 404 de acesso em %s', async (_operation, path, request) => {
-    Cookie.set('doorKey', 'session-token');
     server.use(
       http.get(`${API_ORIGIN}${path}`, () => new HttpResponse(null, { status: 404 }))
     );
@@ -99,14 +91,12 @@ describe('Class: erros de integração', () => {
       () => getDependentesForApproval('42'),
     ],
   ] as const)('preserva 200 com coleção vazia em %s', async (_operation, path, request) => {
-    Cookie.set('doorKey', 'session-token');
     server.use(http.get(`${API_ORIGIN}${path}`, () => HttpResponse.json([])));
 
     await expect(request()).resolves.toEqual([]);
   });
 
   it('preserva a semântica vazia do endpoint administrativo de aprovação', async () => {
-    Cookie.set('doorKey', 'session-token');
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/aprovacao`, () => new HttpResponse(null, { status: 404 }))
     );
@@ -115,8 +105,6 @@ describe('Class: erros de integração', () => {
   });
 
   it('mantém 404 como not_found nas demais consultas', async () => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '42');
     server.use(
       http.get(`${API_ORIGIN}/Usuarios/42/dependentes`, () =>
         new HttpResponse(null, { status: 404 })

@@ -1,19 +1,21 @@
-import Cookie from 'js-cookie';
+import { establishTestSession } from '@/test/session';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { getMinhasNotificacoes } from './Notifications';
+import {
+  getCountNotificacoesNaoLidas,
+  getMinhasNotificacoes,
+} from './Notifications';
 import { server } from '@/test/msw/server';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 
 describe('Notifications: erros de integração', () => {
   beforeEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('preserva uma lista de notificações bem-sucedida', async () => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession();
     server.use(
       http.get(`${API_ORIGIN}/Notificacoes/minhas`, () => HttpResponse.json([]))
     );
@@ -21,8 +23,19 @@ describe('Notifications: erros de integração', () => {
     await expect(getMinhasNotificacoes()).resolves.toEqual([]);
   });
 
+  it('preserva contador zerado quando o destinatário não tem itens não lidos', async () => {
+    establishTestSession();
+    server.use(
+      http.get(`${API_ORIGIN}/Notificacoes/count-nao-lidas`, () =>
+        HttpResponse.json({ count: 0 })
+      )
+    );
+
+    await expect(getCountNotificacoesNaoLidas()).resolves.toEqual({ count: 0 });
+  });
+
   it('propaga validação HTTP sem expor mensagem remota', async () => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession();
     server.use(
       http.get(`${API_ORIGIN}/Notificacoes/minhas`, () =>
         HttpResponse.json(
@@ -43,9 +56,14 @@ describe('Notifications: erros de integração', () => {
     expect(JSON.stringify(error)).not.toContain('segredo');
   });
 
-  it('normaliza rejeição local de autenticação', async () => {
+  it('deixa a ausência da sessão ser recusada pela API', async () => {
+    server.use(
+      http.get(`${API_ORIGIN}/Notificacoes/minhas`, () =>
+        new HttpResponse(null, { status: 401 })
+      )
+    );
     const error = await getMinhasNotificacoes().catch((reason: unknown) => reason);
 
-    expect(error).toMatchObject({ name: 'ApplicationError', category: 'unknown' });
+    expect(error).toMatchObject({ name: 'ApplicationError', status: 401 });
   });
 });

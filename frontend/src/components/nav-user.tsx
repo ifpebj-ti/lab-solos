@@ -20,7 +20,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { CaretSortIcon } from '@radix-ui/react-icons';
-import { clearSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
+import { notifyError } from '@/errors/presentError';
 
 function getProfileRoute(nivelUsuario?: string) {
   switch (nivelUsuario) {
@@ -47,9 +48,13 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
 
-  function handleLogout() {
-    clearSession();
-    navigate('/');
+  async function handleLogout() {
+    try {
+      await logoutSession();
+      navigate('/', { replace: true });
+    } catch (error: unknown) {
+      notifyError(error, 'encerrar a sessão');
+    }
   }
 
   // Defina a rota do profile conforme o tipo de usuário

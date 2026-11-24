@@ -20,6 +20,16 @@ export const productFixtures = Array.from({ length: 42 }, (_, index) => ({
   unidadeMedida: index === 1 ? undefined : 'ml',
   status: 'Disponivel',
 }));
+export function paginatedProductResponse<TItem>(itens: TItem[]) {
+  const tamanhoPagina = 100;
+  return {
+    itens,
+    pagina: 1,
+    tamanhoPagina,
+    totalItens: itens.length,
+    totalPaginas: Math.ceil(itens.length / tamanhoPagina),
+  };
+}
 export const registrationRequestFixtures = Array.from(
   { length: 8 },
   (_, index) => ({
@@ -29,6 +39,7 @@ export const registrationRequestFixtures = Array.from(
         ? 'Pessoa ' + 'A'.repeat(200)
         : `Pessoa sintetica ${index + 1}`,
     email: `pessoa-${index + 1}@example.invalid`,
+    tipoUsuario: 'Academico',
     telefone: null,
     dataIngresso: `2026-09-${String(index + 1).padStart(2, '0')}`,
     status: 'Pendente',
@@ -473,35 +484,19 @@ export const verificationHistoryFixture = {
   historico: [
     {
       emprestimoId: 2001,
-      dataEmprestimo: '2026-09-01T10:00:00',
-      dataDevolucao: null,
+      dataSaida: '2026-09-01T10:00:00',
       quantidadeEmprestada: 2,
-      statusEmprestimo: 'Emprestado',
-      solicitante: {
-        id: 4242,
-        nome: 'Pessoa sintética',
-        email: 'sessao@example.invalid',
-        instituicao: null,
-      },
-      aprovador: null,
-      identificador: 'ID-2001',
+      unidadeMedida: 'kg',
       lote: null,
+      solicitanteNome: 'Pessoa sintética',
     },
     {
       emprestimoId: 2002,
-      dataEmprestimo: '2026-09-02T10:00:00',
-      dataDevolucao: null,
+      dataSaida: '2026-09-02T10:00:00',
       quantidadeEmprestada: 3,
-      statusEmprestimo: 'Devolvido',
-      solicitante: {
-        id: 4243,
-        nome: 'Outra pessoa',
-        email: 'outra@example.invalid',
-        instituicao: null,
-      },
-      aprovador: null,
-      identificador: 'ID-2002',
+      unidadeMedida: 'kg',
       lote: 'L-2002',
+      solicitanteNome: 'Outra pessoa',
     },
   ],
 };
@@ -523,19 +518,24 @@ export const loanHistoriesFixtures = Array.from({ length: 8 }, (_, index) => ({
   aprovador: null,
 })).map(normalizeLoanFixture);
 
-export const alertFixtures = [
+export const followUpCatalogFixtures = [
   {
     id: 1901,
+    catmat: 'CAT-1901',
     nomeProduto: 'Alerta ' + 'A'.repeat(200),
     tipoProduto: 'Quimico',
     fornecedor: 'Fornecedor sintético',
+    unidadeMedida: 'Litro',
     quantidade: 2,
     quantidadeMinima: 8,
     localizacaoProduto: 'Armário 1',
     dataFabricacao: null,
     dataValidade: '2026-12-20',
+    ultimaModificacao: '2026-11-01T10:00:00Z',
     status: 'Disponível',
-    unidadeMedida: 'Litro',
+    lote: null,
+    capacidadeMl: null,
+    motivosAlerta: ['estoque_abaixo_minimo'],
   },
 ];
 
@@ -654,21 +654,17 @@ export const menteeMentoringHistoryFixtures = [
   },
 ].map(normalizeLoanFixture);
 export async function mockResponsiveSession(page: Page, role: string) {
-  const payload = Buffer.from(
-    JSON.stringify({ sub: '4242', role, password_change_required: false })
-  ).toString('base64url');
-  const hostname = new URL(process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173')
-    .hostname;
-  await page.context().addCookies([
-    {
-      name: 'doorKey',
-      value: `eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.${payload}.`,
-      domain: hostname,
-      path: '/',
-    },
-    { name: 'rankID', value: '4242', domain: hostname, path: '/' },
-    { name: 'level', value: role, domain: hostname, path: '/' },
-  ]);
+  await page.addInitScript((sessionRole) => {
+    sessionStorage.setItem(
+      'auth:session-context',
+      JSON.stringify({
+        userId: '4242',
+        role: sessionRole,
+        requiresPasswordChange: false,
+      })
+    );
+    sessionStorage.setItem('auth:csrf-token', 'responsive-test-csrf-proof');
+  }, role);
   await page.route('**/api/**', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/Usuarios/4242', (route) =>
     route.fulfill({
@@ -692,6 +688,9 @@ export async function mockResponsiveSession(page: Page, role: string) {
     route.fulfill({
       json: { produtos: { Vidraria: 1, Quimico: 41, Outro: 0 } },
     })
+  );
+  await page.route('**/api/Auth/logout', (route) =>
+    route.fulfill({ status: 204 })
   );
 }
 export async function expectPageFits(page: Page, listName: string | RegExp = 'Produtos') {
@@ -761,7 +760,6 @@ export async function fillResponsiveAccount(page: Page) {
     curso: '  ES  ',
     cidade: '  Belo Jardim  ',
     telefone: '81999999999',
-    emailMentor: 'mentor@example.invalid',
   }))
     await page.locator(`input[name="${name}"]`).fill(value);
 }

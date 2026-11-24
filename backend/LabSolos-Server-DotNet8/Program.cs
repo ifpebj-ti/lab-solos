@@ -1,4 +1,5 @@
 using LabSolos_Server_DotNet8.BackgroundServices;
+using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Data.Seeds;
 using LabSolos_Server_DotNet8.Filters;
@@ -12,10 +13,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.IdentityModel.Tokens;
 using System.Net;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +24,8 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ApiLoggingFilter));
     options.Filters.Add(typeof(ApiExceptionFilter));
+    options.Filters.Add<ApiErrorContractFilter>();
+    options.ModelBinderProviders.Insert(0, new ApiDateFilterBinderProvider());
 })
 .AddJsonOptions(options =>
 {
@@ -35,15 +36,38 @@ builder.Services.AddControllers(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .GroupBy(entry => entry.Value!.Errors.Any(error => error.Exception is not null)
+                ? ""
+                : System.Text.Json.JsonNamingPolicy.CamelCase.ConvertName(entry.Key))
+            .ToDictionary(group => group.Key, _ => new[] { "Verifique o valor informado." });
+        var problem = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(errors)
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Verifique os dados informados."
+        };
+        problem.Extensions["code"] = "validation_failed";
+        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problem);
+    };
+});
+
 // Configuração de algumas dependẽncias
-builder.Services.AddSingleton<JwtService>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<ProductCivilDay>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddPasswordSecurity();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
+builder.Services.AddScoped<IProductLifecycleService, ProductLifecycleService>();
+builder.Services.AddScoped<ProductEffectiveOutflowQuery>();
+builder.Services.AddScoped<ProductHistoryAccessService>();
 builder.Services.AddScoped<ILoteService, LoteService>();
 builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
@@ -54,9 +78,15 @@ builder.Services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies()
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped<ILoanDecisionService, LoanDecisionService>();
+builder.Services.AddScoped<ISessaoService, SessaoService>();
+builder.Services.AddScoped<EmailChangeNoticeService>();
 
 // Adicionar o background service para verificação de empréstimos vencidos
 builder.Services.AddHostedService<EmprestimosVencidosBackgroundService>();
+builder.Services.AddHostedService<EmailChangeNoticeBackgroundService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
@@ -68,35 +98,32 @@ builder.Services.AddHealthChecks()
     .AddCheck<AuthenticationProtectionReadinessHealthCheck>("authentication-protection-readiness");
 
 // Configurar JWT
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var keyString = jwtSettings["Key"];
-
-if (string.IsNullOrEmpty(keyString))
-{
-    throw new InvalidOperationException("Chave JWT ausente. Verifique suas variáveis de ambiente ou o arquivo appsettings.json.");
-}
-
-var key = Encoding.UTF8.GetBytes(keyString);
+var jwtService = new JwtService(builder.Configuration);
+builder.Services.AddSingleton(jwtService);
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = SessaoAutenticacaoDefaults.CompositeScheme;
+    options.DefaultChallengeScheme = SessaoAutenticacaoDefaults.CompositeScheme;
+})
+.AddPolicyScheme(SessaoAutenticacaoDefaults.CompositeScheme, null, options =>
+{
+    options.ForwardDefaultSelector = context =>
+    {
+        var authorization = context.Request.Headers.Authorization.ToString();
+        if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return JwtBearerDefaults.AuthenticationScheme;
+        }
+
+        return context.Request.Cookies.ContainsKey(SessaoAutenticacaoDefaults.CookieName)
+            ? SessaoAutenticacaoDefaults.CookieScheme
+            : JwtBearerDefaults.AuthenticationScheme;
+    };
 })
 .AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero,
-        RoleClaimType = ClaimTypes.Role
-    };
+    options.TokenValidationParameters = jwtService.CreateValidationParameters();
     options.Events = new JwtBearerEvents
     {
         OnTokenValidated = async context =>
@@ -105,31 +132,93 @@ builder.Services.AddAuthentication(options =>
                 context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
             var sessionVersionClaim = context.Principal?.FindFirstValue(JwtClaimNames.SessionVersion);
             var passwordChangeClaim = context.Principal?.FindFirstValue(JwtClaimNames.PasswordChangeRequired);
+            var role = context.Principal?.FindFirstValue(ClaimTypes.Role);
+            var jwtId = context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti);
 
             if (!int.TryParse(subject, out var userId) ||
                 !long.TryParse(sessionVersionClaim, out var sessionVersion) ||
-                !bool.TryParse(passwordChangeClaim, out _))
+                !bool.TryParse(passwordChangeClaim, out var requiresPasswordChange) ||
+                string.IsNullOrWhiteSpace(role) ||
+                string.IsNullOrWhiteSpace(jwtId))
             {
                 context.Fail("Token inválido.");
                 return;
             }
 
-            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var credentialState = await dbContext.Usuarios
-                .AsNoTracking()
-                .Where(user => user.Id == userId)
-                .Select(user => new { user.Status, user.VersaoSessao })
-                .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
-
-            if (credentialState is null ||
-                credentialState.Status != LabSolos_Server_DotNet8.Enums.StatusUsuario.Habilitado ||
-                credentialState.VersaoSessao != sessionVersion)
+            try
             {
-                context.Fail("Token inválido.");
+                var sessions = context.HttpContext.RequestServices.GetRequiredService<ISessaoService>();
+                var validation = await sessions.ValidarJwtAsync(
+                    jwtId,
+                    userId,
+                    sessionVersion,
+                    role,
+                    requiresPasswordChange,
+                    context.HttpContext.RequestAborted);
+
+                if (validation.Status == SessaoJwtStatus.Valida && validation.Sessao is not null)
+                {
+                    context.Principal?.Identities.FirstOrDefault()?.AddClaim(
+                        new Claim(SessaoAutenticacaoDefaults.SessionIdClaim, validation.Sessao.Id.ToString("N")));
+                    return;
+                }
+
+                if (validation.Status != SessaoJwtStatus.SemRegistro
+                    || !string.Equals(
+                        context.HttpContext.RequestServices.GetRequiredService<IHostEnvironment>().EnvironmentName,
+                        "IntegrationTesting",
+                        StringComparison.Ordinal))
+                {
+                    context.Fail("Token inválido.");
+                    return;
+                }
+
+                // Integrações legadas usam JWTs sintéticos sem registro de sessão.
+                // Em produção, a sessão precisa ter sido emitida e persistida por este serviço.
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                var credentialState = await dbContext.Usuarios
+                    .AsNoTracking()
+                    .Where(user => user.Id == userId)
+                    .Select(user => new { user.Status, user.VersaoSessao })
+                    .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+
+                if (credentialState is null ||
+                    credentialState.Status != LabSolos_Server_DotNet8.Enums.StatusUsuario.Habilitado ||
+                    credentialState.VersaoSessao != sessionVersion)
+                {
+                    context.Fail("Token inválido.");
+                }
             }
+            catch (Exception exception) when (SessaoFalhaArmazenamento.IsUnavailable(exception))
+            {
+                context.HttpContext.Items[SessaoAutenticacaoDefaults.StoreUnavailableItem] = true;
+                context.Fail("Sessão indisponível.");
+            }
+        },
+
+        OnChallenge = async context =>
+        {
+            if (!context.HttpContext.Items.ContainsKey(SessaoAutenticacaoDefaults.StoreUnavailableItem))
+            {
+                return;
+            }
+
+            context.HandleResponse();
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            context.Response.ContentType = "application/problem+json";
+            await context.Response.WriteAsJsonAsync(new
+            {
+                type = "https://httpstatuses.com/503",
+                title = "A sessão não pôde ser verificada.",
+                status = StatusCodes.Status503ServiceUnavailable,
+                code = "session_store_unavailable"
+            });
         }
     };
-});
+})
+.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, SessaoCookieAuthenticationHandler>(
+    SessaoAutenticacaoDefaults.CookieScheme,
+    _ => { });
 
 builder.Services.AddAuthorization(options =>
 {
@@ -138,6 +227,7 @@ builder.Services.AddAuthorization(options =>
         .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false")
         .Build();
     options.DefaultPolicy = completedPasswordChange;
+    options.FallbackPolicy = completedPasswordChange;
 
     // Políticas baseadas em roles
     options.AddPolicy("ApenasAdministradores", policy =>
@@ -148,9 +238,6 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("Administrador", "Mentor")
             .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 
-    options.AddPolicy("ApenasDependentes", policy =>
-        policy.RequireRole("Mentorado")
-            .RequireClaim(JwtClaimNames.PasswordChangeRequired, "false"));
 });
 
 if (builder.Environment.IsDevelopment())
@@ -160,7 +247,8 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddCors(options => options.AddPolicy("DevelopmentClients", policy =>
         policy.SetIsOriginAllowed(origin => developmentOrigins.Contains(origin, StringComparer.Ordinal))
             .WithMethods("GET", "POST", "PATCH", "PUT", "DELETE")
-            .WithHeaders("Authorization", "Content-Type")
+            .WithHeaders("Authorization", "Content-Type", "X-CSRF-Token")
+            .AllowCredentials()
             .WithExposedHeaders("Retry-After")));
 }
 
@@ -186,6 +274,42 @@ using (var startupScope = app.Services.CreateScope())
 app.UseForwardedHeaders(Program.BuildForwardedHeadersOptions(app.Configuration));
 
 app.UseRouting();
+app.UseMiddleware<ApiResponseHeadersMiddleware>();
+app.UseMiddleware<ApiErrorContractMiddleware>();
+app.Use(async (context, next) =>
+{
+    if (!OperationAdmissionPolicy.IsLimitedJsonWrite(context.Request))
+    {
+        await next(context);
+        return;
+    }
+
+    if (context.Request.ContentLength is > OperationAdmissionPolicy.MaximumRequestBodyBytes)
+    {
+        var response = context.Response;
+        AuthenticationProtectionResponses.ApplyNoStore(response);
+        response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+        response.ContentType = "application/problem+json";
+        var problem = ApiErrorContractFilter.CreateProblem(
+            StatusCodes.Status413PayloadTooLarge,
+            context.TraceIdentifier);
+        context.Items["ApiErrorCode"] = problem.Extensions["code"];
+        await response.WriteAsJsonAsync(
+            problem,
+            options: (System.Text.Json.JsonSerializerOptions?)null,
+            contentType: "application/problem+json",
+            cancellationToken: context.RequestAborted);
+        return;
+    }
+
+    var bodySizeFeature = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>();
+    if (bodySizeFeature is { IsReadOnly: false })
+    {
+        bodySizeFeature.MaxRequestBodySize = OperationAdmissionPolicy.MaximumRequestBodyBytes;
+    }
+
+    await next(context);
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -193,7 +317,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Configurar o pipeline de requisição
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -216,7 +340,52 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api") && context.GetEndpoint() is null)
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next(context);
+});
+
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Path.StartsWithSegments("/api") ||
+        context.User.Identity?.AuthenticationType != SessaoAutenticacaoDefaults.CookieScheme ||
+        context.Request.Method is "GET" or "HEAD" or "OPTIONS" or "TRACE" ||
+        IsCsrfExemptPublicWrite(context.Request))
+    {
+        await next(context);
+        return;
+    }
+
+    var origin = context.Request.Headers.Origin.ToString();
+    var requestOrigin = $"{context.Request.Scheme}://{context.Request.Host}";
+    var allowedDevelopmentOrigins = app.Environment.IsDevelopment()
+        ? Program.GetDevelopmentOrigins(builder.Configuration)
+        : [];
+    var originAllowed = string.Equals(origin, requestOrigin, StringComparison.Ordinal) ||
+        allowedDevelopmentOrigins.Contains(origin, StringComparer.Ordinal);
+    var sessionCookie = context.Request.Cookies.TryGetValue(
+        SessaoAutenticacaoDefaults.CookieName,
+        out var cookieValue)
+        ? cookieValue
+        : null;
+    var csrfProof = context.Request.Headers["X-CSRF-Token"].ToString();
+
+    if (!originAllowed || !SessaoCsrfProof.Matches(sessionCookie ?? string.Empty, csrfProof))
+    {
+        AuthenticationProtectionResponses.ApplyNoStore(context.Response);
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return;
+    }
+
+    await next(context);
+});
 app.UseMiddleware<AuditoriaMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
@@ -228,12 +397,26 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         var status = report.Status == HealthStatus.Healthy ? "ready" : "not_ready";
         await context.Response.WriteAsync(status, context.RequestAborted);
     }
-});
+}).AllowAnonymous();
 
 app.Run();
 
 public partial class Program
 {
+    private static bool IsCsrfExemptPublicWrite(HttpRequest request)
+    {
+        if (!HttpMethods.IsPost(request.Method))
+            return false;
+
+        var path = request.Path.Value?.TrimEnd('/');
+        return string.Equals(path, "/api/Auth/login", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(path, "/api/Usuarios", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(path, "/api/Email/request-password-reset", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(path, "/api/Email/solicitar-redefinicao", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(path, "/api/Email/reset-password", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(path, "/api/Email/redefinir-senha", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string[] GetDevelopmentOrigins(ConfigurationManager configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

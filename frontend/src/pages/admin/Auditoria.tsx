@@ -1,22 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Calendar,
-  Shield,
   AlertTriangle,
-  User,
-  MapPin,
+  Calendar,
   Clock,
+  Download,
   Filter,
+  Shield,
+  User,
 } from 'lucide-react';
+
 import LoadingIcon from '../../../public/icons/LoadingIcon';
 import {
-  obterLogsAuditoria,
+  exportarAuditoria,
   gerarRelatorioAuditoria,
-  marcarLogComoSuspeito,
   marcarLogComoNaoSuspeito,
-  LogAuditoria,
-  FiltroAuditoria,
-  RelatorioAuditoria,
+  marcarLogComoSuspeito,
+  obterLogsAuditoria,
+  type FiltroAuditoria,
+  type LogAuditoria,
+  type RelatorioAuditoria,
 } from '@/integration/Auditoria';
 import { toast } from '@/components/hooks/use-toast';
 import {
@@ -33,143 +35,158 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 
+type RevisaoPendente = {
+  log: LogAuditoria;
+  suspeitaResultante: boolean;
+};
+
+const ACOES_AUDITORIA = [
+  ['Login', 'Login'],
+  ['LoginFalhado', 'Falha de login'],
+  ['CriacaoUsuario', 'Criação de usuário'],
+  ['AlteracaoUsuario', 'Alteração de usuário'],
+  ['CriacaoProduto', 'Criação de produto'],
+  ['AlteracaoProduto', 'Alteração de produto'],
+  ['CriacaoEmprestimo', 'Criação de empréstimo'],
+  ['AprovacaoEmprestimo', 'Aprovação de empréstimo'],
+  ['RejeicaoEmprestimo', 'Rejeição de empréstimo'],
+  ['DevolucaoEmprestimo', 'Devolução de empréstimo'],
+  ['ExportacaoDados', 'Exportação de dados'],
+  ['Outro', 'Outra ação'],
+] as const;
+
+const PAGINACAO_INICIAL = { pagina: 1, tamanhoPagina: 25 };
+
 function AuditoriaPage() {
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
   const [relatorio, setRelatorio] = useState<RelatorioAuditoria | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filtro, setFiltro] = useState<FiltroAuditoria>({
-    pagina: 1,
-    tamanhoPagina: 50,
-  });
-  const [motivoSuspeita, setMotivoSuspeita] = useState('');
-  const [logSelecionado, setLogSelecionado] = useState<number | null>(null);
+  const [loadingReport, setLoadingReport] = useState(true);
+  const [exportando, setExportando] = useState(false);
+  const [filtrosRascunho, setFiltrosRascunho] = useState<FiltroAuditoria>({});
+  const [filtrosAplicados, setFiltrosAplicados] = useState<FiltroAuditoria>({});
+  const [filtro, setFiltro] = useState<FiltroAuditoria>(PAGINACAO_INICIAL);
   const [logsError, setLogsError] = useState<unknown>();
   const [reportError, setReportError] = useState<unknown>();
+  const [revisaoPendente, setRevisaoPendente] = useState<RevisaoPendente | null>(null);
+  const [justificativa, setJustificativa] = useState('');
   const [mutatingLogId, setMutatingLogId] = useState<number | null>(null);
 
-  const carregarDados = useCallback(async () => {
+  const carregarLogs = useCallback(async () => {
+    setLoading(true);
+    setLogsError(undefined);
     try {
-      setLoading(true);
-      setLogsError(undefined);
-      setReportError(undefined);
-      const [logsResult, reportResult] = await Promise.allSettled([
-        obterLogsAuditoria(filtro),
-        gerarRelatorioAuditoria(filtro.dataInicio, filtro.dataFim),
-      ]);
-
-      if (logsResult.status === 'fulfilled') {
-        setLogs(logsResult.value || []);
-      } else {
-        setLogs([]);
-        setLogsError(logsResult.reason);
-      }
-
-      if (reportResult.status === 'fulfilled') {
-        setRelatorio(reportResult.value);
-      } else {
-        setRelatorio(null);
-        setReportError(reportResult.reason);
-      }
-
-      if (
-        logsResult.status === 'rejected' &&
-        reportResult.status === 'rejected'
-      ) {
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar dados de auditoria',
-          variant: 'destructive',
-        });
-      }
-    } catch {
+      const resultado = await obterLogsAuditoria(filtro);
+      setLogs(resultado.itens ?? []);
+      setTotalLogs(resultado.totalItens);
+      setTotalPaginas(resultado.totalPaginas);
+    } catch (error) {
       setLogs([]);
-      setRelatorio(null);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar dados de auditoria',
-        variant: 'destructive',
-      });
+      setTotalLogs(0);
+      setTotalPaginas(0);
+      setLogsError(error);
     } finally {
       setLoading(false);
     }
   }, [filtro]);
 
-  useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
-
-  const handleMarcarSuspeito = async () => {
-    if (!logSelecionado || !motivoSuspeita.trim()) return;
-
-    if (mutatingLogId !== null) return;
-    setMutatingLogId(logSelecionado);
+  const carregarRelatorio = useCallback(async () => {
+    setLoadingReport(true);
+    setReportError(undefined);
     try {
-      await marcarLogComoSuspeito(logSelecionado, motivoSuspeita);
-      toast({
-        title: 'Sucesso',
-        description: 'Log marcado como suspeito',
-      });
-      await carregarDados();
-      setMotivoSuspeita('');
-      setLogSelecionado(null);
+      setRelatorio(await gerarRelatorioAuditoria(filtrosAplicados));
     } catch (error) {
-      notifyError(error, OPERATION_IDS.markAuditLogSuspicious);
+      setRelatorio(null);
+      setReportError(error);
     } finally {
-      setMutatingLogId(null);
+      setLoadingReport(false);
     }
+  }, [filtrosAplicados]);
+
+  useEffect(() => {
+    void carregarLogs();
+  }, [carregarLogs]);
+
+  useEffect(() => {
+    void carregarRelatorio();
+  }, [carregarRelatorio]);
+
+  const aplicarFiltros = () => {
+    setFiltrosAplicados({ ...filtrosRascunho });
+    setFiltro({ ...filtrosRascunho, ...PAGINACAO_INICIAL });
   };
 
-  const handleMarcarNaoSuspeito = async (logId: number) => {
-    if (mutatingLogId !== null) return;
+  const limparFiltros = () => {
+    setFiltrosRascunho({});
+    setFiltrosAplicados({});
+    setFiltro(PAGINACAO_INICIAL);
+  };
 
-    setMutatingLogId(logId);
+  const handleExportar = async () => {
+    if (exportando || logsError !== undefined) return;
+    setExportando(true);
     try {
-      await marcarLogComoNaoSuspeito(logId);
+      const arquivo = await exportarAuditoria(filtrosAplicados);
+      const { saveAs } = await import('file-saver');
+      saveAs(arquivo, 'auditoria.csv');
       toast({
-        title: 'Sucesso',
-        description: 'Log marcado como não suspeito',
+        title: 'Exportação concluída',
+        description: 'O arquivo CSV da auditoria foi baixado.',
       });
-      await carregarDados();
-    } catch {
+    } catch (error) {
+      notifyError(error, OPERATION_IDS.auditExport);
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const handleReclassificar = async () => {
+    if (!revisaoPendente || !justificativa.trim() || mutatingLogId !== null) return;
+
+    const { log, suspeitaResultante } = revisaoPendente;
+    const solicitacao = {
+      revisaoEsperada: log.revisaoClassificacao,
+      justificativa: justificativa.trim(),
+    };
+    setMutatingLogId(log.id);
+    try {
+      if (suspeitaResultante) {
+        await marcarLogComoSuspeito(log.id, solicitacao);
+      } else {
+        await marcarLogComoNaoSuspeito(log.id, solicitacao);
+      }
       toast({
-        title: 'Erro',
-        description: 'Erro ao marcar log como não suspeito',
-        variant: 'destructive',
+        title: 'Revisão registrada',
+        description: 'A classificação e o histórico foram atualizados.',
       });
+      setRevisaoPendente(null);
+      setJustificativa('');
+      await Promise.all([carregarLogs(), carregarRelatorio()]);
+    } catch (error) {
+      notifyError(
+        error,
+        suspeitaResultante
+          ? OPERATION_IDS.markAuditLogSuspicious
+          : OPERATION_IDS.markAuditLogNotSuspicious
+      );
     } finally {
       setMutatingLogId(null);
     }
   };
 
-  const getNivelRiscoBadge = (nivelRisco: string) => {
-    const variants = {
-      Baixo: 'default',
-      Medio: 'secondary',
-      Alto: 'destructive',
-      Critico: 'destructive',
-    } as const;
-
-    return (
-      <Badge
-        variant={variants[nivelRisco as keyof typeof variants] || 'default'}
-      >
-        {nivelRisco}
-      </Badge>
-    );
-  };
-
-  const formatarData = (data: string) => {
-    return new Date(data).toLocaleString('pt-BR');
-  };
+  const formatarData = (data: string) => new Date(data).toLocaleString('pt-BR');
+  const paginaAtual = filtro.pagina ?? 1;
 
   if (loading) {
     return (
@@ -189,308 +206,428 @@ function AuditoriaPage() {
 
   return (
     <main className='mx-auto flex min-h-svh w-full max-w-7xl flex-col overflow-y-auto bg-canvas px-4 pb-12 text-clt-2 sm:px-6 lg:px-8'>
-      {/* Header */}
-      <div className='flex items-center justify-between pt-8'>
-        <h1 className='uppercase font-rajdhani-medium text-3xl text-clt-2'>
-          <Shield className='inline mr-2' />
+      <div className='flex flex-wrap items-center justify-between gap-4 pt-8'>
+        <h1 className='font-rajdhani-medium text-3xl uppercase text-clt-2'>
+          <Shield className='mr-2 inline' aria-hidden='true' />
           Auditoria de Segurança
         </h1>
+        {!logsError ? (
+          <Button onClick={() => void handleExportar()} disabled={exportando || loading}>
+            <Download className='mr-2 h-4 w-4' aria-hidden='true' />
+            {exportando ? 'Exportando...' : 'Exportar CSV'}
+          </Button>
+        ) : null}
       </div>
 
-      {/* Cards de Estatísticas */}
-      {reportError ? (
+      {logsError ? (
+        <div className='mt-7'>
+          <ErrorFeedback
+            error={logsError}
+            operationId={OPERATION_IDS.auditLogs}
+            onRetry={() => void carregarLogs()}
+          />
+        </div>
+      ) : null}
+
+      {reportError && !logsError ? (
         <div className='mt-7'>
           <ErrorFeedback
             error={reportError}
             operationId={OPERATION_IDS.auditReport}
-            onRetry={() => void carregarDados()}
+            onRetry={() => void carregarRelatorio()}
           />
         </div>
-      ) : relatorio ? (
+      ) : null}
+
+      {relatorio && !logsError && !loadingReport ? (
         <div className='mt-7 grid grid-cols-1 gap-4 md:grid-cols-4'>
           <div className='rounded-xl border border-borderMy bg-surface p-4'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-sm text-clt-1'>Total de Logs</p>
-                <p className='text-2xl font-bold text-clt-2'>
-                  {relatorio?.totalLogs || 0}
-                </p>
+                <p className='text-2xl font-bold text-clt-2'>{relatorio.totalLogs}</p>
               </div>
-              <Calendar className='h-8 w-8 text-primaryMy' />
+              <Calendar className='h-8 w-8 text-primaryMy' aria-hidden='true' />
             </div>
           </div>
-
           <div className='rounded-xl border border-borderMy bg-surface p-4'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-sm text-clt-1'>Logs Suspeitos</p>
-                <p className='text-2xl font-bold text-clt-2'>
-                  {relatorio?.logsSuspeitos || 0}
-                </p>
+                <p className='text-2xl font-bold text-clt-2'>{relatorio.logsSuspeitos}</p>
               </div>
-              <AlertTriangle className='h-8 w-8 text-clt-1' />
+              <AlertTriangle className='h-8 w-8 text-clt-1' aria-hidden='true' />
             </div>
           </div>
-
           <div className='rounded-xl border border-borderMy bg-surface p-4'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-sm text-clt-1'>Logs Críticos</p>
-                <p className='text-2xl font-bold text-danger'>
-                  {relatorio?.logsCriticos || 0}
-                </p>
+                <p className='text-2xl font-bold text-danger'>{relatorio.logsCriticos}</p>
               </div>
-              <Shield className='h-8 w-8 text-danger' />
+              <Shield className='h-8 w-8 text-danger' aria-hidden='true' />
             </div>
           </div>
-
           <div className='rounded-xl border border-borderMy bg-surface p-4'>
             <div className='flex items-center justify-between'>
               <div>
-                <p className='text-sm text-clt-1'>IPs Suspeitos</p>
+                <p className='text-sm text-clt-1'>Dias com atividade</p>
                 <p className='text-2xl font-bold text-clt-2'>
-                  {relatorio?.ipsSuspeitos?.length || 0}
+                  {Object.keys(relatorio.logsPorDia).length}
                 </p>
               </div>
-              <MapPin className='h-8 w-8 text-primaryMy' />
+              <Calendar className='h-8 w-8 text-primaryMy' aria-hidden='true' />
             </div>
           </div>
         </div>
       ) : null}
 
-      {/* Filtros */}
-      <div className='mt-7 flex justify-center rounded-xl border border-borderMy bg-surface p-4'>
-        <div className='flex items-center justify-center gap-4 flex-wrap'>
-          <div className='flex items-center gap-2'>
-            <Filter className='h-4 w-4' />
-            <span className='font-medium'>Filtros:</span>
-          </div>
-
-          <Select
-            onValueChange={(value) =>
-              setFiltro((prev) => ({
-                ...prev,
-                nivelRisco: value === 'todos' ? undefined : value,
-              }))
-            }
+      {!logsError ? (
+        <>
+          <section
+            aria-label='Filtros de auditoria'
+            className='mt-7 rounded-xl border border-borderMy bg-surface p-4'
           >
-            <SelectTrigger className='w-35'>
-              <SelectValue placeholder='Nível de Risco' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='todos'>Todos</SelectItem>
-              <SelectItem value='Baixo'>Baixo</SelectItem>
-              <SelectItem value='Medio'>Médio</SelectItem>
-              <SelectItem value='Alto'>Alto</SelectItem>
-              <SelectItem value='Critico'>Crítico</SelectItem>
-            </SelectContent>
-          </Select>
+            <div className='mb-4 flex items-center gap-2 font-medium'>
+              <Filter className='h-4 w-4' aria-hidden='true' />
+              <h2>Filtros</h2>
+            </div>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+              <label className='flex flex-col gap-1 text-sm'>
+                Data inicial
+                <Input
+                  aria-label='Data inicial'
+                  type='date'
+                  value={filtrosRascunho.dataInicio ?? ''}
+                  onChange={(event) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      dataInicio: event.target.value || undefined,
+                    }))
+                  }
+                />
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Data final
+                <Input
+                  aria-label='Data final'
+                  type='date'
+                  value={filtrosRascunho.dataFim ?? ''}
+                  onChange={(event) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      dataFim: event.target.value || undefined,
+                    }))
+                  }
+                />
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Usuário (ID)
+                <Input
+                  aria-label='Usuário (ID)'
+                  type='number'
+                  min='1'
+                  value={filtrosRascunho.usuarioId ?? ''}
+                  onChange={(event) => {
+                    const usuarioId = Number(event.target.value);
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      usuarioId: usuarioId > 0 ? usuarioId : undefined,
+                    }));
+                  }}
+                />
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Recurso
+                <Input
+                  aria-label='Recurso'
+                  type='text'
+                  maxLength={100}
+                  value={filtrosRascunho.recurso ?? ''}
+                  onChange={(event) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      recurso: event.target.value || undefined,
+                    }))
+                  }
+                />
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Tipo de ação
+                <Select
+                  value={filtrosRascunho.tipoAcao ?? 'todas'}
+                  onValueChange={(value) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      tipoAcao: value === 'todas' ? undefined : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger aria-label='Tipo de ação'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='todas'>Todas as ações</SelectItem>
+                    {ACOES_AUDITORIA.map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Nível de risco
+                <Select
+                  value={filtrosRascunho.nivelRisco ?? 'todos'}
+                  onValueChange={(value) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      nivelRisco: value === 'todos' ? undefined : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger aria-label='Nível de risco'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='todos'>Todos os níveis</SelectItem>
+                    <SelectItem value='Baixo'>Baixo</SelectItem>
+                    <SelectItem value='Medio'>Médio</SelectItem>
+                    <SelectItem value='Alto'>Alto</SelectItem>
+                    <SelectItem value='Critico'>Crítico</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className='flex flex-col gap-1 text-sm'>
+                Classificação
+                <Select
+                  value={
+                    filtrosRascunho.apenasSuspeitas === undefined
+                      ? 'todas'
+                      : 'true'
+                  }
+                  onValueChange={(value) =>
+                    setFiltrosRascunho((previous) => ({
+                      ...previous,
+                      apenasSuspeitas: value === 'todas' ? undefined : true,
+                    }))
+                  }
+                >
+                  <SelectTrigger aria-label='Classificação'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='todas'>Todas</SelectItem>
+                    <SelectItem value='true'>Suspeitos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+            </div>
+            <div className='mt-4 flex flex-wrap justify-end gap-2'>
+              <Button variant='outline' onClick={limparFiltros}>Limpar</Button>
+              <Button onClick={aplicarFiltros}>Aplicar filtros</Button>
+            </div>
+          </section>
 
-          <Select
-            onValueChange={(value) =>
-              setFiltro((prev) => ({
-                ...prev,
-                apenasSuspeitas: value === 'true',
-              }))
-            }
+          <section
+            aria-label='Logs de auditoria'
+            className='mt-7 rounded-xl border border-borderMy bg-surface'
           >
-            <SelectTrigger className='w-35'>
-              <SelectValue placeholder='Tipo' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='false'>Todos</SelectItem>
-              <SelectItem value='true'>Apenas Suspeitos</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Input
-            type='date'
-            placeholder='Data Início'
-            className='w-33'
-            onChange={(e) =>
-              setFiltro((prev) => ({ ...prev, dataInicio: e.target.value }))
-            }
-          />
-
-          <Input
-            type='date'
-            placeholder='Data Fim'
-            className='w-33'
-            onChange={(e) =>
-              setFiltro((prev) => ({ ...prev, dataFim: e.target.value }))
-            }
-          />
-
-          <Button onClick={carregarDados} variant='outline'>
-            Aplicar Filtros
-          </Button>
-        </div>
-      </div>
-
-      {/* Tabela de Logs */}
-      <section
-        aria-label='Logs de auditoria'
-        className='mt-7 rounded-xl border border-borderMy bg-surface'
-      >
-        <div className='p-4 border-b border-borderMy'>
-          <h2 className='font-rajdhani-medium text-xl text-clt-2'>
-            Logs de Auditoria ({logs.length} registros)
-          </h2>
-        </div>
-
-        {logsError ? (
-          <div className='p-4'>
-            <ErrorFeedback
-              error={logsError}
-              operationId={OPERATION_IDS.auditLogs}
-              onRetry={() => void carregarDados()}
-            />
-          </div>
-        ) : null}
-        <div className='overflow-x-auto'>
-          <table className='w-full'>
-            <thead className='bg-surface-muted'>
-              <tr>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Data/Hora
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Usuário
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Ação
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Recurso
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  IP
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Risco
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Status
-                </th>
-                <th className='px-4 py-3 text-left text-xs font-medium text-clt-1 uppercase tracking-wider'>
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-borderMy bg-surface'>
-              {!logsError && logs && logs.length > 0 ? (
-                logs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className={log.suspeita ? 'bg-surface-selected' : ''}
-                  >
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-clt-2'>
-                      <div className='flex items-center'>
-                        <Clock className='mr-2 h-4 w-4 text-clt-1' />
-                        {formatarData(log.dataHora)}
-                      </div>
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-clt-2'>
-                      <div className='flex items-center'>
-                        <User className='mr-2 h-4 w-4 text-clt-1' />
-                        {log.nomeUsuario || 'Anônimo'}
-                      </div>
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-clt-2'>
-                      {log.acao}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-clt-2'>
-                      {log.recurso}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-clt-2'>
-                      <div className='flex items-center'>
-                        <MapPin className='mr-2 h-4 w-4 text-clt-1' />
-                        {log.enderecoIP}
-                      </div>
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap'>
-                      {getNivelRiscoBadge(log.nivelRisco)}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap'>
-                      {log.suspeita ? (
-                        <Badge variant='destructive'>Suspeito</Badge>
-                      ) : (
-                        <Badge variant='secondary'>Normal</Badge>
-                      )}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm font-medium'>
-                      <div className='flex space-x-2'>
-                        {!log.suspeita ? (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                disabled={mutatingLogId !== null}
-                                onClick={() => setLogSelecionado(log.id)}
-                              >
-                                Marcar Suspeito
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Marcar como Suspeito</DialogTitle>
-                                <DialogDescription>
-                                  Informe o motivo pelo qual este log é
-                                  considerado suspeito.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <Textarea
-                                placeholder='Motivo da suspeita...'
-                                value={motivoSuspeita}
-                                onChange={(
-                                  e: React.ChangeEvent<HTMLTextAreaElement>
-                                ) => setMotivoSuspeita(e.target.value)}
-                              />
-                              <div className='flex justify-end space-x-2'>
-                                <Button
-                                  variant='outline'
-                                  onClick={() => {
-                                    setMotivoSuspeita('');
-                                    setLogSelecionado(null);
-                                  }}
-                                >
-                                  Cancelar
-                                </Button>
-                                <Button
-                                  onClick={handleMarcarSuspeito}
-                                  disabled={mutatingLogId !== null}
-                                >
-                                  Marcar
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        ) : (
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            disabled={mutatingLogId !== null}
-                            onClick={() => handleMarcarNaoSuspeito(log.id)}
-                          >
-                            Remover Suspeita
-                          </Button>
-                        )}
-                      </div>
-                    </td>
+            <div className='border-b border-borderMy p-4'>
+              <h2 className='font-rajdhani-medium text-xl text-clt-2'>
+                Logs de Auditoria ({totalLogs} registros)
+              </h2>
+            </div>
+            <div className='overflow-x-auto'>
+              <table className='w-full'>
+                <thead className='bg-surface-muted'>
+                  <tr>
+                    {['Data/Hora', 'Evento', 'Ação', 'Recurso', 'Origem', 'Resultado', 'Status', 'Ações'].map((heading) => (
+                      <th key={heading} className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-clt-1'>
+                        {heading}
+                      </th>
+                    ))}
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className='px-4 py-8 text-center text-clt-1'>
-                    Nenhum log encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                </thead>
+                <tbody className='divide-y divide-borderMy bg-surface'>
+                  {logs.length > 0 ? (
+                    logs.map((log) => (
+                      <tr key={log.id} className={log.suspeita ? 'bg-surface-selected' : ''}>
+                        <td className='whitespace-nowrap px-4 py-4 text-sm text-clt-2'>
+                          <div className='flex items-center'>
+                            <Clock className='mr-2 h-4 w-4 text-clt-1' aria-hidden='true' />
+                            {formatarData(log.dataHoraUtc)}
+                          </div>
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 text-sm text-clt-2'>
+                          <div className='flex items-center'>
+                            <User className='mr-2 h-4 w-4 text-clt-1' aria-hidden='true' />
+                            {log.codigoEvento}
+                          </div>
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 text-sm text-clt-2'>{log.acao}</td>
+                        <td className='whitespace-nowrap px-4 py-4 text-sm text-clt-2'>{log.recurso}</td>
+                        <td className='whitespace-nowrap px-4 py-4 text-sm text-clt-2'>{log.origem}</td>
+                        <td className='whitespace-nowrap px-4 py-4'>
+                          <Badge variant='secondary'>{log.resultado}</Badge>
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4'>
+                          {log.suspeita ? (
+                            <Badge variant='destructive'>Suspeito</Badge>
+                          ) : (
+                            <Badge variant='secondary'>Normal</Badge>
+                          )}
+                        </td>
+                        <td className='min-w-64 px-4 py-4 text-sm'>
+                          <div className='flex flex-wrap gap-2'>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              disabled={mutatingLogId !== null}
+                              onClick={() => {
+                                setJustificativa('');
+                                setRevisaoPendente({
+                                  log,
+                                  suspeitaResultante: !log.suspeita,
+                                });
+                              }}
+                            >
+                              {log.suspeita ? 'Remover suspeita' : 'Marcar suspeito'}
+                            </Button>
+                            <details className='min-w-40 rounded-md border border-borderMy px-2 py-1'>
+                              <summary className='cursor-pointer font-medium'>Histórico e regra</summary>
+                              <div className='mt-2 min-w-64 space-y-2 text-sm'>
+                                <p>Categoria da detecção: {log.categoriaDeteccao || 'Não informada'}</p>
+                                {log.codigoRegraDeteccao ? (
+                                  <div>
+                                    <p>Regra: {log.codigoRegraDeteccao}</p>
+                                    {log.versaoRegraDeteccao != null ? (
+                                      <p>Versão {log.versaoRegraDeteccao}</p>
+                                    ) : null}
+                                    {log.quantidadeObservadaDeteccao != null ? (
+                                      <p>Observações: {log.quantidadeObservadaDeteccao}</p>
+                                    ) : null}
+                                  </div>
+                                ) : (
+                                  <p>Este evento não possui uma regra de detecção associada.</p>
+                                )}
+                                <h3 className='font-medium'>Histórico de classificação</h3>
+                                {log.historicoClassificacao.length > 0 ? (
+                                  <ol className='space-y-2'>
+                                    {log.historicoClassificacao.map((revisao) => (
+                                      <li key={revisao.numeroRevisao} className='rounded border border-borderMy p-2'>
+                                        <p>Revisão {revisao.numeroRevisao}</p>
+                                        <p>
+                                          {revisao.suspeitaAnterior ? 'Suspeito' : 'Normal'} →{' '}
+                                          {revisao.suspeitaResultante ? 'Suspeito' : 'Normal'}
+                                        </p>
+                                        <p>{formatarData(revisao.criadaEmUtc)}</p>
+                                        <p>
+                                          Autor: {revisao.autorUsuarioId == null ? 'Sem ator associado' : `ID ${revisao.autorUsuarioId}`}
+                                        </p>
+                                        <p>Origem: {revisao.origem}</p>
+                                        <p>Justificativa registrada</p>
+                                      </li>
+                                    ))}
+                                  </ol>
+                                ) : (
+                                  <p>Este evento ainda não possui revisões de classificação.</p>
+                                )}
+                              </div>
+                            </details>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className='px-4 py-8 text-center text-clt-1'>
+                        Nenhum evento de auditoria encontrado para os filtros selecionados.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className='flex items-center justify-between gap-4 border-t border-borderMy p-4'>
+              <span className='text-sm text-clt-1'>
+                Página {paginaAtual} de {Math.max(totalPaginas, 1)}
+              </span>
+              <div className='flex gap-2'>
+                <Button
+                  variant='outline'
+                  disabled={paginaAtual <= 1 || loading}
+                  onClick={() => setFiltro((previous) => ({
+                    ...previous,
+                    pagina: Math.max(1, (previous.pagina ?? 1) - 1),
+                  }))}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant='outline'
+                  disabled={paginaAtual >= totalPaginas || loading}
+                  onClick={() => setFiltro((previous) => ({
+                    ...previous,
+                    pagina: (previous.pagina ?? 1) + 1,
+                  }))}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : null}
+
+      <Dialog
+        open={revisaoPendente !== null}
+        onOpenChange={(open) => {
+          if (!open && mutatingLogId === null) {
+            setRevisaoPendente(null);
+            setJustificativa('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {revisaoPendente?.suspeitaResultante
+                ? 'Marcar como suspeito'
+                : 'Remover classificação suspeita'}
+            </DialogTitle>
+            <DialogDescription>
+              Registre a justificativa da revisão. A versão atual será conferida antes de salvar.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            aria-label='Justificativa da revisão'
+            placeholder='Justificativa da revisão'
+            maxLength={1000}
+            value={justificativa}
+            onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setJustificativa(event.target.value)
+            }
+          />
+          <DialogFooter>
+            <Button
+              variant='outline'
+              disabled={mutatingLogId !== null}
+              onClick={() => {
+                setRevisaoPendente(null);
+                setJustificativa('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={!justificativa.trim() || mutatingLogId !== null}
+              onClick={() => void handleReclassificar()}
+            >
+              {mutatingLogId !== null ? 'Salvando...' : 'Salvar revisão'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

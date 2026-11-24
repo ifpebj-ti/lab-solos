@@ -1,4 +1,4 @@
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import OpenSearch from '@/components/global/OpenSearch';
@@ -27,7 +27,7 @@ const historyMentoringColumns: readonly ResponsiveColumn[] = [
 ];
 
 function HistoryMentoring() {
-  const sessionId = Cookie.get('rankID') ?? null;
+  const sessionId = readSession()?.userId ?? null;
   const requestSequence = useRef(0);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

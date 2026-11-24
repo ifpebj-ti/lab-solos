@@ -1,33 +1,28 @@
 import Cookie from 'js-cookie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearSession, readSession, startSession } from './session';
+import {
+  clearSession,
+  readCsrfToken,
+  readSession,
+  startSession,
+} from './session';
 import {
   AUTH_NOTICE_STORAGE_KEY,
   INTENDED_ROUTE_STORAGE_KEY,
 } from './intendedRoute';
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
-
-const validToken = createToken({
-  sub: '42',
+const sessionResponse = {
+  userId: '42',
   role: 'Administrador',
-  password_change_required: true,
-});
+  requiresPasswordChange: true,
+  csrfToken: 'session-bound-proof',
+};
 
 describe('session', () => {
   beforeEach(() => {
-    document.cookie = 'doorKey=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-    document.cookie = 'rankID=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-    document.cookie = 'level=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-    document.cookie =
-      'sidebar_state=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    for (const key of ['doorKey', 'rankID', 'level', 'sidebar_state']) {
+      document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    }
     localStorage.clear();
     sessionStorage.clear();
   });
@@ -36,54 +31,54 @@ describe('session', () => {
     vi.restoreAllMocks();
   });
 
-  it('inicia e lê token, ID, perfil e flag de troca derivada do JWT', () => {
-    const session = startSession(validToken);
+  it('armazena somente o contexto mínimo recebido do servidor e a prova CSRF', () => {
+    const session = startSession(sessionResponse);
 
     expect(session).toEqual({
-      token: validToken,
       userId: '42',
       role: 'Administrador',
       requiresPasswordChange: true,
     });
     expect(readSession()).toEqual(session);
+    expect(readCsrfToken()).toBe('session-bound-proof');
+    expect(sessionStorage.getItem('auth:session-context')).toBe(
+      JSON.stringify(session)
+    );
+    expect(sessionStorage.getItem('auth:session-context')).not.toContain(
+      'session-bound-proof'
+    );
   });
 
-  it('cria cookies com atributos comuns sem Secure sob HTTP', () => {
-    const setCookie = vi.spyOn(Cookie, 'set');
+  it('normaliza o identificador numérico do contrato HTTP para o contexto do cliente', () => {
+    const session = startSession({ ...sessionResponse, userId: 42 });
 
-    startSession(validToken);
-
-    expect(setCookie).toHaveBeenCalledTimes(3);
-    for (const [, , options] of setCookie.mock.calls) {
-      expect(options).toMatchObject({ path: '/', sameSite: 'Strict' });
-      expect(options?.secure).toBe(false);
-    }
+    expect(session?.userId).toBe('42');
+    expect(readSession()?.userId).toBe('42');
   });
 
-  it('cria cookies Secure sob HTTPS', () => {
-    vi.stubGlobal('location', { protocol: 'https:' });
-    const setCookie = vi.spyOn(Cookie, 'set');
+  it('não cria cookies JavaScript de credencial ou perfil', () => {
+    startSession(sessionResponse);
 
-    startSession(validToken);
-
-    for (const [, , options] of setCookie.mock.calls) {
-      expect(options?.secure).toBe(true);
-    }
+    expect(Cookie.get('doorKey')).toBeUndefined();
+    expect(Cookie.get('rankID')).toBeUndefined();
+    expect(Cookie.get('level')).toBeUndefined();
   });
 
-  it('não autentica nem lança para JWT ausente ou malformado', () => {
-    expect(startSession('')).toBeNull();
-    expect(startSession('token-invalido')).toBeNull();
-
+  it('rejeita contexto malformado sem usar cookies legados como autenticação', () => {
     Cookie.set('doorKey', 'token-invalido', { path: '/' });
-    Cookie.set('rankID', 'valor-obsoleto', { path: '/' });
-    Cookie.set('level', 'valor-obsoleto', { path: '/' });
+    Cookie.set('rankID', '42', { path: '/' });
+    Cookie.set('level', 'Administrador', { path: '/' });
 
+    expect(startSession({ ...sessionResponse, csrfToken: '' })).toBeNull();
     expect(readSession()).toBeNull();
+    expect(readCsrfToken()).toBeNull();
   });
 
-  it('limpa apenas autenticação e preserva preferências', () => {
-    startSession(validToken);
+  it('limpa contexto e cookies legados, preservando preferências e rascunhos', () => {
+    startSession(sessionResponse);
+    Cookie.set('doorKey', 'legacy-token', { path: '/' });
+    Cookie.set('rankID', '42', { path: '/' });
+    Cookie.set('level', 'Administrador', { path: '/' });
     Cookie.set('sidebar_state', 'expanded', { path: '/' });
     localStorage.setItem('sidebar-open-items', '["users"]');
     localStorage.setItem('theme', 'dark');
@@ -91,6 +86,8 @@ describe('session', () => {
 
     clearSession();
 
+    expect(readSession()).toBeNull();
+    expect(readCsrfToken()).toBeNull();
     expect(Cookie.get('doorKey')).toBeUndefined();
     expect(Cookie.get('rankID')).toBeUndefined();
     expect(Cookie.get('level')).toBeUndefined();
@@ -98,18 +95,6 @@ describe('session', () => {
     expect(localStorage.getItem('sidebar-open-items')).toBe('["users"]');
     expect(localStorage.getItem('theme')).toBe('dark');
     expect(sessionStorage.getItem('draft')).toBe('preservar');
-  });
-
-  it('remove os cookies com os mesmos atributos usados na criação', () => {
-    const removeCookie = vi.spyOn(Cookie, 'remove');
-
-    clearSession();
-
-    expect(removeCookie).toHaveBeenCalledTimes(3);
-    for (const [, options] of removeCookie.mock.calls) {
-      expect(options).toMatchObject({ path: '/', sameSite: 'Strict' });
-      expect(options?.secure).toBe(window.location.protocol === 'https:');
-    }
   });
 
   it('descarta rota e aviso somente no encerramento explicito', () => {

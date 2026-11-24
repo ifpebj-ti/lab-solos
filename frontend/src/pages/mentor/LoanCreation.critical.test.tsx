@@ -186,4 +186,34 @@ describe('criação de empréstimo: jornada crítica', () => {
       screen.getByText('Nenhum dado disponível para exibição.')
     ).toBeInTheDocument();
   });
+
+  it('explica a insuficiência de estoque e preserva os itens para correção', async () => {
+    loansApi.createLoan.mockRejectedValueOnce({
+      name: 'ApplicationError',
+      category: 'validation',
+      code: 'loan_insufficient_stock',
+      message: 'Os dados informados precisam de revisão.',
+      status: 400,
+      retryable: false,
+    });
+
+    render(<LoanCreation />);
+    await prepareLoan();
+    requestLoan();
+
+    const feedback = await screen.findByRole('alert');
+    expect(feedback).toHaveTextContent(/saldo.*quantidade|quantidade.*saldo/i);
+    expect(within(selectedProductsList()).getByText('Produto de teste')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Remover Produto de teste' })
+    ).toBeEnabled();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover Produto de teste' })
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    );
+  });
 });

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Tests.Infrastructure;
 using LabSolos_Server_DotNet8.Services.Security;
+using Npgsql;
 
 namespace Tests.Integration;
 
@@ -40,8 +42,10 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
             Assert.Equal(HttpStatusCode.NotFound, crossResponse.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, missingResponse.StatusCode);
             Assert.Equal(
-                await missingResponse.Content.ReadAsStringAsync(),
-                await crossResponse.Content.ReadAsStringAsync());
+                await ApiProblemContractAssertions.ReadAsync(
+                    missingResponse, HttpStatusCode.NotFound, "resource_not_found"),
+                await ApiProblemContractAssertions.ReadAsync(
+                    crossResponse, HttpStatusCode.NotFound, "resource_not_found"));
 
             await using var scope = factory.Services.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -113,7 +117,7 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
             using var response = await PatchAsync(
                 administrator,
                 scenario.MenteeOneId,
-                "[{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"Administrado\"},{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"admin-managed@example.invalid\"},{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"Desabilitado\"}]");
+                $"[{{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"Administrado\"}},{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"admin-managed@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"Desabilitado\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.AdministratorPassword}\"}}]");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             await using var scope = factory.Services.CreateAsyncScope();
@@ -308,18 +312,251 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
         }
     }
 
-    private async Task<(IntegrationWebApplicationFactory Factory, AuthenticationProtectionScenarioData Scenario)> CreateScenarioAsync(
-        bool registerDeliveryKeyFactory = true)
+    [Fact]
+    public async Task AdministratorMustConfirmOwnPasswordAndSuccessfulChangeWritesAuditReservationAndTwoNotices()
     {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+
+            using var missingConfirmation = await PatchAsync(
+                administrator,
+                scenario.MenteeOneId,
+                "[{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"admin-managed-new@example.invalid\"}]");
+            Assert.Equal(HttpStatusCode.BadRequest, missingConfirmation.StatusCode);
+
+            await using (var scope = factory.Services.CreateAsyncScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var unchanged = await context.Usuarios.SingleAsync(user => user.Id == scenario.MenteeOneId);
+                Assert.Equal(scenario.MenteeOneEmail, unchanged.Email);
+                Assert.Empty(await context.LogsAuditoria
+                    .Where(log => log.CodigoEvento == CodigoEventoAuditoria.TrocaEmail)
+                    .ToListAsync());
+            }
+
+            using var confirmed = await PatchAsync(
+                administrator,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"admin-managed-new@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.AdministratorPassword}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, confirmed.StatusCode);
+
+            await using var verifyScope = factory.Services.CreateAsyncScope();
+            var verified = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var updated = await verified.Usuarios.SingleAsync(user => user.Id == scenario.MenteeOneId);
+            Assert.Equal("admin-managed-new@example.invalid", updated.Email);
+
+            var noticeJobs = await verified.EmailChangeNoticeJobs
+                .Where(job => job.UserId == scenario.MenteeOneId)
+                .ToListAsync();
+            Assert.Equal(2, noticeJobs.Count);
+            Assert.All(noticeJobs, job =>
+            {
+                Assert.Equal(EmailChangeNoticeStatus.Pending, job.Status);
+                Assert.Equal(0, job.Attempts);
+                Assert.Equal(TimeSpan.FromHours(24), job.DeadlineAt - job.CreatedAt);
+                Assert.Equal(TimeSpan.FromDays(30), job.RetainUntil - job.CreatedAt);
+                Assert.DoesNotContain("admin-managed-new@example.invalid", Encoding.UTF8.GetString(job.PayloadCiphertext), StringComparison.Ordinal);
+                Assert.DoesNotContain(scenario.MenteeOneEmail, Encoding.UTF8.GetString(job.PayloadCiphertext), StringComparison.Ordinal);
+            });
+
+            var audit = await verified.LogsAuditoria.SingleAsync(log =>
+                log.CodigoEvento == CodigoEventoAuditoria.TrocaEmail &&
+                log.UsuarioId == scenario.AdministratorId);
+            Assert.Equal($"conta:usuario:{scenario.MenteeOneId}", audit.Recurso);
+            Assert.Equal(ResultadoOperacaoAuditoria.Sucesso, audit.Resultado);
+
+            await using var connection = new NpgsqlConnection(database.ConnectionString);
+            await connection.OpenAsync();
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT
+                    (SELECT COUNT(*) FROM "EmailAddressReservations" WHERE "OwnerUserId" = @ownerId),
+                    (SELECT COUNT(*) FROM "EmailChangeNoticeJobs" WHERE "UserId" = @ownerId)
+                """;
+            command.Parameters.AddWithValue("ownerId", scenario.MenteeOneId);
+            await using var reader = await command.ExecuteReaderAsync();
+            Assert.True(await reader.ReadAsync());
+            Assert.Equal(1L, reader.GetInt64(0));
+            Assert.Equal(2L, reader.GetInt64(1));
+        }
+    }
+
+    [Fact]
+    public async Task ReservedAddressCannotBeClaimedByAnotherAccountButOwnerCanReclaimIt()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+
+            using var firstChange = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"owner-new@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, firstChange.StatusCode);
+
+            using var publicClient = factory.CreateClient();
+            using var reservedRegistration = await publicClient.PostAsJsonAsync("/api/Usuarios", new
+            {
+                nomeCompleto = "Tentativa sintética de reutilização",
+                email = scenario.MenteeOneEmail.ToUpperInvariant(),
+                senha = "T010-Registration-Synthetic-Password!",
+                nivelUsuario = "Mentor",
+                tipoUsuario = "Academico",
+                instituicao = "IFPE",
+                cidade = "Belo Jardim",
+                curso = "ES"
+            });
+            Assert.Equal(HttpStatusCode.Conflict, reservedRegistration.StatusCode);
+
+            using var otherAccountClaim = await PatchAsync(
+                administrator,
+                scenario.MenteeTwoId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.AdministratorPassword}\"}}]");
+            Assert.Equal(HttpStatusCode.Conflict, otherAccountClaim.StatusCode);
+
+            using var ownerReclaim = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail.ToUpperInvariant()}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, ownerReclaim.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentEmailChangesWithDifferentCaseAllowOnlyOneNormalizedAddress()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var firstOwner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var secondOwner = CreateClient(factory, scenario.MenteeTwoId, NivelUsuario.Mentorado);
+            const string address = "shared-normalized@example.invalid";
+
+            var responses = await Task.WhenAll(
+                PatchAsync(firstOwner, scenario.MenteeOneId,
+                    $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{address}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]"),
+                PatchAsync(secondOwner, scenario.MenteeTwoId,
+                    $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{address.ToUpperInvariant()}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeTwoPassword}\"}}]"));
+            using var first = responses[0];
+            using var second = responses[1];
+
+            Assert.Single(responses, response => response.StatusCode == HttpStatusCode.OK);
+            Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
+        }
+    }
+
+    [Fact]
+    public async Task FormerAddressCanBeClaimedAtTheSevenDayBoundary()
+    {
+        var clock = new ControlledTimeProvider(new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero));
+        var (factory, scenario) = await CreateScenarioAsync(timeProvider: clock);
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+
+            using var change = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"boundary-new@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, change.StatusCode);
+
+            clock.Advance(TimeSpan.FromDays(7) - TimeSpan.FromTicks(1));
+            using var beforeBoundary = await PatchAsync(
+                administrator,
+                scenario.MenteeTwoId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.AdministratorPassword}\"}}]");
+            Assert.Equal(HttpStatusCode.Conflict, beforeBoundary.StatusCode);
+
+            clock.Advance(TimeSpan.FromTicks(1));
+            using var atBoundary = await PatchAsync(
+                administrator,
+                scenario.MenteeTwoId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail.ToUpperInvariant()}\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.AdministratorPassword}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, atBoundary.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task MandatoryAuditPersistenceFailureRollsBackEmailReservationAndNoticeJobs()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            await using (var connection = new NpgsqlConnection(database.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await using var createTrigger = connection.CreateCommand();
+                createTrigger.CommandText = """
+                    CREATE FUNCTION reject_synthetic_email_change_audit() RETURNS trigger LANGUAGE plpgsql AS $$
+                    BEGIN
+                        IF NEW."CodigoEvento" = 'TrocaEmail' THEN
+                            RAISE EXCEPTION 'synthetic required-audit failure' USING ERRCODE = '23514';
+                        END IF;
+                        RETURN NEW;
+                    END;
+                    $$;
+                    CREATE TRIGGER reject_synthetic_email_change_audit
+                    BEFORE INSERT ON "LogsAuditoria"
+                    FOR EACH ROW EXECUTE FUNCTION reject_synthetic_email_change_audit();
+                    """;
+                await createTrigger.ExecuteNonQueryAsync();
+            }
+
+            try
+            {
+                using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+                using var response = await PatchAsync(
+                    owner,
+                    scenario.MenteeOneId,
+                    $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"must-rollback@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]");
+                Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+
+                await using var scope = factory.Services.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+                Assert.Equal(scenario.MenteeOneEmail, user.Email);
+                Assert.Empty(await context.EmailAddressReservations.ToListAsync());
+                Assert.Empty(await context.EmailChangeNoticeJobs.ToListAsync());
+                Assert.Empty(await context.LogsAuditoria.Where(log =>
+                    log.CodigoEvento == CodigoEventoAuditoria.TrocaEmail).ToListAsync());
+            }
+            finally
+            {
+                await using var connection = new NpgsqlConnection(database.ConnectionString);
+                await connection.OpenAsync();
+                await using var removeTrigger = connection.CreateCommand();
+                removeTrigger.CommandText = """
+                    DROP TRIGGER IF EXISTS reject_synthetic_email_change_audit ON "LogsAuditoria";
+                    DROP FUNCTION IF EXISTS reject_synthetic_email_change_audit();
+                    """;
+                await removeTrigger.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    private async Task<(IntegrationWebApplicationFactory Factory, AuthenticationProtectionScenarioData Scenario)> CreateScenarioAsync(
+        bool registerDeliveryKeyFactory = true,
+        TimeProvider? timeProvider = null)
+    {
+        var useDefaultOptions = !registerDeliveryKeyFactory && timeProvider is null;
+        IntegrationApplicationOptions? applicationOptions = useDefaultOptions
+            ? null
+            : new IntegrationApplicationOptions
+            {
+                TimeProvider = timeProvider ?? TimeProvider.System,
+                ConfigureServices = registerDeliveryKeyFactory
+                    ? services => services.AddSingleton<ThrottleKeyFactory>(
+                        _ => new ThrottleKeyFactory(KeyHashSecret, "IntegrationTesting"))
+                    : null
+            };
         var factory = new IntegrationWebApplicationFactory(
             database,
-            registerDeliveryKeyFactory
-                ? new IntegrationApplicationOptions
-            {
-                ConfigureServices = services => services.AddSingleton<ThrottleKeyFactory>(
-                    _ => new ThrottleKeyFactory(KeyHashSecret, "IntegrationTesting"))
-            }
-                : null);
+            applicationOptions);
         await factory.RecreateDatabaseAsync();
 
         var scenario = AuthenticationProtectionScenarioData.Create($"T012-{Guid.NewGuid():N}");

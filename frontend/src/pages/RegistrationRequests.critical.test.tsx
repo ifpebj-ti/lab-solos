@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import RegistrationRequest from './RegistrationRequests';
 import { server } from '@/test/msw/server';
 import { toast } from '@/components/hooks/use-toast';
+import { establishTestSession } from '@/test/session';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 const approverId = 42;
@@ -22,6 +22,7 @@ const requests = [
     telefone: null,
     dataIngresso: '2026-09-01',
     status: 'Pendente' as const,
+    tipoUsuario: 'Academico' as const,
     nivelUsuario: 'Mentorado' as const,
     cidade: 'Belo Jardim',
     curso: 'ES',
@@ -34,7 +35,8 @@ const requests = [
     telefone: null,
     dataIngresso: '2026-09-02',
     status: 'Pendente' as const,
-    nivelUsuario: 'Mentorado' as const,
+    tipoUsuario: 'Academico' as const,
+    nivelUsuario: 'Mentor' as const,
     cidade: 'Belo Jardim',
     curso: 'ES',
     instituicao: 'IFPE',
@@ -51,15 +53,41 @@ function useApprovalList(list: typeof requests = requests) {
   );
 }
 
-function renderPage() {
-  Cookie.set('doorKey', 'session-token');
-  Cookie.set('rankID', String(approverId));
+function renderPage(level = 'Mentor') {
+  establishTestSession(String(approverId), level);
   return render(<RegistrationRequest />);
 }
 
 describe('RegistrationRequests: fluxo crítico de aprovação e rejeição', () => {
   beforeEach(() => {
     useApprovalList();
+  });
+
+  it('apresenta o tipo e o papel efetivo retornados para cada solicitação', async () => {
+    renderPage();
+
+    await screen.findByText('Ana Silva');
+    expect(screen.getAllByText('Acadêmico')).toHaveLength(2);
+    expect(screen.getByText('Mentorado')).toBeInTheDocument();
+    expect(screen.getByText('Mentor')).toBeInTheDocument();
+  });
+
+  it('carrega a fila administrativa completa para o perfil administrador', async () => {
+    const adminQueueRequests: string[] = [];
+    server.use(
+      http.get(`${API_ORIGIN}/Usuarios/aprovacao`, () => {
+        adminQueueRequests.push('admin');
+        return HttpResponse.json(requests);
+      })
+    );
+
+    renderPage('Administrador');
+
+    await screen.findByText('Ana Silva');
+    await waitFor(() => expect(adminQueueRequests).toHaveLength(1));
+    expect(screen.getAllByText('Acadêmico')).toHaveLength(2);
+    expect(screen.getByText('Mentor')).toBeInTheDocument();
+    expect(screen.getByText('Mentorado')).toBeInTheDocument();
   });
 
   it('aprova pelo ID correto, atualiza a lista e mantém o feedback de sucesso', async () => {

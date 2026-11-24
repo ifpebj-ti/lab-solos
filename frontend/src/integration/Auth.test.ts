@@ -6,49 +6,58 @@ import {
   saveIntendedRoute,
 } from '@/auth/intendedRoute';
 import { clearSession } from '@/auth/session';
-import { api } from '@/services/BaseApi';
 
 import { authenticate } from './Auth';
 
-vi.mock('@/services/BaseApi', () => ({
-  api: vi.fn(),
+const apiMocks = vi.hoisted(() => ({
+  request: vi.fn(),
+  get: vi.fn(),
+  post: vi.fn(),
 }));
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+vi.mock('@/services/BaseApi', () => ({
+  api: Object.assign(apiMocks.request, {
+    get: apiMocks.get,
+    post: apiMocks.post,
+  }),
+}));
 
 const loginRequest = {
   method: 'POST',
   params: { email: 'user@example.org', password: 'senha-segura' },
 };
 
-const responseFor = (role: string, requiresPasswordChange: boolean) => {
-  const token = createToken({
-    sub: '42',
-    role,
-    password_change_required: requiresPasswordChange,
-  });
+const responseFor = (requiresPasswordChange: boolean) => ({
+  data: { requiresPasswordChange },
+});
 
-  return {
-    data: { token, requiresPasswordChange },
-  };
+const sessionResponseFor = (role: string, requiresPasswordChange: boolean) => ({
+  data: {
+    userId: '42',
+    role,
+    requiresPasswordChange,
+    csrfToken: 'session-bound-proof',
+  },
+});
+
+const mockSession = (role: string, requiresPasswordChange: boolean) => {
+  apiMocks.request.mockResolvedValue(responseFor(requiresPasswordChange));
+  apiMocks.get.mockResolvedValue(
+    sessionResponseFor(role, requiresPasswordChange)
+  );
 };
 
 describe('Auth', () => {
   beforeEach(() => {
     clearSession({ discardAuthContext: true });
     sessionStorage.clear();
-    vi.mocked(api).mockReset();
+    apiMocks.request.mockReset();
+    apiMocks.get.mockReset();
+    apiMocks.post.mockReset();
   });
 
   it('normaliza uma falha de login sem navegar nem expor a rejeicao remota', async () => {
-    vi.mocked(api).mockRejectedValue({
+    apiMocks.request.mockRejectedValue({
       response: {
         status: 401,
         data: { message: 'senha=segredo token=segredo' },
@@ -70,7 +79,7 @@ describe('Auth', () => {
   });
 
   it('preserva a espera segura de um 429 de login', async () => {
-    vi.mocked(api).mockRejectedValue({
+    apiMocks.request.mockRejectedValue({
       response: {
         status: 429,
         headers: { 'Retry-After': '17' },
@@ -101,7 +110,7 @@ describe('Auth', () => {
   it('retoma uma rota valida do mesmo perfil depois de iniciar a sessao', async () => {
     const intendedRoute = '/mentor/history/loan?tab=active#latest';
     saveIntendedRoute(intendedRoute);
-    vi.mocked(api).mockResolvedValue(responseFor('Mentor', false) as never);
+    mockSession('Mentor', false);
     const navigate = vi.fn();
 
     await authenticate(loginRequest, navigate);
@@ -112,7 +121,7 @@ describe('Auth', () => {
 
   it('usa a home do perfil e descarta rota de outro perfil', async () => {
     saveIntendedRoute('/admin/users?tab=all');
-    vi.mocked(api).mockResolvedValue(responseFor('Mentor', false) as never);
+    mockSession('Mentor', false);
     const navigate = vi.fn();
 
     await authenticate(loginRequest, navigate);
@@ -123,9 +132,7 @@ describe('Auth', () => {
 
   it('usa a home padrao para perfil desconhecido', async () => {
     saveIntendedRoute('/admin/users');
-    vi.mocked(api).mockResolvedValue(
-      responseFor('PerfilDesconhecido', false) as never
-    );
+    mockSession('PerfilDesconhecido', false);
     const navigate = vi.fn();
 
     await authenticate(loginRequest, navigate);
@@ -137,9 +144,12 @@ describe('Auth', () => {
   it('preserva a rota durante a troca obrigatoria e a consome na nova autenticacao', async () => {
     const intendedRoute = '/admin/inventory?filter=low#items';
     saveIntendedRoute(intendedRoute);
-    vi.mocked(api)
-      .mockResolvedValueOnce(responseFor('Administrador', true) as never)
-      .mockResolvedValueOnce(responseFor('Administrador', false) as never);
+    apiMocks.request
+      .mockResolvedValueOnce(responseFor(true))
+      .mockResolvedValueOnce(responseFor(false));
+    apiMocks.get
+      .mockResolvedValueOnce(sessionResponseFor('Administrador', true))
+      .mockResolvedValueOnce(sessionResponseFor('Administrador', false));
     const navigate = vi.fn();
 
     await authenticate(loginRequest, navigate);
@@ -154,7 +164,7 @@ describe('Auth', () => {
   });
 
   it('nao cria nem altera aviso de expiracao no login', async () => {
-    vi.mocked(api).mockRejectedValue({ response: { status: 401 } });
+    apiMocks.request.mockRejectedValue({ response: { status: 401 } });
     const navigate = vi.fn();
 
     await expect(authenticate(loginRequest, navigate)).rejects.toMatchObject({
@@ -165,9 +175,9 @@ describe('Auth', () => {
   });
 
   it('normaliza falha local de contrato sem expor a mensagem tecnica', async () => {
-    vi.mocked(api).mockResolvedValue({
+    apiMocks.request.mockResolvedValue({
       data: { token: 'token-invalido', requiresPasswordChange: false },
-    } as never);
+    });
     const navigate = vi.fn();
 
     const error = await authenticate(loginRequest, navigate).catch(

@@ -48,3 +48,33 @@ O comando global `npm.cmd --prefix frontend run test:e2e` terminou com 228/235 a
 ### REFACTOR / conclusão
 
 A matriz separa as falhas históricas das validações finais, registra o comparativo reproduzível e mantém visíveis os achados axe e a limitação de leitor de tela. T029 está concluída sob limitações documentadas; T030 é liberada pelo DAG. Nenhum código de produção foi alterado nesta retomada de integração e nenhum commit/publicação foi feito.
+
+## Retomada T023 — auditoria — 2026-11-24
+
+### RED
+
+Com o frontend local em `http://127.0.0.1:4174`, os três cenários da auditoria falharam conforme o diagnóstico T016:
+
+```text
+$env:E2E_BASE_URL='http://127.0.0.1:4174'
+npm.cmd run test:e2e -- --project=ui --grep 'T023 auditoria' --reporter=list --output=e2e/infra/artifacts/t029-audit-red
+```
+
+Resultado: 0/3. O cenário de lista recebia um array legado em vez do envelope `ResultadoPaginado`; os cenários vazio/erro esperavam cópias removidas da tela atual.
+
+### GREEN / REFACTOR
+
+- Atualizada a fixture do log aos campos atuais (`codigoEvento`, `dataHoraUtc`, `origem`, `resultado`, categoria e histórico de classificação) e ao envelope paginado (`itens`, `pagina`, `tamanhoPagina`, `totalItens`, `totalPaginas`). A linha carregada também confirma `pagina=1&tamanhoPagina=25`.
+- Estado vazio agora verifica a mensagem exibida: “Nenhum evento de auditoria encontrado para os filtros selecionados.”
+- Estado de erro confirma o alerta acessível, feedback genérico correspondente à operação, botão “Tentar novamente” e ausência da lista; a tela não apresenta estado vazio quando a consulta falha.
+
+```text
+$env:E2E_BASE_URL='http://127.0.0.1:4174'
+npm.cmd run test:e2e -- --project=ui --grep 'T023 auditoria' --reporter=list --output=e2e/infra/artifacts/t029-audit-green
+npx.cmd eslint e2e/responsive-layout.spec.ts --max-warnings=0
+git diff --check -- frontend/e2e/responsive-layout.spec.ts
+```
+
+Resultado: E2E **3/3**; ESLint e `git diff --check` aprovados. `npx.cmd prettier --check e2e/responsive-layout.spec.ts` sinalizou apenas trechos de formatação fora dos três cenários T023, em outras áreas do arquivo já modificadas no working tree; a região desta retomada foi conferida contra o formatter e está formatada. Não reformatei os demais cenários fora da tarefa.
+
+Somente fixture/assertivas E2E e esta evidência foram alteradas por T029; não houve mudança de produção, backend ou chamadas remotas. As pastas isoladas de artefatos RED/GREEN permaneceram no workspace porque a ferramenta bloqueou a remoção recursiva; não tentei removê-las novamente.

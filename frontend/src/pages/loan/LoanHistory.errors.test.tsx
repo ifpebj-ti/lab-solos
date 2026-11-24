@@ -1,11 +1,12 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Link, MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import LoanHistory from './LoanHistory';
 
@@ -18,7 +19,6 @@ const loanUrl = `${API_ORIGIN}/Emprestimos/99`;
 const approveUrl = `${API_ORIGIN}/Emprestimos/aprovar/99`;
 const rejectUrl = `${API_ORIGIN}/Emprestimos/reprovar/99`;
 const returnUrl = `${API_ORIGIN}/Emprestimos/devolver/99`;
-const sessionToken = 'session-token';
 
 const loan = {
   id: 99,
@@ -82,14 +82,11 @@ const renderPage = () =>
 describe('LoanHistory: erros de consulta e mutação', () => {
   beforeEach(() => {
     toastMock.mockReset();
-    Cookie.set('doorKey', sessionToken);
-    Cookie.set('rankID', '12');
+    establishTestSession('12', 'Administrador');
     server.use(http.get(loanUrl, () => HttpResponse.json(loan)));
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
-    Cookie.remove('rankID');
   });
 
   it('mantém a falha da consulta persistente e recupera o empréstimo', async () => {
@@ -137,10 +134,16 @@ describe('LoanHistory: erros de consulta e mutação', () => {
     );
 
     renderPage();
-    const button = await screen.findByRole('button', { name: buttonName });
-    button.click();
+    fireEvent.click(await screen.findByRole('button', { name: buttonName }));
 
-    await waitFor(() => expect(button).toBeEnabled());
+    expect(screen.getByRole('button', { name: 'Aceitar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Rejeitar' })).toBeDisabled();
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: buttonName })).toBeEnabled()
+    );
+    expect(screen.getByRole('button', { name: 'Aceitar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Rejeitar' })).toBeEnabled();
     expect(screen.getByRole('heading', { name: /Histórico de Empréstimo - Pendente/ })).toBeInTheDocument();
     const notification = toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0];
     expect(notification).toEqual(
@@ -151,6 +154,147 @@ describe('LoanHistory: erros de consulta e mutação', () => {
     );
     expect(notification.description).toContain(ERROR_CATALOG.server.suggestedAction);
     expect(notification.description).not.toContain('LOAN_MUTATION_SECRET');
+  });
+
+  it.each([
+    ['Aceitar', approveUrl, 'Aprovado', 'Solicitação aceita'],
+    ['Rejeitar', rejectUrl, 'Rejeitado', 'Solicitação rejeitada'],
+  ] as const)('reconsulta o detalhe após %s e exibe a decisão gravada', async (buttonName, url, status, title) => {
+    let decisionSaved = false;
+    server.use(
+      http.get(loanUrl, () => HttpResponse.json(decisionSaved ? { ...loan, status } : pendingLoan)),
+      http.patch(url, () => {
+        decisionSaved = true;
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: buttonName }));
+
+    expect(await screen.findByRole('heading', { name: `Histórico de Empréstimo - ${status}` })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Rejeitar' })).not.toBeInTheDocument();
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ title }));
+  });
+
+  it('preserva outro detalhe aberto antes de a decisão terminar', async () => {
+    let finishDecision: () => void = () => undefined;
+    const decisionInProgress = new Promise<void>((resolve) => {
+      finishDecision = resolve;
+    });
+    let originalReads = 0;
+    const otherLoan = {
+      ...pendingLoan,
+      id: 100,
+      solicitante: { ...loan.solicitante, nomeCompleto: 'Outra solicitante' },
+      produtos: [],
+    };
+    server.use(
+      http.get(loanUrl, () => {
+        originalReads += 1;
+        return HttpResponse.json(pendingLoan);
+      }),
+      http.get(`${API_ORIGIN}/Emprestimos/100`, () => HttpResponse.json(otherLoan)),
+      http.patch(approveUrl, async () => {
+        await decisionInProgress;
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/admin/history/loan?id=99']}>
+        <LoanHistory />
+        <Link to='/admin/history/loan?id=100'>Outra solicitação</Link>
+      </MemoryRouter>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Outra solicitação' }));
+
+    expect(await screen.findByText('Outra solicitante')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aceitar' })).toBeDisabled();
+    finishDecision();
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Aceitar' })).toBeEnabled());
+    expect(screen.getByText('Outra solicitante')).toBeInTheDocument();
+    expect(originalReads).toBe(1);
+  });
+
+  it('exibe as datas prevista e efetiva de devolução em campos separados', async () => {
+    server.use(
+      http.get(loanUrl, () =>
+        HttpResponse.json({
+          ...loan,
+          dataDevolucao: '2026-09-07T12:00:00',
+        })
+      )
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('08/09/2026')).toBeInTheDocument();
+    expect(screen.getByText('07/09/2026')).toBeInTheDocument();
+    expect(screen.getByText('Devolução prevista')).toBeInTheDocument();
+    expect(screen.getByText('Devolução efetiva')).toBeInTheDocument();
+  });
+
+  it('reconsulta e reflete a decisão concorrente após conflito', async () => {
+    let reads = 0;
+    let decisions = 0;
+    server.use(
+      http.get(loanUrl, () => {
+        reads += 1;
+        return HttpResponse.json(reads === 1 ? pendingLoan : loan);
+      }),
+      http.patch(approveUrl, () => {
+        decisions += 1;
+        return HttpResponse.json({ code: 'loan_decision_already_recorded' }, { status: 409 });
+      })
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Histórico de Empréstimo - Aprovado' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Rejeitar' })).not.toBeInTheDocument();
+    expect(reads).toBe(2);
+    expect(decisions).toBe(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Não foi possível aprovar o empréstimo',
+        description: expect.stringContaining(ERROR_CATALOG.conflict.message),
+      })
+    );
+  });
+
+  it('reconsulta antes de permitir reenvio após resposta de rede incerta', async () => {
+    let reads = 0;
+    let decisions = 0;
+    server.use(
+      http.get(loanUrl, () => {
+        reads += 1;
+        return HttpResponse.json(reads === 1 ? pendingLoan : loan);
+      }),
+      http.patch(approveUrl, () => {
+        decisions += 1;
+        return HttpResponse.error();
+      })
+    );
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Aceitar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Histórico de Empréstimo - Aprovado' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument();
+    expect(reads).toBe(2);
+    expect(decisions).toBe(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Não foi possível aprovar o empréstimo',
+        description: expect.stringContaining(ERROR_CATALOG.network.message),
+      })
+    );
   });
 
   it('mantém a sessão e o empréstimo quando devolver retorna 403', async () => {
@@ -164,11 +308,12 @@ describe('LoanHistory: erros de consulta e mutação', () => {
     );
 
     renderPage();
-    const button = await screen.findByRole('button', { name: 'Registrar Devolução' });
-    button.click();
+    fireEvent.click(await screen.findByRole('button', { name: 'Registrar Devolução' }));
 
-    await waitFor(() => expect(button).toBeEnabled());
-    expect(Cookie.get('doorKey')).toBe(sessionToken);
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Registrar Devolução' })).toBeEnabled()
+    );
+    expect(readSession()?.userId).toBe('12');
     expect(screen.getByRole('heading', { name: /Histórico de Empréstimo - Aprovado/ })).toBeInTheDocument();
     expect(toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0]).toEqual(
       expect.objectContaining({
@@ -198,10 +343,12 @@ describe('LoanHistory: erros de consulta e mutação', () => {
     );
 
     renderPage();
-    const button = await screen.findByRole('button', { name: 'Registrar Devolução' });
-    button.click();
+    await screen.findByRole('button', { name: 'Registrar Devolução' });
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Devolução' }));
 
-    await waitFor(() => expect(button).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Registrar Devolução' })).toBeEnabled()
+    );
     const conflictNotification = toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0];
     expect(conflictNotification).toEqual(
       expect.objectContaining({
@@ -213,7 +360,7 @@ describe('LoanHistory: erros de consulta e mutação', () => {
       ERROR_CATALOG.conflict.suggestedAction
     );
 
-    button.click();
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Devolução' }));
     await waitFor(() =>
       expect(toastMock).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Devolução registrada' })

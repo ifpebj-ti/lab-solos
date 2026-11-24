@@ -84,7 +84,9 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn('python -m unittest discover -s .github/scripts/tests -p "test_*.py" -v', workflow)
         self.assertIn("bash .github/scripts/install_actionlint.sh .tmp/actionlint", workflow)
         self.assertIn(
-            ".tmp/actionlint/actionlint .github/workflows/container-ci.yml", workflow
+            "        run: .tmp/actionlint/actionlint .github/workflows/container-ci.yml "
+            ".github/workflows/container-release.yml",
+            workflow.splitlines(),
         )
 
         quality = self.job("quality-baseline")
@@ -98,6 +100,63 @@ class ContainerCiWorkflowTests(unittest.TestCase):
             self.assertIn(command, quality)
         self.assertIn("pull_request.base.sha", quality)
 
+    def test_coverage_is_collected_per_module_and_checked_for_the_same_attempt(self) -> None:
+        frontend = self.job("frontend-quality")
+        backend = self.job("backend-quality")
+        coverage_gate = self.job("coverage-gate")
+
+        self.assertIn("npm run test -- --run --coverage", frontend)
+        self.assertIn("collect_frontend_coverage.py", frontend)
+        self.assertIn("GITHUB_SHA", frontend)
+        self.assertIn("GITHUB_RUN_ID", frontend)
+        self.assertIn("GITHUB_RUN_ATTEMPT", frontend)
+        self.assertIn("actions/upload-artifact@", frontend)
+        self.assertIn("retention-days: 30", frontend)
+
+        self.assertIn('--collect:"XPlat Code Coverage"', backend)
+        self.assertIn("collect_backend_coverage.py", backend)
+        self.assertIn("GITHUB_SHA", backend)
+        self.assertIn("GITHUB_RUN_ID", backend)
+        self.assertIn("GITHUB_RUN_ATTEMPT", backend)
+        self.assertIn("actions/upload-artifact@", backend)
+        self.assertIn("retention-days: 30", backend)
+
+        self.assertIn("if: always()", coverage_gate)
+        self.assertIn("actions/download-artifact@", coverage_gate)
+        self.assertIn("check_coverage.py", coverage_gate)
+        self.assertIn("--metric lines", coverage_gate)
+        self.assertIn("--sha", coverage_gate)
+        self.assertIn("--run-id", coverage_gate)
+        self.assertIn("--run-attempt", coverage_gate)
+        self.assertIn("actions/upload-artifact@", coverage_gate)
+
+    def test_semgrep_is_pinned_sanitized_and_required_by_the_gate(self) -> None:
+        semgrep = self.job("semgrep")
+        gate = self.job("quality-gate")
+        policy = (REPOSITORY_ROOT / ".github/quality/semgrep/policy.json").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("semgrep/semgrep:1.185.0@sha256:", semgrep)
+        self.assertIn("--network none", semgrep)
+        self.assertIn("--entrypoint python", semgrep)
+        normalized_semgrep = re.sub(r"\s+", " ", re.sub(r"\\\s*", " ", semgrep))
+        self.assertIn(
+            '"$SEMGREP_IMAGE" .github/scripts/check_semgrep.py scan',
+            normalized_semgrep,
+        )
+        self.assertIn("GITHUB_SHA", semgrep)
+        self.assertIn("GITHUB_RUN_ID", semgrep)
+        self.assertIn("GITHUB_RUN_ATTEMPT", semgrep)
+        self.assertIn("if: always()", semgrep)
+        self.assertIn("semgrep-summary.json", semgrep)
+        self.assertIn("retention-days: 7", semgrep)
+        self.assertIn("semgrep/semgrep:1.185.0@sha256:", policy)
+        self.assertIn("- semgrep", gate)
+        self.assertIn('SEMgrep_RESULT: ${{ needs.semgrep.result }}'.lower(), gate.lower())
+        self.assertIn('"semgrep=$SEMgrep_RESULT"'.lower(), gate.lower())
+        self.assertIn("coverage-gate", gate)
+
     def test_quality_gate_requires_every_upstream_job_to_succeed(self) -> None:
         gate = self.job("quality-gate")
         self.assertIn("if: always()", gate)
@@ -105,6 +164,8 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         for job_name in (
             "frontend-quality",
             "backend-quality",
+            "coverage-gate",
+            "semgrep",
             "auth-e2e",
             "browser-security",
             "workflow-quality",
@@ -112,8 +173,12 @@ class ContainerCiWorkflowTests(unittest.TestCase):
             "container-scan",
         ):
             self.assertIn(f"- {job_name}", gate)
+        self.assertIn("COVERAGE_RESULT: ${{ needs.coverage-gate.result }}", gate)
+        self.assertIn("SEMGREP_RESULT: ${{ needs.semgrep.result }}", gate)
         self.assertIn("BROWSER_SECURITY_RESULT: ${{ needs.browser-security.result }}", gate)
         self.assertIn('"browser-security=$BROWSER_SECURITY_RESULT"', gate)
+        self.assertIn('"coverage-gate=$COVERAGE_RESULT"', gate)
+        self.assertIn('"semgrep=$SEMGREP_RESULT"', gate)
 
     def test_backend_quality_runs_postgresql_integration_and_migration_tests(self) -> None:
         backend = self.job("backend-quality")

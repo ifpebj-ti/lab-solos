@@ -80,11 +80,12 @@ test('falha transitória mantém a sessão e oferece retry contextual', async ({
   await expect(page.getByRole('alert')).toContainText(/empréstimos|carregar/i);
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(page.locator('a[href="/mentor/history/loan?id=3401"]')).toBeVisible();
-  await expect(page.context().cookies()).resolves.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ name: 'doorKey' }),
-      expect.objectContaining({ name: 'rankID' }),
-      expect.objectContaining({ name: 'level' }),
-    ])
+  await expect
+    .poll(() =>
+      page.evaluate(() => sessionStorage.getItem('auth:session-context'))
+    )
+    .toContain('4242');
+  expect((await page.context().cookies()).map((cookie) => cookie.name)).not.toEqual(
+    expect.arrayContaining(['doorKey', 'rankID', 'level'])
   );
 });

@@ -1,9 +1,9 @@
 # Tarefas: Proteção de acesso, autenticação e frontend
 
-- Status: em execução
+- Status: bloqueada operacionalmente — tarefas locais concluídas; T030 aguarda publicação autorizada e contas de teste
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
-- Atualizado em: 2026-10-13
+- Atualizado em: 2026-11-24
 - Validações de descoberta e design: confirmadas
 - Escopo: 30 tarefas para as cinco issues abertas do recorte aprovado.
 - Implementação: execução orquestrada iniciada em 2026-10-13; as cinco issues permanecem abertas até o aceite remoto previsto em T030.
@@ -731,6 +731,10 @@ Edição válida atualiza perfil; 400/409 mantém dados e feedback; senha ausent
 
 Preservar alterações do usuário e os contratos aprovados; executar somente este escopo. Paralelismo só pode ser habilitado após dependências concluídas e isolamento conforme o contrato de execução.
 
+### Retomada — 2026-11-24
+
+A validação real da T025 confirmou que a API retorna `current_password_invalid` em `errors.senhaAtual`, sob o código geral de validação, mas `ProfileContactForm` consulta somente o código raiz. Com isso, erro de senha atual é apresentado como erro genérico. Corrigir a leitura do erro de campo e cobrir a forma real do Problem Details; preservar status 400, não persistência e limpeza da senha.
+
 ## T021 — Aplicar espera acessível no login e redefinição
 
 - Status: concluída
@@ -910,6 +914,10 @@ Specs descobertos e executados com dados sintéticos; sem acesso cruzado e sem m
 
 Não gravar login/token/code em trace ou screenshots. Descoberta sem execução não conclui a tarefa. Paralelismo só pode ser habilitado após dependências concluídas e isolamento conforme o contrato de execução.
 
+### Retomada — 2026-11-24
+
+A validação cruzada T016 encontrou duas expectativas E2E desatualizadas em `authentication-protection.real.spec.ts`: comparação de Problem Details inclui `correlationId` volátil e perfil espera uma mensagem de senha específica apesar do feedback público genérico atual. Conferir as regras aprovadas de privacidade/erros e atualizar somente os cenários de teste se a implementação estiver conforme; não afrouxar asserções de autorização nem alterar produção nesta retomada.
+
 ## T026 — Comprovar CSP, CORS e cadeia de IP no navegador/proxy
 
 - Status: concluída
@@ -1059,7 +1067,8 @@ Composições de T024/T025 devem estar ativos e isolados. Esta tarefa não fecha
 
 ## T030 — Registrar aceite após publicação com contas de teste
 
-- Status: pendente
+- Status: bloqueada
+- Bloqueio: depende de publicação identificável e execução contra o ambiente publicado. A tarefa não autoriza publicar; este fluxo permanece local e sem GitHub.
 - Issue de execução: #436
 - Onda: 14
 - Dependências: T029
@@ -1153,6 +1162,7 @@ Pré-condição externa: candidato publicado por fluxo autorizado, URL/versão e
 ## Log de execução
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
+| 2026-11-24 | T030 | Bloqueada antes da execução | Não executada: não há publicação identificável disponível no escopo local | O aceite exige deployment real, contas de teste e checks remotos; não foi substituído por simulação local e nenhuma ação foi feita no GitHub. |
 |---|---|---|---|---|
 | 2026-10-13 | T001 | concluída | RED no histórico EF; filtro PG15/PG16 7/7; regressão integrada da onda 30/30; suíte backend após integração 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T001/**` | Docker Desktop iniciado (29.8.0); build integrado apontou avisos de análise existentes no repositório, sem novos avisos nos arquivos adicionados. |
 | 2026-10-13 | T002 | concluída | RED 5/11; filtro focado 17/17; regressão 287/287; suíte backend integrada 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T002/execucao.md` | Seis avisos CA1859 novos foram corrigidos; build integrado final teve 197 avisos preexistentes e nenhum em T002. Artefatos exploratórios ficaram no worktree e foram excluídos da integração. #437 permanece `In Progress`. |
@@ -1189,3 +1199,6 @@ Pré-condição externa: candidato publicado por fluxo autorizado, URL/versão e
 | 2026-10-13 | T029 (proteção CodeQL PR #441) | concluída | CI de f3ee41f: 18 checks aprovados, real+UI 239/239 e imagens finais amd64/arm64 aprovadas. Revisão CodeQL local: backend 434/434, frontend 820/820; RED 2 casos de claim e 98 entradas adversariais de IDs; lint/build e evidências PR441 | Ruleset revelou oito alertas novos apesar dos jobs verdes; causas corrigidas sem descartar alertas ou relaxar proteção. A próxima análise remota deve confirmar resolução e estado de merge. T030/CA-027 e encerramento das issues permanecem pendentes do aceite publicado. |
 | 2026-10-13 | T029 (determinismo auditoria PR #441) | concluída | CodeQL remoto de 735d2da: zero novos error/warning; backend quality 434/434. Teste de colisão de metadados: RED 1 falha, GREEN classe 10/10; evidências PR441 | Corrigida falha intermitente no job NuGet: os dígitos de IDs eram encontrados no timestamp gerado. Varredura conserva todos os campos de conteúdo e exclui somente Id/DataHora. Suite remota terá 435 casos; acompanhar novo HEAD. T030/CA-027 permanece pendente. |
 | 2026-10-13 | T029 (rotas Class PR #441) | concluída | CI de 80f1f4c: 19 checks aprovados, backend 435/435, real/UI 239/239. Rotas Class: RED 28 entradas, GREEN 48 focados e frontend completo 852/852; lint/build; evidências PR441 | A área de merge revelou dois alertas históricos #4/#5 no código alterado. IDs de getDependentesID/getLoansByClass são validados antes da URL, sem descartar alertas ou alterar regras. Conferir aprovação do novo HEAD e estado de merge; T030/CA-027 permanece pendente. |
+| 2026-11-24 | T020 retomada senha atual | concluída | RED: fixture com `code=validation_failed` reproduziu feedback genérico; GREEN: 19/19 testes direcionados, lint, build e `git diff --check` aprovados; hash do tsbuildinfo preservado. | O formulário agora lê o erro específico do campo `senhaAtual`; senha continua transitória e os dados não são salvos em caso de falha. Evidência `evidencias/T020/retomada-erro-senha-atual-2026-11-24.md`; cópia de backup do tsbuildinfo permaneceu por bloqueio de limpeza do ambiente. |
+| 2026-11-24 | T025 retomada autorização E2E | concluída | RED: 404 comparava `correlationId` volátil e o formulário recebia sucesso com texto atual diferente; GREEN: real 6/6, UI 1/1, seed .NET 9/9, descoberta 255/21, ESLint, Prettier e `git diff --check` aprovados. | O E2E compara campos públicos estáveis, confirma 400/código de senha atual sem eco ou mutação e sucesso de troca conforme a UI. Evidência `evidencias/T025/validacao.md`; stack exclusiva removida, sem consulta/mudança remota. T030 segue pendente de publicação autorizada e contas de teste. |
+| 2026-11-24 | T007 retomada — estabilidade da verificação de canários | concluída | RED: `GeneratedAuditMetadataMayContainRequestDigitsWithoutPersistingSensitiveContent` falhou com expiração fixa contendo `123`; GREEN: teste focado 1/1, `AuthenticationAuditPrivacyTests` + `AuditoriaMiddlewareTests` 16/16 e backend completo 846/846. [Evidência](evidencias/T007/retomada-timestamp-expiracao-2026-11-24.md). | O helper de teste exclui `Id`, `DataHora` e `ExpiraEmUtc`, que são metadados gerados; demais propriedades e canários continuam cobertos. Corrige falso positivo da comparação contra sequência numérica no timestamp, sem mudar política ou dados persistidos. Detectado na validação integral de cobertura T008. |

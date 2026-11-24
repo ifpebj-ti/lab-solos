@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -60,10 +60,10 @@ interface Product {
   nomeProduto?: string;
   quantidade?: number;
   quantidadeMinima?: number;
-  fornecedor?: string;
+  fornecedor?: string | null;
   localizacaoProduto?: string;
   dataFabricacao?: string | null;
-  dataValidade?: string;
+  dataValidade?: string | null;
   status?: string | number;
 }
 
@@ -87,14 +87,14 @@ const EMPTY_FORM_DATA = {
 };
 
 type EditableField = keyof typeof EMPTY_FORM_DATA;
-type FieldErrors = Partial<Record<EditableField, string>>;
-type ProductPatchOperation = {
-  op: 'replace';
-  path: string;
-  value: string | number;
-};
+type ErrorField = EditableField | 'operations';
+type FieldErrors = Partial<Record<ErrorField, string>>;
+type ProductPatchOperation =
+  | { op: 'replace'; path: string; value: string | number }
+  | { op: 'remove'; path: string };
 
-const SERVER_FIELD_ALIASES: Readonly<Record<string, EditableField>> = {
+const SERVER_FIELD_ALIASES: Readonly<Record<string, ErrorField>> = {
+  operations: 'operations',
   catmat: 'catmat',
   nome: 'nomeProduto',
   nomeProduto: 'nomeProduto',
@@ -115,7 +115,6 @@ function buildProductPatch(
   product: Product
 ): ProductPatchOperation[] {
   const fields: Array<[string, string, string]> = [
-    [formData.catmat, product.catmat || '', '/catmat'],
     [formData.nomeProduto, product.nomeProduto || '', '/nomeProduto'],
     [formData.quantidade, product.quantidade?.toString() || '', '/quantidade'],
     [
@@ -148,14 +147,20 @@ function buildProductPatch(
     ],
   ];
   const numericPaths = new Set(['/quantidade', '/quantidadeMinima']);
+  const removablePaths = new Set(['/fornecedor', '/dataFabricacao', '/dataValidade']);
 
-  return fields.flatMap(([value, originalValue, path]) => {
+  return fields.flatMap<ProductPatchOperation>(([value, originalValue, path]) => {
     if (value === originalValue) return [];
+    if (
+      numericPaths.has(path) && value !== '' && originalValue !== '' &&
+      Number(value) === Number(originalValue)
+    ) return [];
+    if (value === '' && removablePaths.has(path)) return [{ op: 'remove', path }];
     return [
       {
         op: 'replace' as const,
         path,
-        value: numericPaths.has(path) ? parseFloat(value) : value,
+        value: numericPaths.has(path) ? Number(value) : value,
       },
     ];
   });
@@ -189,9 +194,15 @@ export default function ProductEditModal({
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM_DATA);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const baselineProduct = useRef<Product | null>(null);
 
   useEffect(() => {
-    if (product && isOpen) {
+    if (!isOpen) {
+      baselineProduct.current = null;
+      return;
+    }
+    if (baselineProduct.current?.id !== product.id) {
+      baselineProduct.current = { ...product };
       setFormData({
         catmat: product.catmat || '',
         nomeProduto: product.nomeProduto || '',
@@ -220,9 +231,10 @@ export default function ProductEditModal({
       [field]: value,
     }));
     setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
+      if (!prev[field] && !prev.operations) return prev;
       const next = { ...prev };
       delete next[field];
+      delete next.operations;
       return next;
     });
   };
@@ -247,14 +259,14 @@ export default function ProductEditModal({
       errors.nomeProduto = 'Informe o nome do produto.';
     }
     if (!formData.quantidade || !Number.isFinite(quantidade) || quantidade < 0) {
-      errors.quantidade = 'Informe uma quantidade vÃ¡lida.';
+      errors.quantidade = 'Informe uma quantidade válida.';
     }
     if (
       !formData.quantidadeMinima ||
       !Number.isFinite(quantidadeMinima) ||
       quantidadeMinima < 0
     ) {
-      errors.quantidadeMinima = 'Informe uma quantidade mÃ­nima vÃ¡lida.';
+      errors.quantidadeMinima = 'Informe uma quantidade mínima válida.';
     }
 
     return errors;
@@ -265,7 +277,7 @@ export default function ProductEditModal({
   ) => {
     const mapped: FieldErrors = {};
     for (const [sourceField, messages] of Object.entries(errors ?? {})) {
-      const field = SERVER_FIELD_ALIASES[sourceField];
+      const field = SERVER_FIELD_ALIASES[sourceField] ?? 'operations';
       const message = messages[0];
       if (field && message) mapped[field] = message;
     }
@@ -274,6 +286,7 @@ export default function ProductEditModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const validationErrors = validateFormData();
     if (Object.keys(validationErrors).length > 0) {
@@ -288,7 +301,7 @@ export default function ProductEditModal({
     setIsLoading(true);
 
     try {
-      const operations = buildProductPatch(formData, product);
+      const operations = buildProductPatch(formData, baselineProduct.current ?? product);
 
       // Verificar se há alguma alteração
       if (operations.length === 0) {
@@ -333,6 +346,7 @@ export default function ProductEditModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='space-y-6'>
+          <FieldError id='operations-error' message={fieldErrors.operations} />
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='min-w-0 space-y-2'>
               <FieldError id='catmat-error' message={fieldErrors.catmat} />
@@ -341,7 +355,7 @@ export default function ProductEditModal({
                 id='catmat'
                 name='catmat'
                 value={formData.catmat}
-                onChange={handleChange}
+                readOnly
                 {...fieldFeedbackProps('catmat', fieldErrors)}
                 placeholder='Código CATMAT'
               />
@@ -398,14 +412,14 @@ export default function ProductEditModal({
 
           <div className='min-w-0 space-y-2'>
             <FieldError id='fornecedor-error' message={fieldErrors.fornecedor} />
-            <Label htmlFor='fornecedor'>Fornecedor</Label>
+            <Label htmlFor='fornecedor'>Marca</Label>
             <Input
               id='fornecedor'
               name='fornecedor'
               value={formData.fornecedor}
               onChange={handleChange}
               {...fieldFeedbackProps('fornecedor', fieldErrors)}
-              placeholder='Nome do fornecedor'
+              placeholder='Nome da marca'
             />
           </div>
 
