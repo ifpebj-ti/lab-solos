@@ -297,19 +297,25 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
   });
   const context = page.context();
   await context.clearCookies();
-  if (new URL(page.url()).pathname !== '/') {
-    await page.goto('/');
-  }
-  await context.addCookies([
-    {
-      name: 'lab_solos_session',
-      value: identity.sessionCookie,
-      url: securityE2eData.baseURL,
-      secure: true,
-      httpOnly: true,
-      sameSite: 'Lax',
-    },
-  ]);
+  await page.goto('/');
+  await page.getByLabel('Email').fill(identity.email);
+  await page.getByLabel('Senha').fill(identity.password);
+  const loginResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname.endsWith('/Auth/login') &&
+      response.request().method() === 'POST'
+  );
+  await page.getByRole('button', { name: 'Submeter Login' }).click();
+  const loginResponse = await loginResponsePromise;
+  expect(loginResponse.ok()).toBe(true);
+
+  const homePath =
+    identity.role === 'Administrador'
+      ? '/admin/'
+      : identity.role === 'Mentor'
+        ? '/mentor/'
+        : '/mentee/';
+  await page.waitForURL((url) => url.pathname === homePath);
   const actualSession = await page.evaluate(async () => {
     const response = await fetch('/api/Auth/session');
     return response.ok ? ((await response.json()) as BrowserSession) : null;
@@ -319,18 +325,13 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
     role: identity.role,
     requiresPasswordChange: false,
   });
-  if (!actualSession)
-    throw new Error('The browser cookie did not restore its session.');
-  await page.evaluate((session) => {
-    sessionStorage.setItem(
-      'auth:session-context',
-      JSON.stringify({
-        userId: String(session.userId),
-        role: session.role,
-      })
-    );
-    sessionStorage.setItem('auth:csrf-token', session.csrfToken);
-  }, actualSession);
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        sessionStorage.getItem('auth:session-context') ?? ''
+      )
+    )
+    .toContain(String(identity.id));
   await page.reload({ waitUntil: 'networkidle' });
   await expect
     .poll(() =>
@@ -339,13 +340,22 @@ async function startBrowserSession(page: Page, identity: SecurityIdentity) {
       )
     )
     .toContain(String(identity.id));
+  const restoredSession = await page.evaluate(async () => {
+    const response = await fetch('/api/Auth/session');
+    return response.ok ? ((await response.json()) as BrowserSession) : null;
+  });
+  expect(restoredSession).toMatchObject({
+    userId: identity.id,
+    role: identity.role,
+    requiresPasswordChange: false,
+  });
 
   const browserCookie = (await context.cookies(securityE2eData.baseURL)).find(
     (cookie) => cookie.name === 'lab_solos_session'
   );
   expect(browserCookie?.httpOnly).toBe(true);
   expect(browserCookie?.sameSite).toBe('Lax');
-  expect(browserCookie?.value).toBe(identity.sessionCookie);
+  expect(browserCookie?.value).toBeTruthy();
   expect(
     (await context.cookies(securityE2eData.baseURL)).map(
       (cookie) => cookie.name

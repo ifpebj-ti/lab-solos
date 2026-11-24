@@ -12,6 +12,12 @@ public interface ILoteService
 
 public class LoteService(ILogger<LoteService> logger) : ILoteService
 {
+    private static readonly Action<ILogger, int, Exception?> LogValidationCompleted =
+        LoggerMessage.Define<int>(
+            LogLevel.Debug,
+            new EventId(1001, nameof(LogValidationCompleted)),
+            "Validação de lote concluída com {FieldCount} campos inválidos");
+
     public ResultadoValidacaoDTO ValidarEstruturaLote(AddLoteDTO loteDto)
     {
         var errors = new Dictionary<string, string[]>();
@@ -22,7 +28,7 @@ public class LoteService(ILogger<LoteService> logger) : ILoteService
             if (type == TipoProduto.Quimico) ValidateChemical(loteDto, errors);
             if (type == TipoProduto.Vidraria) ValidateGlassware(loteDto, errors);
         }
-        logger.LogDebug("Validação de lote concluída com {FieldCount} campos inválidos", errors.Count);
+        LogValidationCompleted(logger, errors.Count, null);
         return new ResultadoValidacaoDTO
         {
             Validado = errors.Count == 0,

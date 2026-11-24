@@ -1020,81 +1020,126 @@ async function takeDownloadBody(url: string): Promise<DownloadBodyCapture> {
   });
 }
 
-async function toHarEntry(
+type CapturedResponseBody = {
+  body: Buffer;
+  bodyUnavailable: boolean;
+  bodyFailure: boolean;
+  bodyUnavailableReason?: BodyUnavailableReason;
+  downloadEventMatched?: boolean;
+  downloadBodyRecovered?: boolean;
+  fetchBodyRecovered?: boolean;
+  cdpBodyRecovered?: boolean;
+  cdpBodyErrorClass?: CdpBodyCapture['errorClass'];
+};
+
+async function recoverResponseBody(
   response: BrowserResponse,
   request: Request,
+  responseHeaders: HarHeader[]
+): Promise<CapturedResponseBody> {
+  const downloadedBody = await takeDownloadBody(request.url());
+  if (downloadedBody.body !== undefined) {
+    return {
+      body: downloadedBody.body,
+      bodyUnavailable: false,
+      bodyFailure: false,
+      downloadEventMatched: downloadedBody.matched,
+      downloadBodyRecovered: true,
+    };
+  }
+
+  const fetchBody = await takeFetchBody(
+    response.url(),
+    request.method(),
+    response.status()
+  );
+  if (fetchBody?.body !== undefined) {
+    return {
+      body: fetchBody.body,
+      bodyUnavailable: false,
+      bodyFailure: false,
+      downloadEventMatched: downloadedBody.matched,
+      fetchBodyRecovered: true,
+    };
+  }
+
+  const cdpBody = await takeCdpBody(
+    response.url(),
+    request.method(),
+    response.status()
+  );
+  const cdpBodyErrorClass = cdpBody?.errorClass ?? fetchBody?.errorClass;
+  if (cdpBody?.body !== undefined) {
+    cdpBodyFallbacks += 1;
+    return {
+      body: cdpBody.body,
+      bodyUnavailable: false,
+      bodyFailure: false,
+      downloadEventMatched: downloadedBody.matched,
+      cdpBodyRecovered: true,
+      ...(cdpBodyErrorClass ? { cdpBodyErrorClass } : {}),
+    };
+  }
+
+  const bodyUnavailableReason = classifyUnavailableBody(
+    request.method(),
+    response.status(),
+    responseHeaders,
+    request.resourceType()
+  );
+  const bodyFailure = isUnavailableBodyFatal(bodyUnavailableReason);
+  return {
+    body: Buffer.alloc(0),
+    bodyUnavailable: true,
+    bodyFailure,
+    bodyUnavailableReason,
+    downloadEventMatched: downloadedBody.matched,
+    ...(cdpBodyErrorClass ? { cdpBodyErrorClass } : {}),
+  };
+}
+
+async function readResponseBody(
+  response: BrowserResponse,
+  request: Request,
+  responseHeaders: HarHeader[],
   responseBodyCapture?: BrowserResponseBodyCapture
-): Promise<HarCaptureResult> {
-  const requestUrl = new URL(request.url());
-  const requestHeaders = headerPairs(await request.allHeaders());
-  const requestBody = request.postDataBuffer();
-  const responseHeaders = headerPairs(await response.headersArray());
-  const contentType =
-    responseHeaders.find(({ name }) => name.toLowerCase() === 'content-type')
-      ?.value ?? 'application/octet-stream';
-  let responseBody: Buffer;
-  let bodyUnavailable = false;
-  let bodyFailure = false;
-  let bodyUnavailableReason: BodyUnavailableReason | undefined;
-  let downloadEventMatched = false;
-  let downloadBodyRecovered = false;
-  let fetchBodyRecovered = false;
-  let cdpBodyRecovered = false;
-  let cdpBodyErrorClass: CdpBodyCapture['errorClass'];
+): Promise<CapturedResponseBody> {
   try {
-    if (responseBodyCapture) {
-      if (!responseBodyCapture.attempted || !responseBodyCapture.body) {
-        throw new Error('browser_response_body_unavailable');
-      }
-      responseBody = responseBodyCapture.body;
-      fetchBodyRecovered = responseBodyCapture.fromFetch === true;
-    } else {
-      responseBody = await response.body();
+    if (
+      responseBodyCapture &&
+      (!responseBodyCapture.attempted || !responseBodyCapture.body)
+    ) {
+      throw new Error('browser_response_body_unavailable');
     }
+
+    const body = responseBodyCapture?.body ?? (await response.body());
+    const fetchBodyRecovered = responseBodyCapture?.fromFetch === true;
     if (!fetchBodyRecovered) {
       discardFetchBody(response.url(), request.method(), response.status());
     }
     discardCdpBody(response.url(), request.method(), response.status());
+    return {
+      body,
+      bodyUnavailable: false,
+      bodyFailure: false,
+      ...(fetchBodyRecovered ? { fetchBodyRecovered } : {}),
+    };
   } catch {
-    const downloadedBody = await takeDownloadBody(request.url());
-    downloadEventMatched = downloadedBody.matched;
-    if (downloadedBody.body !== undefined) {
-      responseBody = downloadedBody.body;
-      downloadBodyRecovered = true;
-    } else {
-      const fetchBody = await takeFetchBody(
-        response.url(),
-        request.method(),
-        response.status()
-      );
-      if (fetchBody?.body !== undefined) {
-        responseBody = fetchBody.body;
-        fetchBodyRecovered = true;
-      } else {
-        const cdpBody = await takeCdpBody(
-          response.url(),
-          request.method(),
-          response.status()
-        );
-        cdpBodyErrorClass = cdpBody?.errorClass ?? fetchBody?.errorClass;
-        if (cdpBody?.body !== undefined) {
-          responseBody = cdpBody.body;
-          cdpBodyRecovered = true;
-          cdpBodyFallbacks += 1;
-        } else {
-          bodyUnavailableReason = classifyUnavailableBody(
-            request.method(),
-            response.status(),
-            responseHeaders,
-            request.resourceType()
-          );
-          bodyFailure = isUnavailableBodyFatal(bodyUnavailableReason);
-          bodyUnavailable = true;
-          responseBody = Buffer.alloc(0);
-        }
-      }
-    }
+    return recoverResponseBody(response, request, responseHeaders);
   }
+}
+
+async function createHarCaptureResult(
+  response: BrowserResponse,
+  request: Request,
+  requestUrl: URL,
+  requestHeaders: HarHeader[],
+  requestBody: Buffer | null,
+  responseHeaders: HarHeader[],
+  contentType: string,
+  bodyCapture: CapturedResponseBody
+): Promise<HarCaptureResult> {
+  const responseBody = bodyCapture.body;
   const isText =
     /^text\//i.test(contentType) ||
     /(?:json|javascript|xml|x-www-form-urlencoded|graphql)/i.test(contentType);
@@ -1115,8 +1160,8 @@ async function toHarEntry(
     : undefined;
 
   return {
-    bodyUnavailable,
-    bodyFailure,
+    bodyUnavailable: bodyCapture.bodyUnavailable,
+    bodyFailure: bodyCapture.bodyFailure,
     cacheCorrelationKey: cdpBodyKey(
       response.url(),
       request.method(),
@@ -1127,13 +1172,25 @@ async function toHarEntry(
     browserRequestRedirected: Boolean(
       request.redirectedFrom() || request.redirectedTo()
     ),
-    ...(bodyUnavailableReason ? { bodyUnavailableReason } : {}),
-    ...(downloadEventMatched ? { downloadEventMatched } : {}),
-    ...(downloadBodyRecovered ? { downloadBodyRecovered } : {}),
-    ...(fetchBodyRecovered ? { fetchBodyRecovered } : {}),
-    ...(cdpBodyRecovered ? { cdpBodyRecovered } : {}),
-    ...(cdpBodyErrorClass ? { cdpBodyErrorClass } : {}),
-    ...(bodyFailure
+    ...(bodyCapture.bodyUnavailableReason
+      ? { bodyUnavailableReason: bodyCapture.bodyUnavailableReason }
+      : {}),
+    ...(bodyCapture.downloadEventMatched
+      ? { downloadEventMatched: bodyCapture.downloadEventMatched }
+      : {}),
+    ...(bodyCapture.downloadBodyRecovered
+      ? { downloadBodyRecovered: bodyCapture.downloadBodyRecovered }
+      : {}),
+    ...(bodyCapture.fetchBodyRecovered
+      ? { fetchBodyRecovered: bodyCapture.fetchBodyRecovered }
+      : {}),
+    ...(bodyCapture.cdpBodyRecovered
+      ? { cdpBodyRecovered: bodyCapture.cdpBodyRecovered }
+      : {}),
+    ...(bodyCapture.cdpBodyErrorClass
+      ? { cdpBodyErrorClass: bodyCapture.cdpBodyErrorClass }
+      : {}),
+    ...(bodyCapture.bodyFailure
       ? {
           bodyFailureMethodStatus: safeMethodStatus(
             request.method(),
@@ -1178,6 +1235,37 @@ async function toHarEntry(
       timings: { send: 0, wait: 0, receive: 0 },
     },
   };
+}
+
+async function toHarEntry(
+  response: BrowserResponse,
+  request: Request,
+  responseBodyCapture?: BrowserResponseBodyCapture
+): Promise<HarCaptureResult> {
+  const requestUrl = new URL(request.url());
+  const requestHeaders = headerPairs(await request.allHeaders());
+  const requestBody = request.postDataBuffer();
+  const responseHeaders = headerPairs(await response.headersArray());
+  const contentType =
+    responseHeaders.find(({ name }) => name.toLowerCase() === 'content-type')
+      ?.value ?? 'application/octet-stream';
+  const bodyCapture = await readResponseBody(
+    response,
+    request,
+    responseHeaders,
+    responseBodyCapture
+  );
+
+  return createHarCaptureResult(
+    response,
+    request,
+    requestUrl,
+    requestHeaders,
+    requestBody,
+    responseHeaders,
+    contentType,
+    bodyCapture
+  );
 }
 
 type RequestOptions = Record<string, unknown>;

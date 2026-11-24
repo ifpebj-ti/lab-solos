@@ -295,10 +295,15 @@ namespace LabSolos_Server_DotNet8.Controllers
                 if (_emailAddressReservations is not null)
                     await _emailAddressReservations.LockAddressAsync(addUsuarioDTO.Email, HttpContext.RequestAborted);
 
-                if (await _uow.UsuarioRepository.ObterAsync(u => u.Email.Trim().ToLower() == addUsuarioDTO.Email) is not null ||
-                    (_emailAddressReservations is not null &&
-                     await _emailAddressReservations.IsUnavailableToAsync(
-                         addUsuarioDTO.Email, null, HttpContext.RequestAborted)))
+                // When configured, the reservation service also checks existing accounts after normalizing the address.
+                if (_emailAddressReservations is null &&
+                    await _uow.UsuarioRepository.ObterAsync(u =>
+                        u.Email.Trim() == addUsuarioDTO.Email.Trim()) is not null)
+                    return RegistrationConflict();
+
+                if (_emailAddressReservations is not null &&
+                    await _emailAddressReservations.IsUnavailableToAsync(
+                        addUsuarioDTO.Email, null, HttpContext.RequestAborted))
                     return RegistrationConflict();
 
                 Usuario usuario = _mapper.Map<Academico>(addUsuarioDTO);
