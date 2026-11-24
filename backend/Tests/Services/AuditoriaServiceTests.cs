@@ -189,7 +189,8 @@ public sealed class AuditoriaServiceTests
             logger => logger.Log(
                 LogLevel.Warning,
                 It.Is<EventId>(eventId => eventId.Id == 1001),
-                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains("trace-diagnostic", StringComparison.Ordinal)),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state?.ToString()?.Contains("trace-diagnostic", StringComparison.Ordinal) == true),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -211,7 +212,8 @@ public sealed class AuditoriaServiceTests
             logger => logger.Log(
                 LogLevel.Warning,
                 It.Is<EventId>(eventId => eventId.Id == 1001),
-                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains(nameof(InvalidOperationException), StringComparison.Ordinal)),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state?.ToString()?.Contains(nameof(InvalidOperationException), StringComparison.Ordinal) == true),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -371,8 +373,8 @@ public sealed class AuditoriaServiceTests
                 LogLevel.Warning,
                 It.Is<EventId>(eventId => eventId.Id == 1001),
                 It.Is<It.IsAnyType>((state, _) =>
-                    state.ToString()!.Contains("trace-failure", StringComparison.Ordinal) &&
-                    !state.ToString()!.Contains("CANARY_SECRET", StringComparison.Ordinal)),
+                    state?.ToString()?.Contains("trace-failure", StringComparison.Ordinal) == true &&
+                    state?.ToString()?.Contains("CANARY_SECRET", StringComparison.Ordinal) != true),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

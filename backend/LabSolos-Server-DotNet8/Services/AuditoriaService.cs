@@ -143,12 +143,9 @@ namespace LabSolos_Server_DotNet8.Services
             bool suspeitaResultante,
             string justificativa)
         {
-            if (logId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(logId));
-            if (autorUsuarioId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(autorUsuarioId));
-            if (revisaoEsperada < 0)
-                throw new ArgumentOutOfRangeException(nameof(revisaoEsperada));
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(logId);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(autorUsuarioId);
+            ArgumentOutOfRangeException.ThrowIfNegative(revisaoEsperada);
             if (string.IsNullOrWhiteSpace(justificativa))
                 throw new ArgumentException("A justificativa é obrigatória.", nameof(justificativa));
 

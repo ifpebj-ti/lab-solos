@@ -40,7 +40,7 @@ public sealed class ApiPublicationMatrixTests(PostgreSqlContainerFixture databas
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var root = document.RootElement;
-            Assert.Equal(1, root.EnumerateObject().Count());
+            Assert.Single(root.EnumerateObject().ToArray());
 
             var products = root.GetProperty("produtos");
             Assert.Equal(2, products.EnumerateObject().Count());

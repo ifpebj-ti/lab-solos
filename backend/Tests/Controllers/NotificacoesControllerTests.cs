@@ -208,7 +208,7 @@ public sealed class NotificacoesControllerTests
         var limited = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status429TooManyRequests, limited.StatusCode);
         Assert.Equal("71", controller.Response.Headers.RetryAfter);
-        Assert.True(controller.Response.Headers.CacheControl == "no-store");
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public sealed class NotificacoesControllerTests
 
         var unavailable = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, unavailable.StatusCode);
-        Assert.True(controller.Response.Headers.CacheControl == "no-store");
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
     }
 
     [Fact]

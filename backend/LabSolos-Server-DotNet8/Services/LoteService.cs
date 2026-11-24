@@ -12,15 +12,15 @@ public interface ILoteService
 
 public class LoteService(ILogger<LoteService> logger) : ILoteService
 {
-    public ResultadoValidacaoDTO ValidarEstruturaLote(AddLoteDTO dto)
+    public ResultadoValidacaoDTO ValidarEstruturaLote(AddLoteDTO loteDto)
     {
         var errors = new Dictionary<string, string[]>();
-        ValidateCommon(dto, errors);
-        ValidateDates(dto, errors);
-        if (Enum.TryParse<TipoProduto>(dto.Tipo, true, out var type))
+        ValidateCommon(loteDto, errors);
+        ValidateDates(loteDto, errors);
+        if (Enum.TryParse<TipoProduto>(loteDto.Tipo, true, out var type))
         {
-            if (type == TipoProduto.Quimico) ValidateChemical(dto, errors);
-            if (type == TipoProduto.Vidraria) ValidateGlassware(dto, errors);
+            if (type == TipoProduto.Quimico) ValidateChemical(loteDto, errors);
+            if (type == TipoProduto.Vidraria) ValidateGlassware(loteDto, errors);
         }
         logger.LogDebug("Validação de lote concluída com {FieldCount} campos inválidos", errors.Count);
         return new ResultadoValidacaoDTO

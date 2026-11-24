@@ -59,7 +59,7 @@ public sealed class ProdutosControllerTests
             DataValidade = dataValidade
         });
 
-        var badRequest = Assert.IsAssignableFrom<ObjectResult>(result);
+        var badRequest = Assert.IsType<ObjectResult>(result, exactMatch: false);
         Assert.Equal(StatusCodes.Status400BadRequest, badRequest.StatusCode);
         var payload = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
         var erro = Assert.Single(payload.Errors);
