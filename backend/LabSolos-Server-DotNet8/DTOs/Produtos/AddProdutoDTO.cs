@@ -1,17 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using LabSolos_Server_DotNet8.Enums;
 
 namespace LabSolos_Server_DotNet8.DTOs.Produtos
 {
     public partial class AddProdutoDTO : IValidatableObject
     {
-#pragma warning disable SYSLIB1045 // GeneratedRegex output triggers CodeQL findings in the compiled C# database.
-        private static readonly Regex FormulaQuimicaPermitidaPattern = new(
-            @"\A[A-Za-z0-9₀-₉()\-+,. ]+\z",
-            RegexOptions.Compiled);
-#pragma warning restore SYSLIB1045
-
         public required string NomeProduto { get; set; }
         public required string Tipo { get; set; } // Enum
         public required float Quantidade { get; set; }
@@ -44,7 +37,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
 
             if (ehQuimico
                 && FormulaQuimica is { Length: > 0 } formula
-                && (formula.Length > 50 || !FormulaQuimicaPermitidaPattern.IsMatch(formula)))
+                && (formula.Length > 50 || !FormulaQuimicaEhValida(formula)))
             {
                 yield return new ValidationResult(
                     "A fórmula deve ter no máximo 50 caracteres e usar apenas caracteres válidos.",
@@ -82,6 +75,22 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
 
             var scale = (decimal.GetBits(valor)[3] >> 16) & 0x7F;
             return scale <= 3;
+        }
+
+        private static bool FormulaQuimicaEhValida(string formula)
+        {
+            foreach (var caractere in formula)
+            {
+                var permitido = char.IsAsciiLetterOrDigit(caractere)
+                    || caractere is >= '₀' and <= '₉'
+                    || caractere is '(' or ')' or '-' or '+' or ',' or '.' or ' ';
+                if (!permitido)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

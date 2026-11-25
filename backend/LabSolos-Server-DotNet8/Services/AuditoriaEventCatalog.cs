@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 
@@ -18,12 +17,6 @@ public sealed record DefinicaoEventoAuditoria(
 
 public static partial class AuditoriaEventCatalog
 {
-#pragma warning disable SYSLIB1045 // GeneratedRegex output triggers CodeQL findings in the compiled C# database.
-    private static readonly Regex SafeReferencePattern = new(
-        "^[A-Za-z0-9:_-]{1,64}$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-#pragma warning restore SYSLIB1045
-
     public static readonly TimeSpan RetencaoTrilhaObrigatoria = TimeSpan.FromDays(365);
     public static readonly TimeSpan RetencaoDiagnosticoOperacional = TimeSpan.FromDays(30);
 
@@ -94,7 +87,30 @@ public static partial class AuditoriaEventCatalog
     }
 
     public static bool ReferenciaSegura(string? reference) =>
-        string.IsNullOrEmpty(reference) || SafeReferencePattern.IsMatch(reference);
+        string.IsNullOrEmpty(reference) || SafeReferenceEhValida(reference);
+
+    private static bool SafeReferenceEhValida(string reference)
+    {
+        // Preserve the regular expression's `$` behavior for a final line feed.
+        var length = reference.EndsWith('\n') ? reference.Length - 1 : reference.Length;
+        if (length is < 1 or > 64)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < length; index++)
+        {
+            var caractere = reference[index];
+            var permitido = char.IsAsciiLetterOrDigit(caractere)
+                || caractere is ':' or '_' or '-';
+            if (!permitido)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static DefinicaoEventoAuditoria Required(
         CodigoEventoAuditoria code,
