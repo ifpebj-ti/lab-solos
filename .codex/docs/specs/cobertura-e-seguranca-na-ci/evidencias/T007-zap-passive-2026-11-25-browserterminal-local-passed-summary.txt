@@ -18,6 +18,7 @@ cache_skipped_confirmed=41
 cache_hits_confirmed=79
 blocking_high_confidence_alerts=0
 policy_tests=55_passed
+workflow_contract_tests=8_passed
 strict_typescript=passed
 prettier=passed
 git_diff_check=passed

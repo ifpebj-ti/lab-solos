@@ -156,7 +156,13 @@ class SecurityE2EStackTests(unittest.TestCase):
         self.assertIn("pendingFetchContinuations.add", capture_fixture)
         self.assertIn("pendingCaptureOperations.add", capture_fixture)
         self.assertIn("pendingCaptureOperations.delete", capture_fixture)
-        self.assertIn("cdpInFlightSameOriginRequests.set(event.requestId, event.type)", capture_fixture)
+        self.assertIn("url: event.request.url", capture_fixture)
+        self.assertIn("method: event.request.method", capture_fixture)
+        self.assertIn("resourceType: event.type", capture_fixture)
+        self.assertIn(
+            "reconcileFinishedBrowserRequest(cdpInFlightSameOriginRequests",
+            capture_fixture,
+        )
         self.assertIn("cdpInFlightSameOriginRequests.delete(event.requestId)", capture_fixture)
         self.assertIn("drainCdpCaptureEvents(cdpCaptureDrainState", capture_fixture)
 
@@ -186,7 +192,7 @@ class SecurityE2EStackTests(unittest.TestCase):
         self.assertIn("cdp_extra_info_pending=", capture_fixture)
         self.assertIn("inflight_same_origin_resource_types=", capture_fixture)
         self.assertIn(
-            "summarizeCdpResourceTypes([...cdpInFlightSameOriginRequests.values()])",
+            "summarizeCdpResourceTypes([...cdpInFlightSameOriginRequests.values()].map(({ resourceType }) => resourceType))",
             capture_fixture,
         )
         self.assertIn("extractSettledCaptureResults", capture_fixture)
