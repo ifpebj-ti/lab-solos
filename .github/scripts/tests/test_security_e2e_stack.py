@@ -148,6 +148,36 @@ class SecurityE2EStackTests(unittest.TestCase):
         self.assertIn("page.on('download', trackDownload)", capture_fixture)
         self.assertIn("isCaptureWithinLimits(", capture_fixture)
 
+    def test_context_capture_recovers_binary_responses_outside_page_fixture(self) -> None:
+        capture_fixture = self.require_text(
+            "frontend/e2e/infra/security-passive-capture.ts",
+            "The passive capture fixture is missing.",
+        )
+        page_capture = capture_fixture.split("function captureBinaryResponse", 1)[
+            1
+        ].split("async function takeDownloadBody", 1)[0]
+        page_fixture = capture_fixture.split("page: async", 1)[1].split(
+            "context: async", 1
+        )[0]
+        context_fixture = capture_fixture.split("context: async", 1)[1].split(
+            "request: async", 1
+        )[0]
+
+        self.assertIn(
+            "let capturedBinaryRequests = new WeakSet<Request>()", capture_fixture
+        )
+        self.assertIn(
+            "capturedBinaryRequests = new WeakSet<Request>()", page_fixture
+        )
+        self.assertIn("capturedBinaryRequests.has(request)", page_capture)
+        self.assertIn("capturedBinaryRequests.add(request)", page_capture)
+        self.assertIn("capturedBinaryRequests.has(request)", context_fixture)
+        self.assertIn("capturedBinaryRequests.add(request)", context_fixture)
+        self.assertIn(
+            "recordCapturedResult(await toHarEntry(response, request))",
+            context_fixture,
+        )
+
     def test_cdp_session_outlives_page_fixture_and_drains_before_cleanup(self) -> None:
         capture_fixture = self.require_text(
             "frontend/e2e/infra/security-passive-capture.ts",

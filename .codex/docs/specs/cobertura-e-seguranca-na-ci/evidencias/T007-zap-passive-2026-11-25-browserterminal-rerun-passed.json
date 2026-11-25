@@ -1,0 +1,89 @@
+{
+  "alerts": [
+    {
+      "alert_status": "observed",
+      "confidence": "Low",
+      "count": 26,
+      "risk": "Informational",
+      "rule_id": "10015"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 1,
+      "risk": "Low",
+      "rule_id": "10021"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 1,
+      "risk": "Informational",
+      "rule_id": "10027"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 2,
+      "risk": "Low",
+      "rule_id": "10035"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 9,
+      "risk": "Medium",
+      "rule_id": "10055"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Low",
+      "count": 247,
+      "risk": "Low",
+      "rule_id": "10096"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 9,
+      "risk": "Informational",
+      "rule_id": "10109"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 39,
+      "risk": "Informational",
+      "rule_id": "10111"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 2,
+      "risk": "Informational",
+      "rule_id": "10112"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 17,
+      "risk": "Informational",
+      "rule_id": "10112"
+    }
+  ],
+  "messages": {
+    "api_request_context": 48,
+    "api_routes": 143,
+    "body_unavailable": 0,
+    "body_unavailable_cache_skipped": 41,
+    "browser": 282,
+    "cache_evidence_ambiguous": 0,
+    "cache_skipped": 41,
+    "frontend_routes": 187,
+    "wire_304_ambiguous": 0,
+    "wire_304_responses": 0
+  },
+  "processing_seconds": 170.971,
+  "schema_version": 1,
+  "status": "passed"
+}

@@ -201,6 +201,7 @@ type BrowserResponseEventCaptureState = {
   result?: HarCaptureResult;
 };
 let browserResponseEventCaptureStates: BrowserResponseEventCaptureState[] = [];
+let capturedBinaryRequests = new WeakSet<Request>();
 let browserResponseRecordFailures = 0;
 let pausedResponseMessages = 0;
 let pausedResponseRecordFailures = 0;
@@ -983,6 +984,8 @@ function captureBinaryResponse(response: BrowserResponse): void {
     return;
   }
 
+  if (capturedBinaryRequests.has(request)) return;
+  capturedBinaryRequests.add(request);
   browserResponseEventMessages += 1;
   const captureState: BrowserResponseEventCaptureState = { settled: false };
   browserResponseEventCaptureStates.push(captureState);
@@ -1539,6 +1542,7 @@ export const test = base.extend({
     activeCdpSession = undefined;
     browserResponseEventMessages = 0;
     browserResponseEventCaptureStates = [];
+    capturedBinaryRequests = new WeakSet<Request>();
     cdpCacheObservations = [];
     cdpTimingObservations = [];
     cdpExtraInfoTracker = createCdpExtraInfoTracker();
@@ -1640,7 +1644,13 @@ export const test = base.extend({
               responseHeaders,
               request.resourceType()
             );
-            if (unavailableReason === 'binary_media') return;
+            if (unavailableReason === 'binary_media') {
+              if (capturedBinaryRequests.has(request)) return;
+              capturedBinaryRequests.add(request);
+              observedMessages += 1;
+              recordCapturedResult(await toHarEntry(response, request));
+              return;
+            }
             observedMessages += 1;
             recordCapturedResult(await toHarEntry(response, request));
           })

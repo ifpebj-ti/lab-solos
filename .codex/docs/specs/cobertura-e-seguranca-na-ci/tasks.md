@@ -205,7 +205,7 @@ Conferir a composição descartável, os testes existentes e os contextos Playwr
 
 ## T007 — Avaliar passivamente o tráfego já gerado pela suíte de segurança
 
-- Status: concluída localmente — aguarda CI do commit atualizado da PR
+- Status: concluída localmente; nova validação integrada local aprovada — aguarda CI do commit atualizado da PR
 - Issue: #490
 - Dependências: T006
 - Decisão registrada: escopo e severidade passivos usam exclusivamente a suíte local de segurança; responsabilidade de regras atribuída à função `CI quality maintainer`, sem presumir uma pessoa nominal. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
@@ -390,3 +390,5 @@ A correção atual mantém o cache e dá até 30 s para a drenagem CDP. O retest
 Na CI #45543390815, o cenário de perfis ainda encerrou com dois pedidos `Font` em voo após 30 s, mantendo a política fail-closed. A captura passou a reconciliar término Playwright com pedido CDP apenas para uma correspondência única de URL e método; duplicidades continuam pendentes. O novo reteste integrado local passou Playwright 6/6, testes de política 55/55, TypeScript estrito, Prettier e `git diff --check`; ZAP passou em 174,084 s e Caddy conciliou 291/291 registros. O [relatório sanitizado](./evidencias/T007-zap-passive-2026-11-25-browserterminal-local-passed.json) e o [resumo](./evidencias/T007-zap-passive-2026-11-25-browserterminal-local-passed-summary.txt) registram os detalhes. A validação remota do novo commit ainda está pendente.
 
 A CI posterior no commit `dd3b3d9` encontrou também uma expectativa estática desatualizada no teste de contrato do stack. O teste agora valida os campos URL/método, reconciliação de correspondência única e resumo sanitizado por tipo; `test_security_e2e_stack.py` passou **8/8** localmente. A próxima execução remota precisa validar esse contrato e a captura CDP no mesmo SHA.
+
+O run #45546413560 no head `c9789db` passou os contratos e verificações anteriores, mas falhou ao reconciliar uma requisição binária de fonte do contexto que não estava representada na captura da página. O capturador agora usa `requestfinished` do contexto como fallback e deduplica a requisição por identidade. Política Node **55/55**, contrato do stack **9/9**, runner ZAP **21/21**, TypeScript estrito, Prettier e `git diff --check` passaram localmente. O reteste integrado passou Playwright **6/6**, ZAP `passed` em **170,971 s** e Caddy **291/291**; a nova CI deste commit ainda está pendente. Consulte a [evidência T007](./evidencias/T007.md).
