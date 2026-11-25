@@ -1,6 +1,6 @@
 # Tarefas de cadastro de produtos
 
-- Status: T001–T012 concluídas localmente; validação de CI pós-correção de T012 pendente
+- Status: T001–T012 concluídas; Authentication E2E validou T012 no run #45535221035; o gate global da PR segue pendente de correções em outros checks
 - PRD: [prd.md](./prd.md)
 - Especificação técnica: [techspec.md](./techspec.md)
 - Atualizado em: 2026-11-24
@@ -401,3 +401,7 @@ A validação integrada falhava antes da jornada porque o helper esperava `login
 
 | 2026-11-24 | T012 retomada sessão | concluída | RED: login HTTP 200 sem `login.token`; GREEN: jornada real 1/1, discovery 255/255, ESLint, Prettier e `git diff --check` aprovados. | E2E usa `/Auth/session`, cookie HttpOnly e CSRF; confirmou vencido/hoje, cancelamento, Alertas e fusos Honolulu/Kiritimati. Stack/artefatos removidos e tsbuildinfo preservado; evidência T012. |
 | 2026-11-24 | T012 — cancelamento por teclado após CI | concluída localmente; CI pós-correção pendente | RED: CI run `45517310767` manteve o diálogo aberto após Escape. GREEN: jornada real direcionada 1/1 (`15.8s`); descoberta `255 tests in 21 files`; Prettier, ESLint e `git diff --check` aprovados. REFACTOR: controles acessíveis e teclas explícitos no cenário. | Escape não é o controle de cancelamento definido pelo PRD. Mantém foco restaurado, dados do formulário e ausência do produto no catálogo. Nenhuma aprovação de CI pós-correção foi registrada. Composição Docker própria removida. Evidência em `evidencias/T012.md`. |
+
+### CI de T012 — 25/11/2026
+
+A jornada de validade foi aprovada remotamente no run #45535221035: o job Authentication E2E terminou com **249 testes aprovados**, incluindo `product-expiry.spec.ts` — T012, **1/1 em 11,7 s** — nos fusos distintos previstos. Os demais checks desse run incluem falhas alheias a T012, registradas em [T007](../cobertura-e-seguranca-na-ci/evidencias/T007.md) e na evidência T010; o resultado desta tarefa é verde, mas a PR ainda aguarda uma rodada global aprovada.

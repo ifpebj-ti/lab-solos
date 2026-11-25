@@ -49,3 +49,14 @@ O spec `frontend/e2e/notifications-audit.real.spec.ts` prepara uma worktree dest
 - O teste exige que a revisão imutável `a0e9929` esteja acessível no repositório do runner; se o SHA não estiver no checkout raso, tenta buscá-lo com `contents: read`. Se o fetch ou a troca/restauração do serviço falhar, o teste falha e a evidência não deve ser tratada como compatibilidade aprovada.
 - A execução E2E padrão também comprovou persistência após reiniciar a API atual; isso, por si só, não comprova compatibilidade entre versões.
 - A composição de compatibilidade foi encerrada com remoção dos containers, redes e volumes nomeados `lab-sol-t010-compat`. A execução Playwright auxiliar fora da porta padrão deixou um diretório de artefatos sintéticos ignorado por Git, pois a remoção foi bloqueada pela política automática do shell. O diretório é `frontend/e2e/infra/artifacts/test-results/notifications-audit.real-n-73350-leitura-após-retorno-da-API-real`.
+
+## Revalidação do helper de retorno após findings de qualidade — 25/11/2026
+
+A CI #45535221035 encontrou avisos novos de `complexity` (30, máximo 20) e `max-depth` (5/6, máximo 4) em `withCompatibleRollbackBackend`. Extraí a garantia do commit candidato, as operações Compose, a identificação/inspeção da imagem, a restauração e a remoção da worktree em helpers separados. A sequência continua restaurando e verificando o backend atual antes de limpar recursos; falhas de restauração continuam sendo expostas.
+
+- `npm exec -- eslint e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado sem avisos.
+- `npm exec -- prettier --check e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado.
+- `npm run test:e2e -- --project=real notifications-audit.real.spec.ts --reporter=list`, com `E2E_COMPOSE_PROJECT=lab-solos-quality-e2e`: **1/1 passou em 39,9 s**. A ativação do backend candidato, isolamento de leitura, histórico de auditoria, restauração e saúde da API foram confirmados.
+- `git diff --check`: sem erros. A nova CI para confirmar a remoção dos achados do baseline ainda está pendente.
+
+O stack isolado `lab-solos-quality-e2e`, seus volumes e redes foi removido ao terminar; nenhum outro projeto Docker foi tocado.

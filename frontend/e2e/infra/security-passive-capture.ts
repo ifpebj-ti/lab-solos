@@ -177,7 +177,8 @@ const maxCapturedDownloadBytes =
   CDP_RESPONSE_BUFFER_OPTIONS.maxResourceBufferSize;
 const maxCapturedCdpBytes = CDP_RESPONSE_BUFFER_OPTIONS.maxTotalBufferSize;
 const cdpCaptureDrainQuietWindowMs = 250;
-const cdpCaptureDrainMaxWaitMs = 2_000;
+// Hosted runners can need several seconds to finish browser font requests after navigation.
+const cdpCaptureDrainMaxWaitMs = 10_000;
 let observedDownloadEvents = 0;
 let capturedBrowserBodyBytes = 0;
 let reservedBrowserResponseBytes = 0;

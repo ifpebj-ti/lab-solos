@@ -123,6 +123,188 @@ function restartSyntheticBackend(): void {
   );
 }
 
+function ensureRollbackCommit(repositoryRoot: string): void {
+  try {
+    execFileSync(
+      'git',
+      ['cat-file', '-e', `${compatibleRollbackCommit}^{commit}`],
+      {
+        cwd: repositoryRoot,
+        stdio: 'ignore',
+      }
+    );
+    return;
+  } catch {
+    // Fetch the pinned commit when the checkout is shallow.
+  }
+
+  try {
+    execFileSync(
+      'git',
+      ['fetch', '--no-tags', '--depth=1', 'origin', compatibleRollbackCommit],
+      { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
+    );
+  } catch {
+    throw new Error('A revisão compatível de retorno não está disponível.');
+  }
+}
+
+function runRollbackCompose(
+  repositoryRoot: string,
+  composeFile: string,
+  args: string[],
+  failureMessage: string
+): void {
+  try {
+    execFileSync(
+      'docker',
+      [
+        'compose',
+        '--project-name',
+        scenario.composeProject,
+        '--file',
+        composeFile,
+        ...args,
+      ],
+      { cwd: repositoryRoot, stdio: 'pipe', timeout: 180_000 }
+    );
+  } catch {
+    throw new Error(failureMessage);
+  }
+}
+
+function getRollbackContainerId(
+  repositoryRoot: string,
+  composeFile: string,
+  composeOverride: string | undefined,
+  failureMessage: string
+): string {
+  const args = [
+    'compose',
+    '--project-name',
+    scenario.composeProject,
+    '--file',
+    composeFile,
+  ];
+  if (composeOverride) args.push('--file', composeOverride);
+  args.push('ps', '--quiet', 'backend');
+
+  try {
+    return execFileSync('docker', args, {
+      cwd: repositoryRoot,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    }).trim();
+  } catch {
+    throw new Error(failureMessage);
+  }
+}
+
+function inspectRollbackImage(
+  repositoryRoot: string,
+  containerId: string,
+  failureMessage: string
+): string {
+  try {
+    return execFileSync(
+      'docker',
+      ['inspect', '--format', '{{.Config.Image}}', containerId],
+      { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
+    ).trim();
+  } catch {
+    throw new Error(failureMessage);
+  }
+}
+
+function removeRollbackWorktree(
+  repositoryRoot: string,
+  candidateWorktree: string,
+  created: boolean
+): Error | undefined {
+  if (!created) return undefined;
+  try {
+    execFileSync('git', ['worktree', 'remove', '--force', candidateWorktree], {
+      cwd: repositoryRoot,
+      stdio: 'ignore',
+      timeout: 60_000,
+    });
+    return undefined;
+  } catch {
+    return new Error('A worktree descartável não foi removida.');
+  }
+}
+
+async function restoreCurrentRollbackBackend(
+  api: APIRequestContext,
+  repositoryRoot: string,
+  composeFile: string,
+  candidateImage: string
+): Promise<Error | undefined> {
+  const errors: Error[] = [];
+  try {
+    runRollbackCompose(
+      repositoryRoot,
+      composeFile,
+      [
+        'up',
+        '--detach',
+        '--wait',
+        '--no-deps',
+        '--build',
+        '--force-recreate',
+        'backend',
+      ],
+      'O backend do checkout atual não foi restaurado.'
+    );
+  } catch {
+    errors.push(new Error('O backend do checkout atual não foi restaurado.'));
+  }
+
+  let restoredContainerId = '';
+  try {
+    restoredContainerId = getRollbackContainerId(
+      repositoryRoot,
+      composeFile,
+      undefined,
+      'Não foi possível confirmar o backend restaurado.'
+    );
+  } catch {
+    errors.push(new Error('Não foi possível confirmar o backend restaurado.'));
+  }
+  if (!restoredContainerId) {
+    errors.push(new Error('O backend do checkout atual não está ativo.'));
+  } else {
+    try {
+      const restoredImage = inspectRollbackImage(
+        repositoryRoot,
+        restoredContainerId,
+        'Não foi possível conferir a imagem restaurada.'
+      );
+      if (restoredImage === candidateImage) {
+        errors.push(
+          new Error('O backend candidato continuou ativo após o retorno.')
+        );
+      }
+    } catch {
+      errors.push(new Error('Não foi possível conferir a imagem restaurada.'));
+    }
+  }
+
+  try {
+    await waitForApi(api);
+  } catch {
+    errors.push(
+      new Error('A API do checkout atual não ficou disponível após o retorno.')
+    );
+  }
+  if (errors.length === 0) return undefined;
+  if (errors.length === 1) return errors[0];
+  return new AggregateError(
+    errors,
+    'A restauração do backend teve múltiplas falhas.'
+  );
+}
+
 async function withCompatibleRollbackBackend(
   api: APIRequestContext,
   verifyState: () => Promise<void>
@@ -141,54 +323,8 @@ async function withCompatibleRollbackBackend(
   let operationError: unknown;
   let cleanupError: Error | undefined;
 
-  const runCompose = (args: string[], failureMessage: string) => {
-    try {
-      execFileSync(
-        'docker',
-        [
-          'compose',
-          '--project-name',
-          scenario.composeProject,
-          '--file',
-          composeFile,
-          ...args,
-        ],
-        {
-          cwd: repositoryRoot,
-          stdio: 'pipe',
-          timeout: 180_000,
-        }
-      );
-    } catch {
-      throw new Error(failureMessage);
-    }
-  };
-
   try {
-    try {
-      execFileSync(
-        'git',
-        ['cat-file', '-e', `${compatibleRollbackCommit}^{commit}`],
-        { cwd: repositoryRoot, stdio: 'ignore' }
-      );
-    } catch {
-      try {
-        execFileSync(
-          'git',
-          [
-            'fetch',
-            '--no-tags',
-            '--depth=1',
-            'origin',
-            compatibleRollbackCommit,
-          ],
-          { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
-        );
-      } catch {
-        throw new Error('A revisão compatível de retorno não está disponível.');
-      }
-    }
-
+    ensureRollbackCommit(repositoryRoot);
     execFileSync(
       'git',
       [
@@ -218,7 +354,9 @@ async function withCompatibleRollbackBackend(
     );
 
     candidateSwitchAttempted = true;
-    runCompose(
+    runRollbackCompose(
+      repositoryRoot,
+      composeFile,
       [
         '--file',
         composeOverride,
@@ -231,41 +369,20 @@ async function withCompatibleRollbackBackend(
       ],
       'A composição descartável não iniciou o backend candidato.'
     );
-
-    let containerId: string;
-    try {
-      containerId = execFileSync(
-        'docker',
-        [
-          'compose',
-          '--project-name',
-          scenario.composeProject,
-          '--file',
-          composeFile,
-          '--file',
-          composeOverride,
-          'ps',
-          '--quiet',
-          'backend',
-        ],
-        { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
-      ).trim();
-    } catch {
-      throw new Error('Não foi possível identificar o backend candidato.');
-    }
+    const containerId = getRollbackContainerId(
+      repositoryRoot,
+      composeFile,
+      composeOverride,
+      'Não foi possível identificar o backend candidato.'
+    );
     if (!containerId) {
       throw new Error('O contêiner de retorno compatível não foi iniciado.');
     }
-    let runningImage: string;
-    try {
-      runningImage = execFileSync(
-        'docker',
-        ['inspect', '--format', '{{.Config.Image}}', containerId],
-        { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
-      ).trim();
-    } catch {
-      throw new Error('Não foi possível conferir a imagem ativa do backend.');
-    }
+    const runningImage = inspectRollbackImage(
+      repositoryRoot,
+      containerId,
+      'Não foi possível conferir a imagem ativa do backend.'
+    );
     if (runningImage !== candidateImage) {
       throw new Error('A imagem compatível esperada não está ativa.');
     }
@@ -276,110 +393,34 @@ async function withCompatibleRollbackBackend(
     operationFailed = true;
     operationError = error;
   } finally {
+    if (candidateSwitchAttempted) {
+      cleanupError = await restoreCurrentRollbackBackend(
+        api,
+        repositoryRoot,
+        composeFile,
+        candidateImage
+      );
+    }
+    cleanupError ??= removeRollbackWorktree(
+      repositoryRoot,
+      candidateWorktree,
+      worktreeCreated
+    );
     try {
-      if (candidateSwitchAttempted) {
-        try {
-          runCompose(
-            [
-              'up',
-              '--detach',
-              '--wait',
-              '--no-deps',
-              '--build',
-              '--force-recreate',
-              'backend',
-            ],
-            'O backend do checkout atual não foi restaurado.'
-          );
-        } catch {
-          cleanupError = new Error(
-            'O backend do checkout atual não foi restaurado.'
-          );
-        }
-        let restoredContainerId = '';
-        try {
-          restoredContainerId = execFileSync(
-            'docker',
-            [
-              'compose',
-              '--project-name',
-              scenario.composeProject,
-              '--file',
-              composeFile,
-              'ps',
-              '--quiet',
-              'backend',
-            ],
-            { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
-          ).trim();
-        } catch {
-          cleanupError ??= new Error(
-            'Não foi possível confirmar o backend restaurado.'
-          );
-        }
-        if (!restoredContainerId) {
-          cleanupError ??= new Error(
-            'O backend do checkout atual não está ativo.'
-          );
-        } else {
-          try {
-            const restoredImage = execFileSync(
-              'docker',
-              ['inspect', '--format', '{{.Config.Image}}', restoredContainerId],
-              { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
-            ).trim();
-            if (restoredImage === candidateImage) {
-              cleanupError ??= new Error(
-                'O backend candidato continuou ativo após o retorno.'
-              );
-            }
-          } catch {
-            cleanupError ??= new Error(
-              'Não foi possível conferir a imagem restaurada.'
-            );
-          }
-        }
-        try {
-          await waitForApi(api);
-        } catch {
-          cleanupError ??= new Error(
-            'A API do checkout atual não ficou disponível após o retorno.'
-          );
-        }
-      }
-    } finally {
-      try {
-        if (worktreeCreated) {
-          try {
-            execFileSync(
-              'git',
-              ['worktree', 'remove', '--force', candidateWorktree],
-              { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
-            );
-          } catch {
-            cleanupError ??= new Error(
-              'A worktree descartável não foi removida.'
-            );
-          }
-        }
-      } finally {
-        try {
-          execFileSync('docker', ['image', 'rm', '--force', candidateImage], {
-            cwd: repositoryRoot,
-            stdio: 'ignore',
-            timeout: 30_000,
-          });
-        } catch {
-          // The image can be absent when building the candidate failed.
-        }
-        try {
-          await rm(temporaryRoot, { recursive: true, force: true });
-        } catch {
-          cleanupError ??= new Error(
-            'Os arquivos temporários do retorno não foram removidos.'
-          );
-        }
-      }
+      execFileSync('docker', ['image', 'rm', '--force', candidateImage], {
+        cwd: repositoryRoot,
+        stdio: 'ignore',
+        timeout: 30_000,
+      });
+    } catch {
+      // The image can be absent when building the candidate failed.
+    }
+    try {
+      await rm(temporaryRoot, { recursive: true, force: true });
+    } catch {
+      cleanupError ??= new Error(
+        'Os arquivos temporários do retorno não foram removidos.'
+      );
     }
   }
 
@@ -389,12 +430,8 @@ async function withCompatibleRollbackBackend(
       'O ensaio de retorno e a restauração do backend falharam.'
     );
   }
-  if (operationFailed) {
-    throw operationError;
-  }
-  if (cleanupError) {
-    throw cleanupError;
-  }
+  if (operationFailed) throw operationError;
+  if (cleanupError) throw cleanupError;
 }
 
 test('notificação e auditoria mantêm escopo, revisão e leitura após retorno da API', async ({

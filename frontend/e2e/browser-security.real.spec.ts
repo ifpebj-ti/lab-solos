@@ -839,13 +839,6 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
     await page.waitForLoadState('networkidle');
   }
 
-  const fontResponseFinishErrors = await Promise.all(fontResponseFinishes);
-  expect(fontResponseFinishErrors).toEqual(
-    fontResponseFinishErrors.map(() => null)
-  );
-  expect(fontResponses.length).toBeGreaterThan(0);
-  expect(fontResponses.every(({ status }) => status === 200)).toBe(true);
-
   await page.goto('/forgot-your-password');
   await page
     .getByLabel('Email')
@@ -904,7 +897,17 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
   expect(pdfDownload.suggestedFilename()).toBe('usuarios_cadastrados.pdf');
   expect(await pdfDownload.failure()).toBeNull();
   await expectNoUnexpectedPolicyViolations(page);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
   await page.waitForLoadState('networkidle');
+
+  const fontResponseFinishErrors = await Promise.all(fontResponseFinishes);
+  expect(fontResponseFinishErrors).toEqual(
+    fontResponseFinishErrors.map(() => null)
+  );
+  expect(fontResponses.length).toBeGreaterThan(0);
+  expect(fontResponses.every(({ status }) => status === 200)).toBe(true);
 });
 
 test('preserves session, administrator guard, email reservation and audit across API return', async ({
