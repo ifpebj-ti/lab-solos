@@ -18,9 +18,11 @@ public sealed record DefinicaoEventoAuditoria(
 
 public static partial class AuditoriaEventCatalog
 {
+#pragma warning disable SYSLIB1045 // GeneratedRegex output triggers CodeQL findings in the compiled C# database.
     private static readonly Regex SafeReferencePattern = new(
         "^[A-Za-z0-9:_-]{1,64}$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
+#pragma warning restore SYSLIB1045
 
     public static readonly TimeSpan RetencaoTrilhaObrigatoria = TimeSpan.FromDays(365);
     public static readonly TimeSpan RetencaoDiagnosticoOperacional = TimeSpan.FromDays(30);

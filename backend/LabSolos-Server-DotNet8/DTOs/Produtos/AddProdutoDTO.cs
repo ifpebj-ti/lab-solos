@@ -6,9 +6,11 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
 {
     public partial class AddProdutoDTO : IValidatableObject
     {
+#pragma warning disable SYSLIB1045 // GeneratedRegex output triggers CodeQL findings in the compiled C# database.
         private static readonly Regex FormulaQuimicaPermitidaPattern = new(
             @"\A[A-Za-z0-9₀-₉()\-+,. ]+\z",
             RegexOptions.Compiled);
+#pragma warning restore SYSLIB1045
 
         public required string NomeProduto { get; set; }
         public required string Tipo { get; set; } // Enum

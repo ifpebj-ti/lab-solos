@@ -6,9 +6,11 @@ namespace LabSolos_Server_DotNet8.Services;
 
 public static partial class ApiDateFilters
 {
+#pragma warning disable SYSLIB1045 // GeneratedRegex output triggers CodeQL findings in the compiled C# database.
     private static readonly Regex IsoDateTimePattern = new(
         @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})\z",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
+#pragma warning restore SYSLIB1045
 
     public static bool TryParse(string value, TimeZoneInfo timeZone, out DateTime utc)
     {
