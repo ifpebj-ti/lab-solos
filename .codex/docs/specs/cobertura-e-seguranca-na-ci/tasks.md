@@ -1,6 +1,6 @@
 # Tarefas — Cobertura e segurança na CI
 
-- Status: T007 passou localmente após correção da captura; CI #45539003181 ainda falhou antes dessa correção. Nova CI pendente. T011 aguarda CI válida; navegação humana dispensada
+- Status: T007 passou localmente com cache ativo e drenagem CDP limitada a 30 s; CI #45541687460 testou a abordagem intermediária e falhou por timeout de 90 s. Nova CI do ajuste atual pendente. T011 aguarda CI válida; navegação humana dispensada
 - PRD: [Cobertura e segurança na CI](./prd.md)
 - Especificação técnica: [Cobertura e segurança na CI](./techspec.md)
 - Atualizado em: 2026-11-25
@@ -383,4 +383,6 @@ A revalidação local completa passou: seis testes, relatório ZAP `passed` em 1
 
 A CI #45539003181 passou baseline de qualidade, E2E de autenticação, qualidade frontend/backend, CodeQL, dependências, Semgrep, scans e contratos de workflow. Browser security passou 6/6, mas a captura passiva falhou fechada: o Chromium reutilizou fontes entre navegações, 32 corpos binários ficaram sem leitura, 77 eventos ExtraInfo permaneceram pendentes e três requisições de fonte seguiam em voo. O aumento da drenagem para 10 s não bastou nesse cenário.
 
-A jornada de perfis agora desativa o cache na mesma sessão CDP utilizada pelo capturador. Reteste local completo: Playwright 6/6; perfil capturou 123/123 respostas sem corpo indisponível e drenagem completa; ZAP passou em 180,235 s. A reconciliação conciliou 351/351 registros Caddy, sem ambiguidade ou divergência. O relatório sanitizado está em [T007 — captura local com cache desativado](./evidencias/T007-zap-passive-2026-11-25-cache-disabled-passed.json), com [resumo](./evidencias/T007-zap-passive-2026-11-25-cache-disabled-passed-summary.txt). T007/T011 aguardam confirmação pela CI no próximo commit.
+A revisão intermediária 71d9ca0 desativou o cache na sessão de captura. Embora o reteste local completo tenha passado, a CI #45541687460 atingiu o timeout de 90 s nessa jornada; essa abordagem foi retirada.
+
+A correção atual mantém o cache e dá até 30 s para a drenagem CDP. O reteste local passou Playwright 6/6, ZAP em 169,213 s e reconciliação Caddy 290/290. Consulte o [relatório sanitizado](./evidencias/T007-zap-passive-2026-11-25-drain30-local-passed.json) e o [resumo](./evidencias/T007-zap-passive-2026-11-25-drain30-local-passed-summary.txt). Falta a nova CI validar o ajuste.

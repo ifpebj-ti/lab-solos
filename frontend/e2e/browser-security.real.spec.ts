@@ -1,10 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { type APIRequestContext, type Page } from '@playwright/test';
-import {
-  disableBrowserCacheForActiveCapture,
-  expect,
-  test,
-} from './infra/security-passive-capture';
+import { expect, test } from './infra/security-passive-capture';
 import { securityE2eData } from './infra/security-e2e-data';
 
 type LoginResponse = {
@@ -734,9 +730,6 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
   request,
 }) => {
   test.setTimeout(90_000);
-  // Keep repeated font responses on the network so the passive capture can read each body reliably.
-  await disableBrowserCacheForActiveCapture(page);
-
   const identities = await provisionSecurityIdentities(request);
 
   const profiles = [
