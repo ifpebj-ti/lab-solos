@@ -257,10 +257,9 @@ namespace LabSolos_Server_DotNet8.Controllers
 
             var patch = new JsonPatchDocument<ProdutoDTOPatchRequest>();
             JToken? legacyCatmat = null;
-            foreach (var property in produtoDto.Properties())
+            foreach (var property in produtoDto.Properties().Where(property =>
+                !property.Name.Equals("id", StringComparison.OrdinalIgnoreCase)))
             {
-                if (property.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
-                    continue;
                 if (property.Name.Equals("catmat", StringComparison.OrdinalIgnoreCase))
                 {
                     legacyCatmat = property.Value;

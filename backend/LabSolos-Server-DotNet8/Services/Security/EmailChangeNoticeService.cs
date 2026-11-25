@@ -66,7 +66,10 @@ public sealed class EmailChangeNoticeService(
             {
                 throw;
             }
-            catch (Exception)
+            catch (Exception exception) when (
+                exception is DbException or DbUpdateException or IOException or SmtpException
+                    or TimeoutException or InvalidOperationException or ArgumentException or FormatException
+                    or CryptographicException or OperationCanceledException)
             {
                 LogJobProcessingFailure(_logger, job.Id, null);
             }
@@ -256,7 +259,10 @@ public sealed class EmailChangeNoticeService(
         {
             throw;
         }
-        catch (Exception)
+        catch (Exception exception) when (
+            exception is DbException or DbUpdateException or IOException or SmtpException
+                or TimeoutException or InvalidOperationException or ArgumentException or FormatException
+                or OperationCanceledException)
         {
             await RecordDeliveryFailureAsync(job, _timeProvider.GetUtcNow(), cancellationToken);
         }

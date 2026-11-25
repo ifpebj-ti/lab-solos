@@ -158,19 +158,14 @@ public sealed class AdminContinuityTests(PostgreSqlContainerFixture database)
         var secondRequest = WithdrawAsync(second, 102, deleteSecond);
         start.SetResult();
         var responses = await Task.WhenAll(firstRequest, secondRequest);
-        try
-        {
-            Assert.Single(responses, response => response.IsSuccessStatusCode);
-            await AssertContinuityConflictAsync(Assert.Single(responses, response => !response.IsSuccessStatusCode));
-            await using var scope = factory.Services.CreateAsyncScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.Equal(1, await context.Usuarios.AsNoTracking().CountAsync(user =>
-                user.NivelUsuario == NivelUsuario.Administrador && user.Status == StatusUsuario.Habilitado));
-        }
-        finally
-        {
-            foreach (var response in responses) response.Dispose();
-        }
+        using var firstResponse = responses[0];
+        using var secondResponse = responses[1];
+        Assert.Single(responses, response => response.IsSuccessStatusCode);
+        await AssertContinuityConflictAsync(Assert.Single(responses, response => !response.IsSuccessStatusCode));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await context.Usuarios.AsNoTracking().CountAsync(user =>
+            user.NivelUsuario == NivelUsuario.Administrador && user.Status == StatusUsuario.Habilitado));
     }
 
     private async Task<IntegrationWebApplicationFactory> CreateScenarioAsync(bool twoEnabled = false)

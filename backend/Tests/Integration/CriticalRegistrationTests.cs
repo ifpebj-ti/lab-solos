@@ -229,20 +229,14 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         var responses = await Task.WhenAll(
             firstClient.PostAsJsonAsync("/api/Usuarios", ValidRegistration()),
             secondClient.PostAsJsonAsync("/api/Usuarios", ValidRegistration()));
-        try
-        {
-            Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Created);
-            var conflict = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
-            using var payload = JsonDocument.Parse(await conflict.Content.ReadAsStringAsync());
-            Assert.Equal("registration_conflict", payload.RootElement.GetProperty("code").GetString());
-            await using var scope = factory.Services.CreateAsyncScope();
-            Assert.Single(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
-        }
-        finally
-        {
-            foreach (var response in responses)
-                response.Dispose();
-        }
+        using var firstResponse = responses[0];
+        using var secondResponse = responses[1];
+        Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Created);
+        var conflict = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
+        using var payload = JsonDocument.Parse(await conflict.Content.ReadAsStringAsync());
+        Assert.Equal("registration_conflict", payload.RootElement.GetProperty("code").GetString());
+        await using var scope = factory.Services.CreateAsyncScope();
+        Assert.Single(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
     }
 
     private static object AcademicRegistration(string role, string? responsible) => new

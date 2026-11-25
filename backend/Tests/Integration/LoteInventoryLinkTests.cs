@@ -132,20 +132,14 @@ public sealed class LoteInventoryLinkTests(PostgreSqlContainerFixture database)
         var responses = await Task.WhenAll(
             first.PostAsJsonAsync("/api/Lote/AddLote", Payload(" Concurrent-Lot ", [10])),
             second.PostAsJsonAsync("/api/Lote/AddLote", Payload("concurrent-lot", [11])));
-        try
-        {
-            Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Created));
-            Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Conflict));
-            await using var scope = factory.Services.CreateAsyncScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.Single(await context.Lotes.ToListAsync());
-            await AssertInventoryAsync(factory, 7, 13, expectedLinked: 1);
-        }
-        finally
-        {
-            foreach (var response in responses)
-                response.Dispose();
-        }
+        using var firstResponse = responses[0];
+        using var secondResponse = responses[1];
+        Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Created));
+        Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Conflict));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Single(await context.Lotes.ToListAsync());
+        await AssertInventoryAsync(factory, 7, 13, expectedLinked: 1);
     }
 
     [Fact]

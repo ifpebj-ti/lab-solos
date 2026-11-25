@@ -31,12 +31,14 @@ public sealed class EmailControllerTests
             nameof(EmailController.RedefinirSenha)
         };
 
-        foreach (var action in publicRecoveryActions)
+        var recoveryMethods = publicRecoveryActions
+            .Select(action => typeof(EmailController).GetMethod(action))
+            .ToArray();
+        Assert.All(recoveryMethods, method =>
         {
-            var method = typeof(EmailController).GetMethod(action);
             Assert.NotNull(method);
             Assert.NotNull(method!.GetCustomAttribute<AllowAnonymousAttribute>());
-        }
+        });
     }
 
     [Fact]

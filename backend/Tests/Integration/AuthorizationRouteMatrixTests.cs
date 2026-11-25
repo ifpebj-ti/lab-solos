@@ -158,9 +158,9 @@ public sealed class AuthorizationRouteMatrixTests(PostgreSqlContainerFixture dat
         return Assert.Single(matches);
     }
 
-    private static readonly string SyntheticHashSecretPath = Path.Combine(
+    private static readonly string SyntheticHashSecretPath = Path.Join(
         Path.GetTempPath(), "lab-solos-t006-swagger", "hash-key");
-    private static readonly string SyntheticRecoveryKeysPath = Path.Combine(
+    private static readonly string SyntheticRecoveryKeysPath = Path.Join(
         Path.GetTempPath(), "lab-solos-t006-swagger", "recovery-keys.json");
 
     private sealed class SyntheticSecretFileReader : ISecretFileReader

@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
@@ -7,6 +8,7 @@ using LabSolos_Server_DotNet8.Extensions;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace LabSolos_Server_DotNet8.Middlewares;
@@ -20,8 +22,8 @@ public sealed class AuditoriaMiddleware
             new EventId(1002, nameof(LogSecondaryAuditFailure)),
             "Falha secundária em auditoria. CorrelationId {CorrelationId}; erro {ErrorType}.");
 
-    private static long _lastRetentionSweepUtcTicks;
-    private static int _retentionSweepRunning;
+    private long _lastRetentionSweepUtcTicks;
+    private int _retentionSweepRunning;
 
     private readonly RequestDelegate _next;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -87,7 +89,7 @@ public sealed class AuditoriaMiddleware
                 TipoAcaoDiagnostica = falhaNoPipeline ? null : ObterTipoAcaoDiagnostica(context, statusCode)
             }, userId, context.GetClientIpAddress());
         }
-        catch (Exception exception)
+        catch (Exception exception) when (IsSecondaryAuditFailure(exception))
         {
             LogSecondaryAuditFailure(_logger, correlationId, exception.GetType().Name, null);
         }
@@ -115,7 +117,7 @@ public sealed class AuditoriaMiddleware
             await service.ExpurgarEventosExpiradosAsync(now);
             Interlocked.Exchange(ref _lastRetentionSweepUtcTicks, nowTicks);
         }
-        catch (Exception exception)
+        catch (Exception exception) when (IsSecondaryAuditFailure(exception))
         {
             LogSecondaryAuditFailure(
                 _logger,
@@ -172,4 +174,8 @@ public sealed class AuditoriaMiddleware
             ? TipoAcaoAuditoria.TentativaAcessoNaoAutorizado
             : null;
     }
+
+    private static bool IsSecondaryAuditFailure(Exception exception) =>
+        exception is DbException or DbUpdateException or InvalidOperationException
+            or TimeoutException or OperationCanceledException or ArgumentException or FormatException;
 }

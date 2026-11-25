@@ -1,4 +1,9 @@
+using System.Data.Common;
+using System.IO;
+using System.Net.Mail;
+using System.Security.Cryptography;
 using LabSolos_Server_DotNet8.Services.Security;
+using Microsoft.EntityFrameworkCore;
 
 namespace LabSolos_Server_DotNet8.BackgroundServices;
 
@@ -30,7 +35,10 @@ public sealed class EmailChangeNoticeBackgroundService(
             {
                 break;
             }
-            catch (Exception)
+            catch (Exception exception) when (
+                exception is DbException or DbUpdateException or IOException or SmtpException
+                    or TimeoutException or InvalidOperationException or ArgumentException or FormatException
+                    or CryptographicException or OperationCanceledException)
             {
                 LogProcessingFailure(_logger, null);
             }
