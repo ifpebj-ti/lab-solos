@@ -82,7 +82,8 @@ function getCalibrationDeltas(
   const deltas: number[] = [];
   for (const [key, captureIndexes] of capturesByKey) {
     const observationIndexes = observationsByKey.get(key) ?? [];
-    if (captureIndexes.length !== 1 || observationIndexes.length !== 1) continue;
+    if (captureIndexes.length !== 1 || observationIndexes.length !== 1)
+      continue;
 
     const capture = captures[captureIndexes[0]];
     const observation = observations[observationIndexes[0]];
@@ -161,7 +162,9 @@ function hasValidObservationGroup(
 ): boolean {
   return observationIndexes.every((index) => {
     const observation = observations[index];
-    return !observation.redirected && isValidEpochTimestamp(observation.wallTimeMs);
+    return (
+      !observation.redirected && isValidEpochTimestamp(observation.wallTimeMs)
+    );
   });
 }
 
@@ -199,7 +202,10 @@ function collectTimedCandidatePairs(
   observationsByKey: ReadonlyMap<string, number[]>,
   medianDeltaMs: number | undefined,
   toleranceMs: number | undefined
-): { candidateObservationsByCapture: number[][]; candidateCaptureCounts: number[] } {
+): {
+  candidateObservationsByCapture: number[][];
+  candidateCaptureCounts: number[];
+} {
   const candidateObservationsByCapture = captures.map((): number[] => []);
   const candidateCaptureCounts = observations.map(() => 0);
   if (medianDeltaMs === undefined || toleranceMs === undefined) {
@@ -235,7 +241,8 @@ function classifyTimedCapture(
   candidateCaptureCounts: readonly number[],
   toleranceMs: number | undefined
 ): { source: CdpCacheSource; matchedObservationIndex?: number } {
-  const observationIndexes = observationsByKey.get(capture.correlationKey) ?? [];
+  const observationIndexes =
+    observationsByKey.get(capture.correlationKey) ?? [];
   if (observationIndexes.length === 0) return { source: 'metadata_missing' };
   if (
     capture.redirected ||
@@ -247,10 +254,7 @@ function classifyTimedCapture(
   }
 
   const candidates = candidateObservationsByCapture[captureIndex];
-  if (
-    candidates.length !== 1 ||
-    candidateCaptureCounts[candidates[0]] !== 1
-  ) {
+  if (candidates.length !== 1 || candidateCaptureCounts[candidates[0]] !== 1) {
     return { source: 'ambiguous' };
   }
   return {
@@ -441,7 +445,13 @@ export function recordCdpExtraInfo(
     return associateUniqueExtraInfo(candidates[0], statusCode);
   }
 
-  return associateAmbiguousExtraInfo(tracker, requestId, hops, candidates, statusCode);
+  return associateAmbiguousExtraInfo(
+    tracker,
+    requestId,
+    hops,
+    candidates,
+    statusCode
+  );
 }
 
 function associateUniqueExtraInfo(
@@ -494,7 +504,8 @@ function associateAmbiguousExtraInfo(
   if (candidates.length === 0 && localRelated && activeHop) {
     activeHop.contradictory = true;
   }
-  const alreadyCounted = candidates.some((hop) => hop.network304Counted) ||
+  const alreadyCounted =
+    candidates.some((hop) => hop.network304Counted) ||
     activeHop?.network304Counted === true;
   if (statusCode === 304 && activeHop) activeHop.network304Counted = true;
   return {
@@ -622,6 +633,27 @@ export type CdpCaptureDrainSnapshot = {
 };
 
 export type CdpCaptureDrainState = () => CdpCaptureDrainSnapshot;
+
+export type CdpInFlightRequest = {
+  url: string;
+  method: string;
+  resourceType?: string;
+};
+
+export function reconcileFinishedBrowserRequest(
+  inFlightRequests: Map<string, CdpInFlightRequest>,
+  finishedRequest: Pick<CdpInFlightRequest, 'url' | 'method'>
+): boolean {
+  const matchingRequestIds = [...inFlightRequests.entries()]
+    .filter(
+      ([, request]) =>
+        request.url === finishedRequest.url &&
+        request.method === finishedRequest.method
+    )
+    .map(([requestId]) => requestId);
+  if (matchingRequestIds.length !== 1) return false;
+  return inFlightRequests.delete(matchingRequestIds[0]);
+}
 
 export const CDP_RESOURCE_TYPES = [
   'Document',
@@ -829,7 +861,7 @@ function getSidecarStartedAt(wallTimeMs: number | undefined): string | null {
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
-function getSidecarResourceType(resourceType: CdpResourceType): CdpResourceType {
+function getSidecarResourceType(resourceType: unknown): CdpResourceType {
   const counts = summarizeCdpResourceTypes([resourceType]);
   return (Object.keys(counts) as CdpResourceType[])[0] ?? 'unknown';
 }
@@ -955,18 +987,21 @@ function resolveDrainTiming(
     : null;
 }
 
-function hasValidCaptureDrainState(state: CdpCaptureDrainState): boolean {
+function hasValidCaptureDrainState(state: CdpCaptureDrainSnapshot): boolean {
   const counts = [
     state.inFlightRequests,
     state.pendingOperations,
     state.pendingContinuations,
     state.pendingExtraInfo,
   ];
-  return state.reliable && counts.every((count) => Number.isSafeInteger(count) && count >= 0);
+  return (
+    state.reliable &&
+    counts.every((count) => Number.isSafeInteger(count) && count >= 0)
+  );
 }
 
 function hasPendingCaptureWork(
-  state: CdpCaptureDrainState,
+  state: CdpCaptureDrainSnapshot,
   allowPendingExtraInfo: boolean
 ): boolean {
   return (

@@ -24,6 +24,7 @@ import {
   isUnavailableBodyFatal,
   readPageResourceBody,
   readDownloadBytes,
+  reconcileFinishedBrowserRequest,
   setCdpExtraInfoExpectation,
   startCdpExtraInfoHop,
   summarizeCdpExtraInfo,
@@ -612,6 +613,57 @@ test('allows the quiet drain to finish when proxy logs will reconcile ExtraInfo'
   );
 
   assert.equal(drainComplete, true);
+});
+
+test('reconciles one uniquely matching browser-finished CDP request', () => {
+  const inFlightRequests = new Map([
+    [
+      'font-request',
+      {
+        url: `${allowedOrigin}/assets/lab.woff2`,
+        method: 'GET',
+        resourceType: 'Font',
+      },
+    ],
+    [
+      'image-request',
+      {
+        url: `${allowedOrigin}/assets/logo.svg`,
+        method: 'GET',
+        resourceType: 'Image',
+      },
+    ],
+  ]);
+
+  assert.equal(
+    reconcileFinishedBrowserRequest(inFlightRequests, {
+      url: `${allowedOrigin}/assets/lab.woff2`,
+      method: 'GET',
+    }),
+    true
+  );
+  assert.deepEqual([...inFlightRequests.keys()], ['image-request']);
+});
+
+test('keeps ambiguous duplicate CDP requests in flight until their own events finish', () => {
+  const duplicateRequest = {
+    url: `${allowedOrigin}/assets/lab.woff2`,
+    method: 'GET',
+    resourceType: 'Font',
+  };
+  const inFlightRequests = new Map([
+    ['font-request-1', duplicateRequest],
+    ['font-request-2', duplicateRequest],
+  ]);
+
+  assert.equal(
+    reconcileFinishedBrowserRequest(inFlightRequests, {
+      url: duplicateRequest.url,
+      method: duplicateRequest.method,
+    }),
+    false
+  );
+  assert.equal(inFlightRequests.size, 2);
 });
 
 test('aggregates in-flight requests by the fixed CDP resource type enum', () => {

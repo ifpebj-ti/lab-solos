@@ -34,7 +34,9 @@ import {
   isUnavailableBodyFatal,
   readPageResourceBody,
   readDownloadBytes,
+  reconcileFinishedBrowserRequest,
   type BodyUnavailableReason,
+  type CdpInFlightRequest,
   type CdpCacheResponseObservation,
   type CdpCacheSource,
   type CdpExtraInfoHop,
@@ -208,7 +210,7 @@ let cdpWire304Responses = 0;
 let cdpWire304Ambiguous = 0;
 let cdpExtraInfoTracker = createCdpExtraInfoTracker();
 let cdpActivitySignal = createCdpActivitySignal();
-let cdpInFlightSameOriginRequests = new Map<string, unknown>();
+let cdpInFlightSameOriginRequests = new Map<string, CdpInFlightRequest>();
 let pendingCaptureOperations = new Set<Promise<unknown>>();
 let pendingFetchContinuations = new Set<Promise<void>>();
 let cdpCaptureDrainDeadlineAtMs: number | undefined;
@@ -546,7 +548,11 @@ async function attachCdpCapture(
         );
       }
       if (isAllowedOrigin(event.request.url)) {
-        cdpInFlightSameOriginRequests.set(event.requestId, event.type);
+        cdpInFlightSameOriginRequests.set(event.requestId, {
+          url: event.request.url,
+          method: event.request.method,
+          resourceType: event.type,
+        });
       } else {
         cdpInFlightSameOriginRequests.delete(event.requestId);
       }
@@ -614,7 +620,13 @@ async function attachCdpCapture(
         cdpInFlightSameOriginRequests.has(event.requestId) &&
         isAllowedOrigin(event.response.url)
       ) {
-        cdpInFlightSameOriginRequests.set(event.requestId, event.type);
+        const inFlightRequest = cdpInFlightSameOriginRequests.get(
+          event.requestId
+        );
+        if (inFlightRequest) {
+          inFlightRequest.url = event.response.url;
+          inFlightRequest.resourceType = event.type;
+        }
       }
       const responseStatusAssociation = recordCdpResponseStatus(
         cdpExtraInfoTracker,
@@ -1601,6 +1613,14 @@ export const test = base.extend({
     };
     const captureFinishedRequest = (request: Request) => {
       if (!isAllowedOrigin(request.url())) return;
+      if (
+        reconcileFinishedBrowserRequest(cdpInFlightSameOriginRequests, {
+          url: request.url(),
+          method: request.method(),
+        })
+      ) {
+        cdpActivitySignal.notify();
+      }
       if (capturedBrowserRequests.has(request)) return;
       capturedBrowserRequests.add(request);
       cdpActivitySignal.notify();
@@ -2052,7 +2072,7 @@ export const test = base.extend({
           `fetch_continuations=${fetchContinuationCount}`,
           `pending_capture_operations=${pendingCaptureOperations.size}`,
           `inflight_same_origin_requests=${cdpInFlightSameOriginRequests.size}`,
-          `inflight_same_origin_resource_types=${JSON.stringify(summarizeCdpResourceTypes([...cdpInFlightSameOriginRequests.values()]))}`,
+          `inflight_same_origin_resource_types=${JSON.stringify(summarizeCdpResourceTypes([...cdpInFlightSameOriginRequests.values()].map(({ resourceType }) => resourceType)))}`,
           `download_events=${observedDownloadEvents}`,
           `response_body_reads=${browserResponseBodyReads}`,
           `response_body_recoveries=${browserResponseBodyRecoveries}`,
