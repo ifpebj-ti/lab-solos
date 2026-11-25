@@ -18,6 +18,10 @@ public sealed record DefinicaoEventoAuditoria(
 
 public static partial class AuditoriaEventCatalog
 {
+    private static readonly Regex SafeReferencePattern = new(
+        "^[A-Za-z0-9:_-]{1,64}$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     public static readonly TimeSpan RetencaoTrilhaObrigatoria = TimeSpan.FromDays(365);
     public static readonly TimeSpan RetencaoDiagnosticoOperacional = TimeSpan.FromDays(30);
 
@@ -79,9 +83,6 @@ public static partial class AuditoriaEventCatalog
                     SomenteLegado: true)
             });
 
-    [GeneratedRegex("^[A-Za-z0-9:_-]{1,64}$", RegexOptions.CultureInvariant)]
-    private static partial Regex SafeReferencePattern();
-
     public static DefinicaoEventoAuditoria Obter(CodigoEventoAuditoria codigo)
     {
         if (!Definitions.TryGetValue(codigo, out var definition))
@@ -91,7 +92,7 @@ public static partial class AuditoriaEventCatalog
     }
 
     public static bool ReferenciaSegura(string? reference) =>
-        string.IsNullOrEmpty(reference) || SafeReferencePattern().IsMatch(reference);
+        string.IsNullOrEmpty(reference) || SafeReferencePattern.IsMatch(reference);
 
     private static DefinicaoEventoAuditoria Required(
         CodigoEventoAuditoria code,

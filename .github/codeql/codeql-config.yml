@@ -2,6 +2,3 @@ name: CodeQL quality for develop
 
 queries:
   - uses: security-and-quality
-
-paths-ignore:
-  - "**/obj/**"

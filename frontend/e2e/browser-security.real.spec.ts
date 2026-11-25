@@ -357,6 +357,23 @@ function restartSecurityApi(): void {
     ],
     { stdio: 'pipe' }
   );
+
+  execFileSync(
+    'docker',
+    [
+      'compose',
+      '--project-name',
+      projectName,
+      '--file',
+      '../docker-compose-security-e2e.yml',
+      'up',
+      '--detach',
+      '--wait',
+      '--no-deps',
+      'api',
+    ],
+    { stdio: 'pipe' }
+  );
 }
 
 async function expectNoUnexpectedPolicyViolations(page: Page) {

@@ -6,10 +6,9 @@ namespace LabSolos_Server_DotNet8.Services;
 
 public static partial class ApiDateFilters
 {
-    [GeneratedRegex(
+    private static readonly Regex IsoDateTimePattern = new(
         @"\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})\z",
-        RegexOptions.CultureInvariant)]
-    private static partial Regex IsoDateTimePattern();
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     public static bool TryParse(string value, TimeZoneInfo timeZone, out DateTime utc)
     {
@@ -24,7 +23,7 @@ public static partial class ApiDateFilters
             return true;
         }
 
-        if (!IsoDateTimePattern().IsMatch(value)
+        if (!IsoDateTimePattern.IsMatch(value)
             || !DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var instant))
             return false;
