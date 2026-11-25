@@ -46,7 +46,7 @@ class ContainerCiWorkflowTests(unittest.TestCase):
     def test_cancels_obsolete_runs_and_uses_minimum_permissions(self) -> None:
         self.assertRegex(self.workflow, r"(?m)^permissions:\n  contents: read$")
         self.assertIn("concurrency:", self.workflow)
-        self.assertIn("cancel-in-progress: true", self.workflow)
+        self.assertIn("cancel-in-progress: ${{ github.event_name != 'push' }}", self.workflow)
 
         for job_name in (
             "frontend-quality",
@@ -78,9 +78,12 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         for command in (
             "dotnet restore backend/backend.sln --locked-mode",
             "dotnet build backend/backend.sln --no-restore -c Release",
-            "dotnet test backend/backend.sln --no-build --no-restore -c Release",
+            "dotnet test backend/Tests/Tests.csproj -c Release",
         ):
             self.assertIn(command, backend)
+        self.assertNotIn(
+            "dotnet test backend/backend.sln --no-build --no-restore -c Release", backend
+        )
         self.assertIn('python -m unittest discover -s .github/scripts/tests -p "test_*.py" -v', workflow)
         self.assertIn("bash .github/scripts/install_actionlint.sh .tmp/actionlint", workflow)
         self.assertIn(
@@ -111,6 +114,7 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn("GITHUB_RUN_ID", frontend)
         self.assertIn("GITHUB_RUN_ATTEMPT", frontend)
         self.assertIn("actions/upload-artifact@", frontend)
+        self.assertIn("name: frontend-html-coverage", frontend)
         self.assertIn("retention-days: 30", frontend)
 
         self.assertIn('--collect:"XPlat Code Coverage"', backend)
@@ -119,16 +123,28 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn("GITHUB_RUN_ID", backend)
         self.assertIn("GITHUB_RUN_ATTEMPT", backend)
         self.assertIn("actions/upload-artifact@", backend)
+        self.assertIn("dotnet tool restore", backend)
+        self.assertIn("reportgenerator", backend)
+        self.assertIn("name: backend-html-coverage", backend)
         self.assertIn("retention-days: 30", backend)
 
         self.assertIn("if: always()", coverage_gate)
         self.assertIn("actions/download-artifact@", coverage_gate)
         self.assertIn("check_coverage.py", coverage_gate)
-        self.assertIn("--metric lines", coverage_gate)
+        self.assertNotIn("--metric", coverage_gate)
+        self.assertEqual(coverage_gate.count("check_coverage.py"), 1)
         self.assertIn("--sha", coverage_gate)
         self.assertIn("--run-id", coverage_gate)
         self.assertIn("--run-attempt", coverage_gate)
         self.assertIn("actions/upload-artifact@", coverage_gate)
+        self.assertIn("name: coverage-html", coverage_gate)
+        self.assertIn("retention-days: 30", coverage_gate)
+        self.assertIn("coverage-index.html", coverage_gate)
+        self.assertIn("Validate HTML reports", coverage_gate)
+        self.assertIn("frontend/index.html", coverage_gate)
+        self.assertIn("backend/index.html", coverage_gate)
+        self.assertIn("run_attempt", coverage_gate)
+        self.assertNotIn("contents: write", coverage_gate)
 
     def test_semgrep_is_pinned_sanitized_and_required_by_the_gate(self) -> None:
         semgrep = self.job("semgrep")
@@ -286,6 +302,31 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         for reference in action_references:
             with self.subTest(reference=reference):
                 self.assertRegex(reference, r"^[^@]+@[0-9a-f]{40}$")
+
+    def test_coverage_badge_publication_is_limited_to_trusted_develop_pushes(self) -> None:
+        trigger = self.workflow.split("permissions:", 1)[0]
+        publisher = self.job("publish-coverage-badges")
+
+        self.assertIn("push:", trigger)
+        self.assertIn("branches: [develop]", trigger)
+        self.assertNotIn("branches: [coverage]", trigger)
+        self.assertIn("always()", publisher)
+        self.assertIn("github.event_name == 'push'", publisher)
+        self.assertIn("github.ref == 'refs/heads/develop'", publisher)
+        self.assertIn("contents: write", publisher)
+        self.assertIn("coverage-gate", publisher)
+        self.assertIn("frontend-quality", publisher)
+        self.assertIn("backend-quality", publisher)
+        self.assertIn("cancel-in-progress: false", publisher)
+        self.assertIn("publish_coverage_badges.py", publisher)
+        self.assertIn("git push origin HEAD:coverage", publisher)
+
+        write_jobs = re.findall(
+            r"(?ms)^  ([a-z][a-z0-9_-]+):\n(?P<body>.*?)(?=^  [a-z][a-z0-9_-]*:\n|\Z)",
+            self.workflow,
+        )
+        writable = [name for name, body in write_jobs if "contents: write" in body]
+        self.assertEqual(writable, ["publish-coverage-badges"])
 
 
 if __name__ == "__main__":

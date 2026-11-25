@@ -87,27 +87,34 @@ def _source_relative_path(filename: str, repository_root: Path) -> Path | None:
     return relative
 
 
-def _line_counts(coverage: object, filename: str) -> tuple[int, int]:
+def _metric_counts(
+    coverage: object, metric: str, filename: str
+) -> tuple[int, int]:
+    label = "line" if metric == "lines" else "branch"
     if not isinstance(coverage, dict):
         raise ValueError(f"coverage entry must be an object: {filename}")
-    lines = coverage.get("lines")
-    if not isinstance(lines, dict):
-        raise ValueError(f"line counts are missing: {filename}")
+    counts = coverage.get(metric)
+    if not isinstance(counts, dict):
+        raise ValueError(f"{label} counts are missing: {filename}")
 
-    total = lines.get("total")
-    covered = lines.get("covered")
+    total = counts.get("total")
+    covered = counts.get("covered")
     if type(total) is not int or total < 0:
-        raise ValueError(f"total line count must be a nonnegative integer: {filename}")
+        raise ValueError(f"total {label} count must be a nonnegative integer: {filename}")
     if type(covered) is not int or covered < 0:
-        raise ValueError(f"covered line count must be a nonnegative integer: {filename}")
+        raise ValueError(f"covered {label} count must be a nonnegative integer: {filename}")
     if covered > total:
-        raise ValueError(f"covered line count exceeds total line count: {filename}")
+        raise ValueError(f"covered {label} count exceeds total {label} count: {filename}")
     return covered, total
 
 
-def _collect_counts(summary: dict[str, object], repository_root: Path) -> tuple[int, int]:
-    numerator = 0
-    denominator = 0
+def _collect_counts(
+    summary: dict[str, object], repository_root: Path
+) -> dict[str, dict[str, int]]:
+    totals = {
+        "lines": {"covered": 0, "total": 0},
+        "branches": {"covered": 0, "total": 0},
+    }
     seen: set[Path] = set()
 
     for filename, coverage in summary.items():
@@ -121,15 +128,18 @@ def _collect_counts(summary: dict[str, object], repository_root: Path) -> tuple[
         if relative in seen:
             raise ValueError(f"duplicate normalized source path: {relative.as_posix()}")
         seen.add(relative)
-        covered, total = _line_counts(coverage, filename)
-        numerator += covered
-        denominator += total
+        for metric in totals:
+            covered, total = _metric_counts(coverage, metric, filename)
+            totals[metric]["covered"] += covered
+            totals[metric]["total"] += total
 
     if not seen:
         raise ValueError("no eligible frontend source files found in coverage summary")
-    if denominator <= 0:
+    if totals["lines"]["total"] <= 0:
         raise ValueError("eligible frontend source files have no executable lines")
-    return numerator, denominator
+    if totals["branches"]["total"] <= 0:
+        raise ValueError("eligible frontend source files have no countable branches")
+    return totals
 
 
 def _write_report(path: Path, report: dict[str, object]) -> None:
@@ -146,7 +156,6 @@ def _write_report(path: Path, report: dict[str, object]) -> None:
         try:
             Path(temporary_name).unlink(missing_ok=True)
         except OSError:
-            # Preserve the original report-write error; removing its temporary file is best effort.
             pass
         raise
 
@@ -169,12 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         repository_root = args.repository_root.resolve(strict=True)
         summary = _read_summary(args.summary)
-        numerator, denominator = _collect_counts(summary, repository_root)
+        metrics = _collect_counts(summary, repository_root)
         report = {
+            "schemaVersion": 2,
             "module": "frontend",
-            "metric": "lines",
-            "numerator": numerator,
-            "denominator": denominator,
+            "metrics": metrics,
             "sha": args.sha,
             "run_id": args.run_id,
             "run_attempt": args.run_attempt,
@@ -184,7 +192,9 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(2, f"coverage collection failed: {error}\n")
 
     print(
-        f"frontend coverage normalized: {numerator}/{denominator} lines, "
+        "frontend coverage normalized: "
+        f"{metrics['lines']['covered']}/{metrics['lines']['total']} lines, "
+        f"{metrics['branches']['covered']}/{metrics['branches']['total']} branches, "
         f"sha={args.sha} run_id={args.run_id} run_attempt={args.run_attempt}"
     )
     return 0

@@ -1,5 +1,6 @@
 ![Container CI](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml/badge.svg)
-[![Coverage reports](https://img.shields.io/badge/coverage-reports-blue?logo=githubactions)](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml?query=branch%3Adevelop)
+[![coverage-lines](https://raw.githubusercontent.com/ifpebj-ti/lab-solos/coverage/coverage-lines.svg)](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml?query=branch%3Adevelop)
+[![coverage-branches](https://raw.githubusercontent.com/ifpebj-ti/lab-solos/coverage/coverage-branches.svg)](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml?query=branch%3Adevelop)
 ![Container Release](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-release.yml/badge.svg)
 ![License](https://img.shields.io/github/license/ifpebj-ti/lab-solos)
 ![Last Commit](https://img.shields.io/github/last-commit/ifpebj-ti/lab-solos)
@@ -41,13 +42,13 @@ O frontend usa Tailwind CSS 4, com requisitos de navegador Safari 16.4+, Chrome 
 
 ![XUnit](https://img.shields.io/badge/XUnit-5E5349?style=for-the-badge&logo=xunit&logoColor=white)
 
-## Cobertura de linhas
+## Cobertura de testes
 
-Use o badge **Coverage reports** para abrir as execuções de `Container CI` na branch `develop`. Na execução desejada, consulte o job `Coverage policy` e os artefatos `coverage-summary`, `frontend-coverage` e `backend-coverage`; o acesso segue as permissões de leitura do repositório e os relatórios ficam disponíveis por 30 dias.
+Os badges `coverage-lines` e `coverage-branches` mostram o menor resultado entre frontend e backend para a mesma revisão e execução. O badge de branches fica vermelho abaixo do limite; uma medição inválida aparece como indisponível. Os badges são atualizados automaticamente pela `Container CI` após um push confiável em `develop`; execuções de PR não recebem permissão de escrita.
 
-A política mede cobertura de linhas separadamente para frontend e backend, exigindo no mínimo 70% em cada módulo. Os relatórios normalizados identificam o módulo, a métrica, numerador, denominador, SHA testado, `run_id` e `run_attempt`. Os coletores incluem arquivos de produção elegíveis mesmo sem linhas visitadas; excluem testes, código gerado, migrações e artefatos de build. As regras detalhadas estão em [coleta do frontend](.github/scripts/collect_frontend_coverage.py) e [coleta do backend](.github/scripts/collect_backend_coverage.py).
+A política exige pelo menos 70% de cobertura de branches em cada módulo, sem calcular média. Cobertura de linhas continua visível como informação e não altera a aprovação. Os coletores incluem fontes de produção elegíveis mesmo sem visitas e excluem testes, código gerado, migrações e artefatos de build: [coleta do frontend](.github/scripts/collect_frontend_coverage.py) e [coleta do backend](.github/scripts/collect_backend_coverage.py).
 
-Relatório ausente, inválido ou de outra execução, falha de infraestrutura ou resultado abaixo do limite deixa a verificação sem aprovação e bloqueia o `Quality gate`; não é tratado como cobertura zero nem como sucesso. O badge direciona à fonte das medidas, sem fixar percentuais que possam ficar desatualizados.
+Para conferir os detalhes, abra uma execução de [Container CI em `develop`](https://github.com/ifpebj-ti/lab-solos/actions/workflows/container-ci.yml?query=branch%3Adevelop), consulte o job `Coverage policy` e baixe o artefato `coverage-html`. Ele contém os relatórios HTML de frontend e backend, os sumários e a identidade de origem (`SHA`, `run_id` e `run_attempt`). Os artefatos ficam disponíveis por 30 dias, conforme as permissões de leitura do repositório. Relatório ausente, inválido ou de outra execução reprova o gate; o badge não reaproveita um valor antigo.
 
 ## Contribuição
 Para a contribuição do projeto foi adotado o fluxo de trabalho Trunk Based. 

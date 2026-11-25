@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage line-rate="0.6667" branch-rate="0.75" version="1" timestamp="0">
+  <sources />
+  <packages>
+    <package name="Synthetic">
+      <classes>
+        <class name="Partial" filename="backend/LabSolos-Server-DotNet8/Services/Branching.cs">
+          <lines>
+            <line number="10" hits="1" branch="true" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="11" hits="0" />
+          </lines>
+        </class>
+        <class name="PartialDuplicate" filename="backend/LabSolos-Server-DotNet8/Services/Branching.cs">
+          <lines>
+            <line number="10" hits="0" branch="true" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="0%" />
+                <condition number="1" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="DuplicateSource" filename="backend/LabSolos-Server-DotNet8/Services/Duplicate.cs">
+          <lines>
+            <line number="5" hits="2" branch="true" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="TestCode" filename="backend/Tests/BranchingTests.cs">
+          <lines>
+            <line number="1" hits="4" branch="true" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="Generated" filename="backend/LabSolos-Server-DotNet8/Services/Dto.generated.cs">
+          <lines>
+            <line number="1" hits="4" branch="true" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="Migration" filename="backend/LabSolos-Server-DotNet8/Data/Migrations/20260101_Initial.cs">
+          <lines>
+            <line number="1" hits="4" branch="true" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="TestSupport" filename="backend/TestSupport/E2ESeed/Seed.cs">
+          <lines>
+            <line number="1" hits="4" branch="true" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="0" type="jump" coverage="100%" />
+                <condition number="1" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

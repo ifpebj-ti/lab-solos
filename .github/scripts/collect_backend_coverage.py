@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -76,7 +77,28 @@ def _source_relative_path(
     return None
 
 
-def _read_counts(path: Path, repository_root: Path) -> tuple[int, int]:
+def _condition_identity(condition: ET.Element, filename: str, line_number: int) -> tuple[str, str, bool]:
+    number = (condition.get("number") or "").strip()
+    condition_type = (condition.get("type") or "").strip()
+    if not number or not condition_type:
+        raise ValueError(
+            f"branch condition is missing its number or type: {filename}:{line_number}"
+        )
+    raw_coverage = (condition.get("coverage") or "").strip()
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)%", raw_coverage)
+    if match is None:
+        raise ValueError(
+            f"branch condition has invalid coverage metadata: {filename}:{line_number}"
+        )
+    coverage = float(match.group(1))
+    if not 0 <= coverage <= 100:
+        raise ValueError(
+            f"branch condition coverage must be between 0% and 100%: {filename}:{line_number}"
+        )
+    return number, condition_type, coverage > 0
+
+
+def _read_counts(path: Path, repository_root: Path) -> tuple[int, int, int, int]:
     try:
         content = path.read_bytes()
     except FileNotFoundError as error:
@@ -100,6 +122,7 @@ def _read_counts(path: Path, repository_root: Path) -> tuple[int, int]:
         for source in (sources_element.findall("source") if sources_element is not None else [])
     ]
     source_lines: dict[Path, dict[int, int]] = {}
+    source_branches: dict[tuple[Path, int, str, str], bool] = {}
     for class_element in root.findall(".//class"):
         filename = class_element.get("filename")
         if not filename:
@@ -119,6 +142,44 @@ def _read_counts(path: Path, repository_root: Path) -> tuple[int, int]:
             # Count the line once and treat it as visited if any report observed a hit.
             line_counts[number] = max(hits, line_counts.get(number, 0))
 
+            branch_flag = (line_element.get("branch") or "false").strip().lower()
+            if branch_flag not in {"true", "false"}:
+                raise ValueError(
+                    f"line branch flag must be true or false: {filename}:{number}"
+                )
+            conditions_element = line_element.find("conditions")
+            conditions = (
+                conditions_element.findall("condition")
+                if conditions_element is not None
+                else []
+            )
+            if branch_flag == "false":
+                if conditions:
+                    raise ValueError(
+                        f"non-branch line contains branch conditions: {filename}:{number}"
+                    )
+                continue
+            if not conditions:
+                raise ValueError(
+                    f"branch line is missing condition metadata: {filename}:{number}"
+                )
+
+            seen_conditions: set[tuple[str, str]] = set()
+            for condition in conditions:
+                condition_number, condition_type, covered = _condition_identity(
+                    condition, filename, number
+                )
+                identity = (condition_number, condition_type)
+                if identity in seen_conditions:
+                    raise ValueError(
+                        f"duplicate branch condition metadata: {filename}:{number}"
+                    )
+                seen_conditions.add(identity)
+                branch_identity = (relative, number, condition_type, condition_number)
+                source_branches[branch_identity] = (
+                    covered or source_branches.get(branch_identity, False)
+                )
+
     if not source_lines:
         raise ValueError("no eligible backend source files found in Cobertura report")
     denominator = sum(len(lines) for lines in source_lines.values())
@@ -127,7 +188,11 @@ def _read_counts(path: Path, repository_root: Path) -> tuple[int, int]:
     )
     if denominator <= 0:
         raise ValueError("eligible backend source files have no executable lines")
-    return numerator, denominator
+    if not source_branches:
+        raise ValueError("no eligible backend branch conditions found in Cobertura report")
+    branch_numerator = sum(source_branches.values())
+    branch_denominator = len(source_branches)
+    return numerator, denominator, branch_numerator, branch_denominator
 
 
 def _write_report(path: Path, report: dict[str, object]) -> None:
@@ -144,7 +209,6 @@ def _write_report(path: Path, report: dict[str, object]) -> None:
         try:
             Path(temporary_name).unlink(missing_ok=True)
         except OSError:
-            # Preserve the original report-write error; removing its temporary file is best effort.
             pass
         raise
 
@@ -209,12 +273,16 @@ def main(argv: list[str] | None = None) -> int:
                 "normalized report is outside this full solution run's results directory"
             ) from error
 
-        numerator, denominator = _read_counts(coverage_file, repository_root)
+        lines_covered, lines_total, branches_covered, branches_total = _read_counts(
+            coverage_file, repository_root
+        )
         report = {
+            "schemaVersion": 2,
             "module": "backend",
-            "metric": "lines",
-            "numerator": numerator,
-            "denominator": denominator,
+            "metrics": {
+                "lines": {"covered": lines_covered, "total": lines_total},
+                "branches": {"covered": branches_covered, "total": branches_total},
+            },
             "sha": args.sha,
             "run_id": args.run_id,
             "run_attempt": args.run_attempt,
@@ -224,7 +292,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(2, f"backend coverage collection failed: {error}\n")
 
     print(
-        f"backend coverage normalized: {numerator}/{denominator} lines, "
+        f"backend coverage normalized: lines={lines_covered}/{lines_total}, "
+        f"branches={branches_covered}/{branches_total}, "
         f"sha={args.sha} run_id={args.run_id} run_attempt={args.run_attempt}"
     )
     return 0

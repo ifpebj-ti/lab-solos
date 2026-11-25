@@ -1,9 +1,11 @@
 {
+  "schemaVersion": 2,
   "module": "backend",
-  "metric": "lines",
-  "numerator": 14,
-  "denominator": 20,
   "sha": "0123456789abcdef0123456789abcdef01234567",
   "run_id": "123456789",
-  "run_attempt": 2
+  "run_attempt": 2,
+  "metrics": {
+    "lines": {"covered": 12, "total": 20},
+    "branches": {"covered": 14, "total": 20}
+  }
 }
