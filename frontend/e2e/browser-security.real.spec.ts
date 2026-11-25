@@ -747,6 +747,15 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
     }
   });
 
+  // Repeated profile navigations reuse the same font URLs, which can create
+  // competing same-URL evidence between Chromium and the proxy access log.
+  // Disable cache only here so each profile load has its own response to match.
+  const profileCacheSession = await page.context().newCDPSession(page);
+  await profileCacheSession.send('Network.enable');
+  await profileCacheSession.send('Network.setCacheDisabled', {
+    cacheDisabled: true,
+  });
+
   for (const profile of profiles) {
     const response = await startBrowserSessionAtRoute(
       page,
@@ -838,6 +847,11 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
     ).toBe(true);
     await page.waitForLoadState('networkidle');
   }
+
+  await profileCacheSession.send('Network.setCacheDisabled', {
+    cacheDisabled: false,
+  });
+  await profileCacheSession.detach();
 
   await page.goto('/forgot-your-password');
   await page

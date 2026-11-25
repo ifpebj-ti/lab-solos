@@ -1,6 +1,6 @@
 # Tarefas — Cobertura e segurança na CI
 
-- Status: T007 passou localmente com cache ativo e drenagem CDP limitada a 30 s; CI #45541687460 testou a abordagem intermediária e falhou por timeout de 90 s. Nova CI do ajuste atual pendente. T011 aguarda CI válida; navegação humana dispensada
+- Status: T007 passou localmente após desativar o cache apenas nas três navegações de perfil; validação remota do commit atualizado pendente. T011 aguarda CI válida; navegação humana dispensada
 - PRD: [Cobertura e segurança na CI](./prd.md)
 - Especificação técnica: [Cobertura e segurança na CI](./techspec.md)
 - Atualizado em: 2026-11-25
@@ -205,7 +205,7 @@ Conferir a composição descartável, os testes existentes e os contextos Playwr
 
 ## T007 — Avaliar passivamente o tráfego já gerado pela suíte de segurança
 
-- Status: concluída localmente; nova validação integrada local aprovada — aguarda CI do commit atualizado da PR
+- Status: concluída localmente; revalidação integrada da PR #501 aprovada localmente — aguarda CI no novo commit
 - Issue: #490
 - Dependências: T006
 - Decisão registrada: escopo e severidade passivos usam exclusivamente a suíte local de segurança; responsabilidade de regras atribuída à função `CI quality maintainer`, sem presumir uma pessoa nominal. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
