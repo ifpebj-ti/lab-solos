@@ -20,6 +20,14 @@ import { toast } from '@/components/hooks/use-toast';
 import { updateProduct } from '@/integration/Product';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
+import DateInput from '@/components/global/inputs/DateInput';
+import {
+  CIVIL_DATE_INPUT_MASK,
+  formatCivilDate,
+  isAbsentCivilDate,
+  isCivilDate,
+  parseCivilDateInput,
+} from '@/function/date';
 import { Loader2 } from 'lucide-react';
 
 // Opções de status do produto
@@ -93,6 +101,27 @@ type ProductPatchOperation =
   | { op: 'replace'; path: string; value: string | number }
   | { op: 'remove'; path: string };
 
+const toDateInputValue = (value?: string | null): string => {
+  const civilDate = value?.split('T')[0] ?? '';
+  if (!isCivilDate(civilDate) || isAbsentCivilDate(civilDate)) return '';
+  return formatCivilDate(civilDate);
+};
+
+const buildDateOperation = (
+  input: string,
+  originalValue?: string | null,
+  path = ''
+): ProductPatchOperation[] => {
+  const originalCivilDate = originalValue?.split('T')[0] ?? '';
+  if (!input) {
+    return originalCivilDate ? [{ op: 'remove', path }] : [];
+  }
+
+  const civilDate = parseCivilDateInput(input);
+  if (!civilDate || civilDate === originalCivilDate) return [];
+  return [{ op: 'replace', path, value: civilDate }];
+};
+
 const SERVER_FIELD_ALIASES: Readonly<Record<string, ErrorField>> = {
   operations: 'operations',
   catmat: 'catmat',
@@ -129,16 +158,6 @@ function buildProductPatch(
       '/localizacaoProduto',
     ],
     [
-      formData.dataFabricacao,
-      product.dataFabricacao?.split('T')[0] || '',
-      '/dataFabricacao',
-    ],
-    [
-      formData.dataValidade,
-      product.dataValidade?.split('T')[0] || '',
-      '/dataValidade',
-    ],
-    [
       formData.status,
       typeof product.status === 'number'
         ? product.status.toString()
@@ -149,7 +168,7 @@ function buildProductPatch(
   const numericPaths = new Set(['/quantidade', '/quantidadeMinima']);
   const removablePaths = new Set(['/fornecedor', '/dataFabricacao', '/dataValidade']);
 
-  return fields.flatMap<ProductPatchOperation>(([value, originalValue, path]) => {
+  const fieldOperations = fields.flatMap<ProductPatchOperation>(([value, originalValue, path]) => {
     if (value === originalValue) return [];
     if (
       numericPaths.has(path) && value !== '' && originalValue !== '' &&
@@ -164,6 +183,13 @@ function buildProductPatch(
       },
     ];
   });
+
+  return [
+    ...fieldOperations.filter((operation) => operation.path !== '/status'),
+    ...buildDateOperation(formData.dataFabricacao, product.dataFabricacao, '/dataFabricacao'),
+    ...buildDateOperation(formData.dataValidade, product.dataValidade, '/dataValidade'),
+    ...fieldOperations.filter((operation) => operation.path === '/status'),
+  ];
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -210,12 +236,8 @@ export default function ProductEditModal({
         quantidadeMinima: product.quantidadeMinima?.toString() || '',
         fornecedor: product.fornecedor || '',
         localizacaoProduto: product.localizacaoProduto || '',
-        dataFabricacao: product.dataFabricacao
-          ? product.dataFabricacao.split('T')[0]
-          : '',
-        dataValidade: product.dataValidade
-          ? product.dataValidade.split('T')[0]
-          : '',
+        dataFabricacao: toDateInputValue(product.dataFabricacao),
+        dataValidade: toDateInputValue(product.dataValidade),
         status:
           typeof product.status === 'number'
             ? product.status.toString()
@@ -267,6 +289,13 @@ export default function ProductEditModal({
       quantidadeMinima < 0
     ) {
       errors.quantidadeMinima = 'Informe uma quantidade mínima válida.';
+    }
+
+    if (formData.dataFabricacao && !parseCivilDateInput(formData.dataFabricacao)) {
+      errors.dataFabricacao = `Data de Fabricação inválida. Use ${CIVIL_DATE_INPUT_MASK}.`;
+    }
+    if (formData.dataValidade && !parseCivilDateInput(formData.dataValidade)) {
+      errors.dataValidade = `Data de Validade inválida. Use ${CIVIL_DATE_INPUT_MASK}.`;
     }
 
     return errors;
@@ -438,28 +467,22 @@ export default function ProductEditModal({
 
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='min-w-0 space-y-2'>
-              <Label htmlFor='dataFabricacao'>Data de Fabricação</Label>
-              <FieldError id='dataFabricacao-error' message={fieldErrors.dataFabricacao} />
-              <Input
-                id='dataFabricacao'
+              <DateInput
+                nome='Data de Fabricação'
                 name='dataFabricacao'
-                type='date'
                 value={formData.dataFabricacao}
-                onChange={handleChange}
-                {...fieldFeedbackProps('dataFabricacao', fieldErrors)}
+                onChange={(value) => setFieldValue('dataFabricacao', value)}
+                error={fieldErrors.dataFabricacao}
               />
             </div>
 
             <div className='min-w-0 space-y-2'>
-              <Label htmlFor='dataValidade'>Data de Validade</Label>
-              <FieldError id='dataValidade-error' message={fieldErrors.dataValidade} />
-              <Input
-                id='dataValidade'
+              <DateInput
+                nome='Data de Validade'
                 name='dataValidade'
-                type='date'
                 value={formData.dataValidade}
-                onChange={handleChange}
-                {...fieldFeedbackProps('dataValidade', fieldErrors)}
+                onChange={(value) => setFieldValue('dataValidade', value)}
+                error={fieldErrors.dataValidade}
               />
             </div>
           </div>

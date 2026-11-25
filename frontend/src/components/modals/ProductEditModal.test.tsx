@@ -51,6 +51,62 @@ describe('ProductEditModal', () => {
     expect(onSuccess.mock.invocationCallOrder[0]).toBeLessThan(onClose.mock.invocationCallOrder[0]);
   });
 
+  it('apresenta datas ISO no padrão brasileiro e salva a data digitada em ISO', async () => {
+    updateProductMock.mockResolvedValue({
+      ...product,
+      dataFabricacao: '2026-11-13',
+      dataValidade: '2027-04-05',
+    });
+    const productWithDates = {
+      ...product,
+      dataFabricacao: '2026-11-13',
+      dataValidade: '2027-04-05',
+    };
+    render(<ProductEditModal isOpen onClose={vi.fn()} product={productWithDates} />);
+
+    const manufactureDate = screen.getByLabelText('Data de Fabricação');
+    const expirationDate = screen.getByLabelText('Data de Validade');
+    expect(manufactureDate).toHaveAttribute('placeholder', 'dd/mm/aaaa');
+    expect(manufactureDate).toHaveValue('13/11/2026');
+    expect(expirationDate).toHaveValue('05/04/2027');
+
+    fireEvent.change(manufactureDate, { target: { value: '14/11/2026' } });
+    fireEvent.click(screen.getByRole('button', { name: /Salvar/ }));
+
+    await waitFor(() => expect(updateProductMock).toHaveBeenCalledOnce());
+    expect(updateProductMock).toHaveBeenCalledWith({
+      id: product.id,
+      operations: [{ op: 'replace', path: '/dataFabricacao', value: '2026-11-14' }],
+    });
+  });
+
+  it('mantém vazios os campos opcionais quando a API não informa datas', () => {
+    render(
+      <ProductEditModal
+        isOpen
+        onClose={vi.fn()}
+        product={{ ...product, dataFabricacao: null, dataValidade: null }}
+      />
+    );
+
+    expect(screen.getByLabelText('Data de Fabricação')).toHaveValue('');
+    expect(screen.getByLabelText('Data de Validade')).toHaveValue('');
+  });
+
+  it.each(['31/02/2026', '01/01/0001'])(
+    'não salva data impossível ou sentinel digitado: %s',
+    async (invalidDate) => {
+      render(<ProductEditModal isOpen onClose={vi.fn()} product={product} />);
+      fireEvent.change(screen.getByLabelText('Data de Fabricação'), {
+        target: { value: invalidDate },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Salvar/ }));
+
+      expect(await screen.findByText('Data de Fabricação inválida. Use dd/mm/aaaa.')).toBeInTheDocument();
+      expect(updateProductMock).not.toHaveBeenCalled();
+    }
+  );
+
   it('expressa a limpeza dos campos opcionais com remoções explícitas', async () => {
     updateProductMock.mockResolvedValue({ ...product, fornecedor: null, dataFabricacao: null, dataValidade: null });
     render(<ProductEditModal isOpen onClose={vi.fn()} product={product} />);

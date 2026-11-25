@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,18 +13,7 @@ const toastMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/components/hooks/use-toast', () => ({ toast: toastMock }));
 
-const selectDate = (trigger: HTMLElement) => {
-  fireEvent.click(trigger);
-  const day = Array.from(document.querySelectorAll('td button')).find(
-    (button) =>
-      button.textContent?.trim() &&
-      !button.hasAttribute('disabled')
-  );
-  expect(day).toBeDefined();
-  fireEvent.click(day as HTMLElement);
-};
-
-const fillForm = () => {
+const fillBasicForm = () => {
   fireEvent.change(screen.getByLabelText(/^Nome/), {
     target: { value: 'Material de teste' },
   });
@@ -34,12 +23,16 @@ const fillForm = () => {
   fireEvent.change(screen.getByLabelText(/^Quantidade Mínima/), {
     target: { value: '2' },
   });
+};
 
-  const dateTriggers = screen.getAllByRole('button', {
-    name: 'Selecione uma data',
+const fillForm = () => {
+  fillBasicForm();
+  fireEvent.change(screen.getByRole('textbox', { name: 'Data de Fabricação' }), {
+    target: { value: '13/11/2026' },
   });
-  selectDate(dateTriggers[0]);
-  selectDate(dateTriggers[1]);
+  fireEvent.change(screen.getByRole('textbox', { name: 'Data de Validade' }), {
+    target: { value: '31/12/2099' },
+  });
 };
 
 const submitForm = () =>
@@ -99,10 +92,111 @@ describe('FormOutros: experiência de erros', () => {
       tipo: 'Outro',
       quantidade: 12,
       quantidadeMinima: 2,
+      dataFabricacao: '2026-11-13',
+      dataValidade: '2099-12-31',
     });
     expect(screen.getByLabelText(/^Nome/)).toHaveValue('');
     expect(screen.getByLabelText(/^Quantidade(?! Mínima)/)).toHaveValue(null);
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeEnabled();
+  });
+
+  it('permite digitar datas brasileiras e envia os dias civis em ISO', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post(API_URL, async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ id: 103 }, { status: 201 });
+      })
+    );
+
+    render(<FormOutros />);
+    fillBasicForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data de Fabricação' }), {
+      target: { value: '13/11/2026' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data de Validade' }), {
+      target: { value: '31/12/2099' },
+    });
+    submitForm();
+
+    await waitFor(() => expect(requestBody).toMatchObject({
+      dataFabricacao: '2026-11-13',
+      dataValidade: '2099-12-31',
+    }));
+  });
+
+  it.each(['31/02/2026', '01/01/0001'])('não envia data impossível ou sentinel %s', async (invalidDate) => {
+    let requestCount = 0;
+    server.use(
+      http.post(API_URL, () => {
+        requestCount += 1;
+        return HttpResponse.json({ id: 103 }, { status: 201 });
+      })
+    );
+
+    render(<FormOutros />);
+    fillBasicForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data de Fabricação' }), {
+      target: { value: invalidDate },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data de Validade' }), {
+      target: { value: '31/12/2099' },
+    });
+    submitForm();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Data de fabricação inválida');
+    expect(requestCount).toBe(0);
+  });
+
+  it('mantém obrigatoriedade e impede digitação de validade vencida', async () => {
+    let requestCount = 0;
+    server.use(
+      http.post(API_URL, () => {
+        requestCount += 1;
+        return HttpResponse.json({ id: 103 }, { status: 201 });
+      })
+    );
+
+    render(<FormOutros />);
+    fillBasicForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data de Validade' }), {
+      target: { value: '01/01/2000' },
+    });
+    submitForm();
+
+    expect(await screen.findByText('Data de fabricação inválida. Use dd/mm/aaaa.')).toBeInTheDocument();
+    expect(await screen.findByText('Data de validade não pode ser anterior à data atual.')).toBeInTheDocument();
+    expect(requestCount).toBe(0);
+  });
+
+  it('mantém a restrição de datas passadas somente na validade', () => {
+    render(<FormOutros />);
+
+    const openExpirationCalendar = screen.getByRole('button', {
+      name: 'Abrir calendário: Data de Validade',
+    });
+    fireEvent.click(openExpirationCalendar);
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Ano' }), {
+      target: { value: '2000' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mês' }), {
+      target: { value: '0' },
+    });
+    const expirationCalendar = screen.getByRole('grid', { name: /janeiro 2000/i });
+    expect(within(expirationCalendar).getByRole('gridcell', { name: '1' })).toBeDisabled();
+
+    fireEvent.click(openExpirationCalendar);
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Abrir calendário: Data de Fabricação',
+    }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Ano' }), {
+      target: { value: '2000' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mês' }), {
+      target: { value: '0' },
+    });
+    const manufacturingCalendar = screen.getByRole('grid', { name: /janeiro 2000/i });
+    expect(within(manufacturingCalendar).getByRole('gridcell', { name: '1' })).toBeEnabled();
   });
 
   it('aplica fieldErrors reconhecidos, preserva valores e anuncia o resumo', async () => {

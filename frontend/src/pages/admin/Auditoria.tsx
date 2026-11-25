@@ -43,11 +43,16 @@ import { Textarea } from '@/components/ui/textarea';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
+import DateInput from '@/components/global/inputs/DateInput';
+import { CIVIL_DATE_INPUT_MASK, parseCivilDateInput } from '@/function/date';
 
 type RevisaoPendente = {
   log: LogAuditoria;
   suspeitaResultante: boolean;
 };
+
+type CampoDataFiltro = 'dataInicio' | 'dataFim';
+type ErrosDataFiltro = Partial<Record<CampoDataFiltro, string>>;
 
 const ACOES_AUDITORIA = [
   ['Login', 'Login'],
@@ -131,11 +136,15 @@ function AuditReportCards({
 function AuditFilters({
   filtrosRascunho,
   setFiltrosRascunho,
+  errosDatas,
+  atualizarDataRascunho,
   limparFiltros,
   aplicarFiltros,
 }: {
   filtrosRascunho: FiltroAuditoria;
   setFiltrosRascunho: React.Dispatch<React.SetStateAction<FiltroAuditoria>>;
+  errosDatas: ErrosDataFiltro;
+  atualizarDataRascunho: (campo: CampoDataFiltro, valor: string) => void;
   limparFiltros: () => void;
   aplicarFiltros: () => void;
 }) {
@@ -149,34 +158,24 @@ function AuditFilters({
         <h2>Filtros</h2>
       </div>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <label className='flex flex-col gap-1 text-sm'>
-          Data inicial
-          <Input
-            aria-label='Data inicial'
-            type='date'
+        <div className='min-w-0 [&_label]:!mt-0'>
+          <DateInput
+            nome='Data inicial'
+            name='dataInicio'
             value={filtrosRascunho.dataInicio ?? ''}
-            onChange={(event) =>
-              setFiltrosRascunho((previous) => ({
-                ...previous,
-                dataInicio: event.target.value || undefined,
-              }))
-            }
+            onChange={(value) => atualizarDataRascunho('dataInicio', value)}
+            error={errosDatas.dataInicio}
           />
-        </label>
-        <label className='flex flex-col gap-1 text-sm'>
-          Data final
-          <Input
-            aria-label='Data final'
-            type='date'
+        </div>
+        <div className='min-w-0 [&_label]:!mt-0'>
+          <DateInput
+            nome='Data final'
+            name='dataFim'
             value={filtrosRascunho.dataFim ?? ''}
-            onChange={(event) =>
-              setFiltrosRascunho((previous) => ({
-                ...previous,
-                dataFim: event.target.value || undefined,
-              }))
-            }
+            onChange={(value) => atualizarDataRascunho('dataFim', value)}
+            error={errosDatas.dataFim}
           />
-        </label>
+        </div>
         <label className='flex flex-col gap-1 text-sm'>
           Usuário (ID)
           <Input
@@ -601,6 +600,7 @@ function AuditoriaPage() {
   const [exportando, setExportando] = useState(false);
   const [filtrosRascunho, setFiltrosRascunho] = useState<FiltroAuditoria>({});
   const [filtrosAplicados, setFiltrosAplicados] = useState<FiltroAuditoria>({});
+  const [errosDatas, setErrosDatas] = useState<ErrosDataFiltro>({});
   const [filtro, setFiltro] = useState<FiltroAuditoria>(PAGINACAO_INICIAL);
   const [logsError, setLogsError] = useState<unknown>();
   const [reportError, setReportError] = useState<unknown>();
@@ -649,14 +649,45 @@ function AuditoriaPage() {
   }, [carregarRelatorio]);
 
   const aplicarFiltros = () => {
-    setFiltrosAplicados({ ...filtrosRascunho });
-    setFiltro({ ...filtrosRascunho, ...PAGINACAO_INICIAL });
+    const dataInicio = filtrosRascunho.dataInicio
+      ? parseCivilDateInput(filtrosRascunho.dataInicio)
+      : undefined;
+    const dataFim = filtrosRascunho.dataFim
+      ? parseCivilDateInput(filtrosRascunho.dataFim)
+      : undefined;
+    const novosErros: ErrosDataFiltro = {};
+
+    if (filtrosRascunho.dataInicio && !dataInicio) {
+      novosErros.dataInicio = `Data inicial inválida. Use ${CIVIL_DATE_INPUT_MASK}.`;
+    }
+    if (filtrosRascunho.dataFim && !dataFim) {
+      novosErros.dataFim = `Data final inválida. Use ${CIVIL_DATE_INPUT_MASK}.`;
+    }
+
+    setErrosDatas(novosErros);
+    if (Object.keys(novosErros).length > 0) return;
+
+    const filtrosNormalizados = { ...filtrosRascunho, dataInicio, dataFim };
+    setFiltrosAplicados(filtrosNormalizados);
+    setFiltro({ ...filtrosNormalizados, ...PAGINACAO_INICIAL });
   };
 
   const limparFiltros = () => {
     setFiltrosRascunho({});
     setFiltrosAplicados({});
+    setErrosDatas({});
     setFiltro(PAGINACAO_INICIAL);
+  };
+
+  const atualizarDataRascunho = (campo: CampoDataFiltro, valor: string) => {
+    setFiltrosRascunho((previous) => ({
+      ...previous,
+      [campo]: valor || undefined,
+    }));
+    setErrosDatas((previous) => ({
+      ...previous,
+      [campo]: undefined,
+    }));
   };
 
   const handleExportar = async () => {
@@ -784,6 +815,8 @@ function AuditoriaPage() {
           <AuditFilters
             filtrosRascunho={filtrosRascunho}
             setFiltrosRascunho={setFiltrosRascunho}
+            errosDatas={errosDatas}
+            atualizarDataRascunho={atualizarDataRascunho}
             limparFiltros={limparFiltros}
             aplicarFiltros={aplicarFiltros}
           />

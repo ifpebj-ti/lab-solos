@@ -1,14 +1,39 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, Controller } from 'react-hook-form';
+import { toNestErrors } from '@hookform/resolvers';
+import type { Resolver } from 'react-hook-form';
 import { z } from 'zod';
+import { parseISO } from 'date-fns';
 import InputText from '../../inputs/Text';
 import { createProduct } from '@/integration/Product';
 import { toast } from '@/components/hooks/use-toast';
-import DateInputOutros from '../../inputs/DateInputOutros';
+import DateInput from '../../inputs/DateInput';
+import { CIVIL_DATE_INPUT_MASK, parseCivilDateInput } from '@/function/date';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
 import { applyRecognizedFieldErrors } from './formErrors';
 import CreateFormActions from './CreateFormActions';
+
+const civilDateField = (label: string, allowPastDates = true) =>
+  z.string().transform((value, context) => {
+    const civilDate = parseCivilDateInput(value);
+    if (!civilDate) {
+      context.addIssue({
+        code: 'custom',
+        message: `${label} inválida. Use ${CIVIL_DATE_INPUT_MASK}.`,
+      });
+      return z.NEVER;
+    }
+
+    if (!allowPastDates && parseISO(civilDate).getTime() < Date.now()) {
+      context.addIssue({
+        code: 'custom',
+        message: `${label} não pode ser anterior à data atual.`,
+      });
+      return z.NEVER;
+    }
+
+    return civilDate;
+  });
 
 const submitCreateOutrosSchema = z.object({
   nome: z
@@ -36,15 +61,27 @@ const submitCreateOutrosSchema = z.object({
         'Quantidade mínima deve ser um número inteiro entre 0 e 100.000.',
     }),
   localizacao: z.string().optional().or(z.literal('')),
-  dataFabricacao: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Data de fabricação inválida',
-  }),
-  dataValidade: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Data de validade inválida',
-  }),
+  dataFabricacao: civilDateField('Data de fabricação'),
+  dataValidade: civilDateField('Data de validade', false),
 });
 
-export type CreateOutrosFormData = z.infer<typeof submitCreateOutrosSchema>;
+export type CreateOutrosFormData = z.output<typeof submitCreateOutrosSchema>;
+
+const resolveOutrosForm: Resolver<CreateOutrosFormData> = (values, _, options) => {
+  const result = submitCreateOutrosSchema.safeParse(values);
+  if (result.success) {
+    return { values: result.data, errors: {} };
+  }
+
+  const { fieldErrors } = z.flattenError(result.error);
+  const errors = Object.fromEntries(
+    Object.entries(fieldErrors).map(([name, messages]) => [
+      name,
+      { type: 'validation', message: messages[0] },
+    ])
+  );
+  return { values: {}, errors: toNestErrors(errors, options) };
+};
 
 const OUTROS_ERROR_FIELDS = new Set<keyof CreateOutrosFormData>([
   'nome',
@@ -59,14 +96,18 @@ const OUTROS_ERROR_FIELDS = new Set<keyof CreateOutrosFormData>([
 function FormOutros() {
   const {
     register,
+    control,
     handleSubmit,
-    setValue,
     reset,
     setError,
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<CreateOutrosFormData>({
-    resolver: zodResolver(submitCreateOutrosSchema),
+    resolver: resolveOutrosForm,
+    defaultValues: {
+      dataFabricacao: '',
+      dataValidade: '',
+    },
   });
 
   async function onSubmit(data: CreateOutrosFormData) {
@@ -128,8 +169,6 @@ function FormOutros() {
       className='flex w-full flex-col gap-6'
     >
       <div className='grid w-full grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3'>
-        <input type='hidden' {...register('dataFabricacao')} />
-        <input type='hidden' {...register('dataValidade')} />
         <InputText
           label='Nome'
           register={register}
@@ -169,22 +208,38 @@ function FormOutros() {
           type='text'
         />
 
-        {/* Corrigimos a tipagem de `setValue` */}
-        <DateInputOutros
-          nome='Data de Fabricação'
+        <Controller
+          control={control}
           name='dataFabricacao'
-          setValue={setValue}
-          error={errors.dataFabricacao?.message}
-          disabled={false}
-          required={true}
+          render={({ field }) => (
+            <DateInput
+              nome='Data de Fabricação'
+              name={field.name}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              error={errors.dataFabricacao?.message}
+              required
+            />
+          )}
         />
-        <DateInputOutros
-          nome='Data de Validade'
+        <Controller
+          control={control}
           name='dataValidade'
-          setValue={setValue}
-          error={errors.dataValidade?.message}
-          disabled={true}
-          required={true}
+          render={({ field }) => (
+            <DateInput
+              nome='Data de Validade'
+              name={field.name}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              error={errors.dataValidade?.message}
+              required
+              isDateDisabled={(date) => date < new Date()}
+            />
+          )}
         />
       </div>
 

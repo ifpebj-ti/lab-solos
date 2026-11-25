@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -200,5 +200,54 @@ describe('VerificationPage: navegação recuperável', () => {
     await waitFor(() => {
       expect(screen.queryByText('Produto 42')).not.toBeInTheDocument();
     });
+  });
+
+  it.each([
+    ['admin', 'Quimico'],
+    ['mentor', 'Vidraria'],
+    ['mentee', 'Outro'],
+  ] as const)(
+    'exibe fabricação e validade como datas brasileiras para %s em produtos %s',
+    async (userType, tipoProduto) => {
+      productApi.getProductById.mockResolvedValue({
+        ...product,
+        tipoProduto,
+        dataFabricacao: '2026-11-13',
+        dataValidade: '2027-04-05',
+      });
+
+      renderPage(userType, `/${userType}/verification?id=42`);
+
+      expect(await screen.findByText('Produto 42')).toBeInTheDocument();
+      const productInfo = within(
+        screen.getByRole('list', { name: 'Informações do Produto' })
+      ).getByRole('listitem');
+
+      expect(within(productInfo).getByText('Data de Fabricação')).toBeInTheDocument();
+      expect(within(productInfo).getByText('Data de Validade')).toBeInTheDocument();
+      expect(within(productInfo).getByText('13/11/2026')).toBeInTheDocument();
+      expect(within(productInfo).getByText('05/04/2027')).toBeInTheDocument();
+    }
+  );
+
+  it('apresenta datas ausentes como texto compreensível no detalhe', async () => {
+    productApi.getProductById.mockResolvedValue({
+      ...product,
+      dataFabricacao: null,
+      dataValidade: null,
+    });
+
+    renderPage('admin', '/admin/verification?id=42');
+
+    expect(await screen.findByText('Produto 42')).toBeInTheDocument();
+    const productInfo = within(
+      screen.getByRole('list', { name: 'Informações do Produto' })
+    ).getByRole('listitem');
+    const manufactureLabel = within(productInfo).getByText('Data de Fabricação');
+    const expirationLabel = within(productInfo).getByText('Data de Validade');
+
+    expect(within(manufactureLabel.parentElement as HTMLElement).getByText('Não informado')).toBeInTheDocument();
+    expect(within(expirationLabel.parentElement as HTMLElement).getByText('Não informado')).toBeInTheDocument();
+    expect(screen.queryByText('null')).not.toBeInTheDocument();
   });
 });

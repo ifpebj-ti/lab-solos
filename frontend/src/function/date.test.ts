@@ -12,12 +12,12 @@ describe('parseCivilDateInput', () => {
   it.each([
     ['29/02/2000', '2000-02-29'],
     ['05/11/2026', '2026-11-05'],
-    ['01/01/0001', '0001-01-01'],
+    ['02/01/0001', '0001-01-02'],
   ])('converte %s para o dia civil', (value, expected) => {
     expect(parseCivilDateInput(value)).toBe(expected);
   });
 
-  it.each(['31/02/2026', '29/02/1900', '01/01/0000', '05/11/20', '2026-11-05', ''])(
+  it.each(['31/02/2026', '29/02/1900', '01/01/0000', '01/01/0001', '05/11/20', '2026-11-05', ''])(
     'recusa a digitação inválida ou incompleta %s',
     (value) => expect(parseCivilDateInput(value)).toBeUndefined()
   );
@@ -48,9 +48,13 @@ describe('formatCivilDate', () => {
     null,
     undefined,
     '',
+    '0001-01-01',
     '2023-02-29',
     '2026-04-31',
     '2026-8-31',
+    '11/13/2026',
+    '13/11/2026',
+    '11/13/2026 00:00:00',
     '2026-08-31T00:00:00Z',
   ])('retorna Nao informado para ausencia ou data invalida: %s', (value) => {
     expect(formatCivilDate(value)).toBe('Não informado');
