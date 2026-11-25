@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   CIVIL_DATE_INPUT_MASK,
   formatCivilDate,
+  isAbsentCivilDate,
   parseCivilDateInput,
 } from '@/function/date';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ interface DateInputProps {
   inputRef?: Ref<HTMLInputElement>;
   error?: string;
   required?: boolean;
+  isDateDisabled?: (date: Date) => boolean;
 }
 
 const inputClasses =
@@ -37,6 +39,7 @@ function DateInput({
   inputRef,
   error,
   required = false,
+  isDateDisabled,
 }: DateInputProps) {
   const [open, setOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
@@ -45,6 +48,8 @@ function DateInput({
   const selectedDate = civilDate ? parseISO(civilDate) : undefined;
   const errorId = `${name}-error`;
   const calendarLabel = `Abrir calendário: ${nome}`;
+  const isDayDisabled = (date: Date) =>
+    isAbsentCivilDate(format(date, 'yyyy-MM-dd')) || (isDateDisabled?.(date) ?? false);
 
   const showMonth = (date: Date) => {
     setCalendarMonth(startOfMonth(date));
@@ -67,6 +72,10 @@ function DateInput({
   };
 
   const handleSelect = (date: Date) => {
+    if (isDayDisabled(date)) {
+      return;
+    }
+
     onChange(formatCivilDate(format(date, 'yyyy-MM-dd')));
     setOpen(false);
   };
@@ -137,6 +146,7 @@ function DateInput({
               locale={ptBR}
               fromDate={firstCalendarDay}
               toDate={lastCalendarDay}
+              disabled={isDayDisabled}
               month={calendarMonth}
               onMonthChange={showMonth}
               showOutsideDays={false}

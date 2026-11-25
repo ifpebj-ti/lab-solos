@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -105,8 +105,11 @@ describe('Auditoria administrativa', () => {
     render(<AuditoriaPage />);
 
     await screen.findByText('FalhaOperacao');
-    fireEvent.change(screen.getByLabelText('Data inicial'), {
-      target: { value: '2026-11-01' },
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data inicial' }), {
+      target: { value: '01/11/2026' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data final' }), {
+      target: { value: '13/11/2026' },
     });
     fireEvent.change(screen.getByLabelText('Recurso'), {
       target: { value: 'Produto' },
@@ -117,11 +120,13 @@ describe('Auditoria administrativa', () => {
       const logRequests = requests.filter((request) => request.operation === 'logs');
       const latestLogs = logRequests[logRequests.length - 1]?.url;
       expect(latestLogs?.searchParams.get('dataInicio')).toBe('2026-11-01');
+      expect(latestLogs?.searchParams.get('dataFim')).toBe('2026-11-13');
       expect(latestLogs?.searchParams.get('recurso')).toBe('Produto');
       expect(latestLogs?.searchParams.get('pagina')).toBe('1');
       const reportRequests = requests.filter((request) => request.operation === 'relatorio');
       const latestReport = reportRequests[reportRequests.length - 1]?.url;
       expect(latestReport?.searchParams.get('dataInicio')).toBe('2026-11-01');
+      expect(latestReport?.searchParams.get('dataFim')).toBe('2026-11-13');
       expect(latestReport?.searchParams.get('recurso')).toBe('Produto');
     });
 
@@ -131,6 +136,7 @@ describe('Auditoria administrativa', () => {
       const latestLogs = logRequests[logRequests.length - 1]?.url;
       expect(latestLogs?.searchParams.get('pagina')).toBe('2');
       expect(latestLogs?.searchParams.get('dataInicio')).toBe('2026-11-01');
+      expect(latestLogs?.searchParams.get('dataFim')).toBe('2026-11-13');
       expect(latestLogs?.searchParams.get('recurso')).toBe('Produto');
     });
 
@@ -140,8 +146,108 @@ describe('Auditoria administrativa', () => {
     });
     const exportUrl = requests.find((request) => request.operation === 'exportar')?.url;
     expect(exportUrl?.searchParams.get('dataInicio')).toBe('2026-11-01');
+    expect(exportUrl?.searchParams.get('dataFim')).toBe('2026-11-13');
     expect(exportUrl?.searchParams.get('recurso')).toBe('Produto');
     expect(exportUrl?.searchParams.has('pagina')).toBe(false);
+  });
+
+  it('seleciona datas no calendário e aplica os dois limites em ISO', async () => {
+    setAuditHandlers();
+    render(<AuditoriaPage />);
+    await screen.findByText('FalhaOperacao');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir calendário: Data inicial' }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Ano' }), {
+      target: { value: '2000' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mês' }), {
+      target: { value: '1' },
+    });
+    fireEvent.click(
+      within(screen.getByRole('grid', { name: /fevereiro 2000/i })).getByRole('gridcell', {
+        name: '1',
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir calendário: Data final' }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Ano' }), {
+      target: { value: '2000' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mês' }), {
+      target: { value: '2' },
+    });
+    fireEvent.click(
+      within(screen.getByRole('grid', { name: /março 2000/i })).getByRole('gridcell', {
+        name: '1',
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => {
+      const logRequests = requests.filter((request) => request.operation === 'logs');
+      const latestLogs = logRequests[logRequests.length - 1]?.url;
+      expect(latestLogs?.searchParams.get('dataInicio')).toBe('2000-02-01');
+      expect(latestLogs?.searchParams.get('dataFim')).toBe('2000-03-01');
+    });
+  });
+
+  it.each(['31/02/2026', '29/02/20', '01/01/0001'])(
+    'não aplica nem exporta filtros com data inicial inválida %s',
+    async (invalidDate) => {
+      setAuditHandlers();
+      render(<AuditoriaPage />);
+      await screen.findByText('FalhaOperacao');
+      await screen.findByText('Total de Logs');
+      const initialRequestCount = requests.length;
+
+      const dateStart = screen.getByRole('textbox', { name: 'Data inicial' });
+      fireEvent.change(dateStart, { target: { value: invalidDate } });
+      fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+      expect(dateStart).toHaveAttribute('aria-invalid', 'true');
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Data inicial inválida. Use dd/mm/aaaa.'
+      );
+      expect(requests).toHaveLength(initialRequestCount);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+      await waitFor(() => expect(mocks.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'auditoria.csv'));
+      const exportUrl = requests.find((request) => request.operation === 'exportar')?.url;
+      expect(exportUrl?.searchParams.has('dataInicio')).toBe(false);
+    }
+  );
+
+  it('limpa os limites do período também das consultas', async () => {
+    setAuditHandlers();
+    render(<AuditoriaPage />);
+    await screen.findByText('FalhaOperacao');
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data inicial' }), {
+      target: { value: '01/11/2026' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Data final' }), {
+      target: { value: '13/11/2026' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+    await waitFor(() => {
+      const logRequests = requests.filter((request) => request.operation === 'logs');
+      const latestLogs = logRequests[logRequests.length - 1]?.url;
+      expect(latestLogs?.searchParams.get('dataInicio')).toBe('2026-11-01');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar' }));
+
+    await waitFor(() => {
+      const logRequests = requests.filter((request) => request.operation === 'logs');
+      const reportRequests = requests.filter((request) => request.operation === 'relatorio');
+      const latestLogs = logRequests[logRequests.length - 1]?.url;
+      const latestReport = reportRequests[reportRequests.length - 1]?.url;
+      expect(latestLogs?.searchParams.has('dataInicio')).toBe(false);
+      expect(latestLogs?.searchParams.has('dataFim')).toBe(false);
+      expect(latestReport?.searchParams.has('dataInicio')).toBe(false);
+      expect(latestReport?.searchParams.has('dataFim')).toBe(false);
+    });
   });
 
   it('apresenta o histórico e a regra sem mostrar IP, e-mail ou contexto bruto', async () => {

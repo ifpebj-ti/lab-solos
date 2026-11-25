@@ -21,6 +21,7 @@ import {
 } from '@/integration/Product';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatCivilDate } from '@/function/date';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ChartConfig,
@@ -64,7 +65,7 @@ interface IProduto {
   quantidade: number;
   quantidadeMinima: number;
   dataFabricacao: string | null;
-  dataValidade: string;
+  dataValidade: string | null;
   localizacaoProduto: string;
   status: number;
   ultimaModificacao: string;
@@ -162,6 +163,23 @@ function statusInfo(product: IProduto, width: string): ProductInfo {
   };
 }
 
+function civilDateInfo(product: IProduto): ProductInfo[] {
+  return [
+    {
+      key: 'manufacture-date',
+      title: 'Data de Fabricação',
+      value: formatCivilDate(product.dataFabricacao),
+      width: '15%',
+    },
+    {
+      key: 'expiration-date',
+      title: 'Data de Validade',
+      value: formatCivilDate(product.dataValidade),
+      width: '15%',
+    },
+  ];
+}
+
 function getAdminProductInfo(
   product: IProduto,
   isChemical: boolean,
@@ -195,7 +213,7 @@ function getAdminProductInfo(
       width: '15%',
     });
   }
-  return result;
+  return [...result, ...civilDateInfo(product)];
 }
 
 function getMentorProductInfo(
@@ -216,7 +234,7 @@ function getMentorProductInfo(
     },
     statusInfo(product, showFormula ? '20%' : isChemical ? '25%' : '30%')
   );
-  return result;
+  return [...result, ...civilDateInfo(product)];
 }
 
 function getMenteeProductInfo(
@@ -234,7 +252,7 @@ function getMenteeProductInfo(
     ...classification,
     width: showFormula ? '30%' : isChemical ? '40%' : '50%',
   });
-  return result;
+  return [...result, ...civilDateInfo(product)];
 }
 
 function getProductInfo(

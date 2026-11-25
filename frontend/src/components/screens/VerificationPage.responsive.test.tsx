@@ -131,9 +131,9 @@ describe('verificação responsiva de produto', () => {
   });
 
   it.each([
-    ['admin', true, ['Item', 'Fórmula', 'Peso Molecular (g/mol)', 'Marca', 'Grupo', 'Situação']],
-    ['mentor', false, ['Item', 'Categoria', 'Situação']],
-    ['mentee', true, ['Item', 'Fórmula', 'Peso Molecular (g/mol)', 'Grupo']],
+    ['admin', true, ['Item', 'Fórmula', 'Peso Molecular (g/mol)', 'Marca', 'Grupo', 'Situação', 'Data de Fabricação', 'Data de Validade']],
+    ['mentor', false, ['Item', 'Categoria', 'Situação', 'Data de Fabricação', 'Data de Validade']],
+    ['mentee', true, ['Item', 'Fórmula', 'Peso Molecular (g/mol)', 'Grupo', 'Data de Fabricação', 'Data de Validade']],
   ] as const)(
     'mantém as colunas do perfil %s na mesma ordem dos valores',
     async (userType, withFormula, labels) => {

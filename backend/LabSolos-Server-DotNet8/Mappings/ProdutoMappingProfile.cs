@@ -13,6 +13,10 @@ namespace Core.DTOs.Mappings
         {
             // Mapeamento para ProdutoDTO
             CreateMap<Produto, ProdutoDTO>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataFabricacao)))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataValidade)))
                 .ForMember(dest => dest.Lote, opt => opt.MapFrom(src => src.Lote))
                 .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()))
                 .ReverseMap()
@@ -25,6 +29,10 @@ namespace Core.DTOs.Mappings
 
             // Mapeamento específico para Quimico -> QuimicoDTO
             CreateMap<Quimico, QuimicoDTO>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataFabricacao)))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataValidade)))
                 .ForMember(dest => dest.Lote, opt => opt.MapFrom(src => src.Lote))
                 .ForMember(dest => dest.EstadoFisico, opt => opt.MapFrom(src => src.EstadoFisico))
                 .ForMember(dest => dest.Cor, opt => opt.MapFrom(src => src.Cor))
@@ -39,6 +47,10 @@ namespace Core.DTOs.Mappings
 
             // Mapeamento específico para Vidraria -> VidrariaDTO
             CreateMap<Vidraria, VidrariaDTO>()
+                .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataFabricacao)))
+                .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
+                    ProductCivilDateFormatter.FormatForRead(src.DataValidade)))
                 .ForMember(dest => dest.Lote, opt => opt.MapFrom(src => src.Lote))
                 .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Material))
                 .ForMember(dest => dest.Formato, opt => opt.MapFrom(src => src.Formato))

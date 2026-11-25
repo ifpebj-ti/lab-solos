@@ -11,6 +11,7 @@ import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { getUnidadePlural } from '@/mocks/Unidades';
+import { formatCivilDate } from '@/function/date';
 import {
   getAdminProductCatalog,
   type AdminProductCatalogItem,
@@ -241,7 +242,7 @@ function FollowUp() {
                               String(rowData.unidadeMedida),
                               rowData.quantidadeMinima
                             ) || 'Não corresponde',
-                            String(rowData.dataValidade) || 'Não corresponde',
+                            formatCivilDate(rowData.dataValidade),
                             rowData.status || 'Não corresponde',
                           ]}
                           rowIndex={index}

@@ -3,6 +3,7 @@ import { format, parseISO, isValid } from 'date-fns';
 const CIVIL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const CIVIL_DATE_INPUT_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 export const CIVIL_DATE_INPUT_MASK = 'dd/mm/aaaa';
+const ABSENT_CIVIL_DATE_SENTINEL = '0001-01-01';
 const NOT_INFORMED = 'Não informado';
 
 const isLeapYear = (year: number): boolean =>
@@ -42,6 +43,9 @@ export const isCivilDate = (value: string): boolean => {
   return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(year, month);
 };
 
+export const isAbsentCivilDate = (civilDate?: string | null): boolean =>
+  civilDate === ABSENT_CIVIL_DATE_SENTINEL;
+
 export const parseCivilDateInput = (value: string): string | undefined => {
   const match = CIVIL_DATE_INPUT_PATTERN.exec(value);
 
@@ -51,13 +55,15 @@ export const parseCivilDateInput = (value: string): string | undefined => {
 
   const [, day, month, year] = match;
   const civilDate = `${year}-${month}-${day}`;
-  return isCivilDate(civilDate) ? civilDate : undefined;
+  return isCivilDate(civilDate) && !isAbsentCivilDate(civilDate)
+    ? civilDate
+    : undefined;
 };
 
 export const formatCivilDate = (
   civilDate?: string | null
 ): string => {
-  if (!civilDate || !isCivilDate(civilDate)) {
+  if (!civilDate || isAbsentCivilDate(civilDate) || !isCivilDate(civilDate)) {
     return NOT_INFORMED;
   }
 

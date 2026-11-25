@@ -112,6 +112,35 @@ describe('acompanhamento responsivo', () => {
     );
   });
 
+  it('formata validade ISO e não exibe respostas ausentes ou legadas como texto bruto', async () => {
+    productApi.getAdminProductCatalog.mockResolvedValue([
+      { ...product(201, 'Produto com validade', ['validade']), dataValidade: '2026-11-13' },
+      { ...product(202, 'Produto sem validade', ['validade']), dataValidade: null },
+      {
+        ...product(203, 'Produto com resposta legada', ['validade']),
+        dataValidade: '11/13/2026 00:00:00',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <FollowUp />
+      </MemoryRouter>
+    );
+
+    const list = await screen.findByRole('list', { name: 'Produtos em alerta' });
+    const validRow = within(list).getByText('Produto com validade').closest('[role="listitem"]');
+    const absentRow = within(list).getByText('Produto sem validade').closest('[role="listitem"]');
+    const legacyRow = within(list).getByText('Produto com resposta legada').closest('[role="listitem"]');
+
+    expect(validRow).toHaveTextContent('13/11/2026');
+    expect(validRow).not.toHaveTextContent('2026-11-13');
+    expect(absentRow).toHaveTextContent('Não informado');
+    expect(absentRow).not.toHaveTextContent('null');
+    expect(legacyRow).toHaveTextContent('Não informado');
+    expect(legacyRow).not.toHaveTextContent('11/13/2026');
+  });
+
   it('deduplica a união por ID, filtra cada motivo e conta os produtos distintos', async () => {
     render(
       <MemoryRouter>

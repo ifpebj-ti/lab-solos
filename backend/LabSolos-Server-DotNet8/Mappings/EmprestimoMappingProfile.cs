@@ -39,9 +39,9 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.TipoProduto, opt => opt.MapFrom(src => src.Tipo.ToString()))
                 .ForMember(dest => dest.UnidadeMedida, opt => opt.MapFrom(src => src.UnidadeMedida.ToString()))
                 .ForMember(dest => dest.DataFabricacao, opt => opt.MapFrom(src =>
-                    src.DataFabricacao.HasValue ? src.DataFabricacao.Value.ToString(CultureInfo.InvariantCulture) : null))
+                    ProductCivilDateFormatter.FormatForRead(src.DataFabricacao)))
                 .ForMember(dest => dest.DataValidade, opt => opt.MapFrom(src =>
-                    src.DataValidade.HasValue ? src.DataValidade.Value.ToString(CultureInfo.InvariantCulture) : null))
+                    ProductCivilDateFormatter.FormatForRead(src.DataValidade)))
                 .ForMember(dest => dest.UltimaModificacao, opt => opt.MapFrom(src =>
                     src.UltimaModificacao.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
