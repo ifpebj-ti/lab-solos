@@ -4,6 +4,8 @@ As entregas relevantes são registradas aqui e nas [releases do GitHub](https://
 
 ## Não publicado
 
+- Aplicar gate mínimo de 70% em branches por módulo e publicar badges automáticos de linhas e branches, além de relatórios HTML de frontend e backend ([#505](https://github.com/ifpebj-ti/lab-solos/issues/505)).
+
 - Padronizar exibição e seleção das datas civis de produtos no formato brasileiro, com contratos ISO e validação consistente ([#507](https://github.com/ifpebj-ti/lab-solos/issues/507), [#508](https://github.com/ifpebj-ti/lab-solos/issues/508)).
 - Consolidar os 11 PRDs com cadastro e listagem de produtos químicos e vidrarias, alertas de validade e estoque, empréstimos, contas e sessões, notificações e auditoria, proteção de API e proxy, gates de segurança e governança de evidências.
 

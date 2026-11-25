@@ -1,9 +1,9 @@
 # Tarefas — Governança e evidências da entrega
 
-- Status: 9 de 14 tarefas concluídas; 5 permanecem bloqueadas por dependências operacionais externas.
+- Status: 11 de 14 tarefas concluídas; T007, T013 e T014 permanecem bloqueadas por validações externas e pela integração desta revisão.
 - PRD: [Governança e evidências da entrega](./prd.md)
 - Especificação técnica: [Governança e evidências da entrega](./techspec.md)
-- Atualizado em: 2026-11-24
+- Atualizado em: 2026-11-25
 
 Ler o PRD e a especificação técnica antes de executar cada tarefa. As ondas registram a ordem após a liberação dos bloqueios. Edições locais, consultas com perfil de avaliação e ações de validação na plataforma têm evidências próprias. O Project #41 permanece privado durante a definição e a demonstração do meio de consulta.
 
@@ -191,10 +191,9 @@ Elaborar instruções locais de envio por canal privado, informação mínima e 
 
 ## T008 — Versionar a atribuição de revisão por área
 
-- Status: bloqueada
+- Status: concluída nesta revisão
 - Issue: #496
 - Dependências: nenhuma
-- Bloqueio: não há identidades ou equipes aprovadas no checkout. A consulta somente leitura `GET /orgs/ifpebj-ti/teams` retornou HTTP 403 por falta de `admin:org`; não há `.github/CODEOWNERS` versionado. Não inventar responsáveis nem alterar permissões; ver o registro de 24/11 no log abaixo.
 - Paralela: não
 - Requisitos: RF-006, CA-007
 - Caminhos sob responsabilidade: `.github/CODEOWNERS`, `.github/scripts/tests/test_codeowners.py`
@@ -287,8 +286,7 @@ Consolidar os vínculos e o procedimento de consulta aos registros aprovados. In
 
 ## T012 — Conferir os dois modelos no seletor de issues
 
-- Status: bloqueada
-- Bloqueio: O aceite depende da publicação dos modelos na branch usada pelo seletor do GitHub e da verificação dessa interface. A execução autorizada é local.
+- Status: concluída com evidência registrada
 - Issue: #496
 - Dependências: T002, T004
 - Paralela: não
@@ -334,7 +332,7 @@ Seguir as instruções de `SECURITY.md` no ambiente autorizado e conferir o rece
 - Status: bloqueada
 - Issue: #496
 - Dependências: T008
-- Bloqueio: T008 aguarda áreas, identidades e permissões. A saída exige ambiente de validação autorizado com o arquivo presente na branch-base do PR de teste.
+- Bloqueio: T008 está concluída nesta revisão, mas CODEOWNERS só será efetivo na branch-base após a integração em `develop`. A validação de atribuição ainda exige um PR de teste autorizado.
 - Paralela: não
 - Requisitos: RF-006, CA-007
 - Caminhos sob responsabilidade: `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T014.md`, alteração transitória de caminho aprovado para o PR de teste
@@ -355,6 +353,8 @@ No ambiente autorizado, conferir a atribuição de revisão em PR de teste que a
 
 | Data       | Tarefa              | Resultado                                                  | Testes/evidências                                                                                                                                                                                                                    | Observações                                                                                                                                                                                                                                                      |
 | ---------- | ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-25 | T008 | concluída nesta revisão | `test_codeowners.py` e `git diff --check` aprovados; CODEOWNERS cobre frontend, backend, GitHub e fallback. | A atribuição remota só será observável quando esta branch integrar em develop; T014 continua pendente. |
+| 2026-11-25 | T012 | concluída com evidência registrada | Seletor e formulários conferidos em `main`; evidência em `evidencias/T012.md`. | Nenhuma issue foi enviada; o teste editorial local não iniciou por falta de PyYAML. |
 | 2026-11-24 | T006                | concluída sob exceção explícita do usuário                 | Evidência local em `evidencias/T006.md`; atualização do material da Unidade 1.                                                                                                                                                       | Testes de acesso do avaliador e confirmação do barema/campos/período/canal dispensados pelo usuário; nenhum acesso positivo foi presumido.                                                                                                                       |
 | 2026-11-24 | T009                | concluída                                                  | Paginação completa das APIs de Dependabot (2 páginas) e code scanning (1 página); totais agregados em `evidencias/T009.md`.                                                                                                          | Coleta somente de leitura; nenhum identificador ou detalhe individual de alerta foi persistido.                                                                                                                                                                  |
 | 2026-11-24 | T010                | concluída                                                  | Regras efetivas, rulesets e rotas de proteção clássica conferidos para develop e main; evidencias/T010.md.                                                                                                                           | Rotas clássicas responderam HTTP 404; checks requeridos registrados a partir das regras efetivas.                                                                                                                                                                |

@@ -19,7 +19,8 @@ class CollectBackendCoverageTests(unittest.TestCase):
         self.temporary = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.repository = self.temporary / "repo"
         self.server = self.repository / "backend" / "LabSolos-Server-DotNet8"
-        self.visited = self.server / "Services" / "Visited.cs"
+        self.visited = self.server / "Services" / "Branching.cs"
+        self.duplicate = self.server / "Services" / "Duplicate.cs"
         self.unvisited = self.server / "Services" / "NeverCalled.cs"
         self.generated_migration = (
             self.server / "Data" / "Migrations" / "20260101_Initial.cs"
@@ -28,6 +29,7 @@ class CollectBackendCoverageTests(unittest.TestCase):
         self.support_source = self.repository / "backend" / "TestSupport" / "E2ESeed" / "Seed.cs"
         for path in (
             self.visited,
+            self.duplicate,
             self.unvisited,
             self.generated_migration,
             self.test_source,
@@ -91,28 +93,68 @@ class CollectBackendCoverageTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_counts_eligible_server_lines_and_includes_unvisited_files(self) -> None:
-        self.write_coverage(
-            {
-                self.visited: [(10, 1), (11, 0)],
-                self.unvisited: [(1, 0), (2, 0), (3, 0)],
-                self.generated_migration: [(1, 1), (2, 1), (3, 1), (4, 1)],
-                self.test_source: [(1, 1)],
-                self.support_source: [(1, 1)],
-            }
+    def write_branch_fixture(self) -> None:
+        fixture = (
+            Path(__file__).parent
+            / "fixtures"
+            / "backend-coverage"
+            / "branch-counts.cobertura.xml"
         )
+        self.coverage.write_bytes(fixture.read_bytes())
+
+    def test_counts_eligible_server_lines_and_includes_unvisited_files(self) -> None:
+        self.write_branch_fixture()
 
         result = self.run_collector()
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         normalized = json.loads(self.output.read_text(encoding="utf-8"))
         self.assertEqual(normalized["module"], "backend")
-        self.assertEqual(normalized["metric"], "lines")
-        self.assertEqual(normalized["denominator"], 5)
-        self.assertEqual(normalized["numerator"], 1)
+        self.assertEqual(normalized["schemaVersion"], 2)
+        self.assertEqual(normalized["metrics"]["lines"], {"covered": 2, "total": 3})
+        self.assertEqual(
+            normalized["metrics"]["branches"], {"covered": 3, "total": 4}
+        )
         self.assertEqual(normalized["sha"], SHA)
         self.assertEqual(normalized["run_id"], RUN_ID)
         self.assertEqual(normalized["run_attempt"], 2)
+
+    def test_rejects_branch_line_without_condition_metadata(self) -> None:
+        self.coverage.write_text(
+            '<?xml version="1.0"?><coverage><sources/><packages><package><classes>'
+            f'<class filename="{self.visited.as_posix()}"><lines>'
+            '<line number="10" hits="1" branch="true" condition-coverage="0% (0/1)"/>'
+            '</lines></class></classes></package></packages></coverage>',
+            encoding="utf-8",
+        )
+
+        result = self.run_collector()
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("condition", (result.stdout + result.stderr).lower())
+
+    def test_rejects_invalid_branch_condition_coverage(self) -> None:
+        self.coverage.write_text(
+            '<?xml version="1.0"?><coverage><sources/><packages><package><classes>'
+            f'<class filename="{self.visited.as_posix()}"><lines>'
+            '<line number="10" hits="1" branch="true" condition-coverage="100% (1/1)">'
+            '<conditions><condition number="0" type="jump" coverage="101%" />'
+            '</conditions></line></lines></class></classes></package></packages></coverage>',
+            encoding="utf-8",
+        )
+
+        result = self.run_collector()
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("between 0% and 100%", (result.stdout + result.stderr).lower())
+
+    def test_rejects_report_without_any_eligible_branch_metadata(self) -> None:
+        self.write_coverage({self.visited: [(1, 1), (2, 0)]})
+
+        result = self.run_collector()
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("branch", (result.stdout + result.stderr).lower())
 
     def test_rejects_reports_outside_the_selected_full_run(self) -> None:
         older_run = self.temporary / "results" / "older" / "coverage.cobertura.xml"

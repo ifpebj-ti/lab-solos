@@ -56,8 +56,13 @@ class CollectFrontendCoverageTests(unittest.TestCase):
         )
 
     @staticmethod
-    def file_coverage(total: int, covered: int) -> dict[str, object]:
-        return {
+    def file_coverage(
+        total: int,
+        covered: int,
+        branch_total: int | None = 0,
+        branch_covered: int = 0,
+    ) -> dict[str, object]:
+        result: dict[str, object] = {
             "lines": {
                 "total": total,
                 "covered": covered,
@@ -65,6 +70,14 @@ class CollectFrontendCoverageTests(unittest.TestCase):
                 "pct": (covered / total * 100) if total else 0,
             }
         }
+        if branch_total is not None:
+            result["branches"] = {
+                "total": branch_total,
+                "covered": branch_covered,
+                "skipped": 0,
+                "pct": (branch_covered / branch_total * 100) if branch_total else 0,
+            }
+        return result
 
     def write_summary(self, entries: dict[Path, dict[str, object]]) -> None:
         report: dict[str, object] = {"total": self.file_coverage(1, 1)}
@@ -75,7 +88,7 @@ class CollectFrontendCoverageTests(unittest.TestCase):
         self.write_summary(
             {
                 self.visited: self.file_coverage(2, 1),
-                self.unvisited: self.file_coverage(3, 0),
+                self.unvisited: self.file_coverage(3, 0, branch_total=2, branch_covered=1),
                 self.test_file: self.file_coverage(10, 10),
                 self.setup_file: self.file_coverage(20, 20),
                 self.generated: self.file_coverage(30, 30),
@@ -86,13 +99,34 @@ class CollectFrontendCoverageTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         normalized = json.loads(self.output.read_text(encoding="utf-8"))
+        self.assertEqual(normalized["schemaVersion"], 2)
         self.assertEqual(normalized["module"], "frontend")
-        self.assertEqual(normalized["metric"], "lines")
-        self.assertEqual(normalized["numerator"], 1)
-        self.assertEqual(normalized["denominator"], 5)
+        self.assertEqual(normalized["metrics"]["lines"], {"covered": 1, "total": 5})
+        self.assertEqual(normalized["metrics"]["branches"], {"covered": 1, "total": 2})
         self.assertEqual(normalized["sha"], SHA)
         self.assertEqual(normalized["run_id"], RUN_ID)
         self.assertEqual(normalized["run_attempt"], 2)
+
+    def test_rejects_missing_or_inconsistent_branch_counts(self) -> None:
+        self.write_summary({self.visited: self.file_coverage(2, 1, branch_total=None)})
+        missing = self.run_collector()
+        self.assertEqual(missing.returncode, 2, missing.stdout + missing.stderr)
+        self.assertIn("branch", missing.stderr.lower() + missing.stdout.lower())
+
+        self.write_summary(
+            {self.visited: self.file_coverage(2, 1, branch_total=2, branch_covered=3)}
+        )
+        inconsistent = self.run_collector()
+        self.assertEqual(inconsistent.returncode, 2, inconsistent.stdout + inconsistent.stderr)
+        self.assertIn("covered", inconsistent.stderr.lower() + inconsistent.stdout.lower())
+
+    def test_rejects_coverage_without_any_countable_branches(self) -> None:
+        self.write_summary({self.visited: self.file_coverage(2, 1)})
+
+        result = self.run_collector()
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("branch", result.stderr.lower() + result.stdout.lower())
 
     def test_rejects_a_missing_or_invalid_summary(self) -> None:
         missing = self.run_collector(self.temporary / "missing.json")

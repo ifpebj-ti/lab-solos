@@ -1,6 +1,8 @@
 name: Container CI
 
 on:
+  push:
+    branches: [develop]
   pull_request:
     branches: [develop]
     types: [opened, synchronize, reopened, edited, ready_for_review]
@@ -12,7 +14,7 @@ permissions:
 
 concurrency:
   group: container-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
   frontend-quality:
@@ -65,6 +67,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+      - name: Upload frontend HTML coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frontend-html-coverage
+          path: .tmp/coverage/frontend/${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Run frontend lint
         run: npm run lint
 
@@ -92,6 +103,9 @@ jobs:
         with:
           dotnet-version: "8.0.428"
 
+      - name: Restore local .NET tools
+        run: dotnet tool restore
+
       - name: Restore backend solution
         run: dotnet restore backend/backend.sln --locked-mode
 
@@ -106,9 +120,9 @@ jobs:
           dotnet test backend/Tests/Tests.csproj --no-build --no-restore -c Release --nologo --disable-build-servers
           --filter "FullyQualifiedName~Integration|FullyQualifiedName~CredentialLifecycleMigrationTests"
 
-      - name: Test backend solution
+      - name: Run backend test project with coverage
         run: >-
-          dotnet test backend/backend.sln --no-build --no-restore -c Release
+          dotnet test backend/Tests/Tests.csproj -c Release
           --nologo --disable-build-servers --collect:"XPlat Code Coverage"
           --results-directory ".tmp/coverage/backend/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}"
 
@@ -122,7 +136,7 @@ jobs:
               -name coverage.cobertura.xml -print 2>/dev/null
           )
           if [[ ${#coverage_reports[@]} -ne 1 ]]; then
-            printf 'expected one complete-solution coverage report; found %s\n' \
+            printf 'expected one full backend test-run coverage report; found %s\n' \
               "${#coverage_reports[@]}" >&2
             exit 2
           fi
@@ -134,6 +148,13 @@ jobs:
             --sha "$GITHUB_SHA" \
             --run-id "$GITHUB_RUN_ID" \
             --run-attempt "$GITHUB_RUN_ATTEMPT"
+          html_directory="$results_directory/html"
+          dotnet tool run reportgenerator \
+            "-reports:${coverage_reports[0]}" \
+            "-targetdir:$html_directory" \
+            "-reporttypes:Html;JsonSummary"
+          test -s "$html_directory/index.html"
+          test -s "$html_directory/Summary.json"
 
       - name: Upload normalized backend coverage
         if: always()
@@ -141,6 +162,15 @@ jobs:
         with:
           name: backend-coverage
           path: .tmp/coverage/backend/${{ github.run_id }}/${{ github.run_attempt }}/backend-coverage.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload backend HTML coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-html-coverage
+          path: .tmp/coverage/backend/${{ github.run_id }}/${{ github.run_attempt }}/html/
           if-no-files-found: ignore
           retention-days: 30
 
@@ -176,6 +206,20 @@ jobs:
           name: backend-coverage
           path: .tmp/coverage/backend
 
+      - name: Download frontend HTML coverage
+        if: always()
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: frontend-html-coverage
+          path: .tmp/coverage-html/frontend
+
+      - name: Download backend HTML coverage
+        if: always()
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: backend-html-coverage
+          path: .tmp/coverage-html/backend
+
       - name: Enforce the coverage threshold for both modules
         if: always()
         shell: bash
@@ -184,7 +228,6 @@ jobs:
           python -B .github/scripts/check_coverage.py \
             --frontend .tmp/coverage/frontend.json \
             --backend .tmp/coverage/backend/backend-coverage.json \
-            --metric lines \
             --sha "$GITHUB_SHA" \
             --run-id "$GITHUB_RUN_ID" \
             --run-attempt "$GITHUB_RUN_ATTEMPT" \
@@ -201,6 +244,154 @@ jobs:
           path: ${{ runner.temp }}/coverage-summary.txt
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Validate HTML reports
+        if: always()
+        shell: bash
+        run: |
+          missing=0
+          for report in \
+            .tmp/coverage-html/frontend/index.html \
+            .tmp/coverage-html/backend/index.html; do
+            if [[ ! -s "$report" ]]; then
+              printf 'required coverage HTML report is missing: %s\n' "$report" >&2
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Prepare combined coverage report index
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import html
+          import os
+          import shutil
+          from pathlib import Path
+
+          root = Path(".tmp/coverage-html")
+          summary_directory = root / "summary"
+          summary_directory.mkdir(parents=True, exist_ok=True)
+          summaries = {
+              "frontend-coverage.json": Path(".tmp/coverage/frontend.json"),
+              "backend-coverage.json": Path(".tmp/coverage/backend/backend-coverage.json"),
+          }
+          for name, source in summaries.items():
+              if source.is_file():
+                  shutil.copyfile(source, summary_directory / name)
+
+          sha = html.escape(os.environ["GITHUB_SHA"])
+          run_id = html.escape(os.environ["GITHUB_RUN_ID"])
+          run_attempt = html.escape(os.environ["GITHUB_RUN_ATTEMPT"])
+          summary_links = "\n".join(
+              f'<li><a href="summary/{name}">{name}</a></li>'
+              for name in summaries
+              if (summary_directory / name).is_file()
+          )
+          index = f"""<!doctype html>
+          <html lang="pt-BR">
+          <head><meta charset="utf-8"><title>Relatório de cobertura</title></head>
+          <body>
+            <h1>Relatório de cobertura</h1>
+            <p>SHA: <code>{sha}</code>; run_id: <code>{run_id}</code>; run_attempt: <code>{run_attempt}</code>.</p>
+            <p>Artefato retido por 30 dias a partir da execução do workflow.</p>
+            <h2>Relatórios detalhados</h2>
+            <ul>
+              <li><a href="frontend/index.html">Frontend HTML</a></li>
+              <li><a href="backend/index.html">Backend HTML</a></li>
+            </ul>
+            <h2>Sumários normalizados</h2><ul>{summary_links}</ul>
+          </body>
+          </html>
+          """
+          (root / "coverage-index.html").write_text(index, encoding="utf-8")
+          PY
+
+      - name: Upload combined HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-html
+          path: .tmp/coverage-html/
+          if-no-files-found: warn
+          retention-days: 30
+
+  publish-coverage-badges:
+    name: Publish coverage badges
+    if: >-
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/develop'
+    needs:
+      - frontend-quality
+      - backend-quality
+      - coverage-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: coverage-badges-develop
+      cancel-in-progress: false
+    steps:
+      - name: Checkout trusted develop revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Download normalized frontend coverage
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: frontend-coverage
+          path: .tmp/coverage
+
+      - name: Download normalized backend coverage
+        if: always()
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: backend-coverage
+          path: .tmp/coverage/backend
+
+      - name: Generate current coverage badges
+        if: always()
+        run: >-
+          python -B .github/scripts/publish_coverage_badges.py
+          --frontend .tmp/coverage/frontend.json
+          --backend .tmp/coverage/backend/backend-coverage.json
+          --output-directory "$RUNNER_TEMP/coverage-badges"
+          --sha "$GITHUB_SHA"
+          --run-id "$GITHUB_RUN_ID"
+          --run-attempt "$GITHUB_RUN_ATTEMPT"
+
+      - name: Update the dedicated coverage branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          badge_directory="$RUNNER_TEMP/coverage-badges"
+          if git ls-remote --exit-code --heads origin coverage >/dev/null 2>&1; then
+            git fetch origin coverage
+            git checkout --detach FETCH_HEAD
+          else
+            git checkout --orphan coverage
+            git rm -rf .
+          fi
+          cp "$badge_directory/coverage-lines.svg" ./coverage-lines.svg
+          cp "$badge_directory/coverage-branches.svg" ./coverage-branches.svg
+          cp "$badge_directory/coverage-summary.json" ./coverage-summary.json
+          git add -- coverage-lines.svg coverage-branches.svg coverage-summary.json
+          if git diff --cached --quiet; then
+            echo "Coverage badges already match this develop run."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update coverage badges"
+          git push origin HEAD:coverage
 
   semgrep:
     name: Semgrep security policy

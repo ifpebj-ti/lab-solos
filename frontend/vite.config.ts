@@ -66,7 +66,7 @@ export default defineConfig(async ({ mode }): Promise<ViteUserConfig> => {
         include: frontendCoverageInclude,
         exclude: frontendCoverageExclude,
         reportsDirectory: coverageReportsDirectory,
-        reporter: ['json-summary'],
+        reporter: ['json-summary', 'html'],
         clean: true,
       },
     },

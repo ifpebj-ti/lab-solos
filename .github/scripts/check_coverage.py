@@ -1,9 +1,8 @@
-"""Check normalized JSON coverage counts for the expected test run.
+"""Validate line and branch coverage reports for the same test run.
 
-Each file contains module, metric, numerator, denominator, sha, run_id and
-run_attempt. The counts and attempt are integers, and the other fields are
-strings. Exit codes are 0 for success, 1 for coverage below the threshold and
-2 for invalid measurements or arguments.
+The branch threshold is evaluated independently for the frontend and backend.
+Line coverage is printed for information and never changes the exit status.
+Exit codes: 0 passed, 1 below branch threshold, 2 invalid measurements/inputs.
 """
 
 from __future__ import annotations
@@ -16,7 +15,7 @@ from typing import NoReturn
 
 MINIMUM_PERCENT = 70
 MODULES = ("frontend", "backend")
-STATUSES = ("passed", "below threshold", "invalid measurement")
+STATUS_LABELS = ("passed", "below threshold", "invalid measurement")
 
 
 def _unique_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -43,7 +42,9 @@ def _read_report(path: Path) -> dict[str, object]:
         raise ValueError(f"report is empty: {path}")
     try:
         report = json.loads(
-            content, object_pairs_hook=_unique_fields, parse_constant=_reject_nonfinite
+            content,
+            object_pairs_hook=_unique_fields,
+            parse_constant=_reject_nonfinite,
         )
     except (ValueError, RecursionError) as error:
         raise ValueError(f"invalid JSON in {path}: {error}") from error
@@ -58,15 +59,39 @@ def _display_value(value: object) -> str:
     return f"<{type(value).__name__}>"
 
 
+def _validate_metric(name: str, value: object) -> tuple[int, int]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{name} metric must be an object")
+    covered = value.get("covered")
+    total = value.get("total")
+    if type(covered) is not int:
+        raise ValueError(f"{name} covered must be an integer, found {_display_value(covered)}")
+    if type(total) is not int:
+        raise ValueError(f"{name} total must be an integer, found {_display_value(total)}")
+    if total <= 0:
+        raise ValueError(f"{name} total must be positive, found {total}")
+    if covered < 0:
+        raise ValueError(f"{name} covered must be nonnegative, found {covered}")
+    if covered > total:
+        raise ValueError(f"{name} covered exceeds total ({covered}/{total})")
+    return covered, total
+
+
 def _validate_report(
     module: str,
     report: dict[str, object],
     identity: dict[str, str | int],
     declared_modules: list[object],
-) -> tuple[int, int]:
+) -> dict[str, tuple[int, int]]:
+    schema_version = report.get("schemaVersion")
+    if type(schema_version) is not int or schema_version != 2:
+        raise ValueError(f"schemaVersion must be integer 2, found {_display_value(schema_version)}")
+
     reported_module = report.get("module")
     if reported_module != module:
-        raise ValueError(f"expected module {module}, found {_display_value(reported_module)}")
+        raise ValueError(
+            f"expected module {module}, found {_display_value(reported_module)}"
+        )
     if declared_modules.count(module) > 1:
         raise ValueError(f"duplicate module {module}")
 
@@ -74,58 +99,48 @@ def _validate_report(
         actual = report.get(field)
         if type(actual) is not type(expected) or actual != expected:
             raise ValueError(
-                f"{field} mismatch: expected {_display_value(expected)}, found {_display_value(actual)}"
+                f"{field} mismatch: expected {_display_value(expected)}, "
+                f"found {_display_value(actual)}"
             )
 
-    numerator = report.get("numerator")
-    denominator = report.get("denominator")
-    if type(numerator) is not int:
-        reason = "numerator must be an integer"
-    elif type(denominator) is not int:
-        reason = "denominator must be an integer"
-    elif denominator <= 0:
-        reason = "denominator must be positive"
-    elif numerator < 0:
-        reason = "numerator must be nonnegative"
-    elif numerator > denominator:
-        reason = "numerator exceeds denominator"
-    else:
-        return numerator, denominator
-    raise ValueError(
-        f"{reason} (numerator={_display_value(numerator)}, denominator={_display_value(denominator)})"
-    )
+    metrics = report.get("metrics")
+    if not isinstance(metrics, dict):
+        raise ValueError("metrics must be an object")
+    return {
+        name: _validate_metric(name, metrics.get(name))
+        for name in ("lines", "branches")
+    }
 
 
-def _format_coverage(numerator: int, denominator: int) -> str:
-    # Round the percentage to two decimal places for display.
-    hundredths = (numerator * 10_000 + denominator // 2) // denominator
+def _format_coverage(covered: int, total: int) -> str:
+    hundredths = (covered * 10_000 + total // 2) // total
     whole, fraction = divmod(hundredths, 100)
-    return f"{numerator}/{denominator}, {whole}.{fraction:02d}%"
+    return f"{covered}/{total}, {whole}.{fraction:02d}%"
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--frontend", type=Path, required=True, help="frontend report JSON")
     parser.add_argument("--backend", type=Path, required=True, help="backend report JSON")
-    parser.add_argument("--metric", required=True, help="expected coverage metric")
     parser.add_argument("--sha", required=True, help="expected SHA of the tested revision")
     parser.add_argument("--run-id", required=True, help="expected run identifier")
-    parser.add_argument("--run-attempt", type=int, required=True, help="expected positive run attempt")
+    parser.add_argument(
+        "--run-attempt", type=int, required=True, help="expected positive run attempt"
+    )
     args = parser.parse_args(argv)
-    if not all(value.strip() for value in (args.metric, args.sha, args.run_id)):
-        parser.error("--metric, --sha and --run-id must be nonempty")
+    if not all(value.strip() for value in (args.sha, args.run_id)):
+        parser.error("--sha and --run-id must be nonempty")
     if args.run_attempt <= 0:
         parser.error("--run-attempt must be positive")
 
-    identity = {
-        "metric": args.metric,
+    identity: dict[str, str | int] = {
         "sha": args.sha,
         "run_id": args.run_id,
         "run_attempt": args.run_attempt,
     }
     print(
-        f"Coverage metric={args.metric} sha={args.sha} run_id={args.run_id} "
-        f"run_attempt={args.run_attempt} minimum={MINIMUM_PERCENT}%"
+        f"Coverage sha={args.sha} run_id={args.run_id} run_attempt={args.run_attempt} "
+        f"minimum branches={MINIMUM_PERCENT}%"
     )
 
     reports: dict[str, dict[str, object]] = {}
@@ -139,21 +154,26 @@ def main(argv: list[str] | None = None) -> int:
     declared_modules = [report.get("module") for report in reports.values()]
     for module, report in reports.items():
         try:
-            numerator, denominator = _validate_report(module, report, identity, declared_modules)
+            metrics = _validate_report(module, report, identity, declared_modules)
         except ValueError as error:
             results[module] = (2, str(error))
             continue
 
-        below_threshold = numerator * 100 < denominator * MINIMUM_PERCENT
-        details = _format_coverage(numerator, denominator)
-        if below_threshold:
-            results[module] = (1, f"{details}, minimum {MINIMUM_PERCENT}%")
+        lines = _format_coverage(*metrics["lines"])
+        branches = _format_coverage(*metrics["branches"])
+        branch_covered, branch_total = metrics["branches"]
+        if branch_covered * 100 < branch_total * MINIMUM_PERCENT:
+            results[module] = (
+                1,
+                f"lines {lines}; branches {branches}, minimum {MINIMUM_PERCENT}%",
+            )
         else:
-            results[module] = (0, details)
+            results[module] = (0, f"lines {lines}; branches {branches}")
 
     for module in MODULES:
         status, details = results[module]
-        print(f"{module}: {STATUSES[status]} ({details})")
+        label = STATUS_LABELS[status]
+        print(f"{module}: {label} ({details})")
     return max(status for status, _ in results.values())
 
 
