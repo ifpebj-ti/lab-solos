@@ -1,9 +1,9 @@
 # Tarefas: Notificações e auditoria
 
-- Status: concluída localmente — candidato `a0e9929` validado; refatoração do helper passou E2E e ESLint locais; nova CI pendente
+- Status: concluída — candidato `a0e9929` validado; refatoração do helper passou E2E/ESLint locais e `Code quality baseline` no run #45539003181
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
-- Atualizado em: 2026-11-24
+- Atualizado em: 2026-11-25
 
 Ler o PRD e a especificação técnica antes de iniciar. Usar destinatários, processos, relógio, registros e evidências sintéticos. O checkout já inclui Vitest, Playwright e xUnit com PostgreSQL descartável e jobs pré-merge.
 

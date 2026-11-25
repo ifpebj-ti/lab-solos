@@ -57,6 +57,6 @@ A CI #45535221035 encontrou avisos novos de `complexity` (30, máximo 20) e `max
 - `npm exec -- eslint e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado sem avisos.
 - `npm exec -- prettier --check e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado.
 - `npm run test:e2e -- --project=real notifications-audit.real.spec.ts --reporter=list`, com `E2E_COMPOSE_PROJECT=lab-solos-quality-e2e`: **1/1 passou em 39,9 s**. A ativação do backend candidato, isolamento de leitura, histórico de auditoria, restauração e saúde da API foram confirmados.
-- `git diff --check`: sem erros. A nova CI para confirmar a remoção dos achados do baseline ainda está pendente.
+- `git diff --check`: sem erros. O run #45539003181 confirmou a remoção dos achados: Code quality baseline passou no novo head. O gate global desse run ainda falhou no job independente de Browser security E2E.
 
 O stack isolado `lab-solos-quality-e2e`, seus volumes e redes foi removido ao terminar; nenhum outro projeto Docker foi tocado.

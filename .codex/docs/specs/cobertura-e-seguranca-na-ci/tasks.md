@@ -1,9 +1,9 @@
 # Tarefas — Cobertura e segurança na CI
 
-- Status: T007 revalidada localmente; CI #45535221035 falhou na captura; correção local aguarda nova CI. T011 aguarda CI válida e segue dispensada a navegação humana
+- Status: T007 passou localmente após correção da captura; CI #45539003181 ainda falhou antes dessa correção. Nova CI pendente. T011 aguarda CI válida; navegação humana dispensada
 - PRD: [Cobertura e segurança na CI](./prd.md)
 - Especificação técnica: [Cobertura e segurança na CI](./techspec.md)
-- Atualizado em: 2026-11-24
+- Atualizado em: 2026-11-25
 
 Ler o PRD e a especificação técnica antes de executar cada tarefa. Os caminhos partem da raiz do repositório, inclusive o caminho relativo para a Wiki irmã. As ondas registram a ordem após a liberação dos bloqueios. Em cada onda, agendar somente tarefas com dependências concluídas e reconferir a posse de arquivos quando houver execução de outros planos.
 
@@ -377,3 +377,10 @@ O aceite cruzado também usa evidências relacionadas a #487, #489 e #490.
 A suíte Browser security passou 6/6 no run #45535221035, mas a captura passiva foi marcada `capture_incomplete`: o cenário de perfis/exportação encerrou com três recursos `Font` em andamento, antes da drenagem limitada de 2 s. A regra continua fail-closed. A correção local aguarda `document.fonts.ready` e o término das respostas antes de encerrar a jornada e dá até 10 s para a drenagem CDP.
 
 A revalidação local completa passou: seis testes, relatório ZAP `passed` em 166,599 s e 290 registros Caddy reconciliados sem divergências. Consulte o [relatório sanitizado do reteste](./evidencias/T007-zap-passive-2026-11-25-local-passed.json) e o [resumo local](./evidencias/T007-zap-passive-2026-11-25-local-passed-summary.txt). Falta a próxima execução remota para concluir T007/T011.
+
+
+### Reteste determinístico após CI #45539003181 — 25/11/2026
+
+A CI #45539003181 passou baseline de qualidade, E2E de autenticação, qualidade frontend/backend, CodeQL, dependências, Semgrep, scans e contratos de workflow. Browser security passou 6/6, mas a captura passiva falhou fechada: o Chromium reutilizou fontes entre navegações, 32 corpos binários ficaram sem leitura, 77 eventos ExtraInfo permaneceram pendentes e três requisições de fonte seguiam em voo. O aumento da drenagem para 10 s não bastou nesse cenário.
+
+A jornada de perfis agora desativa o cache na mesma sessão CDP utilizada pelo capturador. Reteste local completo: Playwright 6/6; perfil capturou 123/123 respostas sem corpo indisponível e drenagem completa; ZAP passou em 180,235 s. A reconciliação conciliou 351/351 registros Caddy, sem ambiguidade ou divergência. O relatório sanitizado está em [T007 — captura local com cache desativado](./evidencias/T007-zap-passive-2026-11-25-cache-disabled-passed.json), com [resumo](./evidencias/T007-zap-passive-2026-11-25-cache-disabled-passed-summary.txt). T007/T011 aguardam confirmação pela CI no próximo commit.

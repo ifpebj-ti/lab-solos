@@ -1,0 +1,22 @@
+T007 local retest with deterministic browser cache capture, 2026-11-25 (America/Sao_Paulo)
+compose_project=lab-solos-t007-cachefix2
+compose_subnet=172.40.240.0/24
+https_port=18443
+playwright_security=6_passed
+profile_scenario_browser_capture=123/123; body_unavailable=0; cdp_drain_complete=true
+zap_status=passed
+processing_seconds=180.235
+messages={"api_request_context":48,"api_routes":143,"browser":307,"frontend_routes":212,"body_unavailable":0,"body_unavailable_cache_skipped":3,"cache_skipped":3,"cache_evidence_ambiguous":0,"wire_304_responses":0,"wire_304_ambiguous":0}
+access_log_reconciliation=complete
+matched_proxy_records=351
+unmatched_proxy_records=0
+unmatched_capture_requests=0
+unmatched_identity=0
+unmatched_timing=0
+unmatched_competing=0
+cache_skipped_confirmed=3
+cache_hits_confirmed=6
+blocking_high_confidence_alerts=0
+processing_deadline_seconds=240
+ci_reference=45539003181 failed before same-session cache disabling; the next CI run must confirm this fix
+local_result=passed; waiting for CI on the next commit

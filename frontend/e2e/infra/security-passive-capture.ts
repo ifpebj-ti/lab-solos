@@ -220,6 +220,17 @@ let activeCdpSession:
   | Awaited<ReturnType<BrowserContext['newCDPSession']>>
   | undefined;
 
+export async function disableBrowserCacheForActiveCapture(
+  page: Page
+): Promise<void> {
+  if (activeCapturePage !== page || !activeCdpSession) {
+    throw new Error('The page is not attached to the active security capture.');
+  }
+  await activeCdpSession.send('Network.setCacheDisabled', {
+    cacheDisabled: true,
+  });
+}
+
 type DownloadBodyCapture = {
   matched: boolean;
   body?: Buffer;
