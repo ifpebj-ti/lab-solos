@@ -24,11 +24,11 @@ namespace LabSolos_Server_DotNet8.Repositories
         
     public class Repository<T>(AppDbContext context) : IRepository<T> where T : class
     {
-        protected readonly AppDbContext _context = context;
+        protected AppDbContext Context { get; } = context;
 
         public async Task<IEnumerable<T>> ObterTodosAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = _context.Set<T>().AsNoTracking();
+            IQueryable<T> query = Context.Set<T>().AsNoTracking();
 
             // Aplica o include se fornecido
             if (include != null)
@@ -41,7 +41,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<T?> ObterAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = _context.Set<T>().AsNoTracking();
+            IQueryable<T> query = Context.Set<T>().AsNoTracking();
 
             // Aplica o include se fornecido
             if (include != null)
@@ -54,24 +54,24 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public bool Existe(Expression<Func<T, bool>> predicate)
         {
-            return _context.Set<T>().AsNoTracking().Any(predicate);
+            return Context.Set<T>().AsNoTracking().Any(predicate);
         }
 
         public T Criar(T entity)
         {
-            _context.Set<T>().Add(entity);
+            Context.Set<T>().Add(entity);
             return entity;
         }
 
         public T Atualizar(T entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            Context.Entry(entity).State = EntityState.Modified;
             return entity;
         }
 
         public T Remover(T entity)
         {
-            _context.Set<T>().Remove(entity);
+            Context.Set<T>().Remove(entity);
             return entity;
         }
     }

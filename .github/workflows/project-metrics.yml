@@ -25,7 +25,7 @@ permissions:
   security-events: read
 
 concurrency:
-  group: sync-github-project
+  group: sync-github-project-${{ github.event.pull_request.number || github.event.issue.number || github.event.workflow_run.id || github.run_id }}
   cancel-in-progress: true
 
 jobs:

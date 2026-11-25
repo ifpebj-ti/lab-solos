@@ -30,7 +30,7 @@ namespace LabSolos_Server_DotNet8.Repositories
             int usuarioId,
             bool apenasNaoLidas = false)
         {
-            var query = _context.Set<NotificacaoLeitura>()
+            var query = Context.Set<NotificacaoLeitura>()
                 .AsNoTracking()
                 .Include(read => read.Notificacao)
                 .Where(read => read.UsuarioId == usuarioId && read.Notificacao.ExcluidaEmUtc == null);
@@ -46,7 +46,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public Task<NotificacaoLeitura?> ObterParaDestinatarioAsync(int notificacaoId, int usuarioId)
         {
-            return _context.Set<NotificacaoLeitura>()
+            return Context.Set<NotificacaoLeitura>()
                 .AsNoTracking()
                 .Include(read => read.Notificacao)
                 .SingleOrDefaultAsync(read =>
@@ -57,7 +57,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public Task<int> ContarNaoLidasPorDestinatarioAsync(int usuarioId)
         {
-            return _context.Set<NotificacaoLeitura>()
+            return Context.Set<NotificacaoLeitura>()
                 .CountAsync(read => read.UsuarioId == usuarioId
                     && !read.Lida
                     && read.Notificacao.ExcluidaEmUtc == null);
@@ -65,14 +65,14 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public Task<int[]> ObterDestinatariosHabilitadosAsync(int? usuarioId, NivelUsuario? nivelUsuario)
         {
-            var query = _context.Usuarios.Where(user => user.Status == StatusUsuario.Habilitado);
-            if (usuarioId.HasValue)
+            var query = Context.Usuarios.Where(user => user.Status == StatusUsuario.Habilitado);
+            if (usuarioId is int destinatarioId)
             {
-                query = query.Where(user => user.Id == usuarioId.Value);
+                query = query.Where(user => user.Id == destinatarioId);
             }
-            else if (nivelUsuario.HasValue)
+            else if (nivelUsuario is NivelUsuario nivelDestino)
             {
-                query = query.Where(user => user.NivelUsuario == nivelUsuario.Value);
+                query = query.Where(user => user.NivelUsuario == nivelDestino);
             }
 
             return query
@@ -83,7 +83,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public Task<Notificacao?> ObterPorChaveIdempotenciaAsync(string chaveIdempotencia)
         {
-            return _context.Notificacoes
+            return Context.Notificacoes
                 .AsNoTracking()
                 .Include(notification => notification.Destinatarios)
                 .SingleOrDefaultAsync(notification => notification.ChaveIdempotencia == chaveIdempotencia);
@@ -91,19 +91,19 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task BloquearChaveIdempotenciaAsync(string chaveIdempotencia)
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync(
+            await Context.Database.ExecuteSqlInterpolatedAsync(
                 $"SELECT pg_advisory_xact_lock(hashtextextended({chaveIdempotencia}, 0))");
         }
 
         public Task<Notificacao?> ObterPorIdIncluindoExcluidasAsync(int notificacaoId)
         {
-            return _context.Notificacoes
+            return Context.Notificacoes
                 .SingleOrDefaultAsync(notification => notification.Id == notificacaoId);
         }
 
         public async Task<bool> ExcluirLogicamenteAsync(int notificacaoId, DateTime dataExclusaoUtc)
         {
-            var notification = await _context.Notificacoes
+            var notification = await Context.Notificacoes
                 .SingleOrDefaultAsync(item => item.Id == notificacaoId && item.ExcluidaEmUtc == null);
             if (notification is null)
             {
@@ -116,7 +116,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<bool> MarcarComoLidaAsync(int notificacaoId, int usuarioId, DateTime dataLeituraUtc)
         {
-            var recipientRead = _context.Set<NotificacaoLeitura>()
+            var recipientRead = Context.Set<NotificacaoLeitura>()
                 .Where(read => read.NotificacaoId == notificacaoId
                     && read.UsuarioId == usuarioId
                     && read.Notificacao.ExcluidaEmUtc == null);
@@ -144,7 +144,7 @@ namespace LabSolos_Server_DotNet8.Repositories
                 return 0;
             }
 
-            var recipientReads = _context.Set<NotificacaoLeitura>()
+            var recipientReads = Context.Set<NotificacaoLeitura>()
                 .Where(read => read.UsuarioId == usuarioId
                     && uniqueIds.Contains(read.NotificacaoId)
                     && read.Notificacao.ExcluidaEmUtc == null);
@@ -167,7 +167,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<IEnumerable<Notificacao>> ObterPorTipoAsync(TipoNotificacao tipo, bool apenasNaoLidas = false)
         {
-            var query = _context.Set<Notificacao>().Where(n => n.Tipo == tipo && n.ExcluidaEmUtc == null);
+            var query = Context.Set<Notificacao>().Where(n => n.Tipo == tipo && n.ExcluidaEmUtc == null);
 
             if (apenasNaoLidas)
                 query = query.Where(n => !n.Lida);

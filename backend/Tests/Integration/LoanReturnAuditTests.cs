@@ -323,11 +323,12 @@ public sealed class LoanReturnAuditTests(PostgreSqlContainerFixture database)
             Lote = lot
         };
         lot.Produtos.Add(product);
+        var approvedAt = ScenarioNow.UtcDateTime.AddDays(-4);
         var loan = new Emprestimo
         {
             DataRealizacao = ScenarioNow.UtcDateTime.AddDays(-5),
             DataPrevistaDevolucao = ScenarioNow.UtcDateTime.AddDays(5),
-            DataAprovacao = ScenarioNow.UtcDateTime.AddDays(-4),
+            DataAprovacao = approvedAt,
             Status = StatusEmprestimo.Aprovado,
             SolicitanteId = requesterId,
             AprovadorId = approverId,
@@ -347,7 +348,7 @@ public sealed class LoanReturnAuditTests(PostgreSqlContainerFixture database)
             EmprestimoId = loan.Id,
             ProdutoId = product.Id,
             Quantidade = 2,
-            Instante = loan.DataAprovacao.Value,
+            Instante = approvedAt,
             AtorId = approverId,
             LoteId = product.LoteId,
             Tipo = TipoMovimentacaoEstoque.SaidaEmprestimo

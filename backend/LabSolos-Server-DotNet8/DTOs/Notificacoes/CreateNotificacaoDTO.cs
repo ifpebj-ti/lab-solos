@@ -8,7 +8,7 @@ namespace LabSolos_Server_DotNet8.DTOs.Notificacoes
         public string Mensagem { get; set; } = string.Empty;
         public TipoNotificacao Tipo { get; set; }
         public int? UsuarioId { get; set; } // null = notificação global
-        public bool EhGlobal { get; set; } = false;
+        public bool EhGlobal { get; set; }
         public NivelUsuario? NivelUsuarioDestino { get; set; }
         public string? LinkAcao { get; set; }
         public int? ReferenciaId { get; set; }

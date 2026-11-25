@@ -144,6 +144,7 @@ def _write_report(path: Path, report: dict[str, object]) -> None:
         try:
             Path(temporary_name).unlink(missing_ok=True)
         except OSError:
+            # Preserve the original report-write error; removing its temporary file is best effort.
             pass
         raise
 

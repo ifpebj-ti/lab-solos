@@ -22,6 +22,12 @@ namespace LabSolos_Server_DotNet8.Services
         IPasswordPolicy passwordPolicy,
         IPasswordHasher<Usuario> passwordHasher) : IUsuarioService
     {
+        private static readonly Action<ILogger, string, Exception?> LogPasswordPolicyRejected =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(1001, nameof(LogPasswordPolicyRejected)),
+                "Cadastro de usuário rejeitado pela política de senha; motivo {Reason}");
+
         private readonly ILogger<UsuarioService> _logger = logger;
         private readonly IPasswordPolicy _passwordPolicy = passwordPolicy;
         private readonly IPasswordHasher<Usuario> _passwordHasher = passwordHasher;
@@ -29,7 +35,7 @@ namespace LabSolos_Server_DotNet8.Services
         private const string InvalidCityMessage = "Informe uma cidade válida.";
         private const string InvalidCourseMessage = "O curso deve ter entre 2 e 100 caracteres.";
 
-        public readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
+        private static readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
 
 
         public UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto)
@@ -77,9 +83,10 @@ namespace LabSolos_Server_DotNet8.Services
             var policyResult = _passwordPolicy.Validate(senha);
             if (!policyResult.IsValid)
             {
-                _logger.LogInformation(
-                    "Cadastro de usuário rejeitado pela política de senha; motivo {Reason}",
-                    policyResult.Code ?? "password_invalid");
+                LogPasswordPolicyRejected(
+                    _logger,
+                    policyResult.Code ?? "password_invalid",
+                    null);
                 return policyResult;
             }
 

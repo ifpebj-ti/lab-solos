@@ -18,7 +18,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<IEnumerable<LogAuditoria>> ObterLogsFiltradosAsync(FiltroAuditoriaDTO filtro)
         {
-            var query = _context.LogsAuditoria
+            var query = Context.LogsAuditoria
                 .Include(l => l.Usuario)
                 .Include(l => l.RevisoesClassificacao.OrderBy(revision => revision.NumeroRevisao))
                 .AsQueryable();
@@ -34,7 +34,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<int> ObterTotalLogsFiltradosAsync(FiltroAuditoriaDTO filtro)
         {
-            var query = AplicarFiltros(_context.LogsAuditoria.AsQueryable(), filtro);
+            var query = AplicarFiltros(Context.LogsAuditoria.AsQueryable(), filtro);
 
             return await query.CountAsync();
         }
@@ -43,7 +43,7 @@ namespace LabSolos_Server_DotNet8.Repositories
             int usuarioId,
             DateTime inicioInclusivo,
             DateTime fimExclusivo) =>
-            _context.LogsAuditoria.CountAsync(log =>
+            Context.LogsAuditoria.CountAsync(log =>
                 log.UsuarioId == usuarioId &&
                 log.TipoAcao == TipoAcaoAuditoria.LoginFalhado &&
                 log.DataHora >= inicioInclusivo &&
@@ -53,7 +53,7 @@ namespace LabSolos_Server_DotNet8.Repositories
             string enderecoIp,
             DateTime inicioInclusivo,
             DateTime fimExclusivo) =>
-            _context.LogsAuditoria.CountAsync(log =>
+            Context.LogsAuditoria.CountAsync(log =>
                 log.EnderecoIP == enderecoIp &&
                 log.TipoAcao == TipoAcaoAuditoria.LoginFalhado &&
                 log.DataHora >= inicioInclusivo &&
@@ -64,12 +64,12 @@ namespace LabSolos_Server_DotNet8.Repositories
             ParametrosPaginacao parametros,
             CancellationToken cancellationToken)
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync(
+            await using var transaction = await Context.Database.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead,
                 cancellationToken);
             try
             {
-                var query = AplicarFiltros(_context.LogsAuditoria.AsNoTracking(), filtro);
+                var query = AplicarFiltros(Context.LogsAuditoria.AsNoTracking(), filtro);
                 var totalItens = await query.LongCountAsync(cancellationToken);
                 var itens = await query
                     .Include(log => log.RevisoesClassificacao.OrderBy(revision => revision.NumeroRevisao))
@@ -97,12 +97,12 @@ namespace LabSolos_Server_DotNet8.Repositories
             FiltroAuditoriaDTO filtro,
             CancellationToken cancellationToken)
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync(
+            await using var transaction = await Context.Database.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead,
                 cancellationToken);
             try
             {
-                var query = AplicarFiltros(_context.LogsAuditoria.AsNoTracking(), filtro);
+                var query = AplicarFiltros(Context.LogsAuditoria.AsNoTracking(), filtro);
                 var relatorio = new RelatorioAuditoriaDTO
                 {
                     TotalLogs = await query.CountAsync(cancellationToken),
@@ -154,12 +154,12 @@ namespace LabSolos_Server_DotNet8.Repositories
             CancellationToken cancellationToken)
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limite);
-            await using var transaction = await _context.Database.BeginTransactionAsync(
+            await using var transaction = await Context.Database.BeginTransactionAsync(
                 IsolationLevel.RepeatableRead,
                 cancellationToken);
             try
             {
-                var query = AplicarFiltros(_context.LogsAuditoria.AsNoTracking(), filtro);
+                var query = AplicarFiltros(Context.LogsAuditoria.AsNoTracking(), filtro);
                 var totalItens = await query.LongCountAsync(cancellationToken);
                 if (totalItens > limite)
                 {
@@ -216,7 +216,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<IEnumerable<LogAuditoria>> ObterLogsSuspeitosAsync(int limite = 50)
         {
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Include(l => l.Usuario)
                 .Where(l => l.Suspeita)
                 .OrderByDescending(l => l.DataHora)
@@ -226,7 +226,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<Dictionary<string, int>> ObterEstatisticasPorTipoAsync(DateTime dataInicio, DateTime dataFim)
         {
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Where(l => l.DataHora >= dataInicio && l.DataHora < dataFim)
                 .GroupBy(l => l.TipoAcao)
                 .Select(g => new { Tipo = g.Key.ToString(), Count = g.Count() })
@@ -235,7 +235,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<Dictionary<string, int>> ObterEstatisticasPorUsuarioAsync(DateTime dataInicio, DateTime dataFim)
         {
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Include(l => l.Usuario)
                 .Where(l => l.DataHora >= dataInicio && l.DataHora < dataFim && l.Usuario != null)
                 .GroupBy(l => l.Usuario!.NomeCompleto)
@@ -247,7 +247,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<Dictionary<string, int>> ObterEstatisticasPorIPAsync(DateTime dataInicio, DateTime dataFim)
         {
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Where(l => l.DataHora >= dataInicio && l.DataHora < dataFim)
                 .GroupBy(l => l.EnderecoIP)
                 .Select(g => new { IP = g.Key, Count = g.Count() })
@@ -260,7 +260,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         {
             var ultimaHora = DateTime.UtcNow.AddHours(-1);
 
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Include(l => l.Usuario)
                 .Where(l => l.DataHora >= ultimaHora && l.Usuario != null)
                 .GroupBy(l => l.Usuario!.NomeCompleto)
@@ -272,7 +272,7 @@ namespace LabSolos_Server_DotNet8.Repositories
 
         public async Task<Dictionary<DateTime, int>> ObterLogsPorDiaAsync(DateTime dataInicio, DateTime dataFim)
         {
-            return await _context.LogsAuditoria
+            return await Context.LogsAuditoria
                 .Where(l => l.DataHora >= dataInicio && l.DataHora < dataFim)
                 .GroupBy(l => l.DataHora.Date)
                 .Select(g => new { Data = g.Key, Count = g.Count() })
@@ -288,7 +288,7 @@ namespace LabSolos_Server_DotNet8.Repositories
             string justificativa,
             DateTimeOffset criadaEmUtc)
         {
-            var log = await _context.LogsAuditoria.SingleOrDefaultAsync(item => item.Id == logId);
+            var log = await Context.LogsAuditoria.SingleOrDefaultAsync(item => item.Id == logId);
             if (log is null)
                 return null;
 
@@ -310,11 +310,11 @@ namespace LabSolos_Server_DotNet8.Repositories
             log.Suspeita = suspeitaResultante;
             log.MotivoSuspeita = justificativa;
             log.RevisaoClassificacao = revision.NumeroRevisao;
-            _context.AuditClassificationRevisions.Add(revision);
+            Context.AuditClassificationRevisions.Add(revision);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await Context.SaveChangesAsync();
             }
             catch (DbUpdateException exception) when (IsClassificationRevisionUniqueViolation(exception))
             {
