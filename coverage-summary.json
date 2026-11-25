@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "status": "available",
+  "sha": "4590c7e78465d96230d830137e647552745792fc",
+  "run_id": "45719221935",
+  "run_attempt": 1,
+  "metrics": {
+    "lines": {
+      "status": "available",
+      "covered": 4234,
+      "total": 4992,
+      "percent": 84.82,
+      "limiting_module": "frontend",
+      "modules": {
+        "frontend": {
+          "covered": 4234,
+          "total": 4992,
+          "percent": 84.82
+        },
+        "backend": {
+          "covered": 9279,
+          "total": 10772,
+          "percent": 86.14
+        }
+      }
+    },
+    "branches": {
+      "status": "available",
+      "covered": 2708,
+      "total": 3525,
+      "percent": 76.82,
+      "limiting_module": "frontend",
+      "modules": {
+        "frontend": {
+          "covered": 2708,
+          "total": 3525,
+          "percent": 76.82
+        },
+        "backend": {
+          "covered": 1537,
+          "total": 1680,
+          "percent": 91.49
+        }
+      }
+    }
+  },
+  "reason": null
+}
