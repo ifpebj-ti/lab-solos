@@ -12,6 +12,9 @@ namespace Tests.Mappings;
 
 public class ProductDateMappingTests
 {
+    private static readonly JsonSerializerOptions WebJsonSerializerOptions =
+        new(JsonSerializerDefaults.Web);
+
     [Fact]
     public void AddProdutoComDatasValidasMapeiaDatasUtc()
     {
@@ -210,7 +213,7 @@ public class ProductDateMappingTests
 
     private static void AssertJsonDateContract<T>(T dto)
     {
-        using var json = JsonDocument.Parse(JsonSerializer.Serialize(dto, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(dto, WebJsonSerializerOptions));
         var dataFabricacao = json.RootElement.GetProperty("dataFabricacao").GetString();
         var dataValidade = json.RootElement.GetProperty("dataValidade").GetString();
 

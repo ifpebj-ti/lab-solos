@@ -63,11 +63,6 @@ const formatDisplayDate = (value: string): string => {
   return `${day}/${month}/${year}`;
 };
 
-const formatCatalogDate = (value: string): string => {
-  const [year, month, day] = value.split('-');
-  return `${month}/${day}/${year}`;
-};
-
 const sessionCookieHeader = (sessionCookie: string) => ({
   Cookie: `lab_solos_session=${sessionCookie}`,
 });
@@ -344,9 +339,7 @@ test.describe('cadastro e alerta por dia civil — T012', () => {
         expiredConfirmedName
       );
       expect(createdExpired).toHaveLength(1);
-      expect(createdExpired[0].dataValidade).toContain(
-        formatCatalogDate(yesterday)
-      );
+      expect(createdExpired[0].dataValidade).toBe(yesterday);
       expect(createdExpired[0].motivosAlerta).toContain(validityReason);
 
       await expectVisibleProductOnce(kiritimatiPage, expiredConfirmedName);
@@ -387,7 +380,7 @@ test.describe('cadastro e alerta por dia civil — T012', () => {
         dueTodayName
       );
       expect(createdToday).toHaveLength(1);
-      expect(createdToday[0].dataValidade).toContain(formatCatalogDate(today));
+      expect(createdToday[0].dataValidade).toBe(today);
       expect(createdToday[0].motivosAlerta).toContain(validityReason);
 
       await kiritimatiPage.goto('/admin/follow-up');
