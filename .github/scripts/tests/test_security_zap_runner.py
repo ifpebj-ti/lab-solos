@@ -107,8 +107,46 @@ class SecurityZapRunnerTests(unittest.TestCase):
         with self.assertRaises(runner.AccessLogEvidenceError) as raised:
             runner.parse_caddy_access_log_lines([raw])
 
-        self.assertEqual(str(raised.exception), "invalid_access_log")
+        self.assertEqual(str(raised.exception), "invalid_access_log_json")
         self.assertNotIn("synthetic-raw-line-sentinel", str(raised.exception))
+
+    def test_reports_sanitized_reason_for_invalid_access_status(self) -> None:
+        event = {
+            "logger": "http.log.access.log0",
+            "ts": 1001.25,
+            "duration": 0.25,
+            "status": 0,
+            "request": {
+                "method": "GET",
+                "host": "localhost:18443",
+                "uri": "/api/items?synthetic-query-sentinel",
+            },
+        }
+
+        with self.assertRaises(runner.AccessLogEvidenceError) as raised:
+            runner.parse_caddy_access_log_lines([json.dumps(event)])
+
+        self.assertEqual(str(raised.exception), "invalid_access_log_status")
+        self.assertNotIn("synthetic-query-sentinel", str(raised.exception))
+
+    def test_reports_sanitized_reason_for_invalid_access_uri(self) -> None:
+        event = {
+            "logger": "http.log.access.log0",
+            "ts": 1001.25,
+            "duration": 0.25,
+            "status": 200,
+            "request": {
+                "method": "GET",
+                "host": "localhost:18443",
+                "uri": "/api/items#synthetic-fragment-sentinel",
+            },
+        }
+
+        with self.assertRaises(runner.AccessLogEvidenceError) as raised:
+            runner.parse_caddy_access_log_lines([json.dumps(event)])
+
+        self.assertEqual(str(raised.exception), "invalid_access_log_uri")
+        self.assertNotIn("synthetic-fragment-sentinel", str(raised.exception))
 
     def test_excludes_only_the_explicit_csp_local_mock_from_proxy_reconciliation(self) -> None:
         request = {

@@ -180,11 +180,11 @@ def parse_caddy_access_log_lines(lines: Iterable[str]) -> list[CaddyAccessRecord
     consumed_bytes = 0
     for line in lines:
         if not isinstance(line, str):
-            raise AccessLogEvidenceError("invalid_access_log")
+            raise AccessLogEvidenceError("invalid_access_log_record")
         try:
             encoded_size = len(line.encode("utf-8", errors="strict"))
         except UnicodeEncodeError as exc:
-            raise AccessLogEvidenceError("invalid_access_log") from exc
+            raise AccessLogEvidenceError("invalid_access_log_encoding") from exc
         consumed_bytes += encoded_size
         if encoded_size > MAX_ACCESS_LOG_LINE_BYTES or consumed_bytes > MAX_ACCESS_LOG_BYTES:
             raise AccessLogEvidenceError("access_log_limit_exceeded")
@@ -192,7 +192,7 @@ def parse_caddy_access_log_lines(lines: Iterable[str]) -> list[CaddyAccessRecord
             event = json.loads(line)
         except json.JSONDecodeError as exc:
             if "http.log.access" in line or "handled request" in line:
-                raise AccessLogEvidenceError("invalid_access_log") from exc
+                raise AccessLogEvidenceError("invalid_access_log_json") from exc
             continue
         if not isinstance(event, Mapping):
             continue
@@ -201,23 +201,27 @@ def parse_caddy_access_log_lines(lines: Iterable[str]) -> list[CaddyAccessRecord
             continue
         request = event.get("request")
         if not isinstance(request, Mapping):
-            raise AccessLogEvidenceError("invalid_access_log")
+            raise AccessLogEvidenceError("invalid_access_log_request")
         method = request.get("method")
         host = request.get("host")
         uri = request.get("uri")
         status = event.get("status")
         timestamp = event.get("ts")
         duration = event.get("duration")
+        if not isinstance(method, str) or not method:
+            raise AccessLogEvidenceError("invalid_access_log_method")
+        if not isinstance(host, str) or not host:
+            raise AccessLogEvidenceError("invalid_access_log_host")
+        if not isinstance(uri, str) or not uri.startswith("/"):
+            raise AccessLogEvidenceError("invalid_access_log_uri")
         if (
-            not isinstance(method, str)
-            or not method
-            or not isinstance(host, str)
-            or not isinstance(uri, str)
-            or not uri.startswith("/")
-            or isinstance(status, bool)
+            isinstance(status, bool)
             or not isinstance(status, int)
             or not 100 <= status <= 599
-            or isinstance(timestamp, bool)
+        ):
+            raise AccessLogEvidenceError("invalid_access_log_status")
+        if (
+            isinstance(timestamp, bool)
             or not isinstance(timestamp, (int, float))
             or not math.isfinite(float(timestamp))
             or isinstance(duration, bool)
@@ -225,17 +229,20 @@ def parse_caddy_access_log_lines(lines: Iterable[str]) -> list[CaddyAccessRecord
             or not math.isfinite(float(duration))
             or float(duration) < 0
         ):
-            raise AccessLogEvidenceError("invalid_access_log")
-        host_parsed = urlsplit(f"//{host}")
+            raise AccessLogEvidenceError("invalid_access_log_timing")
         try:
+            host_parsed = urlsplit(f"//{host}")
             if host_parsed.username is not None or host_parsed.password is not None:
                 raise ValueError
             host_authority = f"{host_parsed.hostname}:{host_parsed.port}" if host_parsed.port else host_parsed.hostname
         except ValueError as exc:
-            raise AccessLogEvidenceError("invalid_access_log") from exc
+            raise AccessLogEvidenceError("invalid_access_log_host") from exc
         if not host_authority:
-            raise AccessLogEvidenceError("invalid_access_log")
-        normalized_uri = _normalize_uri_path_and_query(uri)
+            raise AccessLogEvidenceError("invalid_access_log_host")
+        try:
+            normalized_uri = _normalize_uri_path_and_query(uri)
+        except (AccessLogEvidenceError, ValueError) as exc:
+            raise AccessLogEvidenceError("invalid_access_log_uri") from exc
         records.append(
             CaddyAccessRecord(
                 method=method,
@@ -660,7 +667,7 @@ def read_compose_caddy_access_logs(
     try:
         raw_size = len(completed.stdout.encode("utf-8", errors="strict"))
     except UnicodeEncodeError as exc:
-        raise AccessLogEvidenceError("invalid_access_log") from exc
+        raise AccessLogEvidenceError("invalid_access_log_encoding") from exc
     if raw_size > MAX_ACCESS_LOG_BYTES:
         raise AccessLogEvidenceError("access_log_limit_exceeded")
     try:
