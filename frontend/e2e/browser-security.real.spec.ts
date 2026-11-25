@@ -1005,7 +1005,7 @@ test('preserves session, administrator guard, email reservation and audit across
       password: owner.password,
     }
   );
-  expect(changedAddress.status).toBe(200);
+  expect(changedAddress.status, JSON.stringify(changedAddress)).toBe(200);
   expect(changedAddress.body.email).toBe(currentAddress);
 
   const independentOwnerLogin = await login(
@@ -1088,10 +1088,16 @@ test('preserves session, administrator guard, email reservation and audit across
     .poll(
       async () => {
         const response = await page.evaluate(async () => {
-          const session = await fetch('/api/Auth/session');
-          const status = session.status;
-          await session.arrayBuffer();
-          return status;
+          try {
+            const session = await fetch('/api/Auth/session');
+            const status = session.status;
+            await session.arrayBuffer();
+            return status;
+          } catch (error) {
+            // The API is restarting here; retry transient browser network errors.
+            if (error instanceof TypeError) return null;
+            throw error;
+          }
         });
         return response;
       },
