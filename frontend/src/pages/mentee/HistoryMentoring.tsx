@@ -1,4 +1,4 @@
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import OpenSearch from '@/components/global/OpenSearch';
@@ -26,8 +26,88 @@ const historyMentoringColumns: readonly ResponsiveColumn[] = [
   { key: 'status', label: 'Status', weight: 2 },
 ];
 
+function LoanHistoryList({
+  loans,
+  loansError,
+  currentData,
+  searchTerm,
+  onSearchTermChange,
+  isAscending,
+  onToggleOrder,
+  loadData,
+  totalItems,
+  itemsPerPage,
+  currentPage,
+  onPageChange,
+}: {
+  loans: Emprestimo[];
+  loansError: unknown | null;
+  currentData: Emprestimo[];
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  isAscending: boolean;
+  onToggleOrder: () => void;
+  loadData: () => void;
+  totalItems: number;
+  itemsPerPage: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-xs'>
+      {loansError !== null ? (
+        <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
+      ) : (
+        <>
+          <div className='w-full min-w-0 flex flex-wrap justify-between items-center mt-2 gap-4'>
+            <SearchInput
+              name='search'
+              onChange={(event) => onSearchTermChange(event.target.value)}
+              value={searchTerm}
+            />
+            <TopDown onClick={onToggleOrder} top={isAscending} />
+          </div>
+          <ResponsiveTable label='Histórico de mentorados' columns={historyMentoringColumns}>
+            <div role='presentation'>
+              <HeaderTable />
+            </div>
+            <div role='presentation' className='w-full min-w-0 flex flex-col justify-start min-h-72'>
+              {loans.length === 0 ? (
+                <div className='w-full h-40 flex flex-col items-center justify-center'>
+                  <p>Você ainda não possui empréstimos registrados.</p>
+                  <p>Seus empréstimos aparecerão aqui quando você realizar solicitações.</p>
+                </div>
+              ) : currentData.length === 0 ? (
+                <p className='p-8 text-center'>Nenhum empréstimo encontrado para os filtros aplicados.</p>
+              ) : (
+                currentData.map((rowData, index) => (
+                  <ClickableItemTable
+                    key={rowData.id}
+                    data={[String(rowData.id), formatDateTime(rowData.dataRealizacao), String(rowData.produtos.length), rowData.status]}
+                    rowIndex={index}
+                    destinationRoute='/mentee/history/loan'
+                    id={rowData.id}
+                  />
+                ))
+              )}
+            </div>
+          </ResponsiveTable>
+          {currentData.length > 0 ? (
+            <Pagination
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={onPageChange}
+            />
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}
+
 function HistoryMentoring() {
-  const sessionId = Cookie.get('rankID') ?? null;
+  const sessionId = readSession()?.userId ?? null;
   const requestSequence = useRef(0);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,44 +237,20 @@ function HistoryMentoring() {
         <InfoContainer items={infoItems6} />
         <InfoContainer items={infoItems7} />
       </div>
-      <div className='mt-10 mb-11 flex min-h-96 w-11/12 min-w-0 flex-col items-center rounded-xl border border-border bg-surface p-4 shadow-xs'>
-        {loansError !== null ? (
-          <ErrorFeedback error={loansError} operationId={OPERATION_IDS.loansByUser} onRetry={loadData} />
-        ) : (
-          <>
-            <div className='w-full min-w-0 flex flex-wrap justify-between items-center mt-2 gap-4'>
-              <SearchInput name='search' onChange={(event) => setSearchTerm(event.target.value)} value={searchTerm} />
-              <TopDown onClick={() => setIsAscending((value) => !value)} top={isAscending} />
-            </div>
-            <ResponsiveTable label='Histórico de mentorados' columns={historyMentoringColumns}>
-              <div role='presentation'>
-                <HeaderTable />
-              </div>
-              <div role='presentation' className='w-full min-w-0 flex flex-col justify-start min-h-72'>
-                {loans?.length === 0 ? (
-                  <div className='w-full h-40 flex flex-col items-center justify-center'>
-                    <p>Você ainda não possui empréstimos registrados.</p>
-                    <p>Seus empréstimos aparecerão aqui quando você realizar solicitações.</p>
-                  </div>
-                ) : currentData.length === 0 ? (
-                  <p className='p-8 text-center'>Nenhum empréstimo encontrado para os filtros aplicados.</p>
-                ) : (
-                  currentData.map((rowData, index) => (
-                    <ClickableItemTable
-                      key={rowData.id}
-                      data={[String(rowData.id), formatDateTime(rowData.dataRealizacao), String(rowData.produtos.length), rowData.status]}
-                      rowIndex={index}
-                      destinationRoute='/mentee/history/loan'
-                      id={rowData.id}
-                    />
-                  ))
-                )}
-              </div>
-            </ResponsiveTable>
-            {currentData.length > 0 ? <Pagination totalItems={sortedLoans.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} /> : null}
-          </>
-        )}
-      </div>
+      <LoanHistoryList
+        loans={loans ?? []}
+        loansError={loansError}
+        currentData={currentData}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        isAscending={isAscending}
+        onToggleOrder={() => setIsAscending((value) => !value)}
+        loadData={loadData}
+        totalItems={sortedLoans.length}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

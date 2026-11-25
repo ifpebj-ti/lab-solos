@@ -81,6 +81,61 @@ describe('CreateAccount HTTP errors', () => {
     expect(JSON.stringify(error)).not.toContain('SENTINELA');
   });
 
+  it('preserva os códigos estáveis do contrato público de cadastro', async () => {
+    server.use(
+      http.post(`${API_ORIGIN}/Usuarios`, () =>
+        HttpResponse.json(
+          {
+            title: 'Não foi possível cadastrar o usuário.',
+            status: 400,
+            detail: 'SENTINELA_DADO_DE_TERCEIRO',
+            code: 'registration_responsible_invalid',
+            correlationId: 'registration-responsible-trace',
+          },
+          { status: 400, headers: { 'X-Correlation-ID': 'registration-responsible-trace' } }
+        )
+      )
+    );
+
+    const error = await createMentor(registration).catch(
+      (reason: unknown) => reason
+    );
+
+    expect(error).toMatchObject({
+      category: 'validation',
+      status: 400,
+      code: 'registration_responsible_invalid',
+      requestId: 'registration-responsible-trace',
+    });
+    expect(JSON.stringify(error)).not.toContain('SENTINELA');
+
+    server.use(
+      http.post(`${API_ORIGIN}/Usuarios`, () =>
+        HttpResponse.json(
+          {
+            title: 'Não foi possível cadastrar o usuário.',
+            status: 409,
+            detail: 'SENTINELA_EMAIL_JA_REGISTRADO',
+            code: 'registration_conflict',
+            correlationId: 'registration-conflict-trace',
+          },
+          { status: 409, headers: { 'X-Correlation-ID': 'registration-conflict-trace' } }
+        )
+      )
+    );
+
+    const conflict = await createMentor(registration).catch(
+      (reason: unknown) => reason
+    );
+    expect(conflict).toMatchObject({
+      category: 'conflict',
+      status: 409,
+      code: 'registration_conflict',
+      requestId: 'registration-conflict-trace',
+    });
+    expect(JSON.stringify(conflict)).not.toContain('SENTINELA');
+  });
+
   it('oferece classificação acionável para rede e servidor', async () => {
     server.use(
       http.post(`${API_ORIGIN}/Usuarios`, () => HttpResponse.error())

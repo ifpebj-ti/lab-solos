@@ -1,11 +1,18 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import ProductHistoryPage from './ProductHistory';
 
@@ -21,6 +28,33 @@ const productHistory = {
   historico: [],
   totalEmprestimos: 0,
   totalQuantidadeEmprestada: 0,
+};
+
+const legacyProductHistory = {
+  ...productHistory,
+  historico: [
+    {
+      emprestimoId: 12,
+      dataSaida: '2026-09-01T10:00:00',
+      unidadeMedida: 'mL',
+      solicitanteNome: 'Solicitante',
+      dataEmprestimo: '2026-09-01T10:00:00',
+      dataDevolucao: null,
+      quantidadeEmprestada: 2,
+      statusEmprestimo: 'Aprovado',
+      solicitante: {
+        id: 1,
+        nome: 'Solicitante',
+        email: 'contato-sintetico@example.invalid',
+        instituicao: null,
+      },
+      aprovador: null,
+      identificador: 'contato-sintetico',
+      lote: 'LOTE-01',
+    },
+  ],
+  totalEmprestimos: 1,
+  totalQuantidadeEmprestada: 2,
 };
 
 const renderPage = () =>
@@ -41,11 +75,10 @@ const renderPage = () =>
 
 describe('ProductHistory: estados de consulta', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession('12', 'Administrador');
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('distingue histórico vazio de falha de consulta', async () => {
@@ -58,6 +91,83 @@ describe('ProductHistory: estados de consulta', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.queryByText('Produto não encontrado')).not.toBeInTheDocument();
   });
+
+  it('exibe as colunas operacionais e omite os dados pessoais legados', async () => {
+    server.use(http.get(historyUrl, () => HttpResponse.json(legacyProductHistory)));
+
+    renderPage();
+
+    await screen.findByRole('cell', { name: 'Solicitante' });
+    const page = screen.getByRole('main');
+    expect(page).not.toHaveTextContent('contato-sintetico@example.invalid');
+    expect(page).not.toHaveTextContent('contato-sintetico');
+    expect(
+      screen.getAllByRole('columnheader').map((header) => header.textContent)
+    ).toEqual(['Data', 'Empréstimo', 'Solicitante', 'Lote', 'Quantidade', 'Unidade']);
+    const row = screen.getByRole('cell', { name: 'LOTE-01' }).closest('tr');
+    if (!row) throw new Error('Linha do lote sintético não encontrada.');
+    expect(
+      within(row).getByRole('cell', { name: '01/09/2026' })
+    ).toBeInTheDocument();
+    expect(
+      within(row).getByRole('cell', { name: 'LOTE-01' })
+    ).toBeInTheDocument();
+  });
+
+  it('não presume nome nem lote corrente e usa somente os totais do recorte', async () => {
+    server.use(http.get(historyUrl, () => HttpResponse.json({
+      ...productHistory,
+      historico: [{ emprestimoId: 12, dataSaida: '2026-09-01T10:00:00', quantidadeEmprestada: 2,
+        unidadeMedida: 'mL', lote: null, solicitanteNome: null }],
+      totalEmprestimos: 1, totalQuantidadeEmprestada: 2,
+    })));
+    renderPage();
+    expect(await screen.findByRole('cell', { name: '01/09/2026' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'mL' })).toBeInTheDocument();
+    expect(screen.getByText('Total de empréstimos: 1')).toBeInTheDocument();
+    expect(screen.queryByText('Estoque Atual')).not.toBeInTheDocument();
+    expect(screen.queryByText('Data inválida')).not.toBeInTheDocument();
+    expect(screen.queryByText('Armário de EPIs')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar no historico' }), { target: { value: '12' } });
+    expect(screen.getByRole('cell', { name: '01/09/2026' })).toBeInTheDocument();
+  });
+
+  it.each(['contato-sintetico@example.invalid', 'contato-sintetico'])(
+    'omite o registro ao buscar pelo valor legado %s',
+    async (query) => {
+      server.use(http.get(historyUrl, () => HttpResponse.json(legacyProductHistory)));
+      renderPage();
+      await screen.findByRole('cell', { name: 'Solicitante' });
+
+      fireEvent.change(
+        screen.getByRole('textbox', { name: 'Buscar no historico' }),
+        { target: { value: query } }
+      );
+
+      expect(screen.getByText('Nenhum registro encontrado')).toBeInTheDocument();
+      expect(screen.queryByRole('cell', { name: 'Solicitante' })).not.toBeInTheDocument();
+    }
+  );
+
+  it.each(['solicitante', 'lote-01'])(
+    'encontra a movimentação ao buscar pelo campo operacional %s',
+    async (query) => {
+      server.use(http.get(historyUrl, () => HttpResponse.json(legacyProductHistory)));
+      renderPage();
+      await screen.findByRole('cell', { name: 'Solicitante' });
+      const search = screen.getByRole('textbox', { name: 'Buscar no historico' });
+
+      fireEvent.change(search, { target: { value: 'sem-correspondencia' } });
+      expect(screen.getByText('Nenhum registro encontrado')).toBeInTheDocument();
+
+      fireEvent.change(search, { target: { value: query } });
+      expect(
+        screen.getByRole('cell', {
+          name: query === 'lote-01' ? 'LOTE-01' : 'Solicitante',
+        })
+      ).toBeInTheDocument();
+    }
+  );
 
   it.each([
     [400, 'validation'],
@@ -101,7 +211,7 @@ describe('ProductHistory: estados de consulta', () => {
     expect(feedback).toHaveTextContent(ERROR_CATALOG.authorization.message);
     expect(feedback).toHaveTextContent('Voltar');
     expect(feedback).not.toHaveTextContent('SENTINELA_REMOTA');
-    expect(Cookie.get('doorKey')).toBe('session-token');
+    expect(readSession()?.userId).toBe('12');
   });
 
   it('retorna à busca administrativa após carregar o histórico', async () => {
@@ -122,27 +232,7 @@ describe('ProductHistory: estados de consulta', () => {
         attempts += 1;
         return attempts === 1
           ? HttpResponse.json({ traceId: 'product-ref-500' }, { status: 500 })
-          : HttpResponse.json({
-              ...productHistory,
-              historico: [
-                {
-                  emprestimoId: 12,
-                  dataEmprestimo: '2026-09-01T10:00:00',
-                  dataDevolucao: null,
-                  quantidadeEmprestada: 2,
-                  statusEmprestimo: 'Aprovado',
-                  solicitante: {
-                    id: 1,
-                    nome: 'Solicitante',
-                    email: 'a@test.invalid',
-                    instituicao: null,
-                  },
-                  aprovador: null,
-                  identificador: 'B-01',
-                  lote: null,
-                },
-              ],
-            });
+          : HttpResponse.json(legacyProductHistory);
       })
     );
 
@@ -151,7 +241,7 @@ describe('ProductHistory: estados de consulta', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(ERROR_CATALOG.server.message);
     screen.getByRole('button', { name: 'Tentar novamente' }).click();
 
-    expect(await screen.findByText('Solicitante')).toBeInTheDocument();
+    expect(await screen.findByRole('cell', { name: 'Solicitante' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(attempts).toBe(2);
   });

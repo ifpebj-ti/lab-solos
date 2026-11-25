@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getFieldErrorMessage } from '@/errors/errorCatalog';
 import { normalizeError } from '@/errors/normalizeError';
 import { updateOwnUserProfile } from '@/integration/Users';
 import type { UsuarioComum } from '@/contracts/user';
@@ -15,18 +16,35 @@ type ProfileContactFormProps = {
   user: Pick<UsuarioComum, 'id' | 'nomeCompleto' | 'email' | 'telefone'>;
   onSaved: (fields: ProfileContactFields) => void | Promise<void>;
   onCancel: () => void;
+  mode?: 'own' | 'admin';
 };
 
 const feedbackForError = (error: unknown): string => {
   const normalized = normalizeError(error);
-  if (normalized.code === 'current_password_invalid') {
+  const invalidCurrentPasswordMessage = getFieldErrorMessage(
+    'currentPassword',
+    'current_password_invalid'
+  );
+  if (
+    normalized.code === 'current_password_invalid' ||
+    (invalidCurrentPasswordMessage !== undefined &&
+      normalized.fieldErrors?.currentPassword?.includes(
+        invalidCurrentPasswordMessage
+      ))
+  ) {
     return 'A senha atual está incorreta. O perfil não foi alterado.';
   }
   if (
     normalized.status === 409 ||
     normalized.code === 'profile_update_conflict'
   ) {
-    return 'Este e-mail já está em uso. Os dados do perfil não foram alterados.';
+    return 'Este e-mail não está disponível agora. Se foi usado recentemente, aguarde o prazo de carência de até 7 dias. Os dados do perfil não foram alterados.';
+  }
+  if (normalized.category === 'authorization') {
+    return 'Você não tem autorização para atualizar este perfil. Os dados não foram alterados.';
+  }
+  if (normalized.category === 'not_found') {
+    return 'Este perfil não está mais disponível. Nenhum dado foi alterado.';
   }
   if (normalized.status === 400) {
     return 'Não foi possível atualizar o perfil. Revise os dados e tente novamente.';
@@ -34,7 +52,12 @@ const feedbackForError = (error: unknown): string => {
   return 'Não foi possível atualizar o perfil. Tente novamente.';
 };
 
-function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps) {
+function ProfileContactForm({
+  user,
+  onSaved,
+  onCancel,
+  mode = 'own',
+}: ProfileContactFormProps) {
   const [nomeCompleto, setNomeCompleto] = useState(user.nomeCompleto);
   const [email, setEmail] = useState(user.email);
   const [telefone, setTelefone] = useState(user.telefone ?? '');
@@ -45,10 +68,11 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
   const passwordValue = useRef('');
   const emailChanged = email !== user.email;
   const telefoneValue = telefone === '' ? null : telefone;
-  const hasChanges =
-    nomeCompleto !== user.nomeCompleto ||
-    emailChanged ||
-    telefoneValue !== user.telefone;
+  const hasChanges = mode === 'admin'
+    ? emailChanged
+    : nomeCompleto !== user.nomeCompleto ||
+      emailChanged ||
+      telefoneValue !== user.telefone;
 
   const clearCurrentPassword = () => {
     passwordValue.current = '';
@@ -61,6 +85,10 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
     },
     []
   );
+
+  useLayoutEffect(() => {
+    if (emailChanged) passwordInput.current?.focus();
+  }, [emailChanged]);
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -101,7 +129,11 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
       });
       clearCurrentPassword();
       await onSaved(updatedFields);
-      setSuccessMessage('Perfil atualizado.');
+      setSuccessMessage(
+        emailChanged
+          ? 'E-mail atualizado. O endereço anterior ficará reservado para esta conta por 7 dias. Avisos para os dois endereços foram programados.'
+          : 'Perfil atualizado.'
+      );
     } catch (error) {
       setErrorMessage(feedbackForError(error));
     } finally {
@@ -122,30 +154,45 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
 
   return (
     <form
-      aria-label='Editar meu perfil'
+      aria-label={mode === 'admin' ? 'Alterar e-mail do usuário' : 'Editar meu perfil'}
       onSubmit={handleSubmit}
       className='grid w-full gap-4 rounded-xl border border-borderMy bg-surface p-4 shadow-xs'
     >
       <h2 className='font-rajdhani-medium text-xl text-clt-2'>
-        Editar meus dados
+        {mode === 'admin' ? 'Alterar e-mail da conta' : 'Editar meus dados'}
       </h2>
-      <div className='grid gap-4 sm:grid-cols-2'>
-        <div className='grid gap-2'>
-          <label htmlFor='profile-name'>Nome completo</label>
-          <Input
-            id='profile-name'
-            autoComplete='name'
-            required
-            value={nomeCompleto}
-            onChange={(event) => {
-              setNomeCompleto(event.target.value);
-              setErrorMessage(undefined);
-              setSuccessMessage(undefined);
-            }}
-          />
+      {mode === 'admin' ? (
+        <div className='grid gap-1 text-sm text-clt-1'>
+          <p>
+            Confirme a alteração com sua própria senha atual. Em caso de falha,
+            o endereço vigente da conta será mantido.
+          </p>
+          <p className='wrap-break-word'>
+            E-mail vigente: <strong className='font-inter-medium text-clt-2'>{user.email}</strong>
+          </p>
         </div>
+      ) : null}
+      <div className='grid gap-4 sm:grid-cols-2'>
+        {mode === 'own' ? (
+          <div className='grid gap-2'>
+            <label htmlFor='profile-name'>Nome completo</label>
+            <Input
+              id='profile-name'
+              autoComplete='name'
+              required
+              value={nomeCompleto}
+              onChange={(event) => {
+                setNomeCompleto(event.target.value);
+                setErrorMessage(undefined);
+                setSuccessMessage(undefined);
+              }}
+            />
+          </div>
+        ) : null}
         <div className='grid gap-2'>
-          <label htmlFor='profile-email'>E-mail</label>
+          <label htmlFor='profile-email'>
+            {mode === 'admin' ? 'Novo e-mail' : 'E-mail'}
+          </label>
           <Input
             id='profile-email'
             type='email'
@@ -156,23 +203,27 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
             onChange={(event) => handleEmailChange(event.target.value)}
           />
         </div>
-        <div className='grid gap-2'>
-          <label htmlFor='profile-phone'>Telefone</label>
-          <Input
-            id='profile-phone'
-            type='tel'
-            autoComplete='tel'
-            value={telefone}
-            onChange={(event) => {
-              setTelefone(event.target.value);
-              setErrorMessage(undefined);
-              setSuccessMessage(undefined);
-            }}
-          />
-        </div>
+        {mode === 'own' ? (
+          <div className='grid gap-2'>
+            <label htmlFor='profile-phone'>Telefone</label>
+            <Input
+              id='profile-phone'
+              type='tel'
+              autoComplete='tel'
+              value={telefone}
+              onChange={(event) => {
+                setTelefone(event.target.value);
+                setErrorMessage(undefined);
+                setSuccessMessage(undefined);
+              }}
+            />
+          </div>
+        ) : null}
         {emailChanged ? (
           <div className='grid gap-2'>
-            <label htmlFor='profile-current-password'>Senha atual</label>
+            <label htmlFor='profile-current-password'>
+              {mode === 'admin' ? 'Sua senha atual (administrador)' : 'Senha atual'}
+            </label>
             <Input
               ref={passwordInput}
               id='profile-current-password'
@@ -199,7 +250,11 @@ function ProfileContactForm({ user, onSaved, onCancel }: ProfileContactFormProps
       ) : null}
       <div className='flex flex-wrap gap-3'>
         <Button type='submit' disabled={!hasChanges || submitting}>
-          {submitting ? 'Salvando...' : 'Salvar alterações'}
+          {submitting
+            ? 'Salvando...'
+            : mode === 'admin'
+              ? 'Atualizar e-mail'
+              : 'Salvar alterações'}
         </Button>
         <Button
           type='button'

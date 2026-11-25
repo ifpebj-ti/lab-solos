@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import Cookie from 'js-cookie';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -22,9 +21,7 @@ const profiles = [
 
 describe.each(profiles)('Home de $name', ({ role }) => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'e30.eyJzdWIiOiI3Iiwicm9sZSI6Ik1lbnRvciJ9.');
     mocks.readSession.mockReturnValue({
-      token: 'session-token',
       userId: '7',
       role,
       requiresPasswordChange: false,
@@ -32,7 +29,6 @@ describe.each(profiles)('Home de $name', ({ role }) => {
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('exibe somente os atalhos operacionais na ordem do perfil', () => {
@@ -57,9 +53,7 @@ describe.each(profiles)('Home de $name', ({ role }) => {
 
 describe('Home sem perfil operacional', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'e30.eyJzdWIiOiI3Iiwicm9sZSI6IkNvbXVtIn0.');
     mocks.readSession.mockReturnValue({
-      token: 'session-token',
       userId: '7',
       role: 'Comum',
       requiresPasswordChange: false,
@@ -67,7 +61,6 @@ describe('Home sem perfil operacional', () => {
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('não cria fallback administrativo para sessão comum ou desconhecida', () => {

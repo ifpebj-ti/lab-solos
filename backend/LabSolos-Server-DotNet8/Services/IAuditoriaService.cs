@@ -6,11 +6,28 @@ namespace LabSolos_Server_DotNet8.Services
 {
     public interface IAuditoriaService
     {
-        Task RegistrarLogAsync(CreateLogAuditoriaDTO logDto, int? usuarioId = null, string? enderecoIP = null, string? userAgent = null);
+        /// <summary>
+        /// Adds a mandatory event to the scoped unit of work without saving it.
+        /// The caller must commit it together with the domain effect.
+        /// </summary>
+        Task RegistrarEventoObrigatorioAsync(CreateLogAuditoriaDTO evento);
+        /// <summary>Persists a secondary diagnostic without changing the primary operation result.</summary>
+        Task RegistrarDiagnosticoAsync(CreateLogAuditoriaDTO evento);
+        /// <summary>Compatibility adapter for existing server-side diagnostic producers.</summary>
+        Task RegistrarLogAsync(
+            CreateLogAuditoriaDTO evento,
+            int? usuarioId = null,
+            string? enderecoIP = null,
+            string? userAgent = null);
+        Task<int> ExpurgarEventosExpiradosAsync(DateTimeOffset? instanteAtual = null);
         Task<IEnumerable<LogAuditoriaDTO>> ObterLogsFiltradosAsync(FiltroAuditoriaDTO filtro);
         Task<RelatorioAuditoriaDTO> GerarRelatorioAsync(DateTime dataInicio, DateTime dataFim);
-        Task MarcarComoSuspeitoAsync(int logId, string motivo);
-        Task MarcarComoNaoSuspeitoAsync(int logId);
+        Task<AuditClassificationRevision?> ReclassificarClassificacaoAsync(
+            int logId,
+            int autorUsuarioId,
+            int revisaoEsperada,
+            bool suspeitaResultante,
+            string justificativa);
         Task<bool> VerificarAtividadeSuspeitaAsync(int usuarioId, string enderecoIP);
         Task ProcessarDeteccaoAutomaticaAsync();
     }

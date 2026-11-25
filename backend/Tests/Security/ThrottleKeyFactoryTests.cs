@@ -94,6 +94,24 @@ public sealed class ThrottleKeyFactoryTests
     }
 
     [Fact]
+    public void AutomaticServiceQuotaKeyIsDomainSeparatedAndDoesNotExposeIdentity()
+    {
+        var factory = new ThrottleKeyFactory(Secret, "Production");
+        const string serviceIdentity = "lab-solos.notification-service";
+
+        var key = factory.CreateServiceQuotaKey(ThrottlePurpose.NotificationAutomatic, serviceIdentity);
+        var trimmedKey = factory.CreateServiceQuotaKey(ThrottlePurpose.NotificationAutomatic, $" {serviceIdentity} ");
+        var otherServiceKey = factory.CreateServiceQuotaKey(ThrottlePurpose.NotificationAutomatic, "lab-solos.cleanup-service");
+
+        Assert.Equal(32, key.Length);
+        Assert.Equal(key, trimmedKey);
+        Assert.NotEqual(key, otherServiceKey);
+        Assert.DoesNotContain(serviceIdentity, Convert.ToHexString(key), StringComparison.Ordinal);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            factory.CreateServiceQuotaKey(ThrottlePurpose.NotificationManual, serviceIdentity));
+    }
+
+    [Fact]
     public void RecipientIdentifiersLongerThanThePublicLimitAreRejected()
     {
         var factory = new ThrottleKeyFactory(Secret, "Production");

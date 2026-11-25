@@ -2,67 +2,125 @@ using AutoMapper;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
 using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace LabSolos_Server_DotNet8.Services
 {
     public class AuditoriaService : IAuditoriaService
     {
-        private static readonly Action<ILogger, Exception?> LogAuditPersistenceFailure =
-            LoggerMessage.Define(
+        private static readonly Action<ILogger, string, string, Exception?> LogAuditPersistenceFailure =
+            LoggerMessage.Define<string, string>(
                 LogLevel.Warning,
                 new EventId(1001, nameof(LogAuditPersistenceFailure)),
-                "Falha esperada ao persistir registro de auditoria.");
+                "Falha ao persistir diagnóstico de auditoria. CorrelationId {CorrelationId}; erro {ErrorType}.");
 
         private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
         private readonly ILogger<AuditoriaService> _logger;
+        private readonly TimeProvider _timeProvider;
+        private readonly AppDbContext? _database;
+        private readonly AuditDetectionService _auditDetection = new();
 
         public AuditoriaService(
             IUnitOfWork uow,
             IMapper mapper,
-            ILogger<AuditoriaService> logger)
+            ILogger<AuditoriaService> logger,
+            TimeProvider? timeProvider = null,
+            AppDbContext? database = null)
         {
             _uow = uow;
             _mapper = mapper;
             _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
+            _database = database;
         }
 
-        public async Task RegistrarLogAsync(CreateLogAuditoriaDTO logDto, int? usuarioId = null, string? enderecoIP = null, string? userAgent = null)
+        public Task RegistrarEventoObrigatorioAsync(CreateLogAuditoriaDTO evento)
         {
+            var log = CriarRegistro(evento, CategoriaRegistroAuditoria.TrilhaObrigatoria);
+            _uow.LogAuditoriaRepository.Criar(log);
+            return Task.CompletedTask;
+        }
+
+        public async Task RegistrarDiagnosticoAsync(CreateLogAuditoriaDTO evento)
+        {
+            await RegistrarDiagnosticoInternoAsync(evento, null);
+        }
+
+        public Task RegistrarLogAsync(
+            CreateLogAuditoriaDTO evento,
+            int? usuarioId = null,
+            string? enderecoIP = null,
+            string? userAgent = null)
+        {
+            ArgumentNullException.ThrowIfNull(evento);
+            _ = userAgent;
+
+            var origem = evento.OrigemConfiavel == OrigemConfiavelAuditoria.ProcessoAutorizado
+                ? OrigemConfiavelAuditoria.ProcessoAutorizado
+                : usuarioId is > 0
+                    ? OrigemConfiavelAuditoria.UsuarioAutenticado
+                    : OrigemConfiavelAuditoria.SemAtorValido;
+            var trustedEvent = evento with
+            {
+                OrigemConfiavel = origem,
+                UsuarioId = origem == OrigemConfiavelAuditoria.UsuarioAutenticado ? usuarioId : null,
+                IdentidadeProcesso = origem == OrigemConfiavelAuditoria.ProcessoAutorizado
+                    ? evento.IdentidadeProcesso
+                    : null
+            };
+
+            return RegistrarDiagnosticoInternoAsync(trustedEvent, enderecoIP);
+        }
+
+        private async Task RegistrarDiagnosticoInternoAsync(CreateLogAuditoriaDTO evento, string? enderecoIP)
+        {
+            var log = CriarRegistro(evento, CategoriaRegistroAuditoria.DiagnosticoOperacional, enderecoIP);
             try
             {
-                var log = new LogAuditoria
-                {
-                    DataHora = DateTime.UtcNow,
-                    Acao = logDto.Acao,
-                    Recurso = logDto.Recurso,
-                    Detalhes = logDto.Detalhes,
-                    EnderecoIP = enderecoIP ?? "127.0.0.1",
-                    UserAgent = userAgent,
-                    TipoAcao = logDto.TipoAcao,
-                    NivelRisco = logDto.NivelRisco,
-                    UsuarioId = usuarioId,
-                    DadosRequisicao = logDto.DadosRequisicao,
-                    DadosResposta = logDto.DadosResposta,
-                    TempoSessao = logDto.TempoSessao,
-                    TentativasAcesso = logDto.TentativasAcesso,
-                    Origem = logDto.Origem ?? "Web"
-                };
-
-                // Verificar automaticamente se é suspeito
-                log.Suspeita = await DetectarAtividadeSuspeitaAsync(log);
-
+                var deteccao = await AvaliarDeteccaoAsync(log);
+                log.CategoriaDeteccao = deteccao.Categoria;
+                log.CodigoRegraDeteccao = deteccao.CodigoRegra;
+                log.VersaoRegraDeteccao = deteccao.VersaoRegra;
+                log.QuantidadeObservadaDeteccao = deteccao.QuantidadeObservada;
+                log.Suspeita = deteccao.Categoria == AuditDetectionCategory.AtividadeSuspeita;
                 _uow.LogAuditoriaRepository.Criar(log);
                 await _uow.CommitAsync();
             }
-            catch (DbUpdateException ex)
+            catch (Exception exception)
             {
-                // A auditoria é secundária à operação principal; registre a falha esperada sem mascarar outras exceções.
-                LogAuditPersistenceFailure(_logger, ex);
+                LogAuditPersistenceFailure(
+                    _logger,
+                    log.CorrelationId,
+                    exception.GetType().Name,
+                    null);
             }
+        }
+
+        public async Task<int> ExpurgarEventosExpiradosAsync(DateTimeOffset? instanteAtual = null)
+        {
+            var agora = instanteAtual ?? _timeProvider.GetUtcNow();
+            if (_database is not null && _database.Database.IsRelational())
+            {
+                return await _database.LogsAuditoria
+                    .Where(log => log.ExpiraEmUtc <= agora)
+                    .ExecuteDeleteAsync();
+            }
+
+            var expirados = (await _uow.LogAuditoriaRepository.ObterTodosAsync(
+                log => log.ExpiraEmUtc <= agora)).ToArray();
+
+            foreach (var log in expirados)
+                _uow.LogAuditoriaRepository.Remover(log);
+
+            if (expirados.Length > 0)
+                await _uow.CommitAsync();
+
+            return expirados.Length;
         }
 
         public async Task<IEnumerable<LogAuditoriaDTO>> ObterLogsFiltradosAsync(FiltroAuditoriaDTO filtro)
@@ -73,108 +131,180 @@ namespace LabSolos_Server_DotNet8.Services
 
         public async Task<RelatorioAuditoriaDTO> GerarRelatorioAsync(DateTime dataInicio, DateTime dataFim)
         {
-            var relatorio = new RelatorioAuditoriaDTO();
-
-            // Estatísticas básicas
-            var filtroTotal = new FiltroAuditoriaDTO { DataInicio = dataInicio, DataFim = dataFim, TamanhoPagina = int.MaxValue };
-            relatorio.TotalLogs = await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(filtroTotal);
-
-            var filtroSuspeitos = new FiltroAuditoriaDTO { DataInicio = dataInicio, DataFim = dataFim, ApenasSuspeitas = true, TamanhoPagina = int.MaxValue };
-            relatorio.LogsSuspeitos = await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(filtroSuspeitos);
-
-            var filtroCriticos = new FiltroAuditoriaDTO { DataInicio = dataInicio, DataFim = dataFim, NivelRisco = NivelRiscoAuditoria.Critico, TamanhoPagina = int.MaxValue };
-            relatorio.LogsCriticos = await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(filtroCriticos);
-
-            // Estatísticas detalhadas
-            relatorio.LogsPorTipo = await _uow.LogAuditoriaRepository.ObterEstatisticasPorTipoAsync(dataInicio, dataFim);
-            relatorio.LogsPorUsuario = await _uow.LogAuditoriaRepository.ObterEstatisticasPorUsuarioAsync(dataInicio, dataFim);
-            relatorio.LogsPorIP = await _uow.LogAuditoriaRepository.ObterEstatisticasPorIPAsync(dataInicio, dataFim);
-            relatorio.LogsPorDia = await _uow.LogAuditoriaRepository.ObterLogsPorDiaAsync(dataInicio, dataFim);
-
-            // Dados suspeitos
-            var logsSuspeitos = await _uow.LogAuditoriaRepository.ObterLogsSuspeitosAsync(10);
-            relatorio.UltimosLogsSuspeitos = _mapper.Map<List<LogAuditoriaDTO>>(logsSuspeitos);
-            relatorio.IPsSuspeitos = await _uow.LogAuditoriaRepository.ObterIPsSuspeitosAsync();
-            relatorio.UsuariosComMaisAcessos = await _uow.LogAuditoriaRepository.ObterUsuariosComMaisAcessosAsync();
-
-            return relatorio;
+            return await _uow.LogAuditoriaRepository.GerarRelatorioFiltradoAsync(
+                new FiltroAuditoriaDTO { DataInicio = dataInicio, DataFim = dataFim },
+                CancellationToken.None);
         }
 
-        public async Task MarcarComoSuspeitoAsync(int logId, string motivo)
+        public async Task<AuditClassificationRevision?> ReclassificarClassificacaoAsync(
+            int logId,
+            int autorUsuarioId,
+            int revisaoEsperada,
+            bool suspeitaResultante,
+            string justificativa)
         {
-            await _uow.LogAuditoriaRepository.MarcarComoSuspeitoAsync(logId, motivo);
-        }
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(logId);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(autorUsuarioId);
+            ArgumentOutOfRangeException.ThrowIfNegative(revisaoEsperada);
+            if (string.IsNullOrWhiteSpace(justificativa))
+                throw new ArgumentException("A justificativa é obrigatória.", nameof(justificativa));
 
-        public async Task MarcarComoNaoSuspeitoAsync(int logId)
-        {
-            await _uow.LogAuditoriaRepository.MarcarComoNaoSuspeitoAsync(logId);
+            var justificativaNormalizada = justificativa.Trim();
+            if (justificativaNormalizada.Length > 1000)
+                throw new ArgumentException("A justificativa excede o limite permitido.", nameof(justificativa));
+
+            return await _uow.LogAuditoriaRepository.ReclassificarAsync(
+                logId,
+                autorUsuarioId,
+                revisaoEsperada,
+                suspeitaResultante,
+                justificativaNormalizada,
+                _timeProvider.GetUtcNow());
         }
 
         public async Task<bool> VerificarAtividadeSuspeitaAsync(int usuarioId, string enderecoIP)
         {
-            return await _uow.LogAuditoriaRepository.VerificarAtividadeSuspeitaAsync(usuarioId, enderecoIP);
+            var now = _timeProvider.GetUtcNow();
+            var normalizedIp = NormalizarEnderecoIp(enderecoIP);
+            var accountRule = _auditDetection.ObterRegra(AuditDetectionAxis.Conta);
+            var originRule = _auditDetection.ObterRegra(AuditDetectionAxis.Origem);
+            var end = LimiteSuperiorInclusivoComoExclusivo(now);
+            var accountFailures = await _uow.LogAuditoriaRepository.ContarFalhasLoginPorContaAsync(
+                usuarioId,
+                (now - accountRule.Janela).UtcDateTime,
+                end);
+            var originFailures = normalizedIp.Length > 0
+                ? await _uow.LogAuditoriaRepository.ContarFalhasLoginPorOrigemAsync(
+                    normalizedIp,
+                    (now - originRule.Janela).UtcDateTime,
+                    end)
+                : 0;
+            var probe = new LogAuditoria
+            {
+                TipoAcao = TipoAcaoAuditoria.LoginFalhado,
+                UsuarioId = usuarioId,
+                EnderecoIP = normalizedIp,
+                OrigemConfiavel = OrigemConfiavelAuditoria.SemAtorValido
+            };
+
+            return _auditDetection.Avaliar(probe, accountFailures, originFailures, now).Categoria ==
+                AuditDetectionCategory.AtividadeSuspeita;
         }
 
-        public async Task ProcessarDeteccaoAutomaticaAsync()
+        public Task ProcessarDeteccaoAutomaticaAsync()
         {
-            // Implementar lógica de detecção automática de atividades suspeitas
-            // Pode ser executado via background service
-
-            // Exemplo: marcar IPs com muitas tentativas de login falhado
-            await _uow.LogAuditoriaRepository.ObterIPsSuspeitosAsync();
-
-            // Lógica adicional de detecção pode ser implementada aqui
-            // Como análise de padrões, horários incomuns, etc.
+            // Diagnósticos são classificados com o catálogo versionado quando registrados.
+            return Task.CompletedTask;
         }
 
-        private async Task<bool> DetectarAtividadeSuspeitaAsync(LogAuditoria log)
+        private LogAuditoria CriarRegistro(
+            CreateLogAuditoriaDTO evento,
+            CategoriaRegistroAuditoria categoriaEsperada,
+            string? enderecoIP = null)
         {
-            // Regras automáticas de detecção de atividade suspeita
+            ArgumentNullException.ThrowIfNull(evento);
 
-            // 1. Múltiplas tentativas de login falhado
-            var tentativasRecentes = log.TipoAcao == TipoAcaoAuditoria.LoginFalhado
-                ? await _uow.LogAuditoriaRepository.ObterTotalLogsFiltradosAsync(
-                    new FiltroAuditoriaDTO
-                    {
-                        DataInicio = DateTime.UtcNow.AddHours(-1),
-                        EnderecoIP = log.EnderecoIP,
-                        TipoAcao = TipoAcaoAuditoria.LoginFalhado,
-                        TamanhoPagina = int.MaxValue
-                    })
+            var definicao = AuditoriaEventCatalog.Obter(evento.CodigoEvento);
+            if (definicao.SomenteLegado || definicao.Categoria != categoriaEsperada)
+                throw new ArgumentException("O evento não pertence à finalidade solicitada.", nameof(evento));
+            if (!definicao.OrigensPermitidas.Contains(evento.OrigemConfiavel))
+                throw new ArgumentException("A origem não é permitida para o evento.", nameof(evento));
+            if (!AuditoriaEventCatalog.ReferenciaSegura(evento.ReferenciaRecurso))
+                throw new ArgumentException("A referência do recurso contém formato inválido.", nameof(evento));
+
+            var referenciaAtor = evento.OrigemConfiavel switch
+            {
+                OrigemConfiavelAuditoria.UsuarioAutenticado when evento.UsuarioId is > 0 &&
+                    evento.IdentidadeProcesso is null => $"usuario:{evento.UsuarioId.Value}",
+                OrigemConfiavelAuditoria.ProcessoAutorizado when evento.UsuarioId is null &&
+                    AuditoriaEventCatalog.ReferenciaSegura(evento.IdentidadeProcesso) &&
+                    !string.IsNullOrWhiteSpace(evento.IdentidadeProcesso) => $"processo:{evento.IdentidadeProcesso}",
+                OrigemConfiavelAuditoria.SemAtorValido when evento.UsuarioId is null &&
+                    evento.IdentidadeProcesso is null => null,
+                _ => throw new ArgumentException("A referência do ator não corresponde à origem declarada.", nameof(evento))
+            };
+
+            var instante = _timeProvider.GetUtcNow();
+            var correlationId = string.IsNullOrWhiteSpace(evento.CorrelationId)
+                ? Guid.NewGuid().ToString("N")
+                : evento.CorrelationId;
+            if (!AuditoriaEventCatalog.ReferenciaSegura(correlationId))
+                throw new ArgumentException("O identificador de correlação contém formato inválido.", nameof(evento));
+
+            return new LogAuditoria
+            {
+                DataHora = instante.UtcDateTime,
+                CodigoEvento = evento.CodigoEvento,
+                Acao = definicao.Acao,
+                Recurso = evento.ReferenciaRecurso is null
+                    ? definicao.Recurso
+                    : $"{definicao.Recurso}:{evento.ReferenciaRecurso}",
+                EnderecoIP = NormalizarEnderecoIp(enderecoIP),
+                TipoAcao = evento.TipoAcaoDiagnostica ?? definicao.TipoAcao,
+                NivelRisco = definicao.NivelRisco,
+                UsuarioId = evento.UsuarioId,
+                OrigemConfiavel = evento.OrigemConfiavel,
+                ReferenciaAtor = referenciaAtor,
+                Resultado = evento.Resultado,
+                CategoriaRegistro = definicao.Categoria,
+                CorrelationId = correlationId,
+                ExpiraEmUtc = instante + definicao.Retencao,
+                Origem = evento.OrigemConfiavel.ToString()
+            };
+        }
+
+        private async Task<AuditDetectionResult> AvaliarDeteccaoAsync(LogAuditoria log)
+        {
+            var now = _timeProvider.GetUtcNow();
+            if (log.TipoAcao != TipoAcaoAuditoria.LoginFalhado)
+                return _auditDetection.Avaliar(log, 0, 0, now);
+
+            var (accountFailures, originFailures) = await ContarFalhasLoginAsync(
+                log.UsuarioId,
+                log.EnderecoIP,
+                now);
+
+            return _auditDetection.Avaliar(
+                log,
+                accountFailures + (log.UsuarioId is > 0 ? 1 : 0),
+                originFailures + (!string.IsNullOrEmpty(log.EnderecoIP) ? 1 : 0),
+                now);
+        }
+
+        private async Task<(int Account, int Origin)> ContarFalhasLoginAsync(
+            int? usuarioId,
+            string enderecoIP,
+            DateTimeOffset now)
+        {
+            var accountRule = _auditDetection.ObterRegra(AuditDetectionAxis.Conta);
+            var originRule = _auditDetection.ObterRegra(AuditDetectionAxis.Origem);
+            var end = LimiteSuperiorInclusivoComoExclusivo(now);
+            var accountFailures = usuarioId is > 0
+                ? await _uow.LogAuditoriaRepository.ContarFalhasLoginPorContaAsync(
+                    usuarioId.Value,
+                    (now - accountRule.Janela).UtcDateTime,
+                    end)
+                : 0;
+            var originFailures = !string.IsNullOrEmpty(enderecoIP)
+                ? await _uow.LogAuditoriaRepository.ContarFalhasLoginPorOrigemAsync(
+                    enderecoIP,
+                    (now - originRule.Janela).UtcDateTime,
+                    end)
                 : 0;
 
-            if (tentativasRecentes > 5)
-            {
-                log.MotivoSuspeita = $"Múltiplas tentativas de login falhado ({tentativasRecentes}) do IP {log.EnderecoIP}";
-                return true;
-            }
+            return (accountFailures, originFailures);
+        }
 
-            // 2. Acesso em horário incomum (entre 23h e 6h)
-            var hora = log.DataHora.Hour;
-            if ((hora >= 23 || hora <= 6) &&
-                (log.TipoAcao == TipoAcaoAuditoria.AcessoAdministrativo ||
-                 log.NivelRisco == NivelRiscoAuditoria.Alto))
-            {
-                log.MotivoSuspeita = "Acesso administrativo em horário incomum";
-                return true;
-            }
+        private static DateTime LimiteSuperiorInclusivoComoExclusivo(DateTimeOffset now) =>
+            now.AddTicks(10).UtcDateTime;
 
-            // 3. Atividade excessiva
-            if (log.UsuarioId.HasValue &&
-                await VerificarAtividadeSuspeitaAsync(log.UsuarioId.Value, log.EnderecoIP))
-            {
-                log.MotivoSuspeita = "Atividade excessiva detectada";
-                return true;
-            }
+        private static string NormalizarEnderecoIp(string? enderecoIP)
+        {
+            if (string.IsNullOrWhiteSpace(enderecoIP) || !IPAddress.TryParse(enderecoIP, out var parsed))
+                return string.Empty;
 
-            // 4. Ações críticas
-            if (log.NivelRisco == NivelRiscoAuditoria.Critico)
-            {
-                log.MotivoSuspeita = "Ação de nível crítico";
-                return true;
-            }
-
-            return false;
+            var normalized = parsed.ToString();
+            return normalized.Length <= 45 ? normalized : string.Empty;
         }
     }
 }

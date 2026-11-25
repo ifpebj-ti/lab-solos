@@ -8,16 +8,14 @@ import ProfileMentee from '@/pages/mentee/Profile';
 import ProfileMentor from '@/pages/mentor/Profile';
 import { api } from '@/services/BaseApi';
 
-const { cookieGetMock } = vi.hoisted(() => ({ cookieGetMock: vi.fn() }));
+const { readSessionMock } = vi.hoisted(() => ({ readSessionMock: vi.fn() }));
 
 vi.mock('@/services/BaseApi', () => ({
   api: vi.fn(),
 }));
 
-vi.mock('js-cookie', () => ({
-  default: {
-    get: cookieGetMock,
-  },
+vi.mock('@/auth/session', () => ({
+  readSession: readSessionMock,
 }));
 
 vi.mock('@/integration/Loans', () => ({
@@ -83,9 +81,11 @@ const legacyAcademicUser = {
 } as const;
 
 beforeEach(() => {
-  cookieGetMock.mockImplementation((name: string) =>
-    name === 'rankID' ? String(academicUser.id) : 'token'
-  );
+  readSessionMock.mockReturnValue({
+    userId: String(academicUser.id),
+    role: 'Administrador',
+    requiresPasswordChange: false,
+  });
   vi.mocked(api).mockReset();
 });
 

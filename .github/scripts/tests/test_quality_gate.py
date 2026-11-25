@@ -17,10 +17,19 @@ from check_quality_gate import evaluate_gate  # noqa: E402
 class QualityGateTests(unittest.TestCase):
     def test_requires_every_job_to_be_successful(self):
         result, errors = evaluate_gate(
-            ["frontend", "backend", "e2e", "browser-security"],
+            [
+                "frontend",
+                "backend",
+                "coverage-gate",
+                "semgrep",
+                "e2e",
+                "browser-security",
+            ],
             {
                 "frontend": "success",
                 "backend": "success",
+                "coverage-gate": "success",
+                "semgrep": "success",
                 "e2e": "success",
                 "browser-security": "success",
             },
@@ -54,6 +63,20 @@ class QualityGateTests(unittest.TestCase):
                 result, errors = evaluate_gate(["browser-security"], results)
                 self.assertEqual(result, 1)
                 self.assertTrue(errors)
+
+    def test_coverage_and_semgrep_missing_skipped_or_failed_block_the_gate(self):
+        for required in ("coverage-gate", "semgrep"):
+            cases = (
+                {},
+                {required: "skipped"},
+                {required: "failure"},
+                {required: "cancelled"},
+            )
+            for results in cases:
+                with self.subTest(required=required, results=results):
+                    result, errors = evaluate_gate([required], results)
+                    self.assertEqual(result, 1)
+                    self.assertTrue(errors)
 
     def test_json_input_supports_job_result_objects(self):
         with tempfile.TemporaryDirectory() as directory:

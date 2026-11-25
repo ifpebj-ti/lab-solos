@@ -151,7 +151,7 @@ public sealed class CredentialService(
         IDbContextTransaction? transaction = null;
         try
         {
-            if (_context.Database.IsRelational())
+            if (_context.Database.IsRelational() && _context.Database.CurrentTransaction is null)
             {
                 transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             }

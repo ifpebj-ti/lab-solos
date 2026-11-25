@@ -4,6 +4,8 @@ using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Notificacoes;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +22,7 @@ public sealed class NotificacoesControllerTests
         var expected = new[] { new NotificacaoDTO { Id = 11, Titulo = "Aviso" } };
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ObterNotificacoesFiltradas(7, "Usuario", true))
+            .Setup(item => item.ObterNotificacoesUsuarioAsync(7, true))
             .ReturnsAsync(expected);
         var controller = CreateController(service);
 
@@ -41,11 +43,48 @@ public sealed class NotificacoesControllerTests
         var unauthorized = Assert.IsType<UnauthorizedObjectResult>(result);
         Assert.Equal(StatusCodes.Status401Unauthorized, unauthorized.StatusCode);
         service.Verify(
-            item => item.ObterNotificacoesFiltradas(
+            item => item.ObterNotificacoesUsuarioAsync(
                 It.IsAny<int>(),
-                It.IsAny<string>(),
                 It.IsAny<bool>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task ObterNotificacaoPertencenteRetornaDetalhes()
+    {
+        var expected = new NotificacaoDTO { Id = 11, Titulo = "Aviso" };
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.ObterNotificacaoDestinatarioAsync(11, 7)).ReturnsAsync(expected);
+        var controller = CreateController(service);
+
+        var result = await controller.ObterNotificacao(11);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+    }
+
+    [Fact]
+    public async Task ObterNotificacaoForaDoEscopoRetornaNotFoundSemDetalhes()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.ObterNotificacaoDestinatarioAsync(11, 7)).ReturnsAsync(default(NotificacaoDTO));
+        var controller = CreateController(service);
+
+        var result = await controller.ObterNotificacao(11);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task ObterNotificacaoSemIdentidadeRetornaUnauthorizedSemConsultarServico()
+    {
+        var service = new Mock<INotificacaoService>();
+        var controller = CreateController(service, userId: null);
+
+        var result = await controller.ObterNotificacao(11);
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
+        service.Verify(item => item.ObterNotificacaoDestinatarioAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
@@ -53,7 +92,7 @@ public sealed class NotificacoesControllerTests
     {
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ObterNotificacoesFiltradas(7, "Usuario", false))
+            .Setup(item => item.ObterNotificacoesUsuarioAsync(7, false))
             .ThrowsAsync(new InvalidOperationException("Falha de consulta."));
         var controller = CreateController(service);
 
@@ -68,7 +107,7 @@ public sealed class NotificacoesControllerTests
         var expected = new ArgumentException("Identificador inválido.");
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ObterNotificacoesFiltradas(7, "Usuario", false))
+            .Setup(item => item.ObterNotificacoesUsuarioAsync(7, false))
             .ThrowsAsync(expected);
         var controller = CreateController(service);
 
@@ -83,7 +122,7 @@ public sealed class NotificacoesControllerTests
     {
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ContarNaoLidasFiltradas(7, "Usuario"))
+            .Setup(item => item.ContarNaoLidasUsuarioAsync(7))
             .ReturnsAsync(3);
         var controller = CreateController(service);
 
@@ -98,7 +137,7 @@ public sealed class NotificacoesControllerTests
     {
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ContarNaoLidasFiltradas(7, "Usuario"))
+            .Setup(item => item.ContarNaoLidasUsuarioAsync(7))
             .ThrowsAsync(new InvalidOperationException("Falha de contagem."));
         var controller = CreateController(service);
 
@@ -113,7 +152,7 @@ public sealed class NotificacoesControllerTests
         var expected = new ArgumentException("Filtro inválido.");
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.ContarNaoLidasFiltradas(7, "Usuario"))
+            .Setup(item => item.ContarNaoLidasUsuarioAsync(7))
             .ThrowsAsync(expected);
         var controller = CreateController(service);
 
@@ -130,7 +169,7 @@ public sealed class NotificacoesControllerTests
         var expected = new NotificacaoDTO { Id = 12, Titulo = request.Titulo };
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.CriarNotificacaoAsync(request))
+            .Setup(item => item.CriarNotificacaoManualAsync(request, 7))
             .ReturnsAsync(expected);
         var controller = CreateController(service);
 
@@ -139,6 +178,64 @@ public sealed class NotificacoesControllerTests
         var created = Assert.IsType<CreatedAtActionResult>(result);
         Assert.Equal(nameof(NotificacoesController.ObterMinhasNotificacoes), created.ActionName);
         Assert.Same(expected, created.Value);
+        service.Verify(item => item.CriarNotificacaoManualAsync(request, 7), Times.Once);
+        service.Verify(item => item.CriarNotificacaoAsync(It.IsAny<CreateNotificacaoDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CriarNotificacaoSemIdentidadeRetornaUnauthorizedSemEmitir()
+    {
+        var service = new Mock<INotificacaoService>();
+        var controller = CreateController(service, userId: null);
+
+        var result = await controller.CriarNotificacao(new CreateNotificacaoDTO());
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
+        service.Verify(item => item.CriarNotificacaoManualAsync(
+            It.IsAny<CreateNotificacaoDTO>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CriarNotificacaoAcimaDaCotaRetorna429ComRetryAfter()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.CriarNotificacaoManualAsync(It.IsAny<CreateNotificacaoDTO>(), 7))
+            .ThrowsAsync(new NotificationQuotaExceededException(71));
+        var controller = CreateController(service);
+
+        var result = await controller.CriarNotificacao(new CreateNotificacaoDTO());
+
+        var limited = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status429TooManyRequests, limited.StatusCode);
+        Assert.Equal("71", controller.Response.Headers.RetryAfter);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+    }
+
+    [Fact]
+    public async Task CriarNotificacaoComCotaIndisponivelRetorna503()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.CriarNotificacaoManualAsync(It.IsAny<CreateNotificacaoDTO>(), 7))
+            .ThrowsAsync(new NotificationQuotaUnavailableException());
+        var controller = CreateController(service);
+
+        var result = await controller.CriarNotificacao(new CreateNotificacaoDTO());
+
+        var unavailable = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, unavailable.StatusCode);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+    }
+
+    [Fact]
+    public void ExcluirNotificacaoExpõeDeleteProtegidoPorAdministrador()
+    {
+        var action = typeof(NotificacoesController).GetMethod("ExcluirNotificacao");
+
+        Assert.NotNull(action);
+        Assert.Contains(action!.GetCustomAttributes(typeof(HttpDeleteAttribute), inherit: true), attribute =>
+            Assert.IsType<HttpDeleteAttribute>(attribute).Template == "{id:int}");
+        Assert.Contains(action.GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true), attribute =>
+            Assert.IsType<AuthorizeAttribute>(attribute).Policy == "ApenasAdministradores");
     }
 
     [Fact]
@@ -147,7 +244,7 @@ public sealed class NotificacoesControllerTests
         var request = new CreateNotificacaoDTO { Titulo = "Aviso" };
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.CriarNotificacaoAsync(request))
+            .Setup(item => item.CriarNotificacaoManualAsync(request, 7))
             .ThrowsAsync(new DbUpdateException("Falha de persistência."));
         var controller = CreateController(service);
 
@@ -163,7 +260,7 @@ public sealed class NotificacoesControllerTests
         var request = new CreateNotificacaoDTO { Titulo = "Aviso" };
         var service = new Mock<INotificacaoService>();
         service
-            .Setup(item => item.CriarNotificacaoAsync(request))
+            .Setup(item => item.CriarNotificacaoManualAsync(request, 7))
             .ThrowsAsync(expected);
         var controller = CreateController(service);
 
@@ -171,6 +268,31 @@ public sealed class NotificacoesControllerTests
             () => controller.CriarNotificacao(request));
 
         Assert.Same(expected, actual);
+    }
+
+    [Fact]
+    public async Task ExcluirNotificacaoRetornaNoContentEUsaAdministradorAutenticado()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.ExcluirNotificacaoAsync(12, 7)).ReturnsAsync(true);
+        var controller = CreateController(service);
+
+        var result = await controller.ExcluirNotificacao(12);
+
+        Assert.IsType<NoContentResult>(result);
+        service.Verify(item => item.ExcluirNotificacaoAsync(12, 7), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExcluirNotificacaoInexistenteRetornaNotFound()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.ExcluirNotificacaoAsync(12, 7)).ReturnsAsync(false);
+        var controller = CreateController(service);
+
+        var result = await controller.ExcluirNotificacao(12);
+
+        Assert.IsType<NotFoundResult>(result);
     }
 
     [Fact]
@@ -287,6 +409,21 @@ public sealed class NotificacoesControllerTests
     }
 
     [Fact]
+    public async Task MarcarVariasComoLidasForaDoEscopoRecusaLoteInteiro()
+    {
+        var ids = new[] { 11, 12 };
+        var service = new Mock<INotificacaoService>();
+        service
+            .Setup(item => item.MarcarVariasComoLidaComVerificacaoAsync(ids, 7))
+            .ThrowsAsync(new UnauthorizedAccessException("A solicitação não pode ser concluída."));
+        var controller = CreateController(service);
+
+        var result = await controller.MarcarVariasComoLidas(new MarcarLidaDTO { NotificacaoIds = ids });
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
     public async Task MarcarVariasComoLidasFalhaDePersistenciaRetornaErroInterno()
     {
         var ids = new[] { 11, 12 };
@@ -345,6 +482,60 @@ public sealed class NotificacoesControllerTests
         var result = await controller.GerarNotificacoesAutomaticas();
 
         AssertInternalServerError(result);
+    }
+
+    [Fact]
+    public async Task GerarNotificacoesAutomaticasComCotaExcedidaRetorna429()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.GerarNotificacoesAutomaticasAsync())
+            .ThrowsAsync(new NotificationQuotaExceededException(30));
+        var controller = CreateController(service);
+
+        var result = await controller.GerarNotificacoesAutomaticas();
+
+        Assert.Equal(StatusCodes.Status429TooManyRequests, Assert.IsType<ObjectResult>(result).StatusCode);
+        Assert.Equal("30", controller.Response.Headers.RetryAfter);
+    }
+
+    [Fact]
+    public async Task GerarNotificacoesAutomaticasComCotaIndisponivelRetorna503()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.GerarNotificacoesAutomaticasAsync())
+            .ThrowsAsync(new NotificationQuotaUnavailableException());
+        var controller = CreateController(service);
+
+        var result = await controller.GerarNotificacoesAutomaticas();
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, Assert.IsType<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public async Task VerificarEmprestimosVencidosComCotaIndisponivelRetorna503()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.VerificarEmprestimosVencidosAsync())
+            .ThrowsAsync(new NotificationQuotaUnavailableException());
+        var controller = CreateController(service);
+
+        var result = await controller.VerificarEmprestimosVencidos();
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, Assert.IsType<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public async Task VerificarEmprestimosVencidosComCotaExcedidaRetorna429()
+    {
+        var service = new Mock<INotificacaoService>();
+        service.Setup(item => item.VerificarEmprestimosVencidosAsync())
+            .ThrowsAsync(new NotificationQuotaExceededException(45));
+        var controller = CreateController(service);
+
+        var result = await controller.VerificarEmprestimosVencidos();
+
+        Assert.Equal(StatusCodes.Status429TooManyRequests, Assert.IsType<ObjectResult>(result).StatusCode);
+        Assert.Equal("45", controller.Response.Headers.RetryAfter);
     }
 
     [Fact]
@@ -417,8 +608,7 @@ public sealed class NotificacoesControllerTests
 
     private static NotificacoesController CreateController(
         Mock<INotificacaoService> service,
-        int? userId = 7,
-        string userLevel = "Usuario")
+        int? userId = 7)
     {
         var claims = new List<Claim>();
         if (userId.HasValue)
@@ -426,7 +616,6 @@ public sealed class NotificacoesControllerTests
             claims.Add(new Claim(
                 ClaimTypes.NameIdentifier,
                 userId.Value.ToString(CultureInfo.InvariantCulture)));
-            claims.Add(new Claim("NivelUsuario", userLevel));
         }
 
         var controller = new NotificacoesController(

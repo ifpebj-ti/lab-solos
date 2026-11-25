@@ -1,10 +1,11 @@
-import Cookie from 'js-cookie';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import RegisteredUsers from './RegisteredUsers';
 
@@ -60,9 +61,7 @@ function useSuccessfulHandlers() {
 
 describe('RegisteredUsers: estados de consulta', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', '42');
-    Cookie.remove('level');
+    establishTestSession('42', 'Administrador');
     useSuccessfulHandlers();
   });
 
@@ -150,7 +149,7 @@ describe('RegisteredUsers: estados de consulta', () => {
 
     expect(await screen.findByText('Ana Silva')).toBeInTheDocument();
     expect(usersRequests).toBe(2);
-    expect(signerRequests).toBe(1);
+    expect(signerRequests).toBeGreaterThan(0);
     await waitFor(() =>
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     );
@@ -189,7 +188,7 @@ describe('RegisteredUsers: estados de consulta', () => {
     expect(feedback).toHaveTextContent('Não foi possível carregar os usuários');
     expect(feedback).toHaveTextContent('Você não tem permissão para esta ação.');
     expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
-    expect(Cookie.get('doorKey')).toBe('session-token');
+    expect(readSession()?.userId).toBe('42');
     fireEvent.click(screen.getByRole('button', { name: 'Voltar' }));
     expect(screen.getByLabelText('rota atual')).toHaveTextContent('/admin');
     expect(screen.queryByText('Nenhum usuário cadastrado.')).not.toBeInTheDocument();

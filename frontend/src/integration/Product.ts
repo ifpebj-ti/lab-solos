@@ -1,5 +1,4 @@
 import { api } from '../services/BaseApi';
-import Cookie from 'js-cookie';
 import { parseResourceId } from '@/contracts/identifier';
 
 import { OPERATION_IDS } from '@/errors/errorCatalog';
@@ -9,19 +8,88 @@ interface IGetProductById {
   id: number;
 }
 
+export type ProductAlertReason = 'validade' | 'estoque_abaixo_minimo';
+
+export interface AdminProductCatalogItem {
+  id: number;
+  catmat: string;
+  nomeProduto: string;
+  tipoProduto: string;
+  fornecedor: string | null;
+  unidadeMedida: string | null;
+  quantidade: number;
+  quantidadeMinima: number;
+  localizacaoProduto: string | null;
+  dataFabricacao: string | null;
+  dataValidade: string | null;
+  ultimaModificacao: string;
+  status: string | null;
+  lote: unknown | null;
+  capacidadeMl: number | null;
+  motivosAlerta: ProductAlertReason[];
+}
+
+export interface ProductCatalogItem {
+  id: number;
+  catmat?: string | null;
+  nomeProduto: string;
+  tipoProduto: string;
+  fornecedor?: string | null;
+  unidadeMedida?: string | null;
+  quantidade: number;
+  quantidadeMinima: number;
+  localizacaoProduto?: string | null;
+  dataFabricacao?: string | null;
+  dataValidade?: string | null;
+  ultimaModificacao?: string;
+  status?: string | null;
+  lote?: unknown | null;
+}
+
+interface PaginatedResponse<TItem> {
+  itens: TItem[];
+  pagina: number;
+  tamanhoPagina: number;
+  totalItens: number;
+  totalPaginas: number;
+}
+
+const PRODUCT_PAGE_SIZE = 100;
+
+async function getAllProductPages<TItem>(url: string): Promise<TItem[]> {
+  const requestPage = (pagina: number) =>
+    api<PaginatedResponse<TItem>>({
+      method: 'GET',
+      url,
+      params: { pagina, tamanhoPagina: PRODUCT_PAGE_SIZE },
+    });
+
+  const firstPage = await requestPage(1);
+  if (
+    !Array.isArray(firstPage.data.itens) ||
+    !Number.isSafeInteger(firstPage.data.totalPaginas) ||
+    firstPage.data.totalPaginas < 0
+  ) {
+    throw new Error('A resposta da listagem de produtos está inválida.');
+  }
+
+  const products = [...firstPage.data.itens];
+  for (let pagina = 2; pagina <= firstPage.data.totalPaginas; pagina += 1) {
+    const nextPage = await requestPage(pagina);
+    if (!Array.isArray(nextPage.data.itens)) {
+      throw new Error('A resposta da listagem de produtos está inválida.');
+    }
+    products.push(...nextPage.data.itens);
+  }
+  return products;
+}
+
 export const getProductById = async ({ id }: IGetProductById) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Produtos/${parseResourceId(id)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     return response.data;
   } catch (error) {
@@ -31,19 +99,22 @@ export const getProductById = async ({ id }: IGetProductById) => {
 
 export const getAllProducts = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-    const response = await api({
-      method: 'GET',
-      url: `Produtos`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
-    });
-    return response.data;
+    return await getAllProductPages<ProductCatalogItem>('Produtos');
+  } catch (error) {
+    throw reportAppError(error, OPERATION_IDS.products);
+  }
+};
+
+export const getAdminProductCatalog = async (): Promise<
+  AdminProductCatalogItem[]
+> => {
+  try {
+
+
+    return await getAllProductPages<AdminProductCatalogItem>(
+      'Produtos/catalogo-administrativo'
+    );
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.products);
   }
@@ -51,17 +122,10 @@ export const getAllProducts = async () => {
 
 export const getAlertProducts = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Produtos/emAlerta`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     return response.data;
   } catch (error) {
@@ -96,16 +160,9 @@ interface IProduto {
 
 export const createProduct = async (dados: IProduto) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
 
     const response = await api.post('/produtos', dados, {
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
     return response.data;
@@ -118,31 +175,19 @@ interface IHistoricoSaidaProduto {
   id: number;
 }
 
-interface UsuarioEmprestimo {
-  id: number;
-  nome: string;
-  email: string;
-  instituicao: string | null;
-}
-
-interface HistoricoSaidaItem {
+export interface HistoricoSaidaItem {
   emprestimoId: number;
-  dataEmprestimo: string;
-  dataPrevistaDevolucao: string | null;
-  dataDevolucao: string | null;
+  dataSaida: string;
   quantidadeEmprestada: number;
-  statusEmprestimo: string;
-  solicitante: UsuarioEmprestimo;
-  aprovador: UsuarioEmprestimo | null;
-  identificador: string;
+  unidadeMedida: string;
   lote: string | null;
+  solicitanteNome?: string | null;
 }
 
-interface HistoricoSaidaProdutoResponse {
+export interface HistoricoSaidaProdutoResponse {
   produtoId: number;
   nomeProduto: string;
   tipoProduto: string;
-  estoqueAtual: number;
   unidadeMedida: string;
   historico: HistoricoSaidaItem[];
   totalEmprestimos: number;
@@ -153,21 +198,30 @@ export const getProductHistoricoSaida = async ({
   id,
 }: IHistoricoSaidaProduto): Promise<HistoricoSaidaProdutoResponse> => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
 
     const response = await api({
       method: 'GET',
       url: `Produtos/${parseResourceId(id)}/historico-saida`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
-    return response.data;
+    const result = response.data as HistoricoSaidaProdutoResponse;
+    return {
+      produtoId: result.produtoId,
+      nomeProduto: result.nomeProduto,
+      tipoProduto: result.tipoProduto,
+      unidadeMedida: result.unidadeMedida,
+      totalEmprestimos: result.totalEmprestimos,
+      totalQuantidadeEmprestada: result.totalQuantidadeEmprestada,
+      historico: result.historico.map((item) => ({
+        emprestimoId: item.emprestimoId,
+        dataSaida: item.dataSaida,
+        quantidadeEmprestada: item.quantidadeEmprestada,
+        unidadeMedida: item.unidadeMedida,
+        lote: item.lote ?? null,
+        solicitanteNome: item.solicitanteNome ?? null,
+      })),
+    };
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.productHistory);
   }
@@ -184,17 +238,12 @@ interface IUpdateProduct {
 
 export const updateProduct = async ({ id, operations }: IUpdateProduct) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
 
     const response = await api({
       method: 'PATCH',
       url: `Produtos/${parseResourceId(id)}`,
       headers: {
-        Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json',
       },
       data: operations,

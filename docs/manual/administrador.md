@@ -335,17 +335,19 @@ Abra **Produtos > Meus Produtos**, na página de pesquisa do Administrador.
 **Passos**
 
 1. Use a busca pelo nome e o seletor **Todos**, **Vidrarias**, **Químicos** ou **Outros**.
-2. Se necessário, alterne a ordenação e localize a linha do material.
-3. Abra a linha para consultar **Verificação - Administrador**.
-4. Leia as informações exibidas antes de editar, incluindo item, fornecedor, grupo e situação.
-5. Acione **Editar Produto**.
-6. Altere somente os campos necessários: **CATMAT**, **Nome do Produto**, **Quantidade**, **Quantidade Mínima**, **Fornecedor**, **Localização**, datas ou **Status**.
-7. Selecione o status exibido pela tela, como **Disponível**, **Em Uso**, **Danificado**, **Emprestado**, **Esgotado**, **Vencido** ou **Perdido**.
-8. Revise a alteração e acione **Salvar Alterações**.
+2. Consulte a coluna **Alertas**. A indicação visual é permanente: o triângulo com exclamação e o rótulo **Alertas de produtos** ficam visíveis mesmo quando não há produtos com alerta. Em cada linha, leia **Sem alerta**, **Estoque abaixo do mínimo**, **Validade** ou os dois motivos quando ambos se aplicarem.
+3. Para vidrarias, confira a quantidade em **unidade**/**unidades** (por exemplo, `1 unidade` ou `4 unidades`) e a capacidade junto ao nome em ml, quando cadastrada (por exemplo, `Béquer 250 ml`). Sem capacidade cadastrada, o nome aparece sem esse sufixo. Os demais tipos conservam suas unidades.
+4. Se necessário, alterne a ordenação e localize a linha do material.
+5. Abra a linha para consultar **Verificação - Administrador**.
+6. Leia as informações exibidas antes de editar, incluindo item, fornecedor, grupo e situação.
+7. Acione **Editar Produto**.
+8. Altere somente os campos necessários: **CATMAT**, **Nome do Produto**, **Quantidade**, **Quantidade Mínima**, **Fornecedor**, **Localização**, datas ou **Status**.
+9. Selecione o status exibido pela tela, como **Disponível**, **Em Uso**, **Danificado**, **Emprestado**, **Esgotado**, **Vencido** ou **Perdido**.
+10. Revise a alteração e acione **Salvar Alterações**.
 
 **Resultado esperado**
 
-O sistema informa **Produto atualizado**, fecha a edição e recarrega os dados do material. Se nenhum campo mudou, informa **Nenhuma alteração detectada** e não envia uma atualização.
+A lista permite identificar os motivos de cada produto sem depender de haver algum alerta. Vidrarias são distinguidas pela capacidade em ml e exibem a quantidade em unidades. Ao salvar, o sistema informa **Produto atualizado**, fecha a edição e recarrega os dados do material. Se nenhum campo mudou, informa **Nenhuma alteração detectada** e não envia uma atualização.
 
 **Erros comuns**
 
@@ -375,16 +377,16 @@ Abra **Produtos > Alertas**. A página se chama **Acompanhamento**.
 
 **Passos**
 
-1. Leia os cartões **Produtos com Alertas**, **Produtos com Alerta de Validade** e **Produtos com Alerta de Estoque**.
+1. Leia os cartões **Produtos com Alertas**, **Produtos com Alerta de Validade** e **Produtos com Alerta de Estoque**. Cada cartão conta produtos distintos: no total geral, cada produto aparece uma vez; nos cartões por motivo, um produto com os dois motivos contribui uma vez para cada cartão correspondente.
 2. Confira, na tabela, **Nome**, **Quantidade Atual**, **Quantidade Mínima**, **Data de Validade** e **Status**.
 3. Use o campo de busca para localizar um material pelo nome.
-4. Use o filtro **Todos**, **Validade** ou **Estoque** para restringir a lista.
+4. Use o filtro **Todos**, **Validade** ou **Estoque** para restringir a lista. **Todos** reúne cada produto elegível uma única vez; os filtros específicos incluem somente produtos que tenham o motivo indicado. Um produto com os dois motivos aparece em cada filtro específico.
 5. Se necessário, alterne a ordenação.
 6. Abra a linha do material para conferir seus dados antes de decidir uma reposição ou outra providência operacional.
 
 **Resultado esperado**
 
-São exibidos materiais retornados como alerta por quantidade igual ou inferior ao mínimo ou por proximidade do vencimento. A tela mostra os valores que justificam a conferência; ela não executa reposição automaticamente.
+São exibidos somente produtos com pelo menos um motivo de alerta. **Estoque** aplica-se quando a quantidade atual é estritamente menor que a quantidade mínima; quantidade igual ao mínimo não gera esse motivo. **Validade** aplica-se a produtos vencidos, com vencimento hoje ou nos próximos 10 dias, incluindo o décimo dia. Produto sem data de validade não recebe motivo de validade. Os motivos são avaliados independentemente, então o mesmo produto pode ter ambos. A tela mostra os valores que justificam a conferência; ela não executa reposição automaticamente.
 
 **Erros comuns**
 

@@ -4,12 +4,12 @@ import logoBlack from './../../../public/images/logoBlack.png';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Cookie from 'js-cookie';
 import { X } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
+import { readSession } from '@/auth/session';
 import {
   Sidebar,
   SidebarContent,
@@ -41,7 +41,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [userError, setUserError] = useState<unknown>();
   const [retryToken, setRetryToken] = useState(0);
   const location = useLocation();
-  const id = Cookie.get('rankID')!;
+  const id = readSession()?.userId ?? '';
 
   const isSubItemActive = (url: string): boolean =>
     location.pathname === url ||

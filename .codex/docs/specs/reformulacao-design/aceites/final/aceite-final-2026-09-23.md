@@ -31,3 +31,7 @@ Permanecem os achados axe listados na matriz T029 — incluindo contraste e um `
 - [Evidência final T031](C:\Users\Nathan\Documents\Labon\lab-solos\.codex\docs\specs\reformulacao-design\evidencias\T031\resultado-execucao.md)
 - [Matriz T029](C:\Users\Nathan\Documents\Labon\lab-solos\.codex\docs\specs\reformulacao-design\integracao\matriz-T029.md)
 - [Pacote documental T030](C:\Users\Nathan\Documents\Labon\lab-solos\.codex\docs\specs\reformulacao-design\documentacao\versao-2026-09-23.md)
+
+## Aditivo de cobertura de rotas — 2026-11-24
+
+O inventário foi ampliado para 66 superfícies e 47 rotas após a inclusão dos fallbacks `/admin/*`, `/mentor/*` e `/mentee/*`. Os três caminhos servem a mesma página 404 coberta pela T016; não são novas telas de produto. A referência visual continua sendo o LabOn em andamento, aprovado pelo cliente; não há protótipo independente aprovado. A validação local da matriz final passou em 2026-11-24.

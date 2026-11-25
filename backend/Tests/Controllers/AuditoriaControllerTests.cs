@@ -1,10 +1,13 @@
 using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
+using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.DTOs.Paginacao;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using LabSolos_Server_DotNet8.Services;
+using LabSolos_Server_DotNet8.Services.Security;
 using Moq;
 using System.Security.Claims;
 
@@ -13,82 +16,55 @@ namespace Tests.Controllers;
 public sealed class AuditoriaControllerTests
 {
     [Fact]
-    public async Task RegistrarLogRetornaOkQuandoServicoConclui()
+    public void RegistrarLogRetornaGoneSemAceitarEventoDoCliente()
     {
-        var request = CreateLogRequest();
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.RegistrarLogAsync(
-                request,
-                7,
-                It.IsAny<string?>(),
-                It.IsAny<string?>()))
-            .Returns(Task.CompletedTask);
         var controller = CreateController(service);
 
-        var result = await controller.RegistrarLog(request);
+        var result = controller.RegistrarLog();
 
-        var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal(StatusCodes.Status200OK, ok.StatusCode);
-        service.Verify(item => item.RegistrarLogAsync(
-            request,
-            7,
-            It.IsAny<string?>(),
-            It.IsAny<string?>()), Times.Once);
+        var gone = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status410Gone, gone.StatusCode);
+        service.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task RegistrarLogFalhaOperacionalRetornaBadRequestSemDetalhes()
+    public void RegistrarLogNaoRetornaConteudoDeAuditoria()
     {
-        var request = CreateLogRequest();
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.RegistrarLogAsync(
-                request,
-                7,
-                It.IsAny<string?>(),
-                It.IsAny<string?>()))
-            .ThrowsAsync(new DbUpdateException("detalhe de persistencia"));
         var controller = CreateController(service);
 
-        var result = await controller.RegistrarLog(request);
+        var result = controller.RegistrarLog();
 
-        AssertBadRequestWithoutDetails(result, "detalhe de persistencia");
+        var gone = Assert.IsType<ObjectResult>(result);
+        Assert.DoesNotContain("CANARY", gone.Value?.ToString(), StringComparison.Ordinal);
+        service.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task RegistrarLogFalhaInesperadaPropaga()
+    public void RegistrarLogNaoChamaServico()
     {
-        var request = CreateLogRequest();
-        var expected = new ArgumentException("falha inesperada");
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.RegistrarLogAsync(
-                request,
-                7,
-                It.IsAny<string?>(),
-                It.IsAny<string?>()))
-            .ThrowsAsync(expected);
         var controller = CreateController(service);
 
-        var actual = await Assert.ThrowsAsync<ArgumentException>(
-            () => controller.RegistrarLog(request));
+        var result = controller.RegistrarLog();
 
-        Assert.Same(expected, actual);
+        Assert.Equal(StatusCodes.Status410Gone, Assert.IsType<ObjectResult>(result).StatusCode);
+        service.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task ObterLogsRetornaListaDoServico()
     {
         var filter = new FiltroAuditoriaDTO { Pagina = 2 };
-        var expected = Array.Empty<LogAuditoriaDTO>();
+        var expected = new ResultadoPaginado<AuditLogProjectionDTO>(Array.Empty<AuditLogProjectionDTO>(), 1, 25, 0, 0);
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.ObterLogsFiltradosAsync(filter))
+        var policy = CreatePolicy();
+        policy.Setup(item => item.ConsultarAsync(filter, It.IsAny<ParametrosPaginacao>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
-        var result = await controller.ObterLogs(filter);
+        var result = await controller.ObterLogs(filter, null, null);
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(expected, ok.Value);
@@ -99,12 +75,13 @@ public sealed class AuditoriaControllerTests
     {
         var filter = new FiltroAuditoriaDTO();
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.ObterLogsFiltradosAsync(filter))
+        var policy = CreatePolicy();
+        policy
+            .Setup(item => item.ConsultarAsync(filter, It.IsAny<ParametrosPaginacao>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("detalhe de consulta"));
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
-        var result = await controller.ObterLogs(filter);
+        var result = await controller.ObterLogs(filter, null, null);
 
         AssertBadRequestWithoutDetails(result, "detalhe de consulta");
     }
@@ -115,13 +92,14 @@ public sealed class AuditoriaControllerTests
         var filter = new FiltroAuditoriaDTO();
         var expected = new ArgumentException("filtro inesperado");
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.ObterLogsFiltradosAsync(filter))
+        var policy = CreatePolicy();
+        policy
+            .Setup(item => item.ConsultarAsync(filter, It.IsAny<ParametrosPaginacao>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(expected);
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
         var actual = await Assert.ThrowsAsync<ArgumentException>(
-            () => controller.ObterLogs(filter));
+            () => controller.ObterLogs(filter, null, null));
 
         Assert.Same(expected, actual);
     }
@@ -133,12 +111,13 @@ public sealed class AuditoriaControllerTests
         var end = new DateTime(2026, 9, 20);
         var expected = new RelatorioAuditoriaDTO();
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.GerarRelatorioAsync(start, end))
+        var filter = new FiltroAuditoriaDTO { DataInicio = start, DataFim = end };
+        var policy = CreatePolicy();
+        policy.Setup(item => item.GerarRelatorioAsync(filter, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
-        var result = await controller.GerarRelatorio(start, end);
+        var result = await controller.GerarRelatorio(filter);
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(expected, ok.Value);
@@ -150,12 +129,14 @@ public sealed class AuditoriaControllerTests
         var start = new DateTime(2026, 9, 1);
         var end = new DateTime(2026, 9, 20);
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.GerarRelatorioAsync(start, end))
+        var filter = new FiltroAuditoriaDTO { DataInicio = start, DataFim = end };
+        var policy = CreatePolicy();
+        policy
+            .Setup(item => item.GerarRelatorioAsync(filter, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("detalhe de relatorio"));
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
-        var result = await controller.GerarRelatorio(start, end);
+        var result = await controller.GerarRelatorio(filter);
 
         AssertBadRequestWithoutDetails(result, "detalhe de relatorio");
     }
@@ -167,13 +148,15 @@ public sealed class AuditoriaControllerTests
         var end = new DateTime(2026, 9, 20);
         var expected = new ArgumentException("periodo inesperado");
         var service = new Mock<IAuditoriaService>();
-        service
-            .Setup(item => item.GerarRelatorioAsync(start, end))
+        var filter = new FiltroAuditoriaDTO { DataInicio = start, DataFim = end };
+        var policy = CreatePolicy();
+        policy
+            .Setup(item => item.GerarRelatorioAsync(filter, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expected);
-        var controller = CreateController(service);
+        var controller = CreateController(service, policy);
 
         var actual = await Assert.ThrowsAsync<ArgumentException>(
-            () => controller.GerarRelatorio(start, end));
+            () => controller.GerarRelatorio(filter));
 
         Assert.Same(expected, actual);
     }
@@ -183,11 +166,13 @@ public sealed class AuditoriaControllerTests
     {
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoSuspeitoAsync(11, "motivo"))
-            .Returns(Task.CompletedTask);
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, true, "motivo"))
+            .ReturnsAsync(new AuditClassificationRevision { NumeroRevisao = 1 });
         var controller = CreateController(service);
 
-        var result = await controller.MarcarComoSuspeito(11, "motivo");
+        var result = await controller.MarcarComoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
         Assert.IsType<OkObjectResult>(result);
     }
@@ -197,11 +182,13 @@ public sealed class AuditoriaControllerTests
     {
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoSuspeitoAsync(11, "motivo"))
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, true, "motivo"))
             .ThrowsAsync(new DbUpdateException("detalhe de persistencia suspeito"));
         var controller = CreateController(service);
 
-        var result = await controller.MarcarComoSuspeito(11, "motivo");
+        var result = await controller.MarcarComoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
         AssertBadRequestWithoutDetails(result, "detalhe de persistencia suspeito");
     }
@@ -212,14 +199,15 @@ public sealed class AuditoriaControllerTests
         var expected = new ArgumentException("log inesperado");
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoSuspeitoAsync(11, "motivo"))
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, true, "motivo"))
             .ThrowsAsync(expected);
         var controller = CreateController(service);
 
-        var actual = await Assert.ThrowsAsync<ArgumentException>(
-            () => controller.MarcarComoSuspeito(11, "motivo"));
+        var actual = await controller.MarcarComoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
-        Assert.Same(expected, actual);
+        AssertBadRequestWithoutDetails(actual, "log inesperado");
     }
 
     [Fact]
@@ -227,11 +215,13 @@ public sealed class AuditoriaControllerTests
     {
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoNaoSuspeitoAsync(11))
-            .Returns(Task.CompletedTask);
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, false, "motivo"))
+            .ReturnsAsync(new AuditClassificationRevision { NumeroRevisao = 1 });
         var controller = CreateController(service);
 
-        var result = await controller.MarcarComoNaoSuspeito(11);
+        var result = await controller.MarcarComoNaoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
         Assert.IsType<OkObjectResult>(result);
     }
@@ -241,11 +231,13 @@ public sealed class AuditoriaControllerTests
     {
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoNaoSuspeitoAsync(11))
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, false, "motivo"))
             .ThrowsAsync(new DbUpdateException("detalhe de persistencia nao suspeito"));
         var controller = CreateController(service);
 
-        var result = await controller.MarcarComoNaoSuspeito(11);
+        var result = await controller.MarcarComoNaoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
         AssertBadRequestWithoutDetails(result, "detalhe de persistencia nao suspeito");
     }
@@ -256,14 +248,32 @@ public sealed class AuditoriaControllerTests
         var expected = new ArgumentException("log inesperado");
         var service = new Mock<IAuditoriaService>();
         service
-            .Setup(item => item.MarcarComoNaoSuspeitoAsync(11))
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, false, "motivo"))
             .ThrowsAsync(expected);
         var controller = CreateController(service);
 
-        var actual = await Assert.ThrowsAsync<ArgumentException>(
-            () => controller.MarcarComoNaoSuspeito(11));
+        var actual = await controller.MarcarComoNaoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
 
-        Assert.Same(expected, actual);
+        AssertBadRequestWithoutDetails(actual, "log inesperado");
+    }
+
+    [Fact]
+    public async Task ReclassificacaoDesatualizadaRetornaConflito()
+    {
+        var service = new Mock<IAuditoriaService>();
+        service
+            .Setup(item => item.ReclassificarClassificacaoAsync(11, 7, 0, true, "motivo"))
+            .ThrowsAsync(new DbUpdateConcurrencyException("conflito interno"));
+        var controller = CreateController(service);
+
+        var result = await controller.MarcarComoSuspeito(
+            11,
+            new ReclassificarAuditoriaDTO { RevisaoEsperada = 0, Justificativa = "motivo" });
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result);
+        Assert.DoesNotContain("conflito interno", conflict.Value?.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -355,12 +365,6 @@ public sealed class AuditoriaControllerTests
         Assert.Same(expected, actual);
     }
 
-    private static CreateLogAuditoriaDTO CreateLogRequest() => new()
-    {
-        Acao = "consulta",
-        Recurso = "auditoria"
-    };
-
     private static void AssertBadRequestWithoutDetails(IActionResult result, string detail)
     {
         var badRequest = Assert.IsType<BadRequestObjectResult>(result);
@@ -368,14 +372,33 @@ public sealed class AuditoriaControllerTests
         Assert.DoesNotContain(detail, badRequest.Value?.ToString(), StringComparison.Ordinal);
     }
 
-    private static AuditoriaController CreateController(Mock<IAuditoriaService> service)
+    private static Mock<IAuditQueryPolicy> CreatePolicy()
+    {
+        var policy = new Mock<IAuditQueryPolicy>();
+        policy.Setup(item => item.TryCreatePagination(
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                out It.Ref<ParametrosPaginacao>.IsAny,
+                out It.Ref<string>.IsAny))
+            .Returns((string? page, string? pageSize, out ParametrosPaginacao pagination, out string invalid) =>
+                ParametrosPaginacao.TentarCriar(page, pageSize, out pagination, out invalid));
+        policy.Setup(item => item.AdmitQueryAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(OperationAdmissionResult.Allowed());
+        policy.Setup(item => item.AdmitExportAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(OperationAdmissionResult.Allowed());
+        return policy;
+    }
+
+    private static AuditoriaController CreateController(
+        Mock<IAuditoriaService> service,
+        Mock<IAuditQueryPolicy>? policy = null)
     {
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "7")
         };
 
-        return new AuditoriaController(service.Object, NullLogger<AuditoriaController>.Instance)
+        return new AuditoriaController(service.Object, (policy ?? CreatePolicy()).Object, NullLogger<AuditoriaController>.Instance)
         {
             ControllerContext = new ControllerContext
             {

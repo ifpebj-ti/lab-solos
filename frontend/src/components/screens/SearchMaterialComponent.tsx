@@ -12,24 +12,31 @@ import {
   ResponsiveTable,
   type ResponsiveColumn,
 } from '../global/table/ResponsiveTable';
-import { getAllProducts } from '@/integration/Product';
+import {
+  getAdminProductCatalog,
+  getAllProducts,
+  type ProductAlertReason,
+} from '@/integration/Product';
 import { getSystemQuantities } from '@/integration/System';
 import ClickableItemTable from '../global/table/ItemClickable';
 import ErrorFeedback from '../global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { AlertTriangle } from 'lucide-react';
 
 export interface IAllProducts {
   id: number;
   nomeProduto: string;
   tipoProduto: string;
-  fornecedor: string;
+  fornecedor?: string | null;
   quantidade: number;
   quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string;
-  dataValidade: string;
-  status: string;
-  unidadeMedida?: string;
+  localizacaoProduto?: string | null;
+  dataFabricacao?: string | null;
+  dataValidade?: string | null;
+  status?: string | null;
+  unidadeMedida?: string | null;
+  capacidadeMl?: number | null;
+  motivosAlerta?: ProductAlertReason[];
 }
 
 interface DashboardData {
@@ -39,23 +46,6 @@ interface DashboardData {
     Outro: number;
     Total: number;
   };
-  alertas: {
-    ProdutosVencidos: number;
-    ProdutosEmBaixa: number;
-  };
-  usuarios: {
-    Administrador: number;
-    Mentor: number;
-    Mentorado: number;
-    Total: number;
-  };
-  emprestimos: {
-    Aprovado: number;
-    Pendente: number;
-    Rejeitado?: number;
-    Total: number;
-  };
-  totalProdutosEmprestados: number;
 }
 
 interface SearchMaterialComponentProps {
@@ -64,13 +54,53 @@ interface SearchMaterialComponentProps {
 }
 
 const columns: readonly ResponsiveColumn[] = [
-  { key: 'id', label: 'ID', weight: 12 },
+  { key: 'id', label: 'ID', weight: 16 },
   { key: 'name', label: 'Nome', weight: 28 },
   { key: 'type', label: 'Tipo', weight: 18 },
   { key: 'quantity', label: 'Quantidade', weight: 12 },
   { key: 'unit', label: 'Unidade', weight: 15 },
   { key: 'status', label: 'Status', weight: 15 },
 ];
+const adminColumns: readonly ResponsiveColumn[] = [
+  ...columns,
+  { key: 'alerts', label: 'Alertas', weight: 20 },
+];
+
+function getCatalogUnit(
+  product: IAllProducts,
+  userType: SearchMaterialComponentProps['userType']
+) {
+  if (userType === 'admin' && product.tipoProduto === 'Vidraria') {
+    return product.quantidade === 1 ? 'unidade' : 'unidades';
+  }
+  return product.unidadeMedida;
+}
+
+function getCatalogName(
+  product: IAllProducts,
+  userType: SearchMaterialComponentProps['userType']
+) {
+  if (
+    userType === 'admin' &&
+    product.tipoProduto === 'Vidraria' &&
+    product.capacidadeMl != null
+  ) {
+    return `${product.nomeProduto} ${product.capacidadeMl} ml`;
+  }
+  return product.nomeProduto;
+}
+
+const alertReasonLabels: Record<ProductAlertReason, string> = {
+  estoque_abaixo_minimo: 'Estoque abaixo do mínimo',
+  validade: 'Validade',
+};
+
+function getAlertSummary(product: IAllProducts) {
+  const reasons = product.motivosAlerta ?? [];
+  return reasons.length === 0
+    ? 'Sem alerta'
+    : reasons.map((reason) => alertReasonLabels[reason]).join('; ');
+}
 
 function SearchMaterialComponent({
   userType,
@@ -82,13 +112,14 @@ function SearchMaterialComponent({
   const [productsError, setProductsError] = useState<unknown | null>(null);
   const [systemError, setSystemError] = useState<unknown | null>(null);
   const requestSequence = useRef(0);
+  const tableColumns = userType === 'admin' ? adminColumns : columns;
 
   const loadCatalog = useCallback(async () => {
     const requestId = requestSequence.current + 1;
     requestSequence.current = requestId;
     setIsLoading(true);
     const [productsResult, systemResult] = await Promise.allSettled([
-      getAllProducts(),
+      userType === 'admin' ? getAdminProductCatalog() : getAllProducts(),
       getSystemQuantities(),
     ]);
 
@@ -109,7 +140,7 @@ function SearchMaterialComponent({
     }
 
     setIsLoading(false);
-  }, []);
+  }, [userType]);
 
   useEffect(() => {
     void loadCatalog();
@@ -139,11 +170,12 @@ function SearchMaterialComponent({
     () =>
       products.filter((item) => {
         const searchableContent = [
-          item.nomeProduto,
+          getCatalogName(item, userType),
           item.tipoProduto,
           item.quantidade,
-          item.unidadeMedida,
+          getCatalogUnit(item, userType),
           item.status,
+          ...(userType === 'admin' ? [getAlertSummary(item)] : []),
         ]
           .filter((part) => part !== undefined && part !== null)
           .join(' ')
@@ -152,7 +184,7 @@ function SearchMaterialComponent({
         const matchesType = value === 'todos' || item.tipoProduto === value;
         return matchesSearch && matchesType;
       }),
-    [products, searchTerm, value]
+    [products, searchTerm, userType, value]
   );
 
   useEffect(() => {
@@ -281,7 +313,17 @@ function SearchMaterialComponent({
             </p>
 
             <div className='w-full min-w-0 mt-4'>
-              <ResponsiveTable label='Produtos' columns={columns}>
+              {userType === 'admin' && (
+                <p
+                  role='img'
+                  aria-label='Alertas de produtos'
+                  className='mb-3 flex items-center gap-2 text-sm text-clt-2'
+                >
+                  <AlertTriangle aria-hidden='true' className='size-5 shrink-0' />
+                  <span>Alertas de produtos</span>
+                </p>
+              )}
+              <ResponsiveTable label='Produtos' columns={tableColumns}>
                 <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full'>
@@ -298,11 +340,14 @@ function SearchMaterialComponent({
                           key={rowData.id}
                           data={[
                             String(rowData.id),
-                            String(rowData.nomeProduto),
+                            String(getCatalogName(rowData, userType)),
                             String(rowData.tipoProduto),
                             String(rowData.quantidade),
-                            String(rowData.unidadeMedida),
+                            String(getCatalogUnit(rowData, userType)),
                             String(rowData.status),
+                            ...(userType === 'admin'
+                              ? [getAlertSummary(rowData)]
+                              : []),
                           ]}
                           rowIndex={index}
                           destinationRoute={destinationRoute}

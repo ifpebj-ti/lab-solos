@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
 import FormOutros from './FormOutros';
 
 const API_URL = 'http://localhost:8080/api/produtos';
@@ -69,7 +70,7 @@ describe('FormOutros: experiência de erros', () => {
         disconnect() {}
       }
     );
-    document.cookie = 'doorKey=test-token; path=/';
+    establishTestSession('42', 'Administrador');
     window.history.replaceState({}, '', '/admin/insert');
   });
 
@@ -180,7 +181,7 @@ describe('FormOutros: experiência de erros', () => {
     submitForm();
 
     await expectFailureToast(description);
-    expect(document.cookie).toContain('doorKey=test-token');
+    expect(sessionStorage.getItem('auth:session-context')).toContain('42');
     expect(window.location.pathname).toBe('/admin/insert');
     expect(screen.getByLabelText(/^Nome/)).toHaveValue('Material de teste');
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeEnabled();

@@ -26,12 +26,14 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      actions: read
     outputs:
       release: ${{ steps.release.outputs.release }}
       version: ${{ steps.release.outputs.version }}
       change-type: ${{ steps.release.outputs.change_type }}
       sha: ${{ steps.release.outputs.sha }}
       reuse: ${{ steps.reuse.outputs.reuse }}
+      proof-available: ${{ steps.reuse.outputs.proof_available }}
     steps:
       - name: Select the main commit
         id: source
@@ -54,6 +56,74 @@ jobs:
           ref: ${{ steps.source.outputs.sha }}
           persist-credentials: false
 
+      - name: Restore the original release intent
+        if: github.run_attempt != '1'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp/prior-intent .tmp/prior-proof
+          intent_restored=false
+          proof_restored=false
+
+          restore_artifact() {
+            local name=$1
+            local destination=$2
+            local artifact_id
+            artifact_id="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts" \
+              --paginate --jq ".artifacts[] | select(.name == \"${name}\" and .expired == false) | .id" \
+              | sed -n '1p')"
+            if [[ -z "$artifact_id" ]]; then
+              return 1
+            fi
+            gh api "repos/${REPOSITORY}/actions/artifacts/${artifact_id}/zip" > .tmp/previous-artifact.zip
+            python - "$destination" <<'PY'
+          from pathlib import Path
+          import sys
+          from zipfile import ZipFile
+
+          target = Path(sys.argv[1])
+          target.mkdir(parents=True, exist_ok=True)
+          with ZipFile(".tmp/previous-artifact.zip") as archive:
+              names = [name for name in archive.namelist() if Path(name).name in {
+                  "release-intent.json", "release-proof.json"
+              }]
+              if len(names) != 1:
+                  raise SystemExit("release state artifact is missing or ambiguous")
+              archive.extract(names[0], target)
+              extracted = target / names[0]
+              extracted.replace(target / Path(names[0]).name)
+          PY
+          }
+
+          for ((previous_attempt = RUN_ATTEMPT - 1; previous_attempt >= 1; previous_attempt--)); do
+            if [[ "$intent_restored" == false ]]; then
+              destination=".tmp/prior-intent-${previous_attempt}"
+              if restore_artifact "release-intent-${previous_attempt}" "$destination"; then
+                cp "$destination/release-intent.json" .tmp/release-intent.json
+                intent_restored=true
+              fi
+            fi
+            if [[ "$proof_restored" == false ]]; then
+              destination=".tmp/prior-proof-${previous_attempt}"
+              if restore_artifact "release-proof-${previous_attempt}" "$destination"; then
+                if [[ -f "$destination/release-proof.json" ]]; then
+                  cp "$destination/release-proof.json" .tmp/release-proof.json
+                  proof_restored=true
+                fi
+              fi
+            fi
+          done
+
+          if [[ "$intent_restored" != true ]]; then
+            echo "The original release intent artifact is unavailable; refusing to recalculate the version" >&2
+            exit 1
+          fi
+
       - name: Resolve release metadata
         id: release
         shell: bash
@@ -64,13 +134,20 @@ jobs:
           DISPATCH_VERSION: ${{ inputs.version }}
           DISPATCH_REF: ${{ github.ref }}
           RELEASE_SHA: ${{ steps.source.outputs.sha }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
+          mkdir -p .tmp
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            release_tags="$(gh release list --limit 100 --json tagName --jq '.[].tagName')"
-            latest_tag="$(printf '%s\n' "$release_tags" \
-              | awk '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/' \
-              | sort -V | tail -n 1)"
+            latest_tag=""
+            if [[ "$RUN_ATTEMPT" == "1" ]]; then
+              release_tags="$(gh release list --limit 100 --json tagName --jq '.[].tagName')"
+              latest_tag="$(printf '%s\n' "$release_tags" \
+                | awk '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/' \
+                | sort -V | tail -n 1)"
+            fi
             arguments=(
               --event pull_request
               --pr-body "$PR_BODY"
@@ -87,8 +164,49 @@ jobs:
               --github-output "$GITHUB_OUTPUT"
             )
           fi
+          arguments+=(
+            --repository "$REPOSITORY"
+            --run-id "$RUN_ID"
+            --run-attempt "$RUN_ATTEMPT"
+            --sha "$RELEASE_SHA"
+            --intent-file .tmp/release-intent.json
+          )
           python .github/scripts/resolve_container_version.py "${arguments[@]}"
-          printf 'sha=%s\n' "$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          python - .tmp/release-intent.json .tmp/release-intent-object.json <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          records = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if not isinstance(records, list) or len(records) != 1:
+              raise SystemExit("release intent must contain exactly one record")
+          Path(sys.argv[2]).write_text(json.dumps(records[0]) + "\n", encoding="utf-8")
+          PY
+
+      - name: Persist the release intent
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-intent-${{ github.run_attempt }}
+          path: .tmp/release-intent.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Verify the release changelog
+        if: steps.release.outputs.release == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          changelog="$(mktemp)"
+          trap 'rm -f -- "$changelog"' EXIT
+          if ! git show "${RELEASE_SHA}:CHANGELOG.md" > "$changelog"; then
+            printf 'Release %s (SHA %s): could not read changelog\n' "$VERSION" "$RELEASE_SHA" >&2
+            exit 1
+          fi
+          python .github/scripts/check_release_changelog.py \
+            --version "$VERSION" --sha "$RELEASE_SHA" --changelog "$changelog"
 
       - name: Detect already published release
         id: reuse
@@ -101,7 +219,12 @@ jobs:
         run: |
           set -euo pipefail
           printf 'reuse=false\n' >> "$GITHUB_OUTPUT"
-          if gh release view "$VERSION" --json tagName,targetCommitish,url \
+          if [[ -f .tmp/release-proof.json ]]; then
+            printf 'proof_available=true\n' >> "$GITHUB_OUTPUT"
+          else
+            printf 'proof_available=false\n' >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "$VERSION" --json tagName,targetCommitish,url,isDraft,isPrerelease \
             > .tmp-release.json 2> .tmp-release.err; then
             EXISTING_TAG="$(python -c 'import json; print(json.load(open(".tmp-release.json", encoding="utf-8"))["tagName"])')"
             EXISTING_TARGET="$(python -c 'import json; print(json.load(open(".tmp-release.json", encoding="utf-8"))["targetCommitish"])')"
@@ -113,7 +236,30 @@ jobs:
               echo "Release conflict: ${VERSION} does not target ${RELEASE_SHA}" >&2
               exit 1
             fi
+            EXISTING_IS_DRAFT="$(python -c 'import json; print(str(json.load(open(".tmp-release.json", encoding="utf-8"))["isDraft"]).lower())')"
+            mkdir -p .tmp/existing-release
+            if ! gh release download "$VERSION" --pattern release-proof.json \
+              --dir .tmp/existing-release > /dev/null 2> .tmp-release-proof.err; then
+              if [[ "$EXISTING_IS_DRAFT" != true || ! -f .tmp/release-proof.json ]]; then
+                echo "Release ${VERSION} has no linked or retained proof manifest; it is unverifiable" >&2
+                exit 1
+              fi
+              cp .tmp/release-proof.json .tmp/existing-release/release-proof.json
+            fi
+            python - .tmp/release-intent-object.json .tmp/existing-release/release-proof.json <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          intent = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          proof = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+          keys = ("repository", "run_id", "event", "version", "sha", "change_type", "release")
+          if any(intent.get(key) != proof.get(key) for key in keys):
+              raise SystemExit("existing release proof belongs to a different workflow intent")
+          PY
+            cp .tmp/existing-release/release-proof.json .tmp/release-proof.json
             printf 'reuse=true\n' >> "$GITHUB_OUTPUT"
+            printf 'proof_available=true\n' >> "$GITHUB_OUTPUT"
           else
             release_status=$?
             if ! grep -Eqi 'release not found|HTTP 404|Not Found' .tmp-release.err; then
@@ -143,15 +289,25 @@ jobs:
             echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Persist a recovered release proof
+        if: steps.reuse.outputs.proof_available == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-proof-${{ github.run_attempt }}
+          path: .tmp/release-proof.json
+          if-no-files-found: error
+          retention-days: 90
+
   finalize-release:
     needs:
       - prepare
       - promote-version
     if: >-
       always() &&
+      needs.prepare.result == 'success' &&
       needs.prepare.outputs.release == 'true' &&
       (needs.promote-version.result == 'success' ||
-      (needs.prepare.outputs.reuse == 'true' && needs.promote-version.result == 'skipped'))
+      (needs.prepare.outputs.proof-available == 'true' && needs.promote-version.result == 'skipped'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -164,6 +320,35 @@ jobs:
           ref: ${{ needs.prepare.outputs.sha }}
           persist-credentials: false
 
+      - name: Download the original release intent
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-intent-${{ github.run_attempt }}
+          path: .tmp/release-intent
+
+      - name: Download the verified release proof
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-proof-${{ github.run_attempt }}
+          path: .tmp/release-proof-artifact
+
+      - name: Materialize release intent and proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+          cp .tmp/release-proof-artifact/release-proof.json .tmp/release-proof.json
+          python - .tmp/release-intent/release-intent.json .tmp/release-intent-object.json <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          records = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if not isinstance(records, list) or len(records) != 1:
+              raise SystemExit("release intent must contain exactly one record")
+          Path(sys.argv[2]).write_text(json.dumps(records[0]) + "\n", encoding="utf-8")
+          PY
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
@@ -174,12 +359,313 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promote latest atomically and create the GitHub Release
+      - name: Inspect channels and plan safe publication writes
+        id: plan
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp/channel-observations
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          repository = os.environ["REPOSITORY"]
+          version = os.environ["VERSION"]
+          sha = os.environ["RELEASE_SHA"]
+
+          def run(arguments):
+              return subprocess.run(arguments, capture_output=True, text=True, check=False)
+
+          def missing(result):
+              text = (result.stdout + result.stderr).lower()
+              return result.returncode != 0 and (
+                  "404" in text or "not found" in text or "manifest unknown" in text
+              )
+
+          observations = {}
+          tag_ref = run(["gh", "api", f"repos/{repository}/git/ref/tags/{version}"])
+          if tag_ref.returncode == 0:
+              ref = json.loads(tag_ref.stdout)
+              tag = {"status": "present", "ref": ref.get("ref"),
+                     "object_type": ref.get("object", {}).get("type"),
+                     "object_id": ref.get("object", {}).get("sha")}
+              if tag["object_type"] == "tag":
+                  peeled = run(["gh", "api", f"repos/{repository}/git/tags/{tag['object_id']}"])
+                  if peeled.returncode == 0:
+                      obj = json.loads(peeled.stdout).get("object", {})
+                      tag["peeled_type"], tag["peeled_id"] = obj.get("type"), obj.get("sha")
+                  else:
+                      tag["status"] = "unavailable"
+              observations["git"] = tag
+          else:
+              observations["git"] = {"status": "missing" if missing(tag_ref) else "unavailable"}
+
+          release = run(["gh", "release", "view", version, "--json",
+                         "tagName,targetCommitish,isDraft,isPrerelease,publishedAt,url"])
+          release_state = "missing"
+          release_metadata = {}
+          if release.returncode == 0:
+              release_metadata = json.loads(release.stdout)
+              if release_metadata.get("isDraft") is True:
+                  release_state = "draft"
+                  observations["release"] = {"status": "missing"}
+              else:
+                  release_state = "present"
+                  observations["release"] = {"status": "present", **release_metadata}
+          else:
+              observations["release"] = {
+                  "status": "missing" if missing(release) else "unavailable"
+              }
+
+          def image_observation(component, reference):
+              raw = run(["docker", "buildx", "imagetools", "inspect", "--raw", reference])
+              if raw.returncode != 0:
+                  return {"status": "missing" if missing(raw) else "unavailable"}
+              digest = run(["docker", "buildx", "imagetools", "inspect", reference,
+                            "--format", "{{.Manifest.Digest}}"])
+              if digest.returncode != 0:
+                  return {"status": "unavailable"}
+              manifest = json.loads(raw.stdout)
+              labels = {}
+              for descriptor in manifest.get("manifests", []):
+                  platform_digest = descriptor.get("digest")
+                  result = run(["docker", "buildx", "imagetools", "inspect",
+                                f"{reference.split(':')[0]}@{platform_digest}",
+                                "--format", "{{json .Image.Config.Labels}}"])
+                  if result.returncode != 0:
+                      return {"status": "unavailable"}
+                  labels[platform_digest] = json.loads(result.stdout or "{}") or {}
+              return {"status": "present", "reference": reference,
+                      "index_digest": digest.stdout.strip(), "manifest": manifest,
+                      "labels": labels}
+
+          for component in ("frontend", "backend"):
+              image = os.environ[f"{component.upper()}_IMAGE"]
+              observations[component] = image_observation(component, f"{image}:{version}")
+
+          with Path(".tmp/channel-observations/observations.json").open("w", encoding="utf-8") as output:
+              json.dump(observations, output)
+
+          latest = {}
+          for component in ("frontend", "backend"):
+              image = os.environ[f"{component.upper()}_IMAGE"]
+              reference = f"{image}:latest"
+              digest = run(["docker", "buildx", "imagetools", "inspect", reference,
+                            "--format", "{{.Manifest.Digest}}"])
+              if digest.returncode == 0:
+                  latest[component] = {"status": "present", "index_digest": digest.stdout.strip()}
+              else:
+                  latest[component] = {
+                      "status": "missing" if missing(digest) else "inconclusive"
+                  }
+
+          releases = run(["gh", "release", "list", "--limit", "100", "--json",
+                          "tagName,isDraft,isPrerelease"])
+          if releases.returncode != 0:
+              raise SystemExit("could not confirm the latest stable release version")
+          semver = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z")
+          stable_versions = [item["tagName"] for item in json.loads(releases.stdout)
+                             if item.get("isDraft") is False and item.get("isPrerelease") is False
+                             and semver.fullmatch(item.get("tagName", ""))]
+          latest_version = max(stable_versions,
+                               key=lambda item: tuple(map(int, item.split("."))), default=None)
+          Path(".tmp/channel-observations/latest.json").write_text(
+              json.dumps({"latest_version": latest_version, "latest": latest,
+                          "release_state": release_state,
+                          "release_metadata": release_metadata}), encoding="utf-8")
+          PY
+
+          set +e
+          python .github/scripts/check_release_channels.py \
+            --repository "$REPOSITORY" --version "$VERSION" --sha "$RELEASE_SHA" \
+            --observations .tmp/channel-observations/observations.json \
+            --proof .tmp/release-proof.json > .tmp/channel-observations/channel-report.json
+          channel_status=$?
+          set -e
+          if (( channel_status > 2 )) || [[ ! -s .tmp/channel-observations/channel-report.json ]]; then
+            echo "Channel observation could not be interpreted" >&2
+            exit 1
+          fi
+
+          python - .tmp/release-intent-object.json \
+            .tmp/channel-observations/channel-report.json \
+            .tmp/channel-observations/latest.json \
+            .tmp/release-proof.json .tmp/publication-plan.json <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          intent, report, latest, proof = [
+              json.loads(Path(path).read_text(encoding="utf-8")) for path in sys.argv[1:5]
+          ]
+          observations = {
+              "channels": report["channels"],
+              "latest_version": latest["latest_version"],
+              "latest": latest["latest"],
+          }
+          if latest.get("release_state") == "draft":
+              release = latest.get("release_metadata", {})
+              if release.get("isDraft") is True \
+                  and release.get("tagName") == intent["version"] \
+                  and release.get("targetCommitish") == intent["sha"]:
+                  observations["channels"]["release"]["status"] = "draft"
+              else:
+                  observations["channels"]["release"]["status"] = "conflict"
+          Path(".tmp/channel-observations/planner-input.json").write_text(
+              json.dumps({"intent": intent, "observations": observations, "proof": proof}),
+              encoding="utf-8")
+          PY
+          python .github/scripts/release_publication_sequence.py \
+            --input .tmp/channel-observations/planner-input.json \
+            --output .tmp/publication-plan.json
+          python - .tmp/publication-plan.json "$GITHUB_OUTPUT" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if plan["mode"] == "stop":
+              raise SystemExit(plan["reason"])
+          with open(sys.argv[2], "a", encoding="utf-8") as output:
+              for key in ("mode", "release_action", "latest_action"):
+                  output.write(f"{key}={plan[key]}\n")
+              for component in ("frontend", "backend"):
+                  output.write(f"promote_{component}={str(component in plan['promote_latest']).lower()}\n")
+          with open(sys.argv[3], "a", encoding="utf-8") as summary:
+              summary.write("## Release channel plan\n\n")
+              summary.write(f"- Mode: {plan['mode']}\n- Reason: {plan['reason']}\n")
+              summary.write(f"- Recover only: {', '.join(plan['recover_channels']) or 'none'}\n")
+              summary.write(f"- Latest: {plan['latest_action']}\n")
+          PY
+
+      - name: Recover only proven missing version channels
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+          RELEASE_ACTION: ${{ steps.plan.outputs.release_action }}
+        run: |
+          set -euo pipefail
+          python - .tmp/publication-plan.json <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          missing = set(plan["recover_channels"])
+          proof = json.loads(Path(".tmp/release-proof.json").read_text(encoding="utf-8"))
+          version = proof["version"]
+          repository = proof["repository"]
+          sha = proof["sha"]
+
+          if "git" in missing:
+              existing = subprocess.run([
+                  "gh", "api", f"repos/{repository}/git/ref/tags/{version}"
+              ], capture_output=True, text=True, check=False)
+              existing_text = (existing.stdout + existing.stderr).lower()
+              if existing.returncode == 0 or not ("404" in existing_text or "not found" in existing_text):
+                  raise SystemExit("Git tag changed after planning; refusing to overwrite or guess")
+              result = subprocess.run([
+                  "gh", "api", "--method", "POST", f"repos/{repository}/git/refs",
+                  "-f", f"ref=refs/tags/{version}", "-f", f"sha={sha}"
+              ], capture_output=True, text=True, check=False)
+              if result.returncode:
+                  raise SystemExit("could not create the missing Git tag from the release proof")
+
+          for component in ("frontend", "backend"):
+              if component not in missing:
+                  continue
+              image = os.environ[f"{component.upper()}_IMAGE"]
+              reference = f"{image}:{version}"
+              existing = subprocess.run([
+                  "docker", "buildx", "imagetools", "inspect", "--raw", reference
+              ], capture_output=True, text=True, check=False)
+              existing_text = (existing.stdout + existing.stderr).lower()
+              if existing.returncode == 0 or not (
+                  "manifest unknown" in existing_text or "404" in existing_text
+                  or "not found" in existing_text
+              ):
+                  raise SystemExit(f"{component} version tag changed after planning; refusing to overwrite")
+              digests = proof["images"][component]["platforms"]
+              result = subprocess.run([
+                  "docker", "buildx", "imagetools", "create", "--tag",
+                  f"{image}:{version}",
+                  f"{image}@{digests['linux/amd64']}",
+                  f"{image}@{digests['linux/arm64']}",
+              ], capture_output=True, text=True, check=False)
+              if result.returncode:
+                  raise SystemExit(f"could not recover the missing {component} version tag")
+          PY
+
+          if [[ "$RELEASE_ACTION" == "create-draft" ]]; then
+            if gh release view "$VERSION" --json tagName,targetCommitish,isDraft \
+              > .tmp/release-before-create.json 2> .tmp/release-before-create.err; then
+              echo "Release changed after planning; refusing to overwrite its state" >&2
+              exit 1
+            else
+              status=$?
+              if ! grep -Eqi 'release not found|HTTP 404|Not Found' .tmp/release-before-create.err; then
+                cat .tmp/release-before-create.err >&2
+                exit "$status"
+              fi
+            fi
+            gh release create "$VERSION" .tmp/release-proof.json \
+              --target "$RELEASE_SHA" --title "$VERSION" --draft --generate-notes
+          elif [[ "$RELEASE_ACTION" == "publish-draft" ]]; then
+            gh release view "$VERSION" --json tagName,targetCommitish,isDraft \
+              > .tmp/draft-before-upload.json
+            python - .tmp/draft-before-upload.json "$VERSION" "$RELEASE_SHA" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          release = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if (release.get("tagName") != sys.argv[2]
+                  or release.get("targetCommitish") != sys.argv[3]
+                  or release.get("isDraft") is not True):
+              raise SystemExit("release draft changed after planning")
+          PY
+            mkdir -p .tmp/draft-proof
+            if gh release download "$VERSION" --pattern release-proof.json \
+              --dir .tmp/draft-proof > /dev/null 2> .tmp/draft-proof-download.err; then
+              if ! cmp -s .tmp/release-proof.json .tmp/draft-proof/release-proof.json; then
+                echo "Existing release draft proof differs from the verified proof" >&2
+                exit 1
+              fi
+            else
+              if ! grep -Eqi 'not found|404' .tmp/draft-proof-download.err; then
+                cat .tmp/draft-proof-download.err >&2
+                exit 1
+              fi
+              gh release upload "$VERSION" .tmp/release-proof.json
+            fi
+          fi
+
+      - name: Plan and execute the verified sequence
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+          LATEST_ACTION: ${{ steps.plan.outputs.latest_action }}
+          PROMOTE_FRONTEND: ${{ steps.plan.outputs.promote_frontend }}
+          PROMOTE_BACKEND: ${{ steps.plan.outputs.promote_backend }}
           FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
           BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
         run: |
@@ -263,12 +749,21 @@ jobs:
             local reference=$1
             local component=$2
             local digest
-            if ! docker buildx imagetools inspect --raw "$reference" \
-              > ".tmp/manifests/${component}-latest-before.json"; then
-              echo "Cannot capture ${reference}; aborting before latest promotion" >&2
-              return 1
+            local inspect_status
+            if docker buildx imagetools inspect --raw "$reference" \
+              > ".tmp/manifests/${component}-latest-before.json" 2> ".tmp/manifests/${component}-latest-inspect.err"; then
+              digest="$(registry_digest "$reference")"
+            else
+              inspect_status=$?
+              if grep -Eqi 'manifest unknown|unexpected status.*404|: not found$' \
+                ".tmp/manifests/${component}-latest-inspect.err"; then
+                : > ".tmp/manifests/${component}-latest-before.json"
+                digest=""
+              else
+                cat ".tmp/manifests/${component}-latest-inspect.err" >&2
+                return "$inspect_status"
+              fi
             fi
-            digest="$(registry_digest "$reference")"
             case "$component" in
               frontend) FRONTEND_PREVIOUS_DIGEST=$digest ;;
               backend) BACKEND_PREVIOUS_DIGEST=$digest ;;
@@ -279,14 +774,53 @@ jobs:
           capture_latest "$FRONTEND_LATEST" frontend
           capture_latest "$BACKEND_LATEST" backend
 
+          STABLE_LATEST_VERSION="$(gh release list --limit 100 --json tagName,isDraft,isPrerelease \
+            | python -c 'import json, re, sys; releases=json.load(sys.stdin); semver=re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z"); versions=[r["tagName"] for r in releases if r.get("isDraft") is False and r.get("isPrerelease") is False and semver.fullmatch(r.get("tagName", ""))]; print(max(versions, key=lambda value: tuple(map(int, value.split("."))), default=""))')"
+          LATEST_GUARD="$(python - "$STABLE_LATEST_VERSION" "$VERSION" <<'PY'
+          import sys
+
+          latest, target = sys.argv[1:]
+          key = lambda version: tuple(map(int, version.split("."))) if version else None
+          if key(latest) is not None and key(latest) > key(target):
+              print("newer")
+          elif latest == target:
+              print("same")
+          else:
+              print("older")
+          PY
+          )"
+          if [[ "$LATEST_GUARD" == newer ]]; then
+            if [[ -z "$FRONTEND_PREVIOUS_DIGEST" || -z "$BACKEND_PREVIOUS_DIGEST" ]]; then
+              echo "A newer stable release appeared after planning but both latest tags are not present" >&2
+              exit 1
+            fi
+            LATEST_ACTION=preserve-newer
+            PROMOTE_FRONTEND=false
+            PROMOTE_BACKEND=false
+            echo "A newer stable release appeared after planning; preserving both latest tags"
+          elif [[ "$LATEST_GUARD" == same ]]; then
+            if [[ ! -s .tmp/manifests/frontend-latest-before.json || \
+                  ! -s .tmp/manifests/backend-latest-before.json ]] || \
+              ! python .github/scripts/validate_container_manifest.py \
+                .tmp/manifests/frontend-latest-before.json --compare .tmp/manifests/frontend-version.json || \
+              ! python .github/scripts/validate_container_manifest.py \
+                .tmp/manifests/backend-latest-before.json --compare .tmp/manifests/backend-version.json; then
+              echo "Stable version and latest tags changed after planning; refusing to overwrite" >&2
+              exit 1
+            fi
+          fi
+
           FRONTEND_STATE=needs-promotion
           BACKEND_STATE=needs-promotion
-          if python .github/scripts/validate_container_manifest.py \
+          if [[ "$LATEST_ACTION" == "preserve-newer" ]]; then
+            FRONTEND_STATE=preserved-newer
+            BACKEND_STATE=preserved-newer
+          elif python .github/scripts/validate_container_manifest.py \
             .tmp/manifests/frontend-latest-before.json \
             --compare .tmp/manifests/frontend-version.json; then
             FRONTEND_STATE=existing-identical
           fi
-          if python .github/scripts/validate_container_manifest.py \
+          if [[ "$LATEST_ACTION" != "preserve-newer" ]] && python .github/scripts/validate_container_manifest.py \
             .tmp/manifests/backend-latest-before.json \
             --compare .tmp/manifests/backend-version.json; then
             BACKEND_STATE=existing-identical
@@ -302,7 +836,10 @@ jobs:
             set +e
 
             if [[ "$BACKEND_WRITTEN" == true ]]; then
-              if ! docker buildx imagetools create --prefer-index=false --tag "$BACKEND_LATEST" \
+              if [[ -z "$BACKEND_PREVIOUS_DIGEST" ]]; then
+                echo "Cannot restore ${BACKEND_LATEST}; no previous tag existed" >&2
+                rollback_failed=1
+              elif ! docker buildx imagetools create --prefer-index=false --tag "$BACKEND_LATEST" \
                 "${BACKEND_IMAGE}@${BACKEND_PREVIOUS_DIGEST}"; then
                 echo "Failed to restore ${BACKEND_LATEST}" >&2
                 rollback_failed=1
@@ -317,7 +854,10 @@ jobs:
             fi
 
             if [[ "$FRONTEND_WRITTEN" == true ]]; then
-              if ! docker buildx imagetools create --prefer-index=false --tag "$FRONTEND_LATEST" \
+              if [[ -z "$FRONTEND_PREVIOUS_DIGEST" ]]; then
+                echo "Cannot restore ${FRONTEND_LATEST}; no previous tag existed" >&2
+                rollback_failed=1
+              elif ! docker buildx imagetools create --prefer-index=false --tag "$FRONTEND_LATEST" \
                 "${FRONTEND_IMAGE}@${FRONTEND_PREVIOUS_DIGEST}"; then
                 echo "Failed to restore ${FRONTEND_LATEST}" >&2
                 rollback_failed=1
@@ -349,25 +889,25 @@ jobs:
 
           trap rollback_latest ERR
 
-          if [[ "$FRONTEND_STATE" == needs-promotion ]]; then
+          if [[ "$FRONTEND_STATE" == needs-promotion && "$PROMOTE_FRONTEND" == true ]]; then
             FRONTEND_WRITTEN=true
             docker buildx imagetools create --tag "$FRONTEND_LATEST" \
               "${FRONTEND_IMAGE}@${FRONTEND_VERSION_DIGEST}"
             docker buildx imagetools inspect --raw "$FRONTEND_LATEST" \
               > .tmp/manifests/frontend-latest.json
             python .github/scripts/validate_container_manifest.py .tmp/manifests/frontend-latest.json --compare .tmp/manifests/frontend-version.json
-          else
+          elif [[ "$FRONTEND_STATE" != preserved-newer && -s ".tmp/manifests/frontend-latest-before.json" ]]; then
             cp .tmp/manifests/frontend-latest-before.json .tmp/manifests/frontend-latest.json
           fi
 
-          if [[ "$BACKEND_STATE" == needs-promotion ]]; then
+          if [[ "$BACKEND_STATE" == needs-promotion && "$PROMOTE_BACKEND" == true ]]; then
             BACKEND_WRITTEN=true
             docker buildx imagetools create --tag "$BACKEND_LATEST" \
               "${BACKEND_IMAGE}@${BACKEND_VERSION_DIGEST}"
             docker buildx imagetools inspect --raw "$BACKEND_LATEST" \
               > .tmp/manifests/backend-latest.json
             python .github/scripts/validate_container_manifest.py .tmp/manifests/backend-latest.json --compare .tmp/manifests/backend-version.json
-          else
+          elif [[ "$BACKEND_STATE" != preserved-newer && -s ".tmp/manifests/backend-latest-before.json" ]]; then
             cp .tmp/manifests/backend-latest-before.json .tmp/manifests/backend-latest.json
           fi
 
@@ -375,41 +915,13 @@ jobs:
           BACKEND_LATEST_DIGEST="$(registry_digest "$BACKEND_LATEST")"
           trap - ERR
 
-          RELEASE_STATE=absent
-          RELEASE_URL=''
-          if gh release view "$VERSION" --json tagName,targetCommitish,url \
-            > .tmp/release.json 2> .tmp/release.err; then
-            EXISTING_TAG="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["tagName"])')"
-            EXISTING_TARGET="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["targetCommitish"])')"
-            RELEASE_URL="$(python -c 'import json; print(json.load(open(".tmp/release.json", encoding="utf-8"))["url"])')"
-            if [[ "$EXISTING_TAG" != "$VERSION" || "$EXISTING_TARGET" != "$RELEASE_SHA" ]]; then
-              echo "Release conflict: ${VERSION} does not target ${RELEASE_SHA}" >&2
-              exit 1
-            fi
-            RELEASE_STATE=existing-identical
-          else
-            release_status=$?
-            if ! grep -Eqi 'release not found|HTTP 404|Not Found' .tmp/release.err; then
-              cat .tmp/release.err >&2
-              exit "$release_status"
-            fi
-          fi
-
-          if [[ "$RELEASE_STATE" == absent ]]; then
-            RELEASE_URL="$(gh release create "$VERSION" \
-              --target "$RELEASE_SHA" \
-              --title "$VERSION" \
-              --generate-notes)"
-          fi
-
           {
             echo '## Container release completed'
             echo
             echo "- Actor: ${GITHUB_ACTOR}"
             echo "- SHA: ${RELEASE_SHA}"
             echo "- Version: ${VERSION}"
-            echo "- Release state: ${RELEASE_STATE}"
-            echo "- Release: ${RELEASE_URL}"
+            echo "- Run attempt: ${GITHUB_RUN_ATTEMPT}"
             echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo
             echo '| Component | Version digest | Latest digest | Previous latest digest |'
@@ -418,9 +930,238 @@ jobs:
             echo "| backend | ${BACKEND_VERSION_DIGEST} | ${BACKEND_LATEST_DIGEST} | ${BACKEND_PREVIOUS_DIGEST} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify release draft and version channels before stable publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp/channel-observations
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          def query(arguments):
+              return subprocess.run(arguments, capture_output=True, text=True, check=False)
+
+          repository = os.environ["REPOSITORY"]
+          version = os.environ["VERSION"]
+          sha = os.environ["RELEASE_SHA"]
+          observations = {}
+
+          tag = query(["gh", "api", f"repos/{repository}/git/ref/tags/{version}"])
+          if tag.returncode != 0:
+              raise SystemExit("could not read back the Git tag before stable publication")
+          ref = json.loads(tag.stdout)
+          git = {"status": "present", "ref": ref.get("ref"),
+                 "object_type": ref.get("object", {}).get("type"),
+                 "object_id": ref.get("object", {}).get("sha")}
+          if git["object_type"] == "tag":
+              peeled = query(["gh", "api", f"repos/{repository}/git/tags/{git['object_id']}"])
+              if peeled.returncode != 0:
+                  raise SystemExit("could not peel the Git tag before stable publication")
+              obj = json.loads(peeled.stdout).get("object", {})
+              git["peeled_type"], git["peeled_id"] = obj.get("type"), obj.get("sha")
+          observations["git"] = git
+
+          release_result = query(["gh", "release", "view", version, "--json",
+                                  "tagName,targetCommitish,url,isDraft,isPrerelease,publishedAt"])
+          if release_result.returncode != 0:
+              raise SystemExit("release draft disappeared before stable publication")
+          release = json.loads(release_result.stdout)
+          if (release.get("tagName") != version
+                  or release.get("targetCommitish") != sha
+                  or release.get("isPrerelease") is True):
+              raise SystemExit("release identity conflicts with the verified intent")
+          release_state = "draft" if release.get("isDraft") is True else "stable"
+          if release_state == "draft":
+              observations["release"] = {"status": "missing"}
+          else:
+              observations["release"] = {"status": "present", **release}
+
+          for component in ("frontend", "backend"):
+              image = os.environ[f"{component.upper()}_IMAGE"]
+              reference = f"{image}:{version}"
+              raw = query(["docker", "buildx", "imagetools", "inspect", "--raw", reference])
+              digest = query(["docker", "buildx", "imagetools", "inspect", reference,
+                              "--format", "{{.Manifest.Digest}}"])
+              if raw.returncode != 0 or digest.returncode != 0:
+                  observations[component] = {"status": "unavailable"}
+                  continue
+              manifest = json.loads(raw.stdout)
+              labels = {}
+              for descriptor in manifest.get("manifests", []):
+                  platform_digest = descriptor.get("digest")
+                  result = query(["docker", "buildx", "imagetools", "inspect",
+                                  f"{image}@{platform_digest}",
+                                  "--format", "{{json .Image.Config.Labels}}"])
+                  if result.returncode != 0:
+                      labels = None
+                      break
+                  labels[platform_digest] = json.loads(result.stdout or "{}") or {}
+              if labels is None:
+                  observations[component] = {"status": "unavailable"}
+              else:
+                  observations[component] = {
+                      "status": "present", "reference": reference,
+                      "index_digest": digest.stdout.strip(),
+                      "manifest": manifest, "labels": labels,
+                  }
+
+          Path(".tmp/channel-observations/pre-publish.json").write_text(
+              json.dumps({"release_state": release_state, "channels": observations}),
+              encoding="utf-8")
+          Path(".tmp/channel-observations/pre-publish-observations.json").write_text(
+              json.dumps(observations), encoding="utf-8")
+          PY
+
+          set +e
+          python .github/scripts/check_release_channels.py \
+            --repository "$REPOSITORY" --version "$VERSION" --sha "$RELEASE_SHA" \
+            --observations .tmp/channel-observations/pre-publish-observations.json \
+            --proof .tmp/release-proof.json > .tmp/channel-observations/pre-publish-report.json
+          verification_status=$?
+          set -e
+          python - .tmp/channel-observations/pre-publish.json \
+            .tmp/channel-observations/pre-publish-report.json \
+            "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          state = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          report = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+          expected_release = "missing" if state["release_state"] == "draft" else "consistent"
+          for name in ("git", "frontend", "backend"):
+              if report["channels"][name]["status"] != "consistent":
+                  raise SystemExit(f"{name} channel failed pre-publication verification")
+          if report["channels"]["release"]["status"] != expected_release:
+              raise SystemExit("release state changed during pre-publication verification")
+          with open(sys.argv[3], "a", encoding="utf-8") as summary:
+              summary.write("\n## Pre-publication channel verification\n\n")
+              summary.write(f"- Git tag: {report['channels']['git']['status']}\n")
+              summary.write(f"- Release: {state['release_state']} (intent identity matched)\n")
+              summary.write(f"- Frontend: {report['channels']['frontend']['status']}\n")
+              summary.write(f"- Backend: {report['channels']['backend']['status']}\n")
+          PY
+          if [[ "$verification_status" -gt 1 ]]; then
+            echo "Pre-publication channel verification was inconclusive" >&2
+            exit 1
+          fi
+
+          if python - .tmp/channel-observations/pre-publish.json <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          raise SystemExit(0 if json.loads(Path(sys.argv[1]).read_text())["release_state"] == "draft" else 1)
+          PY
+          then
+            RELEASE_ID="$(gh api "repos/${REPOSITORY}/releases/tags/${VERSION}" --jq '.id')"
+            gh api --method PATCH "repos/${REPOSITORY}/releases/${RELEASE_ID}" \
+              -F draft=false > .tmp/release-published.json
+            RELEASE_URL="$(python -c 'import json; print(json.load(open(".tmp/release-published.json", encoding="utf-8"))["html_url"])')"
+            RELEASE_STATE=published
+          else
+            RELEASE_URL="$(python -c 'import json; print(json.load(open(".tmp/channel-observations/pre-publish.json", encoding="utf-8"))["channels"]["release"]["url"])')"
+            RELEASE_STATE=already-stable
+          fi
+          {
+            echo '## Stable release published after channel verification'
+            echo
+            echo "- Version: ${VERSION}"
+            echo "- SHA: ${RELEASE_SHA}"
+            echo "- State: ${RELEASE_STATE}"
+            echo "- Release: ${RELEASE_URL}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify all four release channels after publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          def query(arguments):
+              return subprocess.run(arguments, capture_output=True, text=True, check=False)
+
+          repository, version = os.environ["REPOSITORY"], os.environ["VERSION"]
+          observations = json.loads(Path(".tmp/channel-observations/observations.json")
+                                    .read_text(encoding="utf-8"))
+          ref_result = query(["gh", "api", f"repos/{repository}/git/ref/tags/{version}"])
+          if ref_result.returncode == 0:
+              ref = json.loads(ref_result.stdout)
+              tag = {"status": "present", "ref": ref.get("ref"),
+                     "object_type": ref.get("object", {}).get("type"),
+                     "object_id": ref.get("object", {}).get("sha")}
+              if tag["object_type"] == "tag":
+                  peeled = query(["gh", "api", f"repos/{repository}/git/tags/{tag['object_id']}"])
+                  if peeled.returncode == 0:
+                      obj = json.loads(peeled.stdout).get("object", {})
+                      tag["peeled_type"], tag["peeled_id"] = obj.get("type"), obj.get("sha")
+                  else:
+                      tag["status"] = "unavailable"
+              observations["git"] = tag
+          else:
+              text = (ref_result.stdout + ref_result.stderr).lower()
+              observations["git"] = {"status": "missing" if "404" in text or "not found" in text else "unavailable"}
+
+          release = query(["gh", "release", "view", version, "--json",
+                           "tagName,isDraft,isPrerelease,publishedAt,url"])
+          if release.returncode == 0:
+              observations["release"] = {"status": "present", **json.loads(release.stdout)}
+          else:
+              text = (release.stdout + release.stderr).lower()
+              observations["release"] = {"status": "missing" if "404" in text or "not found" in text else "unavailable"}
+
+          Path(".tmp/channel-observations/final-observations.json").write_text(
+              json.dumps(observations), encoding="utf-8")
+          PY
+
+          set +e
+          python .github/scripts/check_release_channels.py \
+            --repository "$REPOSITORY" --version "$VERSION" --sha "$RELEASE_SHA" \
+            --observations .tmp/channel-observations/final-observations.json \
+            --proof .tmp/release-proof.json > .tmp/channel-observations/final-report.json
+          verification_status=$?
+          set -e
+          python - .tmp/channel-observations/final-report.json \
+            .tmp/release-proof.json "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          proof = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+          with open(sys.argv[3], "a", encoding="utf-8") as summary:
+              summary.write("\n## Verified release channels\n\n")
+              summary.write(f"- Intent run: {proof['run_id']} / attempt {proof.get('run_attempt', 1)}\n")
+              summary.write(f"- Current run attempt: {__import__('os').environ.get('GITHUB_RUN_ATTEMPT', '')}\n")
+              for name, channel in report["channels"].items():
+                  summary.write(f"- {name}: {channel['status']} ({channel['reason']})\n")
+          PY
+          if (( verification_status != 0 )); then
+            echo "Release channel verification failed or was inconclusive; see the per-channel report above" >&2
+            exit 1
+          fi
+
   build:
     needs: prepare
-    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true' && needs.prepare.outputs.proof-available != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -519,7 +1260,7 @@ jobs:
     needs:
       - prepare
       - build
-    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true' && needs.prepare.outputs.proof-available != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -635,7 +1376,7 @@ jobs:
     needs:
       - prepare
       - scan
-    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true'
+    if: needs.prepare.outputs.release == 'true' && needs.prepare.outputs.reuse != 'true' && needs.prepare.outputs.proof-available != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -831,3 +1572,60 @@ jobs:
             echo "- Revision: ${{ needs.prepare.outputs.sha }}"
             echo "- Platforms: linux/amd64, linux/arm64"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Download the original release intent
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-intent-${{ github.run_attempt }}
+          path: .tmp/release-intent
+
+      - name: Build the immutable release proof
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          FRONTEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-frontend
+          BACKEND_IMAGE: ghcr.io/ifpebj-ti/lab-solos-backend
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+          FRONTEND_INDEX_DIGEST="$(docker buildx imagetools inspect \
+            "${FRONTEND_IMAGE}:${VERSION}" --format '{{.Manifest.Digest}}')"
+          BACKEND_INDEX_DIGEST="$(docker buildx imagetools inspect \
+            "${BACKEND_IMAGE}:${VERSION}" --format '{{.Manifest.Digest}}')"
+          export FRONTEND_INDEX_DIGEST BACKEND_INDEX_DIGEST
+          python - .tmp/release-intent/release-intent.json .tmp/release-proof.json <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import sys
+
+          records = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if not isinstance(records, list) or len(records) != 1:
+              raise SystemExit("release intent must contain exactly one record")
+          proof = dict(records[0])
+          images = {}
+          for component in ("frontend", "backend"):
+              manifest = json.loads(Path(f".tmp/manifests/{component}-version.json")
+                                    .read_text(encoding="utf-8"))
+              platforms = {
+                  f"{item['platform']['os']}/{item['platform']['architecture']}": item["digest"]
+                  for item in manifest.get("manifests", [])
+              }
+              if set(platforms) != {"linux/amd64", "linux/arm64"}:
+                  raise SystemExit(f"{component} proof does not contain the exact platform set")
+              images[component] = {
+                  "index_digest": os.environ[f"{component.upper()}_INDEX_DIGEST"].strip(),
+                  "platforms": platforms,
+              }
+          proof["images"] = images
+          proof["run_attempt"] = int(os.environ["GITHUB_RUN_ATTEMPT"])
+          Path(sys.argv[2]).write_text(json.dumps(proof, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Persist the release proof
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-proof-${{ github.run_attempt }}
+          path: .tmp/release-proof.json
+          if-no-files-found: error
+          retention-days: 90

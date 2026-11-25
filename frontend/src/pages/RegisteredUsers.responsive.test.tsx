@@ -7,6 +7,7 @@ import RegisteredUsers from './RegisteredUsers';
 const usersApi = vi.hoisted(() => ({
   getRegisteredUsers: vi.fn(),
   getUserById: vi.fn(),
+  updateOwnUserProfile: vi.fn(),
 }));
 const classApi = vi.hoisted(() => ({ getDependentesForApproval: vi.fn() }));
 const excel = vi.hoisted(() => ({
@@ -66,9 +67,9 @@ vi.mock('exceljs', () => ({
 vi.mock('file-saver', () => ({ default: { saveAs }, saveAs }));
 
 const users = [
-  { id: 11, nomeCompleto: 'Ana Silva', dataIngresso: '2026-09-01', nivelUsuario: 'Administrador', tipoUsuario: 'Comum', status: 'Habilitado' },
-  { id: 22, nomeCompleto: 'Bruno Souza', dataIngresso: '2026-09-02', nivelUsuario: 'Mentor', tipoUsuario: 'Academico', status: 'Desabilitado' },
-  { id: 33, nomeCompleto: 'Carla Lima', dataIngresso: '2026-09-03', nivelUsuario: 'Mentorado', tipoUsuario: 'Academico', status: 'Habilitado' },
+  { id: 11, nomeCompleto: 'Ana Silva', email: 'ana@example.com', telefone: null, dataIngresso: '2026-09-01', nivelUsuario: 'Administrador', tipoUsuario: 'Comum', status: 'Habilitado' },
+  { id: 22, nomeCompleto: 'Bruno Souza', email: 'bruno@example.com', telefone: null, dataIngresso: '2026-09-02', nivelUsuario: 'Mentor', tipoUsuario: 'Academico', status: 'Desabilitado' },
+  { id: 33, nomeCompleto: 'Carla Lima', email: 'carla@example.com', telefone: null, dataIngresso: '2026-09-03', nivelUsuario: 'Mentorado', tipoUsuario: 'Academico', status: 'Habilitado' },
 ];
 
 function renderPage() {
@@ -83,6 +84,7 @@ describe('usuarios cadastrados responsivos', () => {
     excel.writeBuffer.mockResolvedValue(new ArrayBuffer(8));
     usersApi.getRegisteredUsers.mockResolvedValue(users);
     usersApi.getUserById.mockResolvedValue({ nomeCompleto: 'Gestora', nivelUsuario: 'Administrador' });
+    usersApi.updateOwnUserProfile.mockResolvedValue(undefined);
     classApi.getDependentesForApproval.mockResolvedValue([]);
   });
 
@@ -111,6 +113,74 @@ describe('usuarios cadastrados responsivos', () => {
 
     expect(status).toHaveValue('Habilitado');
     expect(usersApi.getRegisteredUsers).toHaveBeenCalledTimes(1);
+  });
+
+  it('permite à administradora confirmar a troca de e-mail de outra conta', async () => {
+    renderPage();
+    await screen.findByText('Bruno Souza');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Alterar e-mail de Bruno Souza' })
+    );
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'A mudança exige a senha atual do administrador que está realizando a ação.'
+    );
+    expect(screen.getByLabelText('Novo e-mail')).toHaveValue('bruno@example.com');
+    expect(screen.queryByLabelText('Nome completo')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Novo e-mail'), {
+      target: { value: 'bruno.novo@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Sua senha atual (administrador)'), {
+      target: { value: 'gestora-current-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar e-mail' }));
+
+    await waitFor(() =>
+      expect(usersApi.updateOwnUserProfile).toHaveBeenCalledWith({
+        userId: 22,
+        currentName: 'Bruno Souza',
+        currentEmail: 'bruno@example.com',
+        currentPhone: null,
+        nomeCompleto: 'Bruno Souza',
+        email: 'bruno.novo@example.com',
+        telefone: null,
+        currentPassword: 'gestora-current-password',
+      })
+    );
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'E-mail atualizado. O endereço anterior ficará reservado para esta conta por 7 dias. Avisos para os dois endereços foram programados.'
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar diálogo' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Alterar e-mail de Bruno Souza' })
+    );
+    expect(screen.getByLabelText('Novo e-mail')).toHaveValue('bruno.novo@example.com');
+  });
+
+  it('preserva e mostra o e-mail vigente quando a alteração administrativa cai em carência', async () => {
+    usersApi.updateOwnUserProfile.mockRejectedValue({
+      response: { status: 409, data: { code: 'profile_update_conflict' } },
+    });
+    renderPage();
+    await screen.findByText('Bruno Souza');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Alterar e-mail de Bruno Souza' })
+    );
+    fireEvent.change(screen.getByLabelText('Novo e-mail'), {
+      target: { value: 'bruno.novo@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Sua senha atual (administrador)'), {
+      target: { value: 'gestora-current-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar e-mail' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Este e-mail não está disponível agora. Se foi usado recentemente, aguarde o prazo de carência de até 7 dias. Os dados do perfil não foram alterados.'
+    );
+    expect(screen.getByText('bruno@example.com')).toBeInTheDocument();
+    expect(screen.getByLabelText('Novo e-mail')).toHaveValue('bruno.novo@example.com');
+    expect(screen.getByLabelText('Sua senha atual (administrador)')).toHaveValue('');
   });
 
   it('mantém exportações com cinco colunas independentes das quatro colunas visuais', async () => {

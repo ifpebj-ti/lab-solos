@@ -2,6 +2,7 @@ using System.Net.Mail;
 using LabSolos_Server_DotNet8.DTOs.Email;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabSolos_Server_DotNet8.Controllers;
@@ -28,6 +29,7 @@ public class EmailController(
             "Falha esperada na entrega de e-mail.");
 
     [HttpPost("enviar")]
+    [Authorize("ApenasAdministradores")]
     public IActionResult EnviarEmail([FromQuery] string para)
     {
         try
@@ -54,18 +56,21 @@ public class EmailController(
     }
 
     [HttpPost("request-password-reset")]
+    [AllowAnonymous]
     public Task<IActionResult> RequestPasswordReset(
         [FromBody] PasswordResetRequestDTO? request,
         CancellationToken cancellationToken) =>
         RequestPasswordResetCore(request?.Email, cancellationToken);
 
     [HttpPost("solicitar-redefinicao")]
+    [AllowAnonymous]
     public Task<IActionResult> SolicitarRedefinicao(
         [FromBody] EmailDTO? request,
         CancellationToken cancellationToken) =>
         RequestPasswordResetCore(request?.Email, cancellationToken);
 
     [HttpPost("reset-password")]
+    [AllowAnonymous]
     public Task<IActionResult> ResetPassword(
         [FromBody] PasswordResetDTO? request,
         CancellationToken cancellationToken) =>
@@ -78,6 +83,7 @@ public class EmailController(
             cancellationToken);
 
     [HttpPost("redefinir-senha")]
+    [AllowAnonymous]
     public Task<IActionResult> RedefinirSenha(
         [FromBody] RedefinirSenhaDTO? request,
         CancellationToken cancellationToken) =>

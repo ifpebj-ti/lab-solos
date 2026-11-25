@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import InputText from '../../inputs/Text';
-import { formatos, grausPureza, materiais, TrueFalse } from '@/mocks/Unidades';
+import { formatos, materiais, TrueFalse } from '@/mocks/Unidades';
 import PopoverInput from '../../inputs/PopoverInput';
 import { useState } from 'react';
 import { createProduct } from '@/integration/Product';
@@ -59,7 +59,6 @@ const submitCreateVidrariaSchema = z.object({
   localizacao: z.string().optional().or(z.literal('')),
   formato: z.string().optional().or(z.literal('')),
   material: z.string().optional().or(z.literal('')),
-  altura: z.string().optional().or(z.literal('')),
   graduada: z.boolean().optional(),
 });
 
@@ -76,14 +75,12 @@ const VIDRARIA_ERROR_FIELDS = new Set<keyof CreateVidrariaFormData>([
   'localizacao',
   'formato',
   'material',
-  'altura',
   'graduada',
 ]);
 
 function FormVidrarias() {
-  const [formato, setFormato] = useState('');
+  const [categoria, setCategoria] = useState('');
   const [material, setMaterial] = useState('');
-  const [altura, setAltura] = useState('');
   const [graduada, setGraduada] = useState<boolean>(false);
 
   const {
@@ -97,6 +94,13 @@ function FormVidrarias() {
   } = useForm<CreateVidrariaFormData>({
     resolver: zodResolver(submitCreateVidrariaSchema),
   });
+
+  const resetForm = () => {
+    reset();
+    setCategoria('');
+    setMaterial('');
+    setGraduada(false);
+  };
 
   async function onSubmit(data: CreateVidrariaFormData) {
     clearErrors();
@@ -122,7 +126,6 @@ function FormVidrarias() {
         grupo: '',
         material: data.material || undefined,
         formato: data.formato || undefined,
-        altura: data.altura || undefined,
         capacidade: data.capacidade,
         graduada: data.graduada,
       };
@@ -132,11 +135,7 @@ function FormVidrarias() {
         title: 'Produto criado',
         description: 'Verifique o estoque para validação...',
       });
-      reset();
-      setFormato('');
-      setMaterial('');
-      setAltura('');
-      setGraduada(false);
+      resetForm();
     } catch (error) {
       const presentation = notifyError(error, OPERATION_IDS.createProduct);
       applyRecognizedFieldErrors(
@@ -147,14 +146,6 @@ function FormVidrarias() {
     }
   }
 
-  const resetForm = () => {
-    reset();
-    setFormato('');
-    setMaterial('');
-    setAltura('');
-    setGraduada(false);
-  };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -163,7 +154,6 @@ function FormVidrarias() {
       <div className='grid w-full grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3'>
         <input type='hidden' {...register('formato')} />
         <input type='hidden' {...register('material')} />
-        <input type='hidden' {...register('altura')} />
         <InputText
           label='Nome'
           register={register}
@@ -213,12 +203,12 @@ function FormVidrarias() {
         <PopoverInput
           unidades={formatos}
           error={errors.formato?.message}
-          value={formato}
+          value={categoria}
           onChange={(value) => {
-            setFormato(value);
+            setCategoria(value);
             setValue('formato', value);
           }}
-          title='Formato'
+          title='Categoria'
         />
         <PopoverInput
           unidades={materiais}
@@ -229,16 +219,6 @@ function FormVidrarias() {
             setValue('material', value);
           }}
           title='Material'
-        />
-        <PopoverInput
-          unidades={grausPureza}
-          error={errors.altura?.message}
-          value={altura}
-          onChange={(value) => {
-            setAltura(value);
-            setValue('altura', value);
-          }}
-          title='Altura'
         />
         <PopoverInput
           unidades={TrueFalse}

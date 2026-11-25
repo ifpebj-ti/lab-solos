@@ -1,8 +1,8 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
 
 import {
   approveDependente,
@@ -27,8 +27,7 @@ const request = {
 
 describe('Users: contrato de aprovação de cadastro', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
-    Cookie.set('rankID', String(approverId));
+    establishTestSession(String(approverId), 'Mentor');
   });
 
   it('expõe a consulta de pendências com a resposta normalizada', async () => {

@@ -5,7 +5,23 @@ import {
   formatCivilDate,
   formatDate,
   formatDateTime,
+  parseCivilDateInput,
 } from './date';
+
+describe('parseCivilDateInput', () => {
+  it.each([
+    ['29/02/2000', '2000-02-29'],
+    ['05/11/2026', '2026-11-05'],
+    ['01/01/0001', '0001-01-01'],
+  ])('converte %s para o dia civil', (value, expected) => {
+    expect(parseCivilDateInput(value)).toBe(expected);
+  });
+
+  it.each(['31/02/2026', '29/02/1900', '01/01/0000', '05/11/20', '2026-11-05', ''])(
+    'recusa a digitação inválida ou incompleta %s',
+    (value) => expect(parseCivilDateInput(value)).toBeUndefined()
+  );
+});
 
 describe('formatadores de instante existentes', () => {
   it('preserva a formatacao de data de outros dominios', () => {
@@ -23,6 +39,7 @@ describe('formatCivilDate', () => {
   it.each([
     ['2024-02-29', '29/02/2024'],
     ['2026-08-31', '31/08/2026'],
+    ['2026-11-05', '05/11/2026'],
   ])('formata %s sem converter para instante', (value, expected) => {
     expect(formatCivilDate(value)).toBe(expected);
   });

@@ -34,6 +34,9 @@ vi.mock('@/components/ui/select', () => ({
       <button type='button' onClick={() => onValueChange('mentor')}>
         Selecionar Mentor
       </button>
+      <button type='button' onClick={() => onValueChange('mentorado')}>
+        Selecionar Mentorado
+      </button>
       {children}
     </div>
   ),
@@ -58,9 +61,16 @@ function renderCreateAccount() {
 }
 
 function fillValidForm({
+  type = 'mentor',
+  responsibleEmail = '',
   cidade = '  Belo Jardim  ',
   curso = '  ES  ',
-}: { cidade?: string; curso?: string } = {}) {
+}: { type?: 'mentor' | 'mentorado'; responsibleEmail?: string; cidade?: string; curso?: string } = {}) {
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: type === 'mentor' ? /selecionar mentor$/i : /selecionar mentorado/i,
+    })
+  );
   const password = document.querySelector<HTMLInputElement>(
     'input[name="senha"]'
   );
@@ -96,11 +106,12 @@ function fillValidForm({
   fireEvent.change(screen.getByRole('textbox', { name: /telefone/i }), {
     target: { value: '81999999999' },
   });
-  fireEvent.change(
-    screen.getByRole('textbox', { name: /email do mentor responsável/i }),
-    { target: { value: 'mentor@example.com' } }
-  );
-  fireEvent.click(screen.getByRole('button', { name: /selecionar mentor/i }));
+  if (type === 'mentorado' && responsibleEmail) {
+    const responsible = screen.getByRole('textbox', {
+      name: /email do .*responsável/i,
+    });
+    fireEvent.change(responsible, { target: { value: responsibleEmail } });
+  }
 }
 
 describe('CreateAccount', () => {
@@ -260,5 +271,98 @@ describe('CreateAccount', () => {
 
     expect(await screen.findByText(/As senhas n.o coincidem/i)).toBeVisible();
     expect(createMentor).not.toHaveBeenCalled();
+  });
+
+  it('não solicita responsável para Mentor e envia o papel escolhido', async () => {
+    vi.mocked(createMentor).mockResolvedValue({ status: 201 } as never);
+    renderCreateAccount();
+    fillValidForm();
+
+    expect(
+      screen.queryByRole('textbox', { name: /email do responsável/i })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    await waitFor(() => {
+      expect(createMentor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nivelUsuario: 'Mentor',
+          responsavelEmail: '',
+          tipoUsuario: 'Academico',
+        })
+      );
+    });
+  });
+
+  it('exige responsável para Mentorado e envia a modalidade selecionada', async () => {
+    vi.mocked(createMentor).mockResolvedValue({ status: 201 } as never);
+    renderCreateAccount();
+    fillValidForm({ type: 'mentorado' });
+
+    const responsible = screen.getByRole('textbox', {
+      name: /email do .*responsável/i,
+    });
+    expect(responsible).toBeRequired();
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+    expect(await screen.findByText('Informe o e-mail do responsável.')).toBeVisible();
+    expect(createMentor).not.toHaveBeenCalled();
+
+    fireEvent.change(responsible, { target: { value: 'mentor@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+    await waitFor(() => {
+      expect(createMentor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nivelUsuario: 'Mentorado',
+          responsavelEmail: 'mentor@example.com',
+        })
+      );
+    });
+  });
+
+  it('associa vínculo inválido ao responsável e uniformiza conflito de cadastro', async () => {
+    const responsibleError = createApplicationError({
+      category: 'validation',
+      status: 400,
+      code: 'registration_responsible_invalid',
+      message: 'Os dados informados precisam de revisão.',
+      retryable: false,
+    });
+    vi.mocked(createMentor).mockRejectedValueOnce(responsibleError);
+    renderCreateAccount();
+    fillValidForm({ type: 'mentorado', responsibleEmail: 'nao-existe@example.com' });
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    const responsible = screen.getByRole('textbox', {
+      name: /email do .*responsável/i,
+    });
+    const fieldError = await screen.findByText(
+      'Verifique o e-mail do responsável informado.',
+      { selector: '#emailMentor-error' }
+    );
+    expect(fieldError).toBeVisible();
+    expect(
+      screen.getByRole('alert', {
+        name: /N.o foi poss.vel cadastrar o usu.rio/i,
+      })
+    ).toHaveTextContent('Verifique o e-mail do responsável informado.');
+    expect(responsible).toHaveAttribute('aria-invalid', 'true');
+
+    vi.mocked(createMentor).mockRejectedValueOnce(
+      createApplicationError({
+        category: 'conflict',
+        status: 409,
+        code: 'registration_conflict',
+        message: 'O conteúdo foi alterado ou já processado.',
+        retryable: false,
+      })
+    );
+    fireEvent.change(responsible, { target: { value: 'responsavel@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    expect(
+      await screen.findByText(
+        'Não foi possível concluir o cadastro com os dados informados.'
+      )
+    ).toBeVisible();
   });
 });

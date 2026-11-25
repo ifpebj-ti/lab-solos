@@ -1,11 +1,9 @@
-import Cookie from 'js-cookie';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/services/BaseApi';
 import { getDependentesID, getLoansByClass } from './Class';
 
 vi.mock('@/services/BaseApi', () => ({ api: vi.fn() }));
-vi.mock('js-cookie', () => ({ default: { get: vi.fn() } }));
 
 const requests = [
   ['linked dependents', (id: string) => getDependentesID(id)],
@@ -30,7 +28,6 @@ const invalidIdentifiers = [
 
 describe('class request identifiers cannot change the API endpoint', () => {
   beforeEach(() => {
-    vi.mocked(Cookie.get).mockReturnValue('synthetic-token' as never);
     vi.mocked(api).mockReset();
     vi.mocked(api).mockResolvedValue({ data: [] });
   });

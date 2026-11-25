@@ -1,8 +1,10 @@
 import { ReactElement } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { clearSession, readSession } from '@/auth/session';
+import { readSession } from '@/auth/session';
 import BackLink from '@/components/global/BackLink';
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
+import { notifyError } from '@/errors/presentError';
+import { logoutSession } from '@/integration/Auth';
 
 // Tipo para ranks aceitos
 type RankType = string | number;
@@ -28,6 +30,15 @@ interface AccessDeniedProps {
 const AccessDenied = ({ pathname, role }: AccessDeniedProps) => {
   const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    try {
+      await logoutSession();
+      navigate('/', { replace: true });
+    } catch (error: unknown) {
+      notifyError(error, 'encerrar a sessão');
+    }
+  };
+
   if (!SUPPORTED_ROLES.has(role)) {
     return (
       <main>
@@ -35,10 +46,7 @@ const AccessDenied = ({ pathname, role }: AccessDeniedProps) => {
         <p>Este nível de acesso não possui um módulo disponível.</p>
         <button
           type='button'
-          onClick={() => {
-            clearSession({ discardAuthContext: true });
-            navigate('/');
-          }}
+          onClick={() => void handleLogout()}
         >
           Sair
         </button>

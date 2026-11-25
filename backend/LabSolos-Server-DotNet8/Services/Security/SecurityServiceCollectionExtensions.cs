@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Repositories;
+using LabSolos_Server_DotNet8.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -52,10 +53,16 @@ public static class SecurityServiceCollectionExtensions
         services.AddSingleton<AuthenticationProtectionTelemetry>();
         services.AddSingleton<UserResourceAccessService>();
         services.AddScoped<UserProfileUpdateService>();
+        services.AddScoped<EmailAddressReservationService>();
+        services.AddScoped<AdminContinuityGuard>();
         services.AddSingleton<CredentialTelemetry>();
         services.AddScoped<CredentialService>();
         services.AddScoped<ICredentialService>(provider => provider.GetRequiredService<CredentialService>());
         services.AddScoped<IPasswordResetService>(provider => provider.GetRequiredService<CredentialService>());
+        services.AddScoped<IPasswordChangeRateLimitService, PasswordChangeRateLimitService>();
+        services.AddScoped<OperationAdmissionPolicy>();
+        services.AddScoped<IAuditQueryPolicy, AuditQueryPolicy>();
+        services.AddScoped<NotificationQuotaPolicy>();
         services.AddAuthorization(options =>
             options.AddPolicy(
                 CredentialAuthorizationPolicies.ChangeOwnPassword,

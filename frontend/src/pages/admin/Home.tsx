@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Cookie from 'js-cookie';
 import { ArrowLeftRight, PackageSearch, Users } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -53,15 +52,6 @@ const iconForPath = (path: string) => {
     return <ArrowLeftRight className='text-green-600' size={35} />;
   }
   return <AlertIcon />;
-};
-
-const getDiagnosticMessage = (error: unknown): string | null => {
-  if (error instanceof Error && error.message) return error.message;
-  if (typeof error === 'object' && error !== null) {
-    const message = (error as { message?: unknown }).message;
-    return typeof message === 'string' && message ? message : null;
-  }
-  return null;
 };
 
 type AdminAnalysisProps = {
@@ -209,7 +199,7 @@ function AdminAnalysis({
 function Home() {
   const session = readSession();
   const role = session?.role;
-  const rankId = Cookie.get('rankID') ?? session?.userId ?? '';
+  const rankId = session?.userId ?? '';
   const shortcuts = getProfileShortcuts(role);
   const location = useLocation();
   const navigate = useNavigate();
@@ -309,18 +299,9 @@ function Home() {
     operationId: (typeof OPERATION_IDS)[keyof typeof OPERATION_IDS],
     retry: () => void
   ) => {
-    const basePresentation = presentError(error, operationId);
-    const diagnosticMessage = getDiagnosticMessage(error);
-    const presentation = diagnosticMessage
-      ? {
-          ...basePresentation,
-          description: `${diagnosticMessage} ${basePresentation.description}`,
-        }
-      : basePresentation;
-
     return (
       <ErrorFeedback
-        presentation={presentation}
+        presentation={presentError(error, operationId)}
         onRetry={retry}
         className='w-11/12'
       />

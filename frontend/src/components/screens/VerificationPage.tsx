@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
-import { getUnidadePlural } from '@/mocks/Unidades';
-import SelectInput from '@/components/global/inputs/SelectInput';
+import { formatos, getUnidadePlural, grausPureza } from '@/mocks/Unidades';
 import SearchInput from '@/components/global/inputs/SearchInput';
 import HeaderTable from '@/components/global/table/Header';
 import ItemOnly from '@/components/global/table/ItemOnly';
@@ -17,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import {
   getProductById,
   getProductHistoricoSaida,
+  type HistoricoSaidaItem,
+  type HistoricoSaidaProdutoResponse,
 } from '@/integration/Product';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,44 +39,12 @@ import {
 
 const verificationHistoryColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data', weight: 15 },
-  { key: 'user', label: 'Utilizador', weight: 25 },
-  { key: 'identifier', label: 'Identificador', weight: 20 },
+  { key: 'loan', label: 'Empréstimo', weight: 12 },
+  { key: 'user', label: 'Solicitante', weight: 25 },
   { key: 'batch', label: 'Lote', weight: 15 },
   { key: 'quantity', label: 'Quantidade', weight: 12 },
   { key: 'unit', label: 'Unidade', weight: 13 },
 ];
-
-// Interfaces
-interface UsuarioEmprestimo {
-  id: number;
-  nome: string;
-  email: string;
-  instituicao: string | null;
-}
-
-interface HistoricoSaidaItem {
-  emprestimoId: number;
-  dataEmprestimo: string;
-  dataPrevistaDevolucao: string | null;
-  dataDevolucao: string | null;
-  quantidadeEmprestada: number;
-  statusEmprestimo: string;
-  solicitante: UsuarioEmprestimo;
-  aprovador: UsuarioEmprestimo | null;
-  identificador: string;
-  lote: string | null;
-}
-
-interface HistoricoSaidaProdutoResponse {
-  produtoId: number;
-  nomeProduto: string;
-  tipoProduto: string;
-  estoqueAtual: number;
-  unidadeMedida: string;
-  historico: HistoricoSaidaItem[];
-  totalEmprestimos: number;
-  totalQuantidadeEmprestada: number;
-}
 
 interface IProduto {
   catmat: string;
@@ -84,10 +53,10 @@ interface IProduto {
   cor: number;
   odor: number;
   densidade: number;
-  pesoMolecular: number;
+  pesoMolecular?: number | null;
   grauPureza: string;
   formulaQuimica: string;
-  grupo: number;
+  grupo?: string | number;
   id: number;
   nomeProduto: string;
   fornecedor: string;
@@ -103,8 +72,8 @@ interface IProduto {
   lote: string | null;
   emprestimo: string | null;
   capacidade: string | number;
-  altura: string;
-  formato: string;
+  altura?: string | null;
+  formato?: string | null;
   graduada: string;
   material: string;
 }
@@ -123,6 +92,205 @@ type ProductInfo = {
   width: string;
 };
 
+const formatPesoMolecular = (value?: number | null) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 }).format(value)
+    : 'Não informado';
+
+const pageSettings: Record<UserType, { backRoute: string; title: string }> = {
+  admin: {
+    backRoute: '/admin/search-material',
+    title: 'Verificação - Administrador',
+  },
+  mentor: {
+    backRoute: '/mentor/search-material',
+    title: 'Verificação - Mentor',
+  },
+  mentee: {
+    backRoute: '/mentee/search-material',
+    title: 'Verificação - Mentorado',
+  },
+};
+
+function getClassification(product: IProduto) {
+  if (product.tipoProduto === 'Vidraria') {
+    return {
+      key: 'category',
+      title: 'Categoria',
+      value:
+        formatos.find((item) => item.value === product.formato)?.label ??
+        product.formato ??
+        '',
+    };
+  }
+
+  return {
+    key: 'group',
+    title: 'Grupo',
+    value: product.grupo?.toString() || 'N/A',
+  };
+}
+
+function itemInfo(product: IProduto, width: string): ProductInfo {
+  return { key: 'item', title: 'Item', value: product.nomeProduto, width };
+}
+
+function formulaInfo(product: IProduto, width: string): ProductInfo {
+  return {
+    key: 'formula',
+    title: 'Fórmula',
+    value: product.formulaQuimica,
+    width,
+  };
+}
+
+function molecularWeightInfo(product: IProduto): ProductInfo {
+  return {
+    key: 'molecular-weight',
+    title: 'Peso Molecular (g/mol)',
+    value: formatPesoMolecular(product.pesoMolecular),
+    width: '15%',
+  };
+}
+
+function statusInfo(product: IProduto, width: string): ProductInfo {
+  return {
+    key: 'status',
+    title: 'Situação',
+    value: product.status?.toString() || 'N/A',
+    width,
+  };
+}
+
+function getAdminProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  isGlassware: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '20%' : isChemical ? '25%' : '30%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '15%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+
+  result.push(
+    {
+      key: 'supplier',
+      title: isChemical ? 'Marca' : 'Fornecedor',
+      value: product.fornecedor,
+      width: showFormula ? '17%' : isChemical ? '20%' : '25%',
+    },
+    { ...classification, width: isChemical ? '13%' : '15%' },
+    statusInfo(product, showFormula ? '20%' : isChemical ? '27%' : '30%')
+  );
+
+  const height = product.altura;
+  if (isGlassware && height && height !== 'Indefinido') {
+    result.push({
+      key: 'height',
+      title: 'Altura',
+      value: grausPureza.find((item) => item.value === height)?.label ?? height,
+      width: '15%',
+    });
+  }
+  return result;
+}
+
+function getMentorProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '25%' : isChemical ? '35%' : '40%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '20%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+  result.push(
+    {
+      ...classification,
+      width: showFormula ? '20%' : isChemical ? '25%' : '30%',
+    },
+    statusInfo(product, showFormula ? '20%' : isChemical ? '25%' : '30%')
+  );
+  return result;
+}
+
+function getMenteeProductInfo(
+  product: IProduto,
+  isChemical: boolean,
+  showFormula: boolean,
+  classification: ReturnType<typeof getClassification>
+): ProductInfo[] {
+  const result = [
+    itemInfo(product, showFormula ? '30%' : isChemical ? '45%' : '50%'),
+  ];
+  if (showFormula) result.push(formulaInfo(product, '25%'));
+  if (isChemical) result.push(molecularWeightInfo(product));
+  result.push({
+    ...classification,
+    width: showFormula ? '30%' : isChemical ? '40%' : '50%',
+  });
+  return result;
+}
+
+function getProductInfo(
+  product: IProduto | undefined,
+  userType: UserType
+): ProductInfo[] {
+  if (!product) return [];
+
+  const isChemical = product.tipoProduto === 'Quimico';
+  const isGlassware = product.tipoProduto === 'Vidraria';
+  const showFormula = isChemical && Boolean(product.formulaQuimica?.trim());
+  const classification = getClassification(product);
+
+  switch (userType) {
+    case 'admin':
+      return getAdminProductInfo(
+        product,
+        isChemical,
+        isGlassware,
+        showFormula,
+        classification
+      );
+    case 'mentor':
+      return getMentorProductInfo(
+        product,
+        isChemical,
+        showFormula,
+        classification
+      );
+    case 'mentee':
+      return getMenteeProductInfo(
+        product,
+        isChemical,
+        showFormula,
+        classification
+      );
+    default:
+      return [];
+  }
+}
+
+function shouldPromptProductSelection(
+  hasValidQueryId: boolean,
+  product: IProduto | undefined,
+  loadError: unknown | null
+): boolean {
+  return !hasValidQueryId || (!product && loadError === null);
+}
+
+function shouldShowProductLoadError(
+  product: IProduto | undefined,
+  loadError: unknown | null
+): boolean {
+  return loadError !== null && !product;
+}
+
 // Configuração do gráfico
 const chartConfig = {
   desktop: {
@@ -133,7 +301,6 @@ const chartConfig = {
 
 function VerificationPage({ userType }: VerificationProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [value, setValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [productsById, setProductsById] = useState<IProduto>();
   const [historicoData, setHistoricoData] =
@@ -151,167 +318,13 @@ function VerificationPage({ userType }: VerificationProps) {
     idResolution.source === 'state' && idResolution.id !== null;
   const requestSequence = useRef(0);
   const [loadError, setLoadError] = useState<unknown | null>(null);
+  const [historyError, setHistoryError] = useState<unknown | null>(null);
 
-  // Configurações específicas por tipo de usuário
-  const getBackRoute = () => {
-    switch (userType) {
-      case 'admin':
-        return '/admin/search-material';
-      case 'mentor':
-        return '/mentor/search-material';
-      case 'mentee':
-        return '/mentee/search-material';
-      default:
-        return '/';
-    }
-  };
+  const { backRoute, title } = pageSettings[userType];
 
-  const getPageTitle = () => {
-    switch (userType) {
-      case 'admin':
-        return 'Verificação - Administrador';
-      case 'mentor':
-        return 'Verificação - Mentor';
-      case 'mentee':
-        return 'Verificação - Mentorado';
-      default:
-        return 'Verificação';
-    }
-  };
-
-  // Determina se deve mostrar o histórico detalhado (apenas admin)
-  const showHistoricoDetalhado = userType === 'admin';
-
-  // Determina se deve buscar histórico para gráfico (apenas admin)
-  const needsHistoricoForChart = userType === 'admin';
-
-  // Determina quais informações do produto mostrar baseado no tipo de usuário
-  const getProductInfo = (): ProductInfo[] => {
-    if (!productsById) return [];
-
-    // Verifica se deve mostrar fórmula (apenas para produtos químicos com valor)
-    const shouldShowFormula =
-      productsById.tipoProduto === 'Quimico' &&
-      productsById.formulaQuimica &&
-      productsById.formulaQuimica.trim() !== '';
-
-    switch (userType) {
-      case 'admin': {
-        // Admin vê todas as informações
-        const adminInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula ? '25%' : '30%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          adminInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '20%',
-          });
-        }
-
-        adminInfo.push(
-          {
-            key: 'supplier',
-            title: 'Fornecedor',
-            value: productsById.fornecedor,
-            width: shouldShowFormula ? '20%' : '25%',
-          },
-          {
-            key: 'group',
-            title: 'Grupo',
-            value: productsById.grupo?.toString() || 'N/A',
-            width: '15%',
-          },
-          {
-            key: 'status',
-            title: 'Situação',
-            value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula ? '20%' : '30%',
-          }
-        );
-
-        return adminInfo;
-      }
-
-      case 'mentor': {
-        // Mentor vê informações básicas (sem fornecedor)
-        const mentorInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula ? '30%' : '40%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          mentorInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '25%',
-          });
-        }
-
-        mentorInfo.push(
-          {
-            key: 'group',
-            title: 'Grupo',
-            value: productsById.grupo?.toString() || 'N/A',
-            width: shouldShowFormula ? '25%' : '30%',
-          },
-          {
-            key: 'status',
-            title: 'Situação',
-            value: productsById.status?.toString() || 'N/A',
-            width: shouldShowFormula ? '20%' : '30%',
-          }
-        );
-
-        return mentorInfo;
-      }
-
-      case 'mentee': {
-        // Mentee vê apenas informações essenciais
-        const menteeInfo = [
-          {
-            key: 'item',
-            title: 'Item',
-            value: productsById.nomeProduto,
-            width: shouldShowFormula ? '40%' : '50%',
-          },
-        ];
-
-        if (shouldShowFormula) {
-          menteeInfo.push({
-            key: 'formula',
-            title: 'Fórmula',
-            value: productsById.formulaQuimica,
-            width: '30%',
-          });
-        }
-
-        menteeInfo.push({
-          key: 'group',
-          title: 'Grupo',
-          value: productsById.grupo?.toString() || 'N/A',
-          width: shouldShowFormula ? '30%' : '50%',
-        });
-
-        return menteeInfo;
-      }
-
-      default:
-        return [];
-    }
-  };
+  // A API aplica o recorte permitido ao perfil autenticado.
+  const showHistoricoDetalhado = true;
+  const canEditProduct = userType === 'admin';
 
   useEffect(() => {
     if (!hasLegacyId || idResolution.id === null) return;
@@ -332,6 +345,7 @@ function VerificationPage({ userType }: VerificationProps) {
       setIsLoading(false);
       setProductsById(undefined);
       setHistoricoData(null);
+      setHistoryError(null);
       setLoadError(null);
       return;
     }
@@ -340,32 +354,33 @@ function VerificationPage({ userType }: VerificationProps) {
     setIsLoading(true);
     setProductsById(undefined);
     setHistoricoData(null);
+    setHistoryError(null);
     setLoadError(null);
     try {
       const productResponse = await getProductById({ id: idResolution.id });
       if (sequence !== requestSequence.current) return;
       setProductsById(productResponse);
 
-      // Busca histórico para admin (tabela detalhada e gráfico)
-      if (showHistoricoDetalhado || needsHistoricoForChart) {
+      try {
         const historicoResponse = await getProductHistoricoSaida({
           id: idResolution.id,
         });
         if (sequence !== requestSequence.current) return;
         setHistoricoData(historicoResponse);
         setFilteredHistorico(historicoResponse.historico);
+      } catch (error) {
+        if (sequence === requestSequence.current) {
+          setHistoryError(error);
+          setHistoricoData(null);
+          setFilteredHistorico([]);
+        }
       }
     } catch (error) {
       if (sequence === requestSequence.current) setLoadError(error);
     } finally {
       if (sequence === requestSequence.current) setIsLoading(false);
     }
-  }, [
-    hasValidQueryId,
-    idResolution.id,
-    needsHistoricoForChart,
-    showHistoricoDetalhado,
-  ]);
+  }, [hasValidQueryId, idResolution.id]);
 
   useEffect(() => {
     void fetchData();
@@ -381,24 +396,25 @@ function VerificationPage({ userType }: VerificationProps) {
     let filtered = historicoData.historico;
 
     if (searchTerm) {
-      filtered = filtered.filter(
-        (item) =>
-          item.solicitante.nome
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          item.solicitante.email
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          item.identificador.toLowerCase().includes(searchTerm.toLowerCase())
+      const query = searchTerm.trim().toLocaleLowerCase('pt-BR');
+      filtered = filtered.filter((item) =>
+        [
+          item.emprestimoId.toString(),
+          item.dataSaida,
+          format(new Date(item.dataSaida), 'dd/MM/yyyy', { locale: ptBR }),
+          item.solicitanteNome ?? '',
+          item.lote ?? '',
+          item.quantidadeEmprestada.toString(),
+          item.unidadeMedida,
+        ]
+          .join(' ')
+          .toLocaleLowerCase('pt-BR')
+          .includes(query)
       );
     }
 
-    if (value && value !== 'all') {
-      filtered = filtered.filter((item) => item.statusEmprestimo === value);
-    }
-
     setFilteredHistorico(filtered);
-  }, [searchTerm, value, historicoData]);
+  }, [searchTerm, historicoData]);
 
   // Função para recarregar dados do produto após edição
   const handleProductUpdate = async () => {
@@ -425,12 +441,12 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  if (!hasValidQueryId || (!productsById && loadError === null)) {
+  if (shouldPromptProductSelection(hasValidQueryId, productsById, loadError)) {
     return (
       <div className='flex min-h-[50vh] flex-col items-center justify-center gap-3 bg-canvas p-6 text-clt-2'>
         <p>Selecione um registro para consultar</p>
         <Link
-          to={getBackRoute()}
+          to={backRoute}
           aria-label='Voltar'
           title='Voltar'
           className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
@@ -442,7 +458,7 @@ function VerificationPage({ userType }: VerificationProps) {
     );
   }
 
-  if (loadError !== null && !productsById) {
+  if (shouldShowProductLoadError(productsById, loadError)) {
     return (
       <div className='flex min-h-screen flex-col items-center justify-center gap-4 bg-backgroundMy p-6'>
         <ErrorFeedback
@@ -451,7 +467,7 @@ function VerificationPage({ userType }: VerificationProps) {
           onRetry={fetchData}
         />
         <Link
-          to={getBackRoute()}
+          to={backRoute}
           aria-label='Voltar'
           title='Voltar'
           className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus'
@@ -461,14 +477,6 @@ function VerificationPage({ userType }: VerificationProps) {
       </div>
     );
   }
-
-  const statusOptions = [
-    { value: 'all', label: 'Todos' },
-    { value: 'Emprestado', label: 'Emprestado' },
-    { value: 'Devolvido', label: 'Devolvido' },
-    { value: 'Atrasado', label: 'Atrasado' },
-    { value: 'Perdido', label: 'Perdido' },
-  ];
 
   // Gera dados do gráfico baseados no histórico real
   const generateChartData = () => {
@@ -481,7 +489,7 @@ function VerificationPage({ userType }: VerificationProps) {
     } = {};
 
     historicoData.historico.forEach((item) => {
-      const date = new Date(item.dataEmprestimo);
+      const date = new Date(item.dataSaida);
       const month = format(date, 'MMMM', { locale: ptBR });
       const monthNumber = date.getMonth();
 
@@ -505,7 +513,7 @@ function VerificationPage({ userType }: VerificationProps) {
   };
 
   const chartData = generateChartData();
-  const productInfo = getProductInfo();
+  const productInfo = getProductInfo(productsById, userType);
   const productInfoColumns: readonly ResponsiveColumn[] = productInfo.map(
     ({ key, title, width }) => ({
       key,
@@ -519,14 +527,14 @@ function VerificationPage({ userType }: VerificationProps) {
       <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'>
         <div className='flex items-center gap-4'>
           <Link
-            to={getBackRoute()}
+            to={backRoute}
             aria-label='Voltar'
             className='inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-borderMy transition-colors hover:bg-surface-selected focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
           >
             <ArrowLeft className='w-5 h-5 text-clt-2' />
           </Link>
           <h1 className='font-rajdhani-medium text-2xl text-clt-2 sm:text-3xl'>
-            {getPageTitle()}
+            {title}
           </h1>
         </div>
         <OpenSearch />
@@ -538,7 +546,7 @@ function VerificationPage({ userType }: VerificationProps) {
           <h2 className='text-xl font-rajdhani-medium text-clt-2'>
             Informações do Produto
           </h2>
-          {showHistoricoDetalhado && productsById && (
+          {canEditProduct && productsById && (
             <Button
               onClick={() => setIsEditModalOpen(true)}
               variant='outline'
@@ -559,7 +567,17 @@ function VerificationPage({ userType }: VerificationProps) {
         </ResponsiveTable>
       </section>
 
-      {/* Seção de Histórico - apenas para admin */}
+      {historyError !== null && (
+        <section className='mt-7 w-full max-w-6xl px-4 sm:px-6 lg:px-8'>
+          <ErrorFeedback
+            error={historyError}
+            operationId={OPERATION_IDS.productHistory}
+            onRetry={fetchData}
+          />
+        </section>
+      )}
+
+      {/* A API retorna somente o histórico autorizado ao perfil autenticado. */}
       {showHistoricoDetalhado && historicoData && (
         <>
           {/* Cards de Estatísticas */}
@@ -608,7 +626,7 @@ function VerificationPage({ userType }: VerificationProps) {
             </Card>
           </div>
 
-          {/* Gráfico de Uso - apenas para admin */}
+          {/* Gráfico calculado sobre o mesmo recorte autorizado da consulta. */}
           <div className='w-11/12 min-w-0 mt-7'>
             <Card className='min-w-0'>
               <CardHeader>
@@ -675,16 +693,6 @@ function VerificationPage({ userType }: VerificationProps) {
                 value={searchTerm}
               />
             </div>
-            <div className='w-full min-w-0 md:w-48'>
-              <label className='block text-sm font-medium text-clt-2 mb-2'>
-                Status
-              </label>
-              <SelectInput
-                options={statusOptions}
-                onValueChange={setValue}
-                value={value}
-              />
-            </div>
           </div>
 
           {/* Tabela de Histórico */}
@@ -716,16 +724,14 @@ function VerificationPage({ userType }: VerificationProps) {
                       <ItemTable
                         key={item.emprestimoId}
                         data={[
-                          format(new Date(item.dataEmprestimo), 'dd/MM/yyyy', {
+                          format(new Date(item.dataSaida), 'dd/MM/yyyy', {
                             locale: ptBR,
                           }),
-                          item.solicitante.nome,
-                          item.identificador,
-                          item.lote || 'N/A',
+                          item.emprestimoId.toString(),
+                          item.solicitanteNome || '—',
+                          item.lote || 'Sem lote',
                           item.quantidadeEmprestada.toString(),
-                          historicoData?.unidadeMedida
-                            ? historicoData.unidadeMedida
-                            : 'N/A',
+                          item.unidadeMedida,
                         ]}
                         rowIndex={index}
                       />

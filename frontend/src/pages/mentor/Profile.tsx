@@ -4,7 +4,7 @@ import FollowUpCard from '@/components/screens/FollowUp';
 import InfoContainer from '@/components/screens/InfoContainer';
 import { Link } from 'react-router-dom';
 import { getUserById } from '@/integration/Users';
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import { displayUserValue, formatCivilDate } from '@/function/date';
 import { getLoansByUserId } from '@/integration/Loans';
 import LoadingIcon from '../../../public/icons/LoadingIcon';
@@ -51,7 +51,7 @@ export interface IEmprestimo {
 function ProfileMentor() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<Academico>();
-  const id = Cookie.get('rankID')!;
+  const id = readSession()?.userId ?? '';
   const [loans, setLoans] = useState<IEmprestimo[]>([]);
   const [loadError, setLoadError] = useState<unknown>();
   const [errorOperationId, setErrorOperationId] = useState<OperationId>(

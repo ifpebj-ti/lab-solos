@@ -1,9 +1,9 @@
-import Cookie from 'js-cookie';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createApplicationError } from '@/errors/applicationError';
+import { establishTestSession } from '@/test/session';
 
 import HistoryMentoring from './HistoryMentoring';
 
@@ -32,7 +32,7 @@ const user = {
 describe('HistoryMentoring: identidade da sessão', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    Cookie.set('rankID', '91');
+    establishTestSession('91', 'Mentorado');
     usersApi.getUserById.mockResolvedValue(user);
     loansApi.getLoansByUserId.mockResolvedValue([]);
   });

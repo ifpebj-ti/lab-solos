@@ -1,9 +1,9 @@
 # Tarefas: Visibilidade e posicionamento de funcionalidades
 
-- Estado: concluído com bloqueio de infraestrutura E2E
+- Estado: concluída localmente (validação integrada T006 aprovada em 2026-11-24)
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
-- Atualizado em: 2026-09-09
+- Atualizado em: 2026-11-24
 - Issues de referência: #228 (T002), #232 (T001, T003, T004, T005); T006 valida os dois escopos
 
 ## Premissas de execução
@@ -201,9 +201,10 @@ Resultados como `/prefixo` e referências negativas de testes precisam de revis�
 
 ## T006 — Validar jornadas cruzadas no frontend compilado
 
-- Estado: bloqueada
+- Estado: concluída localmente
 - Issue: #232 (validação também cobre #228)
 - Dependências: T001, T002, T003, T004, T005
+- Investigação (2026-11-24, encerrada): a primeira execução completa não repassou `E2E_COMPOSE_PROJECT` ao processo Playwright; por isso os seeds usaram o projeto padrão `lab-solos-quality-t024` enquanto a composição ativa era `lab-solos-quality-e2e`. A carga concorrente também provocou timeouts UI. Na repetição com o projeto alinhado e `--workers=1`, os 255 testes E2E passaram, incluindo os 27 cenários focados de T006, as jornadas reais e a suíte de segurança. Não foi necessário alterar código de produção ou o helper de seed.
 - Paralela: não
 - Requisitos: RF-001, RF-002, RF-003, RNF-001, RNF-002, CA-001, CA-002, CA-003
 - Caminhos sob responsabilidade: `frontend/e2e/feature-visibility.spec.ts`
@@ -267,3 +268,6 @@ Na futura contribuição, registrar as cinco URLs retiradas e o efeito vigente d
 | 2026-09-09 | T004 | Concluída | Caracterização dos REDs parciais preservados; GREEN/REFACTOR: rotas/Register 18/18, suíte frontend 95/414, T014 responsivo 5/5, `npm run lint`, `npm run build`, `git diff --check`; `test:e2e:list` descobriu 167 testes | Issue #232 permanece In Progress por abranger T005/T006; Docker E2E bloqueado por daemon indisponível; cinco URLs administrativas ainda não incluem `/boot` e `/pre` até T005; `tasks.md` não editado pelo agente |
 | 2026-09-09 | T005 | Concluída | RED: 8 casos demonstraram montagem de `/boot` e `/pre`; GREEN/REFACTOR: matriz dos cinco destinos, 39/39 testes direcionados, suíte frontend 95/418, `npm run lint`, `npm run build`, `git diff --check`; busca sem consumidores produtivos | Issue #232 permanece In Progress até T006; imagens públicas e demais consumidores de `clearSession` preservados; `tasks.md` não editado pelo agente |
 | 2026-09-09 | T006 | Bloqueada | Spec criado e validado: 24/24 cenários próprios, `test:e2e:list` 191 testes/6 arquivos, Vitest 95/418, lint, build e `git diff --check` aprovados; suíte E2E geral 188 aprovados/3 falhas existentes dependentes da API; .NET 94 aprovados/26 falhas por `DockerUnavailableException` | Docker Desktop/named pipe indisponível; `docker compose up/down` não conectou; falta aprovação E2E/integração no artefato com Docker; issue #232 permanece In Progress; spec sem testes ignorados e sem manipulação do DOM |
+| 2026-11-24 | T006 | Bloqueada | `test:e2e:list`: 255 testes/21 arquivos; `feature-visibility.spec.ts` focado e na suíte: 27/27; Vitest 158 arquivos/1.021 testes; lint, build e .NET 846/846 aprovados; `git diff --check` aprovado | Suíte E2E completa: 160 passaram, 88 falharam e 7 não rodaram. Falhas em preparação de cenários (`seedE2eScenario`) e em jornadas responsivas/API/security fora do arquivo da tarefa. Compose desmontado sem remover volumes; nenhuma alteração de código ou ação remota nesta retomada. |
+| 2026-11-24 | T006 | em andamento | `feature-visibility.spec.ts` focado: 27/27; Vitest 1.021/1.021; lint, build, busca estática e `git diff --check` aprovados; .NET 846/846 já validado | E2E ampla: 244 passaram, 7 falharam e 4 não executaram. Seis falhas foram da stack `security` ausente em 18443. A falha restante foi diagnosticada em T008: produto de teste estava fora da primeira página de `/Produtos`; o helper será corrigido e a regressão ampla será repetida com ambas as composições. Volumes do projeto próprio preservados; sem GitHub. |
+| 2026-11-24 | T006 | Concluída localmente | `test:e2e:list`: 255 testes/21 arquivos; `feature-visibility.spec.ts`: 27/27; E2E integrada: 255/255; Vitest: 158 arquivos/1.021 testes; lint, build, busca estática, .NET 846/846 e `git diff --check` aprovados | Runner apontado a `lab-solos-quality-e2e` e execução serial; os resultados completos estão em `evidencias/T006/retomada-e2e-2026-11-24.md`. Composições próprias desmontadas sem remover volumes; redes T011 preservadas; sem GitHub. |

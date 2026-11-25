@@ -59,7 +59,13 @@ public sealed class LoginThrottleTests(PostgreSql15ContainerFixture database)
         {
             using var response = await LoginAsync(client, "unknown-login@example.invalid", "incorrect password");
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-            Assert.Equal("Credenciais inválidas.", await response.Content.ReadAsStringAsync());
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal("authentication_required", problem.RootElement.GetProperty("code").GetString());
+            Assert.Equal("Entre na sua conta para continuar.", problem.RootElement.GetProperty("title").GetString());
+            var correlationId = problem.RootElement.GetProperty("correlationId").GetString();
+            Assert.False(string.IsNullOrWhiteSpace(correlationId));
+            Assert.Equal(correlationId, Assert.Single(response.Headers.GetValues("X-Correlation-ID")));
         }
 
         using var limited = await LoginAsync(client, "unknown-login@example.invalid", Password);

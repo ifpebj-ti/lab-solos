@@ -1,0 +1,63 @@
+{
+  "alerts": [
+    {
+      "alert_status": "observed",
+      "confidence": "Low",
+      "count": 18,
+      "risk": "Informational",
+      "rule_id": "10015"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 1,
+      "risk": "Informational",
+      "rule_id": "10027"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 6,
+      "risk": "Medium",
+      "rule_id": "10055"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Low",
+      "count": 247,
+      "risk": "Low",
+      "rule_id": "10096"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 6,
+      "risk": "Informational",
+      "rule_id": "10109"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "High",
+      "count": 3,
+      "risk": "Informational",
+      "rule_id": "10111"
+    },
+    {
+      "alert_status": "observed",
+      "confidence": "Medium",
+      "count": 14,
+      "risk": "Informational",
+      "rule_id": "10112"
+    }
+  ],
+  "messages": {
+    "api_request_context": 17,
+    "api_routes": 51,
+    "body_unavailable": 18,
+    "browser": 100,
+    "frontend_routes": 66
+  },
+  "processing_seconds": 48.674,
+  "schema_version": 1,
+  "status": "inconclusive"
+}

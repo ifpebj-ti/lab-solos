@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -31,7 +32,11 @@ public sealed class CriticalAuthenticationTests(PostgreSqlContainerFixture datab
         });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal("Credenciais inválidas.", await response.Content.ReadAsStringAsync());
+        var body = await ApiProblemContractAssertions.ReadAsync(
+            response, HttpStatusCode.Unauthorized, "authentication_required");
+        using var problem = JsonDocument.Parse(body);
+        Assert.Equal("Entre na sua conta para continuar.", problem.RootElement.GetProperty("title").GetString());
+        Assert.DoesNotContain("token", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -64,7 +69,10 @@ public sealed class CriticalAuthenticationTests(PostgreSqlContainerFixture datab
         }
         else
         {
-            Assert.Equal("Credenciais inválidas.", body);
+            var normalized = await ApiProblemContractAssertions.ReadAsync(
+                response, HttpStatusCode.Unauthorized, "authentication_required");
+            using var problem = JsonDocument.Parse(normalized);
+            Assert.Equal("Entre na sua conta para continuar.", problem.RootElement.GetProperty("title").GetString());
             Assert.DoesNotContain("token", body, StringComparison.OrdinalIgnoreCase);
         }
     }

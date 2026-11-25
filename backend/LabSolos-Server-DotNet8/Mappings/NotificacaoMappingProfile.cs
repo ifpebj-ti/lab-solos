@@ -11,9 +11,18 @@ namespace LabSolos_Server_DotNet8.Mappings
             CreateMap<Notificacao, NotificacaoDTO>()
                 .ForMember(dest => dest.TipoTexto, opt => opt.MapFrom(src => src.Tipo.ToString()));
 
+            CreateMap<NotificacaoLeitura, NotificacaoDTO>()
+                .IncludeMembers(src => src.Notificacao)
+                .ForMember(dest => dest.Lida, opt => opt.MapFrom(src => src.Lida))
+                .ForMember(dest => dest.DataLeitura, opt => opt.MapFrom(src => src.DataLeitura));
+
             CreateMap<CreateNotificacaoDTO, Notificacao>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Usuario, opt => opt.Ignore())
+                .ForMember(dest => dest.AudienciaLegadaIndeterminada, opt => opt.Ignore())
+                .ForMember(dest => dest.Destinatarios, opt => opt.Ignore())
+                .ForMember(dest => dest.ExcluidaEmUtc, opt => opt.Ignore())
+                .ForMember(dest => dest.ChaveIdempotencia, opt => opt.Ignore())
                 .ForMember(dest => dest.Lida, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.DataCriacao, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.DataLeitura, opt => opt.Ignore());

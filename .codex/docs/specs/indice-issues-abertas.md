@@ -1,0 +1,59 @@
+# Índice das especificações das issues abertas
+
+Recorte do repositório `ifpebj-ti/lab-solos` em 15/11/2026. Cada uma das 37 issues abertas tem um PRD principal. O usuário dispensou o grilling para este conjunto. Progresso local atualizado em 24/11/2026.
+
+As especificações técnicas estão em rascunho. As tabelas de alternativas e as perguntas abertas de cada documento indicam quais escolhas de design aguardam confirmação e o que depende delas.
+
+Nos planos de tarefas, `bloqueada` identifica uma decisão, autorização ou dependência funcional bloqueada. O estado `pendente` indica que a tarefa pode avançar quando seus pré-requisitos de execução estiverem concluídos. Cada tarefa bloqueada registra a condição para seguir.
+
+Os 11 planos contêm 116 tarefas: 95 concluídas, 3 concluídas localmente (duas com limitações documentadas), 2 documentais, 1 concluída por substituição de escopo aprovada e 2 concluídas sob exceção explícita do usuário; 13 permanecem bloqueadas por condições externas, operacionais ou de compatibilidade e nenhuma está em andamento. A análise passiva T007 foi concluída e reconciliada com 226/226 registros; T008 e T009 foram concluídas localmente, e T011 aguarda confirmação do perfil autorizado e dos checks efetivos. Em Governança, nove tarefas seguem bloqueadas por definições ou validações externas, incluindo a disponibilidade dos modelos no GitHub e a confirmação de canal e perfil para as evidências.
+
+| PRD | Especificação técnica | Plano de tarefas | Issues |
+| --- | --- | --- | --- |
+| [Cadastro de produtos](cadastro-de-produtos/prd.md) | [Especificação](cadastro-de-produtos/techspec.md) | [Tarefas](cadastro-de-produtos/tasks.md) · 12 concluídas | [#461](https://github.com/ifpebj-ti/lab-solos/issues/461), [#462](https://github.com/ifpebj-ti/lab-solos/issues/462), [#463](https://github.com/ifpebj-ti/lab-solos/issues/463), [#464](https://github.com/ifpebj-ti/lab-solos/issues/464), [#465](https://github.com/ifpebj-ti/lab-solos/issues/465) |
+| [Listagem e alertas de produtos](listagem-e-alertas-de-produtos/prd.md) | [Especificação](listagem-e-alertas-de-produtos/techspec.md) | [Tarefas](listagem-e-alertas-de-produtos/tasks.md) · 9 concluídas | [#466](https://github.com/ifpebj-ti/lab-solos/issues/466), [#467](https://github.com/ifpebj-ti/lab-solos/issues/467) |
+| [Decisões e devoluções de empréstimos](decisoes-e-devolucoes-de-emprestimos/prd.md) | [Especificação](decisoes-e-devolucoes-de-emprestimos/techspec.md) | [Tarefas](decisoes-e-devolucoes-de-emprestimos/tasks.md) · 8 concluídas | [#468](https://github.com/ifpebj-ti/lab-solos/issues/468), [#471](https://github.com/ifpebj-ti/lab-solos/issues/471), [#472](https://github.com/ifpebj-ti/lab-solos/issues/472), [#477](https://github.com/ifpebj-ti/lab-solos/issues/477) |
+| [Integridade de produtos, lotes e histórico de saída](integridade-de-produtos-e-lotes/prd.md) | [Especificação](integridade-de-produtos-e-lotes/techspec.md) | [Tarefas](integridade-de-produtos-e-lotes/tasks.md) · 10 concluídas, 1 sob exceção explícita do usuário | [#474](https://github.com/ifpebj-ti/lab-solos/issues/474), [#476](https://github.com/ifpebj-ti/lab-solos/issues/476), [#486](https://github.com/ifpebj-ti/lab-solos/issues/486) |
+| [Segurança de contas e sessões](seguranca-de-contas-e-sessoes/prd.md) | [Especificação](seguranca-de-contas-e-sessoes/techspec.md) | [Tarefas](seguranca-de-contas-e-sessoes/tasks.md) · 13 concluídas | [#469](https://github.com/ifpebj-ti/lab-solos/issues/469), [#479](https://github.com/ifpebj-ti/lab-solos/issues/479), [#482](https://github.com/ifpebj-ti/lab-solos/issues/482), [#484](https://github.com/ifpebj-ti/lab-solos/issues/484), [#485](https://github.com/ifpebj-ti/lab-solos/issues/485) |
+| [Proteção da API e do proxy](protecao-de-api-e-proxy/prd.md) | [Especificação](protecao-de-api-e-proxy/techspec.md) | [Tarefas](protecao-de-api-e-proxy/tasks.md) · 10 concluídas | [#473](https://github.com/ifpebj-ti/lab-solos/issues/473), [#480](https://github.com/ifpebj-ti/lab-solos/issues/480), [#481](https://github.com/ifpebj-ti/lab-solos/issues/481), [#483](https://github.com/ifpebj-ti/lab-solos/issues/483) |
+| [Notificações e auditoria](notificacoes-e-auditoria/prd.md) | [Especificação](notificacoes-e-auditoria/techspec.md) | [Tarefas](notificacoes-e-auditoria/tasks.md) · 9 concluídas, 1 bloqueada | [#475](https://github.com/ifpebj-ti/lab-solos/issues/475), [#478](https://github.com/ifpebj-ti/lab-solos/issues/478) |
+| [Conciliação operacional de contas e estoque](conciliacao-operacional/prd.md) | [Especificação](conciliacao-operacional/techspec.md) | [Tarefas](conciliacao-operacional/tasks.md) · 5 concluídas, 2 documentais, 1 sob exceção explícita do usuário | [#470](https://github.com/ifpebj-ti/lab-solos/issues/470) |
+| [Cobertura e segurança na CI](cobertura-e-seguranca-na-ci/prd.md) | [Especificação](cobertura-e-seguranca-na-ci/techspec.md) | [Tarefas](cobertura-e-seguranca-na-ci/tasks.md) · 10 concluídas (3 localmente; 2 com limitações documentadas), 1 bloqueada | [#487](https://github.com/ifpebj-ti/lab-solos/issues/487), [#489](https://github.com/ifpebj-ti/lab-solos/issues/489), [#490](https://github.com/ifpebj-ti/lab-solos/issues/490), [#494](https://github.com/ifpebj-ti/lab-solos/issues/494) |
+| [Rastreabilidade de releases](rastreabilidade-de-releases/prd.md) | [Especificação](rastreabilidade-de-releases/techspec.md) | [Tarefas](rastreabilidade-de-releases/tasks.md) · 8 concluídas, 2 bloqueadas | [#488](https://github.com/ifpebj-ti/lab-solos/issues/488), [#491](https://github.com/ifpebj-ti/lab-solos/issues/491) |
+| [Governança e evidências da entrega](governanca-e-evidencias-da-entrega/prd.md) | [Especificação](governanca-e-evidencias-da-entrega/techspec.md) | [Tarefas](governanca-e-evidencias-da-entrega/tasks.md) · 4 concluídas, 1 por substituição de escopo, 9 bloqueadas | [#492](https://github.com/ifpebj-ti/lab-solos/issues/492), [#493](https://github.com/ifpebj-ti/lab-solos/issues/493), [#495](https://github.com/ifpebj-ti/lab-solos/issues/495), [#496](https://github.com/ifpebj-ti/lab-solos/issues/496), [#497](https://github.com/ifpebj-ti/lab-solos/issues/497) |
+
+## Pontos de integração
+
+- **Cadastro de produtos** define a apresentação e a entrada de datas (#461, #464). **Listagem e alertas de produtos** compartilha a regra de validade na exibição de alertas (#466).
+- **Decisões e devoluções de empréstimos** define limites de quantidade e invariantes de movimentação (#471, #472). **Integridade de produtos, lotes e histórico de saída** aplica as mesmas invariantes na manutenção de produtos e preserva as movimentações efetivas (#474, #476).
+- **Segurança de contas e sessões** define a política de acesso (#469, #484). **Proteção da API e do proxy** aplica as exceções públicas e os limites na superfície publicada (#473, #480). **Notificações e auditoria** usa essas regras e o teto de exportação (#475, #478).
+- A proteção do último administrador habilitado faz parte da #474, sob **Integridade de produtos, lotes e histórico de saída**, e deve seguir a política de papéis de **Segurança de contas e sessões**.
+- **Conciliação operacional** pode começar com inventário e revisão de evidências (#470). As decisões de saneamento devem considerar as correções de papéis, estoque e histórico, com autorização operacional própria antes da aplicação.
+- **Cobertura e segurança na CI** fornece evidências ao plano de testes da Wiki (#494). **Governança e evidências da entrega** usa as evidências da CI, das proteções de branch e das publicações sem depender de concluir a reconciliação histórica de releases.
+
+## Regressões da suíte
+
+A linha de base backend de 19/11 (746/758) e a rodada posterior (752/765) continham regressões em DTO de aprovação, catálogo paginado, fixture de sessão e classificação de rotas. As correções foram integradas; a validação mais recente registrada em 23/11 passou backend 846/846, frontend 995/995 antes da onda de e-mail, ESLint, build, Playwright de segurança 4/4, ciclo de credenciais 4/4 e visibilidade de rotas 24/24. Contas T011 passou 26 testes dirigidos e a suíte backend completa 846/846; T012 acrescentou 37 testes dirigidos aprovados, lint e build. A coleta instrumentada de Cobertura T003 repetiu 804/804 e mediu 84,92% (7.963/9.377 linhas). As correções e comandos estão registrados em Contas T005/T007/T009/T010/T011/T012, Proteção da API T004/T008/T009, Notificações T004/T005/T006/T007/T008/T009 e Cobertura T003.
+
+## Ordem inicial sugerida
+
+Priorizar a revisão operacional de contas e estoque, a política de aprovação de contas e a integridade das movimentações. Os grupos de cadastro e listagem, qualidade da CI, releases e governança podem avançar em paralelo conforme a disponibilidade de responsáveis.
+
+## Decisões que afetam mais de uma entrega
+
+O usuário autorizou registrar as recomendações sem pedir confirmação individual. O [registro local de decisões](decisoes-de-planejamento.md) complementa as aprovações explícitas abaixo. Os planos de tarefas indicam as dependências de implementação e os pré-requisitos operacionais.
+
+- **Referência de dia civil** — o usuário aprovou [`America/Sao_Paulo` como fuso institucional padrão](cadastro-de-produtos/techspec.md#alternativas-e-decisões) para Cadastro, Alertas e recálculos de validade em empréstimos.
+- **Movimentação e histórico** — regras de quantidade, prazo, consistência e [respostas dos comandos](decisoes-e-devolucoes-de-emprestimos/techspec.md#respostas-dos-comandos-de-empréstimo) aprovadas explicitamente. As escolhas locais fecham a autorização de devoluções e do histórico.
+- **Contas e operação** — [matriz de cadastro e concessão](seguranca-de-contas-e-sessoes/techspec.md#matriz-aprovada) e [contrato público](seguranca-de-contas-e-sessoes/techspec.md#contrato-público-de-cadastro-aprovado) aprovados explicitamente. A coordenação de escritas está definida. A operação depende dos responsáveis pelo ensaio e retorno da conciliação.
+- **Superfície pública e auditoria** — [política de registro e retenção](notificacoes-e-auditoria/techspec.md#política-aprovada-de-registro-e-retenção) aprovada explicitamente. As escolhas locais cobrem acesso, sessões, reclassificação, cotas, consultas e exportação.
+- **Evidências da Unidade 1** — a métrica e a política inicial estão definidas. A integração requer as regras pinadas, as evidências da captura passiva e o meio de acesso do avaliador.
+
+## Coordenação de arquivos entre planos
+
+As ondas são locais a cada plano. Para reunir tarefas de planos diferentes na mesma onda, verifique as dependências externas, os caminhos sob responsabilidade e os recursos mutáveis dos testes.
+
+- Serializar alterações em `Program.cs`, `UsuariosController.cs`, `ProdutosController.cs`, `ProdutoService.cs` e nos contratos de produto compartilhados. A tarefa proprietária de cada contrato precisa entregar o resultado antes das consumidoras.
+- Executar migrações do mesmo `AppDbContext` em sequência e gerar o próximo snapshot a partir da revisão já integrada. Separar execuções de testes que usem a mesma pilha ou as mesmas portas.
+- Serializar alterações em `frontend/playwright.config.ts` entre [Cadastro T012](cadastro-de-produtos/tasks.md), [Listagem T009](listagem-e-alertas-de-produtos/tasks.md), [Integridade T011](integridade-de-produtos-e-lotes/tasks.md), [Notificações T010](notificacoes-e-auditoria/tasks.md) e [Cobertura T007](cobertura-e-seguranca-na-ci/tasks.md).
+- Em `.github/workflows/container-ci.yml`, priorizar [Releases T007](rastreabilidade-de-releases/tasks.md) antes das integrações de [Cobertura T008 e T009](cobertura-e-seguranca-na-ci/tasks.md). Em `README.md`, priorizar [Governança T004](governanca-e-evidencias-da-entrega/tasks.md) e serializar as edições seguintes de cobertura, protótipo e backlog conforme a liberação de cada tarefa. A ordem de edição evita conflitos e não constitui dependência de produto.

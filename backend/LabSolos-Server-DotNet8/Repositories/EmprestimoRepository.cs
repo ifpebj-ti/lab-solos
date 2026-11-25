@@ -8,6 +8,9 @@ namespace LabSolos_Server_DotNet8.Repositories
     public interface IEmprestimoRepository
     {
         Task<Emprestimo?> GetByIdAsync(int id);
+        Task<int[]> GetProductIdsForDecisionAsync(int id, CancellationToken cancellationToken = default);
+        Task LockForDecisionAsync(int id, CancellationToken cancellationToken = default);
+        Task<Emprestimo?> GetForDecisionAsync(int id, CancellationToken cancellationToken = default);
         Task<IEnumerable<Emprestimo>> GetTodosEmprestimosAsync();
         Task<IEnumerable<Emprestimo>> GetEmprestimosSolicitadosUsuario(int userId);
         Task<IEnumerable<Emprestimo>> GetEmprestimosAprovadosUsuario(int userId);
@@ -29,6 +32,30 @@ namespace LabSolos_Server_DotNet8.Repositories
                     .ThenInclude(ep => ep.Produto)
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
+
+        public Task<int[]> GetProductIdsForDecisionAsync(
+            int id,
+            CancellationToken cancellationToken = default) => _context.ProdutosEmprestados
+                .AsNoTracking()
+                .Where(item => item.EmprestimoId == id)
+                .OrderBy(item => item.ProdutoId)
+                .Select(item => item.ProdutoId)
+                .ToArrayAsync(cancellationToken);
+
+        public async Task LockForDecisionAsync(int id, CancellationToken cancellationToken = default)
+        {
+            await _context.Emprestimos
+                .FromSqlInterpolated($"SELECT * FROM \"Emprestimos\" WHERE \"Id\" = {id} FOR UPDATE")
+                .LoadAsync(cancellationToken);
+        }
+
+        public Task<Emprestimo?> GetForDecisionAsync(
+            int id,
+            CancellationToken cancellationToken = default) => _context.Emprestimos
+                .Include(loan => loan.Produtos)
+                .ThenInclude(item => item.Produto)
+                .ThenInclude(product => product.Lote)
+                .FirstOrDefaultAsync(loan => loan.Id == id, cancellationToken);
 
         public async Task<IEnumerable<Emprestimo>> GetTodosEmprestimosAsync()
         {

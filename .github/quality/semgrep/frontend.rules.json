@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "id": "labon.frontend.dynamic-code",
+      "languages": ["typescript", "javascript"],
+      "severity": "ERROR",
+      "message": "Substitua a execução dinâmica de texto por operações explícitas.",
+      "metadata": {
+        "security-severity": "HIGH",
+        "confidence": "HIGH",
+        "blocking-approved": true
+      },
+      "pattern-either": [
+        { "pattern": "eval(...)" },
+        { "pattern": "new Function(...)" }
+      ]
+    }
+  ]
+}

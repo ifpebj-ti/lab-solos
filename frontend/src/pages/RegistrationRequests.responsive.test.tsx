@@ -22,6 +22,7 @@ const requests = [
     telefone: null,
     dataIngresso: '2026-09-01',
     status: 'Pendente',
+    tipoUsuario: 'Academico',
     nivelUsuario: 'Mentorado',
     cidade: 'Belo Jardim',
     curso: 'ES',
@@ -34,6 +35,7 @@ const requests = [
     telefone: null,
     dataIngresso: '2026-09-02',
     status: 'Pendente',
+    tipoUsuario: 'Academico',
     nivelUsuario: 'Mentorado',
     cidade: 'Belo Jardim',
     curso: 'ES',
@@ -78,11 +80,15 @@ describe('solicitacoes de cadastro: contratos existentes', () => {
       'Data de solicitação',
       'Nome',
       'Email',
+      'Tipo de conta',
+      'Papel efetivo',
       'Instituição',
       'Ações',
     ]);
     expect(records[0]).toHaveTextContent('Ana Silva');
     expect(records[0]).toHaveTextContent('ana@example.invalid');
+    expect(records[0]).toHaveTextContent('Acadêmico');
+    expect(records[0]).toHaveTextContent('Mentorado');
     expect(
       screen.getByRole('button', { name: 'Recusar Ana Silva' })
     ).toBeInTheDocument();

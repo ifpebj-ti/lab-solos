@@ -2,6 +2,9 @@ namespace LabSolos_Server_DotNet8.DTOs.Lotes
 {
     public class AddLoteDTO
     {
+        public string? CodigoLote { get; set; }
+        public int[]? ProdutoIds { get; set; }
+        public string? DataEntrada { get; set; }
         public required int QuantidadeLote { get; set; }
         public required string NomeProduto { get; set; }
         public string? Fornecedor { get; set; }

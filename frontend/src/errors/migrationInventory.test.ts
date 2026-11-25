@@ -42,67 +42,107 @@ const INTEGRATION_FILES = new Set([
 const readSource = (relativePath: string): string =>
   readFileSync(resolve(frontendRoot, relativePath), 'utf8');
 
+type CatchBodyScanState = {
+  depth: number;
+  quote: "'" | '"' | '`' | null;
+  escaped: boolean;
+  inLineComment: boolean;
+  inBlockComment: boolean;
+};
+
+function consumeIgnoredSyntax(
+  state: CatchBodyScanState,
+  character: string,
+  nextCharacter: string | undefined
+): number | null {
+  if (state.inLineComment) {
+    if (character === '\n') state.inLineComment = false;
+    return 0;
+  }
+  if (state.inBlockComment) {
+    if (character === '*' && nextCharacter === '/') {
+      state.inBlockComment = false;
+      return 1;
+    }
+    return 0;
+  }
+  if (state.quote) {
+    consumeQuotedCharacter(state, character);
+    return 0;
+  }
+  return beginIgnoredSyntax(state, character, nextCharacter);
+}
+
+function consumeQuotedCharacter(
+  state: CatchBodyScanState,
+  character: string
+): void {
+  if (state.escaped) {
+    state.escaped = false;
+    return;
+  }
+  if (character === '\\') {
+    state.escaped = true;
+    return;
+  }
+  if (character === state.quote) state.quote = null;
+}
+
+function beginIgnoredSyntax(
+  state: CatchBodyScanState,
+  character: string,
+  nextCharacter: string | undefined
+): number | null {
+  if (character === '/' && nextCharacter === '/') {
+    state.inLineComment = true;
+    return 0;
+  }
+  if (character === '/' && nextCharacter === '*') {
+    state.inBlockComment = true;
+    return 0;
+  }
+  if (character === "'" || character === '"' || character === '`') {
+    state.quote = character;
+    return 0;
+  }
+  return null;
+}
+
+function findCatchBodyEnd(source: string, openingBrace: number): number | null {
+  const state: CatchBodyScanState = {
+    depth: 1,
+    quote: null,
+    escaped: false,
+    inLineComment: false,
+    inBlockComment: false,
+  };
+
+  for (let index = openingBrace + 1; index < source.length; index += 1) {
+    const character = source[index];
+    const skippedCharacters = consumeIgnoredSyntax(
+      state,
+      character,
+      source[index + 1]
+    );
+    if (skippedCharacters !== null) {
+      index += skippedCharacters;
+      continue;
+    }
+    if (character === '{') state.depth += 1;
+    if (character === '}' && --state.depth === 0) return index;
+  }
+  return null;
+}
+
 const catchBodies = (source: string): string[] => {
   const bodies: string[] = [];
-
   for (const match of source.matchAll(/\bcatch\s*(?:\([^)]*\))?\s*\{/g)) {
     const openingBrace = (match.index ?? 0) + match[0].length - 1;
-    let depth = 0;
-    let quote: "'" | '"' | '`' | null = null;
-    let escaped = false;
-    let inLineComment = false;
-    let inBlockComment = false;
-
-    for (let index = openingBrace; index < source.length; index += 1) {
-      const character = source[index];
-      const nextCharacter = source[index + 1];
-
-      if (inLineComment) {
-        if (character === '\n') inLineComment = false;
-        continue;
-      }
-      if (inBlockComment) {
-        if (character === '*' && nextCharacter === '/') {
-          inBlockComment = false;
-          index += 1;
-        }
-        continue;
-      }
-      if (quote) {
-        if (escaped) {
-          escaped = false;
-        } else if (character === '\\') {
-          escaped = true;
-        } else if (character === quote) {
-          quote = null;
-        }
-        continue;
-      }
-      if (character === '/' && nextCharacter === '/') {
-        inLineComment = true;
-        index += 1;
-        continue;
-      }
-      if (character === '/' && nextCharacter === '*') {
-        inBlockComment = true;
-        index += 1;
-        continue;
-      }
-      if (character === "'" || character === '"' || character === '`') {
-        quote = character;
-        continue;
-      }
-      if (character === '{') depth += 1;
-      if (character === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          bodies.push(source.slice(openingBrace + 1, index));
-          break;
-        }
-      }
+    const closingBrace = findCatchBodyEnd(source, openingBrace);
+    if (closingBrace !== null) {
+      bodies.push(source.slice(openingBrace + 1, closingBrace));
     }
   }
-
   return bodies;
 };
 

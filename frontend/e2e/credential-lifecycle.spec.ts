@@ -3,7 +3,6 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import { scenarioData, seedE2eScenario } from './infra/e2e-data';
 
 type LoginResponse = {
-  token: string;
   requiresPasswordChange: boolean;
 };
 
@@ -55,9 +54,12 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
     return (await response.json()) as LoginResponse;
   };
 
-  const authorizedRequest = (request: APIRequestContext, token: string) =>
-    request.get(`${e2eScenario.apiUrl}/Usuarios`, {
-      headers: { Authorization: `Bearer ${token}` },
+  const sessionCookie = (cookies: Array<{ name: string; value: string }>) =>
+    cookies.find((cookie) => cookie.name === 'lab_solos_session')?.value;
+
+  const authorizedRequest = (request: APIRequestContext, cookie: string) =>
+    request.get(`${e2eScenario.apiUrl}/Auth/session`, {
+      headers: { Cookie: `lab_solos_session=${cookie}` },
     });
 
   const listMailpitMessageIds = async (
@@ -134,9 +136,7 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
 
     await submitLogin(page, 'Synthetic invalid password 2026!', 401);
     await expect(page).toHaveURL(/\/$/);
-    expect((await page.context().cookies()).map((cookie) => cookie.name)).not.toContain(
-      'doorKey'
-    );
+    expect(sessionCookie(await page.context().cookies())).toBeUndefined();
 
     const login = await submitLogin(
       page,
@@ -144,10 +144,19 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
       200
     );
     expect(login?.requiresPasswordChange).toBe(false);
+    expect(login).not.toHaveProperty('token');
     await expect(page).toHaveURL(/\/admin\/?$/);
-    expect((await page.context().cookies()).map((cookie) => cookie.name)).toContain(
-      'doorKey'
-    );
+    const browserCookies = await page.context().cookies();
+    const browserSessionCookie = sessionCookie(browserCookies);
+    expect(browserSessionCookie).toBeDefined();
+    expect(
+      browserCookies.find((cookie) => cookie.name === 'lab_solos_session')
+        ?.httpOnly
+    ).toBe(true);
+    expect(
+      browserCookies.find((cookie) => cookie.name === 'lab_solos_session')
+        ?.sameSite
+    ).toBe('Lax');
   });
 
   test('credenciais: troca de senha revoga sessão anterior pela interface', async ({
@@ -160,10 +169,13 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
       e2eScenario.administrator.password,
       200
     );
-    expect(firstSession?.token).toBeDefined();
+    expect(firstSession).not.toHaveProperty('token');
+    const firstSessionCookie = sessionCookie(await page.context().cookies());
+    expect(firstSessionCookie).toBeDefined();
     const secondSessionResponse = await request.post(
       `${e2eScenario.apiUrl}/Auth/login`,
       {
+        headers: { Origin: 'http://127.0.0.1:4173' },
         data: {
           email: e2eScenario.administrator.email,
           password: e2eScenario.administrator.password,
@@ -172,6 +184,17 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
     );
     expect(secondSessionResponse.status()).toBe(200);
     const secondSession = (await secondSessionResponse.json()) as LoginResponse;
+    expect(secondSession).not.toHaveProperty('token');
+    const secondSessionSetCookie = secondSessionResponse
+      .headersArray()
+      .find(
+        (header) =>
+          header.name.toLowerCase() === 'set-cookie' &&
+          header.value.startsWith('lab_solos_session=')
+      )?.value;
+    const secondSessionCookie = secondSessionSetCookie?.split(';', 1)[0]
+      .slice('lab_solos_session='.length);
+    expect(secondSessionCookie).toBeTruthy();
     await page.goto('/admin/settings');
     await expect(page.getByRole('heading', { name: 'Alterar senha' })).toBeVisible();
 
@@ -196,11 +219,13 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
     await page.getByRole('button', { name: 'Alterar senha' }).click();
     expect((await validChange).status()).toBe(204);
     await expect(page).toHaveURL(/\/$/);
-    expect((await authorizedRequest(request, firstSession!.token)).status()).toBe(401);
-    expect((await authorizedRequest(request, secondSession.token)).status()).toBe(401);
+    expect((await authorizedRequest(request, firstSessionCookie!)).status()).toBe(401);
+    expect((await authorizedRequest(request, secondSessionCookie!)).status()).toBe(401);
 
     const newSession = await submitLogin(page, changedPassword, 200);
     expect(newSession?.requiresPasswordChange).toBe(false);
+    expect(newSession).not.toHaveProperty('token');
+    expect(sessionCookie(await page.context().cookies())).toBeDefined();
     await expect(page).toHaveURL(/\/admin\/?$/);
   });
 
@@ -282,16 +307,29 @@ test.describe('credenciais reais — CT-001, CT-004 e CT-005', () => {
         name: /Abrir menu de E2E Administrator/i,
       })
       .click();
+    const logoutResponse = page.waitForResponse(
+      (response) =>
+        response.url() === `${e2eScenario.apiUrl}/Auth/logout` &&
+        response.request().method() === 'POST'
+    );
     await page.getByRole('menuitem', { name: 'Sair' }).click();
-    await expect(page).toHaveURL(/\/$/);
+    expect((await logoutResponse).status()).toBe(204);
+    await expect(page).toHaveURL((url) => url.pathname === '/');
 
     await page.goto('/admin/');
     await expect(page).toHaveURL(/\/$/);
     const authCookieNames = (await page.context().cookies()).map(
       (cookie) => cookie.name
     );
+    expect(authCookieNames).not.toContain('lab_solos_session');
     expect(authCookieNames).not.toContain('doorKey');
     expect(authCookieNames).not.toContain('rankID');
     expect(authCookieNames).not.toContain('level');
+    expect(
+      await page.evaluate(() => sessionStorage.getItem('auth:session-context'))
+    ).toBeNull();
+    expect(
+      await page.evaluate(() => sessionStorage.getItem('auth:csrf-token'))
+    ).toBeNull();
   });
 });

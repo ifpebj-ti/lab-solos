@@ -9,15 +9,16 @@ import Pagination from '@/components/global/table/Pagination';
 import { useCallback, useEffect, useState } from 'react';
 import { useInRouterContext, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, SquareCheck, SquareX } from 'lucide-react';
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import {
+  getAllUsersForApproval,
   getDependentesForApproval,
   rejectDependente,
 } from '@/integration/Class';
 import { approveDependente } from '../integration/Class';
 import { toast } from '@/components/hooks/use-toast';
 import { displayUserValue, formatCivilDate } from '@/function/date';
-import type { Dependente } from '@/contracts/user';
+import type { TipoUsuario } from '@/contracts/user';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
@@ -33,9 +34,19 @@ const requestColumns: readonly ResponsiveColumn[] = [
   { key: 'date', label: 'Data de solicitação', weight: 2 },
   { key: 'name', label: 'Nome', weight: 3 },
   { key: 'email', label: 'Email', weight: 2 },
+  { key: 'accountType', label: 'Tipo de conta', weight: 2 },
+  { key: 'effectiveRole', label: 'Papel efetivo', weight: 2 },
   { key: 'institution', label: 'Instituição', weight: 2 },
-  { key: 'actions', label: 'Ações', weight: 1 },
+  { key: 'actions', label: 'Ações', weight: 2 },
 ];
+
+type ApprovalRequest = Awaited<ReturnType<typeof getDependentesForApproval>>[number];
+
+const accountTypeLabels: Record<TipoUsuario, string> = {
+  Administrador: 'Administrador',
+  Academico: 'Acadêmico',
+  Comum: 'Comum',
+};
 
 type RegistrationAction = 'approve' | 'reject';
 type PendingAction = Readonly<{
@@ -61,7 +72,7 @@ const successNotifications: Record<
 };
 
 type RegistrationRequestRowProps = {
-  request: Dependente;
+  request: ApprovalRequest;
   rowIndex: number;
   pendingAction: PendingAction | null;
   onReject: () => void;
@@ -123,6 +134,12 @@ function RegistrationRequestRow({
       </ResponsiveCell>
       <ResponsiveCell columnKey='name'>{request.nomeCompleto}</ResponsiveCell>
       <ResponsiveCell columnKey='email'>{request.email}</ResponsiveCell>
+      <ResponsiveCell columnKey='accountType'>
+        {accountTypeLabels[request.tipoUsuario]}
+      </ResponsiveCell>
+      <ResponsiveCell columnKey='effectiveRole'>
+        {request.nivelUsuario}
+      </ResponsiveCell>
       <ResponsiveCell columnKey='institution'>
         {displayUserValue(request.instituicao)}
       </ResponsiveCell>
@@ -170,8 +187,10 @@ function RegistrationRequest() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const id = Cookie.get('rankID')!;
-  const [approval, setApproval] = useState<Dependente[]>([]);
+  const session = readSession();
+  const id = session?.userId ?? '';
+  const level = session?.role;
+  const [approval, setApproval] = useState<ApprovalRequest[]>([]);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null
@@ -187,14 +206,17 @@ function RegistrationRequest() {
     setLoadError(null);
 
     try {
-      const response = await getDependentesForApproval(id);
+      const response =
+        level === 'Administrador'
+          ? await getAllUsersForApproval()
+          : await getDependentesForApproval(id);
       setApproval(response);
     } catch (error) {
       setLoadError(error);
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, level]);
 
   useEffect(() => {
     void loadApproval();
@@ -272,7 +294,7 @@ function RegistrationRequest() {
 
           <div className='flex min-h-28 w-full items-stretch justify-start pt-8'>
             <FollowUpCard
-              title='Mentores'
+              title='Solicitações'
               number={approval.length}
               icon={<UserIcon />}
             />
