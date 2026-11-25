@@ -1,13 +1,13 @@
 # Tarefas — Cobertura e segurança na CI
 
-- Status: T007 passou localmente após desativar o cache apenas nas três navegações de perfil; validação remota do commit atualizado pendente. T011 aguarda CI válida; navegação humana dispensada
+- Status: T007 e T011 concluídas com evidência da CI #45553894924 no head `c74de25`; PR #501 está aberta e mergeable. A navegação humana pelo perfil de avaliação foi dispensada explicitamente pelo usuário e permanece não comprovada.
 - PRD: [Cobertura e segurança na CI](./prd.md)
 - Especificação técnica: [Cobertura e segurança na CI](./techspec.md)
 - Atualizado em: 2026-11-25
 
 Ler o PRD e a especificação técnica antes de executar cada tarefa. Os caminhos partem da raiz do repositório, inclusive o caminho relativo para a Wiki irmã. As ondas registram a ordem após a liberação dos bloqueios. Em cada onda, agendar somente tarefas com dependências concluídas e reconferir a posse de arquivos quando houver execução de outros planos.
 
-T001–T010 estão concluídas localmente. O run #45535221035 passou os seis testes do navegador, mas falhou fechado na captura porque o cenário de perfis terminou com três fontes em andamento; após aguardar fontes e ampliar a drenagem limitada, T007 passou localmente, pendente de nova CI. T011 registra as verificações e mantém a dispensa apenas da navegação humana com perfil de avaliação.
+T001–T010 estão concluídas localmente. T007 foi validada por execução integrada da CI #45553894924 no head `c74de25`: Browser security 6/6, ZAP `passed` e Caddy 329/329. T011 registra o resultado global aprovado e mantém explícita a dispensa da navegação humana com perfil de avaliação; essa atividade não foi alegada como realizada.
 
 ## Ondas de execução
 
@@ -205,7 +205,7 @@ Conferir a composição descartável, os testes existentes e os contextos Playwr
 
 ## T007 — Avaliar passivamente o tráfego já gerado pela suíte de segurança
 
-- Status: concluída localmente; revalidação integrada da PR #501 aprovada localmente — aguarda CI no novo commit
+- Status: concluída; revalidação integrada local e CI #45553894924 aprovadas
 - Issue: #490
 - Dependências: T006
 - Decisão registrada: escopo e severidade passivos usam exclusivamente a suíte local de segurança; responsabilidade de regras atribuída à função `CI quality maintainer`, sem presumir uma pessoa nominal. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
@@ -325,10 +325,10 @@ Registrar os fluxos efetivos de cobertura, Semgrep e ZAP com política, gatilhos
 
 ## T011 — Conferir a evidência de CI com o perfil de avaliação
 
-- Status: em andamento sob dispensa documental explícita do usuário para navegação humana
+- Status: concluída com dispensa explícita do usuário para navegação humana pelo perfil de avaliação
 - Issue: #494
 - Dependências: T008, T009, T010
-- Bloqueio: T008–T010 concluídas. A navegação com perfil de avaliação foi dispensada pelo usuário; T011 registra os resultados acessíveis, inclusive falhas/inconclusões, e mantém explícita a ausência de comprovação de acesso e de navegação humana. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
+- Evidência e ressalva: T008–T010 concluídas. CI #45553894924 passou no head `c74de25` e no merge commit `ba123c3`; a navegação com perfil de avaliação foi dispensada pelo usuário. O registro não afirma acesso nem navegação humana. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases) e [evidência T011](./evidencias/T011.md).
 - Paralela: não
 - Requisitos: RF-001, RF-002, RF-003, RF-004, RF-005, RNF-001, RNF-002, CA-001, CA-002, CA-003, CA-004, CA-005, CA-006
 - Caminhos sob responsabilidade: `.codex/docs/specs/cobertura-e-seguranca-na-ci/evidencias/T011.md`
@@ -339,7 +339,7 @@ Com autorização para o ambiente de validação, correlacionar execuções de a
 
 ### Critérios de conclusão
 
-- Evidências datadas cobrem aprovação, limiar por módulo, bloqueio das políticas, resultado incompleto e navegação pelo perfil aprovado. Os registros identificam SHA, execução/tentativa, link consultável e retenção.
+- Evidências datadas cobrem aprovação, limiar por módulo, bloqueio das políticas e resultado incompleto. A navegação pelo perfil aprovado só é declarada quando comprovada; se dispensada pelo usuário, registrar a ausência. Os registros identificam SHA, execução/tentativa e link consultável.
 - O relatório passivo permanece sanitizado e vinculado à execução existente da composição descartável.
 
 ### Validação documental
@@ -392,3 +392,7 @@ Na CI #45543390815, o cenário de perfis ainda encerrou com dois pedidos `Font` 
 A CI posterior no commit `dd3b3d9` encontrou também uma expectativa estática desatualizada no teste de contrato do stack. O teste agora valida os campos URL/método, reconciliação de correspondência única e resumo sanitizado por tipo; `test_security_e2e_stack.py` passou **8/8** localmente. A próxima execução remota precisa validar esse contrato e a captura CDP no mesmo SHA.
 
 O run #45546413560 no head `c9789db` passou os contratos e verificações anteriores, mas falhou ao reconciliar uma requisição binária de fonte do contexto que não estava representada na captura da página. O capturador agora usa `requestfinished` do contexto como fallback e deduplica a requisição por identidade. Política Node **55/55**, contrato do stack **9/9**, runner ZAP **21/21**, TypeScript estrito, Prettier e `git diff --check` passaram localmente. O reteste integrado passou Playwright **6/6**, ZAP `passed` em **170,971 s** e Caddy **291/291**; a nova CI deste commit ainda está pendente. Consulte a [evidência T007](./evidencias/T007.md).
+
+### Encerramento de T007/T011 pela CI #45553894924 — 25/11/2026
+
+A validação remota passou no head `c74de256a71ee9be5f43de5d6536e84447ad7902` e no merge commit testado `ba123c3b6ea873848ca5d3bb0cd5f049353e0b6b`. Browser security passou **6/6**, ZAP `passed` em **251,713 s** e Caddy conciliou **329/329** registros, sem divergências ou ambiguidades. Authentication E2E, Quality gate, cobertura, segurança, documentação, CodeQL, dependências, scans e contratos também passaram. A navegação humana pelo perfil de avaliação permanece dispensada e não é declarada como realizada. A PR #501 está aberta, direcionada a `develop`, com estado `MERGEABLE`.
