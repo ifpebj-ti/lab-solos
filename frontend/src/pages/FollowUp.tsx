@@ -11,7 +11,11 @@ import LayersIcon from '../../public/icons/LayersIcon';
 import AlertIcon from '../../public/icons/AlertIcon';
 import { useCallback, useEffect, useState } from 'react';
 import { getUnidadePlural } from '@/mocks/Unidades';
-import { getAlertProducts } from '@/integration/Product';
+import {
+  getAdminProductCatalog,
+  type AdminProductCatalogItem,
+  type ProductAlertReason,
+} from '@/integration/Product';
 import ClickableItemTable from '@/components/global/table/ItemClickable';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import BackLink from '@/components/global/BackLink';
@@ -21,19 +25,26 @@ import {
   type ResponsiveColumn,
 } from '@/components/global/table/ResponsiveTable';
 
-interface IProduto {
-  id: number;
-  nomeProduto: string;
-  tipoProduto: string;
-  fornecedor: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string | Date | null;
-  dataValidade: string | null;
-  status: string;
-  unidadeMedida: string;
-}
+type AlertFilter = 'todos' | ProductAlertReason;
+
+const uniqueProductsById = (products: AdminProductCatalogItem[]) => {
+  const productsById = new Map<number, AdminProductCatalogItem>();
+  products.forEach((product) => {
+    const existing = productsById.get(product.id);
+    if (!existing) {
+      productsById.set(product.id, product);
+      return;
+    }
+
+    productsById.set(product.id, {
+      ...existing,
+      motivosAlerta: [
+        ...new Set([...existing.motivosAlerta, ...product.motivosAlerta]),
+      ],
+    });
+  });
+  return [...productsById.values()];
+};
 
 const alertColumns: readonly ResponsiveColumn[] = [
   { key: 'name', label: 'Nome', weight: 3 },
@@ -44,10 +55,10 @@ const alertColumns: readonly ResponsiveColumn[] = [
 ];
 
 function FollowUp() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [value, setValue] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [value, setValue] = useState<AlertFilter>('todos');
   const [currentPage, setCurrentPage] = useState(1);
-  const [alert, setAlert] = useState<IProduto[] | null>(null);
+  const [products, setProducts] = useState<AdminProductCatalogItem[] | null>(null);
   const [loadError, setLoadError] = useState<unknown | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAscending, setIsAscending] = useState(true);
@@ -57,9 +68,9 @@ function FollowUp() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      setAlert(await getAlertProducts());
+      setProducts(await getAdminProductCatalog());
     } catch (error) {
-      setAlert(null);
+      setProducts(null);
       setLoadError(error);
     } finally {
       setIsLoading(false);
@@ -67,40 +78,35 @@ function FollowUp() {
   }, []);
 
   useEffect(() => {
-    const fetchGetLoansDependentes = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getAlertProducts();
-        setAlert(response);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Erro ao buscar dados de empréstimos:', error);
-        }
-        setAlert(null);
-        setLoadError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGetLoansDependentes();
-  }, []);
+    void fetchAlerts();
+  }, [fetchAlerts]);
 
   const options = [
     { value: 'todos', label: 'Todos' },
     { value: 'validade', label: 'Validade' },
-    { value: 'estoque', label: 'Estoque' },
+    { value: 'estoque_abaixo_minimo', label: 'Estoque' },
   ];
 
-  const filteredAlerts = (alert ?? []).filter((item) => {
+  const uniqueProducts = uniqueProductsById(products ?? []);
+  const alertProducts = uniqueProducts.filter(
+    (item) => item.motivosAlerta.length > 0
+  );
+  const validityAlertProducts = alertProducts.filter((item) =>
+    item.motivosAlerta.includes('validade')
+  );
+  const stockAlertProducts = alertProducts.filter((item) =>
+    item.motivosAlerta.includes('estoque_abaixo_minimo')
+  );
+  const selectedAlerts =
+    value === 'todos'
+      ? alertProducts
+      : alertProducts.filter((item) => item.motivosAlerta.includes(value));
+
+  const filteredAlerts = selectedAlerts.filter((item) => {
     const searchName = item.nomeProduto
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    const isStockAlert = item.quantidade < item.quantidadeMinima;
-    const isValidityAlert = !isStockAlert; // Todos os produtos que não são alerta de estoque são de validade
-
-    if (value === 'estoque') return searchName && isStockAlert;
-    if (value === 'validade') return searchName && isValidityAlert;
-    return searchName; // 'todos' mostra ambos
+    return searchName;
   });
 
   const sortedUsers = isAscending
@@ -148,23 +154,17 @@ function FollowUp() {
           <div className='mt-7 flex w-full max-w-6xl min-w-0 flex-wrap justify-center gap-4 px-4 sm:px-6 lg:px-8'>
             <FollowUpCard
               title='Produtos com Alertas'
-              number={(alert ?? []).length}
+              number={loadError === null ? alertProducts.length : '—'}
               icon={<AlertIcon fill='#A9A9A9' size={19} />}
             />
             <FollowUpCard
               title='Produtos com Alerta de Validade'
-              number={
-                (alert ?? []).filter((item) => item.quantidade >= item.quantidadeMinima)
-                  .length
-              }
+              number={loadError === null ? validityAlertProducts.length : '—'}
               icon={<CalendarIcon />}
             />
             <FollowUpCard
               title='Produtos com Alerta de Estoque'
-              number={
-                (alert ?? []).filter((item) => item.quantidade < item.quantidadeMinima)
-                  .length
-              }
+              number={loadError === null ? stockAlertProducts.length : '—'}
               icon={<LayersIcon />}
             />
           </div>
@@ -180,7 +180,10 @@ function FollowUp() {
                 <div className='w-full flex items-center justify-evenly'>
                   <SearchInput
                     name='search'
-                    onChange={(e) => setSearchTerm(e.target.value)} // Atualiza o estado 'searchTerm'
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     value={searchTerm}
                   />
                 </div>
@@ -189,7 +192,10 @@ function FollowUp() {
                 <div className='w-full min-w-0 lg:w-1/2 -mt-2 lg:-mt-4'>
                   <SelectInput
                     options={options}
-                    onValueChange={(value) => setValue(value)}
+                    onValueChange={(nextValue) => {
+                      setValue(nextValue as AlertFilter);
+                      setCurrentPage(1);
+                    }}
                     value={value}
                   />
                 </div>
@@ -202,15 +208,15 @@ function FollowUp() {
                 <HeaderTable />
                 <div className='w-full items-center flex flex-col justify-start min-h-72'>
                   <div className='w-full min-w-0'>
-                    {currentData.length === 0 ? (
+                    {loadError !== null ? null : currentData.length === 0 ? (
                       <div className='flex flex-col items-center justify-center flex-1 gap-3 font-inter-regular text-clt-1'>
                         <div className='text-6xl text-gray-300'>⚠️</div>
                         <p className='text-lg text-center'>
-                          {(alert ?? []).length === 0
+                          {alertProducts.length === 0
                             ? 'Nenhum alerta de produto encontrado.'
                             : 'Nenhum produto encontrado para os filtros aplicados.'}
                         </p>
-                        {(alert ?? []).length === 0 && (
+                        {alertProducts.length === 0 && (
                           <p className='text-sm text-gray-500 text-center'>
                             Os alertas aparecerão aqui quando produtos estiverem com
                             estoque baixo ou próximos do vencimento.
@@ -220,7 +226,7 @@ function FollowUp() {
                     ) : (
                       currentData.map((rowData, index) => (
                         <ClickableItemTable
-                          key={index}
+                          key={rowData.id}
                           data={[
                             rowData.nomeProduto || 'Não corresponde',
                             String(rowData.quantidade) +
@@ -250,7 +256,7 @@ function FollowUp() {
               </ResponsiveTable>
             </div>
             {/* Componente de Paginação - só aparece quando há dados */}
-            {currentData.length > 0 && (alert ?? []).length > 0 && (
+            {currentData.length > 0 && alertProducts.length > 0 && (
               <div className='mt-auto'>
                 <Pagination
                   totalItems={sortedUsers.length}

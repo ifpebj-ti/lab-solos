@@ -1,0 +1,26 @@
+T007 local integrated retest after browser-terminal reconciliation, 2026-11-25 (America/Sao_Paulo)
+compose_project=lab-solos-t007-browserterminal-20261125
+compose_subnet=172.40.240.0/24
+https_port=18443
+playwright_security=6_passed
+cdp_drain=completed; in-flight browser requests are reconciled only when one exact URL+method match exists; duplicate matches remain pending
+zap_status=passed
+processing_seconds=174.084
+messages={"api_request_context":48,"api_routes":143,"browser":282,"frontend_routes":187,"body_unavailable":0,"body_unavailable_cache_skipped":41,"cache_skipped":41,"cache_evidence_ambiguous":0,"wire_304_responses":0,"wire_304_ambiguous":0}
+access_log_reconciliation=complete
+matched_proxy_records=291
+unmatched_proxy_records=0
+unmatched_capture_requests=0
+unmatched_identity=0
+unmatched_timing=0
+unmatched_competing=0
+cache_skipped_confirmed=41
+cache_hits_confirmed=79
+blocking_high_confidence_alerts=0
+policy_tests=55_passed
+workflow_contract_tests=8_passed
+strict_typescript=passed
+prettier=passed
+git_diff_check=passed
+ci_reference=45543390815 on previous HEAD 5c34c97 still failed closed: two Font requests remained in CDP flight after the 30-second drain; the new reconciliation is pending CI validation
+local_result=passed; waiting for CI on the updated commit

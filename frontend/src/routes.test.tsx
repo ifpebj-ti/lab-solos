@@ -21,6 +21,10 @@ vi.mock('./pages/mentor/LoanCreation', () => ({
   default: () => <main>Criação de empréstimo</main>,
 }));
 
+vi.mock('./pages/FollowUp', () => ({
+  default: () => <main>Alertas administrativos</main>,
+}));
+
 vi.mock('./components/ui/layout', () => ({
   Layout: ({ children }: { children: import('react').ReactNode }) => (
     <>{children}</>
@@ -40,14 +44,16 @@ function renderPath(path: string) {
   return { fetchMock, xhrSendMock };
 }
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+const createSession = (payload: {
+  sub: string;
+  role: string;
+  password_change_required: boolean;
+}) => ({
+  userId: payload.sub,
+  role: payload.role,
+  requiresPasswordChange: payload.password_change_required,
+  csrfToken: 'test-session-proof',
+});
 
 const removedPrototypeRoutes = [
   '/admin/view-info',
@@ -86,7 +92,7 @@ describe('AppRoutes', () => {
 
   it('renders the required password-change journey only for a pending session', () => {
     startSession(
-      createToken({
+      createSession({
         sub: '42',
         role: 'Administrador',
         password_change_required: true,
@@ -117,7 +123,7 @@ describe('AppRoutes', () => {
     'falls back for an authorized synthetic session at the removed route %s',
     (path) => {
       startSession(
-        createToken({
+        createSession({
           sub: '42',
           role: 'Administrador',
           password_change_required: false,
@@ -134,7 +140,7 @@ describe('AppRoutes', () => {
 
   it('redireciona o alias protegido de histórico para a tela coletiva', () => {
     startSession(
-      createToken({
+      createSession({
         sub: '42',
         role: 'Mentor',
         password_change_required: false,
@@ -151,4 +157,49 @@ describe('AppRoutes', () => {
   it('mantém uma única declaração do layout pai de administrador', () => {
     expect(routesSource.match(/path='\/admin'/g)).toHaveLength(1);
   });
+
+  it('permite à administração navegar para Alertas', () => {
+    startSession(
+      createSession({
+        sub: '42',
+        role: 'Administrador',
+        password_change_required: false,
+      })
+    );
+
+    const { fetchMock, xhrSendMock } = renderPath('/admin/follow-up');
+
+    expect(screen.getByRole('main')).toHaveTextContent('Alertas administrativos');
+    expect(window.location.pathname).toBe('/admin/follow-up');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(xhrSendMock).not.toHaveBeenCalled();
+  });
+
+  it('encaminha a sessão ausente para o login ao navegar para Alertas', () => {
+    const { fetchMock, xhrSendMock } = renderPath('/admin/follow-up');
+
+    expect(screen.getByRole('main')).toHaveTextContent('Login route');
+    expect(screen.queryByText('Alertas administrativos')).not.toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(xhrSendMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['Mentor', 'Mentorado'])(
+    'recusa a navegação para Alertas ao perfil %s',
+    (role) => {
+      startSession(
+        createSession({ sub: '42', role, password_change_required: false })
+      );
+
+      const { fetchMock, xhrSendMock } = renderPath('/admin/follow-up');
+
+      expect(
+        screen.getByRole('heading', { name: 'Acesso negado' })
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Alertas administrativos')).not.toBeInTheDocument();
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(xhrSendMock).not.toHaveBeenCalled();
+    }
+  );
 });

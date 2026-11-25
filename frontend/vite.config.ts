@@ -1,9 +1,45 @@
 import path from 'path';
 import react from '@vitejs/plugin-react';
-import { configDefaults, defineConfig } from 'vitest/config';
+import {
+  configDefaults,
+  defineConfig,
+  type ViteUserConfig,
+} from 'vitest/config';
 import { getBuildMetadata } from './src/test/buildMetadata';
 
-export default defineConfig(async ({ mode }) => {
+// A cobertura por linha inclui fontes de produção ainda não importadas pelos
+// testes. Só saem testes, suporte de testes/build, tipos e código gerado.
+const frontendCoverageInclude = ['src/**/*.{js,jsx,ts,tsx}'];
+const frontendCoverageExclude = [
+  'src/**/*.test.{js,jsx,ts,tsx}',
+  'src/**/*.spec.{js,jsx,ts,tsx}',
+  'src/**/*.stories.{js,jsx,ts,tsx}',
+  'src/**/*.d.{ts,tsx}',
+  'src/**/*.generated.{js,jsx,ts,tsx}',
+  'src/**/generated/**',
+  'src/**/__generated__/**',
+  'src/**/__tests__/**',
+  'src/**/__mocks__/**',
+  'src/**/fixtures/**',
+  'src/**/test/**',
+  'src/**/tests/**',
+];
+
+const coverageRunId = /^\d+$/.test(process.env.GITHUB_RUN_ID ?? '')
+  ? process.env.GITHUB_RUN_ID
+  : 'local';
+const coverageRunAttempt = /^\d+$/.test(process.env.GITHUB_RUN_ATTEMPT ?? '')
+  ? process.env.GITHUB_RUN_ATTEMPT
+  : '1';
+const coverageReportsDirectory = process.env.VITEST_COVERAGE_REPORTS_DIR
+  ? path.resolve(__dirname, process.env.VITEST_COVERAGE_REPORTS_DIR)
+  : path.resolve(
+      __dirname,
+      '../.tmp/coverage/frontend',
+      `${coverageRunId}-${coverageRunAttempt}`
+    );
+
+export default defineConfig(async ({ mode }): Promise<ViteUserConfig> => {
   const { version, gitHash, buildDate } = await getBuildMetadata(
     mode,
     process.env
@@ -25,6 +61,14 @@ export default defineConfig(async ({ mode }) => {
       environment: 'jsdom',
       setupFiles: './src/test/setup.ts',
       exclude: [...configDefaults.exclude, 'e2e/**'],
+      coverage: {
+        provider: 'v8',
+        include: frontendCoverageInclude,
+        exclude: frontendCoverageExclude,
+        reportsDirectory: coverageReportsDirectory,
+        reporter: ['json-summary'],
+        clean: true,
+      },
     },
   };
 });

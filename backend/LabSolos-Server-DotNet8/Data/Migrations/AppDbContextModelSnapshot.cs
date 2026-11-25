@@ -17,10 +17,60 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.19")
+                .HasAnnotation("ProductVersion", "9.0.21")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.AuditClassificationRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AutorUsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CriadaEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Justificativa")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("LogAuditoriaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NumeroRevisao")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Origem")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<bool>("SuspeitaAnterior")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SuspeitaResultante")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogAuditoriaId", "NumeroRevisao")
+                        .IsUnique()
+                        .HasDatabaseName("UX_AuditClassificationRevisions_Log_Revision");
+
+                    b.ToTable("AuditClassificationRevisions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AuditClassificationRevisions_Origin_Actor", "(\"Origem\" = 'LegadoObservado' AND \"AutorUsuarioId\" IS NULL) OR (\"Origem\" = 'RevisaoManual' AND \"AutorUsuarioId\" > 0)");
+
+                            t.HasCheckConstraint("CK_AuditClassificationRevisions_Revision_NonNegative", "\"NumeroRevisao\" >= 0");
+                        });
+                });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.AuthenticationProtectionCapacity", b =>
                 {
@@ -71,6 +121,31 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         },
                         new
                         {
+                            Scope = "password-change:account",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "notification:manual:administrator",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "notification:automatic:service",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "audit:query:administrator",
+                            Allocated = 0
+                        },
+                        new
+                        {
+                            Scope = "audit:export:administrator",
+                            Allocated = 0
+                        },
+                        new
+                        {
                             Scope = "recovery-jobs",
                             Allocated = 0
                         });
@@ -113,6 +188,143 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                             t.HasCheckConstraint("CK_AuthenticationThrottleBuckets_KeyHash_Length", "octet_length(\"KeyHash\") = 32");
 
                             t.HasCheckConstraint("CK_AuthenticationThrottleBuckets_Window", "\"WindowEndsAt\" > \"WindowStartedAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmailAddressReservation", b =>
+                {
+                    b.Property<byte[]>("NormalizedAddressHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("OwnerUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ReservedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("NormalizedAddressHash");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_EmailAddressReservations_Expiry");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.ToTable("EmailAddressReservations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmailAddressReservations_Expiry", "\"ExpiresAt\" > \"ReservedAt\"");
+
+                            t.HasCheckConstraint("CK_EmailAddressReservations_Hash_Length", "octet_length(\"NormalizedAddressHash\") = 32");
+                        });
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmailChangeNoticeJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("DeadlineAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EncryptionKeyId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LastFailureCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("PayloadCiphertext")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("PayloadNonce")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("PayloadTag")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Recipient")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<byte[]>("RecipientKeyHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTimeOffset>("RetainUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RetainUntil")
+                        .HasDatabaseName("IX_EmailChangeNoticeJobs_Retention");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("OperationId", "Recipient")
+                        .IsUnique()
+                        .HasDatabaseName("UX_EmailChangeNoticeJobs_Operation_Recipient");
+
+                    b.HasIndex("Status", "NextAttemptAt", "DeadlineAt")
+                        .HasDatabaseName("IX_EmailChangeNoticeJobs_Pending");
+
+                    b.ToTable("EmailChangeNoticeJobs", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Attempts", "\"Attempts\" BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Deadline", "\"DeadlineAt\" > \"CreatedAt\" AND \"RetainUntil\" > \"CreatedAt\"");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Hash_Lengths", "octet_length(\"RecipientKeyHash\") = 32");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Lease_Pair", "(\"LeaseId\" IS NULL) = (\"LeaseUntil\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Nonce_Length", "octet_length(\"PayloadNonce\") = 12");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Recipient", "\"Recipient\" IN ('PreviousAddress', 'NewAddress')");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Status", "\"Status\" IN ('Pending', 'Processing', 'Delivered', 'Failed')");
+
+                            t.HasCheckConstraint("CK_EmailChangeNoticeJobs_Tag_Length", "octet_length(\"PayloadTag\") = 16");
                         });
                 });
 
@@ -167,6 +379,30 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("CategoriaDeteccao")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("CategoriaRegistro")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("CodigoEvento")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CodigoRegraDeteccao")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("DadosRequisicao")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -187,6 +423,9 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         .HasMaxLength(45)
                         .HasColumnType("character varying(45)");
 
+                    b.Property<DateTimeOffset>("ExpiraEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("MotivoSuspeita")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -198,10 +437,33 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("OrigemConfiavel")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int?>("QuantidadeObservadaDeteccao")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Recurso")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ReferenciaAtor")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Resultado")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("RevisaoClassificacao")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<bool>("Suspeita")
                         .HasColumnType("boolean");
@@ -222,13 +484,24 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("VersaoRegraDeteccao")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DataHora");
 
                     b.HasIndex("EnderecoIP");
 
+                    b.HasIndex("ExpiraEmUtc")
+                        .HasDatabaseName("IX_LogsAuditoria_ExpiraEmUtc");
+
                     b.HasIndex("NivelRisco");
+
+                    b.HasIndex("Recurso")
+                        .IsUnique()
+                        .HasDatabaseName("UX_LogsAuditoria_DevolucaoEmprestimo_Recurso")
+                        .HasFilter("\"CodigoEvento\" = 'DevolucaoEmprestimo' AND \"CategoriaRegistro\" = 'TrilhaObrigatoria'");
 
                     b.HasIndex("Suspeita");
 
@@ -238,7 +511,14 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
                     b.HasIndex("DataHora", "UsuarioId", "TipoAcao");
 
-                    b.ToTable("LogsAuditoria");
+                    b.ToTable("LogsAuditoria", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LogsAuditoria_ActorProvenance", "(\"OrigemConfiavel\" = 'UsuarioAutenticado' AND \"ReferenciaAtor\" LIKE 'usuario:%') OR (\"OrigemConfiavel\" = 'ProcessoAutorizado' AND \"ReferenciaAtor\" LIKE 'processo:%' AND \"UsuarioId\" IS NULL) OR (\"OrigemConfiavel\" = 'SemAtorValido' AND \"ReferenciaAtor\" IS NULL AND \"UsuarioId\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_LogsAuditoria_DetectionRuleMetadata", "(\"CodigoRegraDeteccao\" IS NULL AND \"VersaoRegraDeteccao\" IS NULL AND \"QuantidadeObservadaDeteccao\" IS NULL) OR (\"CodigoRegraDeteccao\" IS NOT NULL AND length(btrim(\"CodigoRegraDeteccao\")) > 0 AND \"VersaoRegraDeteccao\" > 0 AND \"QuantidadeObservadaDeteccao\" > 0 AND \"CategoriaDeteccao\" = 'AtividadeSuspeita')");
+
+                            t.HasCheckConstraint("CK_LogsAuditoria_Expiry", "\"ExpiraEmUtc\" > \"DataHora\"");
+                        });
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Lote", b =>
@@ -252,6 +532,11 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Property<string>("CodigoLote")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("CodigoNormalizado")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasComputedColumnSql("lower(btrim(\"CodigoLote\"))", true);
 
                     b.Property<DateTime?>("DataEntrada")
                         .HasColumnType("timestamp with time zone");
@@ -267,7 +552,63 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Lotes");
+                    b.HasIndex("CodigoNormalizado")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Lotes_CodigoNormalizado");
+
+                    b.ToTable("Lotes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Lotes_Codigo_NotBlank", "length(btrim(\"CodigoLote\")) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.MovimentacaoEstoque", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AtorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EmprestimoId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Instante")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LoteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtorId");
+
+                    b.HasIndex("LoteId");
+
+                    b.HasIndex("ProdutoId");
+
+                    b.HasIndex("EmprestimoId", "ProdutoId", "Tipo")
+                        .IsUnique()
+                        .HasDatabaseName("UX_MovimentacoesEstoque_Emprestimo_Produto_Tipo");
+
+                    b.ToTable("MovimentacoesEstoque", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MovimentacoesEstoque_Quantidade_Positive", "\"Quantidade\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Notificacao", b =>
@@ -278,10 +619,22 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AudienciaLegadaIndeterminada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ChaveIdempotencia")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DataLeitura")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExcluidaEmUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("Lida")
@@ -312,6 +665,11 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChaveIdempotencia")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Notificacoes_ChaveIdempotencia")
+                        .HasFilter("\"ChaveIdempotencia\" IS NOT NULL");
+
                     b.HasIndex("DataCriacao");
 
                     b.HasIndex("Lida");
@@ -319,6 +677,31 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Notificacoes");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.NotificacaoLeitura", b =>
+                {
+                    b.Property<int>("NotificacaoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DataLeitura")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Lida")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("NotificacaoId", "UsuarioId");
+
+                    b.HasIndex("UsuarioId", "Lida", "NotificacaoId")
+                        .HasDatabaseName("IX_NotificacoesLeituras_Usuario_Lida_Notificacao");
+
+                    b.ToTable("NotificacoesLeituras", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NotificacoesLeituras_UserId_Positive", "\"UsuarioId\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.PasswordRecoveryJob", b =>
@@ -433,6 +816,11 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Property<DateTime?>("DataValidade")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("Desativado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Fornecedor")
                         .HasColumnType("text");
 
@@ -491,6 +879,73 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.HasIndex("ProdutoId");
 
                     b.ToTable("ProdutosEmprestados");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.SessaoAutenticacao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CriadaEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiraEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IdentificadorHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("JwtIdHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("Revisao")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("RevogadaEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UltimaAtividadeEmUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("VersaoSessao")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdentificadorHash")
+                        .IsUnique()
+                        .HasDatabaseName("UX_SessoesAutenticacao_IdentifierHash");
+
+                    b.HasIndex("JwtIdHash")
+                        .IsUnique()
+                        .HasDatabaseName("UX_SessoesAutenticacao_JwtIdHash")
+                        .HasFilter("\"JwtIdHash\" IS NOT NULL");
+
+                    b.HasIndex("UsuarioId", "ExpiraEmUtc")
+                        .HasDatabaseName("IX_SessoesAutenticacao_User_Expiry");
+
+                    b.ToTable("SessoesAutenticacao", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_Activity", "\"UltimaAtividadeEmUtc\" >= \"CriadaEmUtc\"");
+
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_Expiry", "\"ExpiraEmUtc\" > \"CriadaEmUtc\"");
+
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_IdentifierHash_Length", "octet_length(\"IdentificadorHash\") = 64");
+
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_JwtIdHash_Length", "\"JwtIdHash\" IS NULL OR octet_length(\"JwtIdHash\") = 64");
+
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_Revision", "\"Revisao\" >= 0");
+
+                            t.HasCheckConstraint("CK_SessoesAutenticacao_SessionVersion", "\"VersaoSessao\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
@@ -641,6 +1096,37 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.HasDiscriminator().HasValue(0);
                 });
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.AuditClassificationRevision", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.LogAuditoria", "LogAuditoria")
+                        .WithMany("RevisoesClassificacao")
+                        .HasForeignKey("LogAuditoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LogAuditoria");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmailAddressReservation", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.EmailChangeNoticeJob", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Emprestimo", b =>
                 {
                     b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Aprovador")
@@ -669,6 +1155,40 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.MovimentacaoEstoque", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Ator")
+                        .WithMany()
+                        .HasForeignKey("AtorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Emprestimo", "Emprestimo")
+                        .WithMany()
+                        .HasForeignKey("EmprestimoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Lote", "Lote")
+                        .WithMany()
+                        .HasForeignKey("LoteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("ProdutoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ator");
+
+                    b.Navigation("Emprestimo");
+
+                    b.Navigation("Lote");
+
+                    b.Navigation("Produto");
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Notificacao", b =>
                 {
                     b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Usuario")
@@ -677,6 +1197,17 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.NotificacaoLeitura", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Notificacao", "Notificacao")
+                        .WithMany("Destinatarios")
+                        .HasForeignKey("NotificacaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notificacao");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.PasswordRecoveryJob", b =>
@@ -710,12 +1241,23 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.HasOne("LabSolos_Server_DotNet8.Models.Produto", "Produto")
                         .WithMany("ProdutoEmprestado")
                         .HasForeignKey("ProdutoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Emprestimo");
 
                     b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.SessaoAutenticacao", b =>
+                {
+                    b.HasOne("LabSolos_Server_DotNet8.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Usuario", b =>
@@ -733,9 +1275,19 @@ namespace LabSolos_Server_DotNet8.Data.Migrations
                     b.Navigation("Produtos");
                 });
 
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.LogAuditoria", b =>
+                {
+                    b.Navigation("RevisoesClassificacao");
+                });
+
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Lote", b =>
                 {
                     b.Navigation("Produtos");
+                });
+
+            modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Notificacao", b =>
+                {
+                    b.Navigation("Destinatarios");
                 });
 
             modelBuilder.Entity("LabSolos_Server_DotNet8.Models.Produto", b =>

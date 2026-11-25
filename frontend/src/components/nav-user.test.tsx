@@ -1,13 +1,13 @@
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import { clearSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
 import { NavUser } from './nav-user';
 import { SidebarProvider } from './ui/sidebar';
 
-vi.mock('@/auth/session', () => ({
-  clearSession: vi.fn(),
+vi.mock('@/integration/Auth', () => ({
+  logoutSession: vi.fn(),
 }));
 
 function LocationDisplay() {
@@ -40,6 +40,7 @@ function openUserMenu() {
 
 describe('NavUser', () => {
   beforeEach(() => {
+    vi.mocked(logoutSession).mockReset().mockResolvedValue(undefined);
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -78,7 +79,7 @@ describe('NavUser', () => {
     }
   );
 
-  it('mantém somente Sair para Comum e centraliza a limpeza da sessão', () => {
+  it('mantém somente Sair para Comum e revoga a sessão antes de sair', async () => {
     renderNavUser('Comum');
 
     openUserMenu();
@@ -90,7 +91,9 @@ describe('NavUser', () => {
 
     fireEvent.click(screen.getByRole('menuitem', { name: 'Sair' }));
 
-    expect(clearSession).toHaveBeenCalledOnce();
-    expect(screen.getByTestId('location')).toHaveTextContent('/');
+    await waitFor(() => {
+      expect(logoutSession).toHaveBeenCalledOnce();
+      expect(screen.getByTestId('location')).toHaveTextContent('/');
+    });
   });
 });

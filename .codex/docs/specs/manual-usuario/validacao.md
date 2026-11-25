@@ -144,7 +144,7 @@ Docker/E2E direcionado não foi repetido: T011 já registrou o ambiente Docker s
 
 ## Pendências e integridade do escopo
 
-- CA-001 permanece pendente e não foi inferido dos testes: requer T015, T016 e T017 com pessoas sem contexto prévio.
+- CA-001 não possui evidência de autonomia humana. Em 2026-11-24 o usuário autorizou dispensar T015–T017 e consolidar T018; as tarefas foram encerradas sob exceção, sem declarar sessões ou resultados não realizados.
 - CA-003 foi comprovado em T019: a Wiki recebeu o conjunto gerenciado, o `--mode check` retornou 0 em clone novo com LF preservado e as páginas/imagens responderam HTTP 200.
 - O `--external` local terminou com código 0 e não deixou resultado inconclusivo; a disponibilidade pública das imagens foi conferida após a publicação.
 - Defeitos que surgirem na fonte, no validador ou no gerador devem retornar à tarefa proprietária; T014 não corrigiu scripts de produção nem conteúdo do manual.
@@ -157,5 +157,9 @@ executar as sessões humanas de T015–T018. A fonte foi integrada em `develop` 
 commit `f615dff5af6e5a9cc931f976b2c263e7034c7d0e`; a Wiki recebeu o commit
 `d81feb51eafe7606af5a01fac7950d68c3099216` em `master`. A comparação em clone
 novo com LF preservado retornou código 0. As 7 páginas e as 9 imagens
-responderam HTTP 200. T015–T018 e CA-001 continuam pendentes; a evidência
-detalhada está em `evidencias/T019.md`.
+responderam HTTP 200. Naquela data, T015–T018 e CA-001 continuavam pendentes.
+Em 2026-11-24 o usuário dispensou as sessões e autorizou o encerramento das
+tarefas sob exceção; CA-001 continua sem comprovação humana. A evidência
+histórica de publicação está em `evidencias/T019.md`, e as dispensas estão
+registradas em `evidencias/T015.md`, `evidencias/T016.md` e
+`evidencias/T017.md`.

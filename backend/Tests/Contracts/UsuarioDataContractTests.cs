@@ -29,6 +29,20 @@ public class UsuarioDataContractTests
         "Status",
         "Telefone"
     ];
+    private static readonly string[] UserApprovalContractProperties =
+    [
+        "Cidade",
+        "Curso",
+        "DataIngresso",
+        "Email",
+        "Id",
+        "Instituicao",
+        "NivelUsuario",
+        "NomeCompleto",
+        "Status",
+        "Telefone",
+        "TipoUsuario"
+    ];
 
     public static TheoryData<Type> UserContractTypes => new()
     {
@@ -38,6 +52,7 @@ public class UsuarioDataContractTests
         typeof(ResponsavelDTO),
         typeof(DependenteDTO),
         typeof(UsuarioAcompanhamentoDTO),
+        typeof(UsuarioAprovacaoDTO),
         typeof(UsuarioDTOPatchResponse)
     };
 
@@ -57,6 +72,7 @@ public class UsuarioDataContractTests
     [InlineData(typeof(ResponsavelDTO))]
     [InlineData(typeof(DependenteDTO))]
     [InlineData(typeof(UsuarioAcompanhamentoDTO))]
+    [InlineData(typeof(UsuarioAprovacaoDTO))]
     [InlineData(typeof(UsuarioDTOPatchResponse))]
     public void DataIngresso_SerializesAsIsoCivilDateOrNull(Type dtoType)
     {
@@ -102,9 +118,10 @@ public class UsuarioDataContractTests
         var responsible = mapper.Map<ResponsavelDTO>(source);
         var dependent = mapper.Map<DependenteDTO>(source);
         var accompaniment = mapper.Map<UsuarioAcompanhamentoDTO>(source);
+        var approval = mapper.Map<UsuarioAprovacaoDTO>(source);
         var patch = mapper.Map<UsuarioDTOPatchResponse>(source);
 
-        foreach (var dto in new object[] { user, academic, responsible, dependent, accompaniment, patch })
+        foreach (var dto in new object[] { user, academic, responsible, dependent, accompaniment, approval, patch })
         {
             Assert.Equal(new DateOnly(2026, 8, 31), ReadCivilDate(dto));
             Assert.Equal(StatusUsuario.Habilitado.ToString(), ReadString(dto, "Status"));
@@ -112,6 +129,7 @@ public class UsuarioDataContractTests
         }
 
         Assert.Equal(TipoUsuario.Academico.ToString(), user.TipoUsuario);
+        Assert.Equal(TipoUsuario.Academico.ToString(), approval.TipoUsuario);
         Assert.Equal(TipoUsuario.Academico.ToString(), patch.TipoUsuario);
         Assert.Null(academic.Cidade);
         Assert.Null(responsible.Curso);
@@ -121,6 +139,10 @@ public class UsuarioDataContractTests
         Assert.Equal(source.Instituicao, accompaniment.Instituicao);
         Assert.Equal(source.Curso, accompaniment.Curso);
         Assert.Equal(source.Telefone, accompaniment.Telefone);
+        Assert.Equal(source.Email, approval.Email);
+        Assert.Equal(source.Instituicao, approval.Instituicao);
+        Assert.Equal(source.Curso, approval.Curso);
+        Assert.Equal(source.Telefone, approval.Telefone);
     }
 
     [Fact]
@@ -149,17 +171,22 @@ public class UsuarioDataContractTests
     [Fact]
     public void DependentApprovalResponseContractDoesNotExposeCredentialsOrInternalIdentity()
     {
-        var propertyNames = typeof(DependenteDTO)
-            .GetProperties()
-            .Select(property => property.Name)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var responsePropertyNames = new[] { typeof(DependenteDTO), typeof(UsuarioAprovacaoDTO) }
+            .Select(responseType => responseType
+                .GetProperties()
+                .Select(property => property.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase))
+            .ToArray();
 
-        Assert.DoesNotContain("Senha", propertyNames);
-        Assert.DoesNotContain("SenhaHash", propertyNames);
-        Assert.DoesNotContain("TokenRedefinicao", propertyNames);
-        Assert.DoesNotContain("TokenExpiracao", propertyNames);
-        Assert.DoesNotContain("ResponsavelId", propertyNames);
-        Assert.DoesNotContain("VersaoSessao", propertyNames);
+        Assert.All(responsePropertyNames, propertyNames =>
+        {
+            Assert.DoesNotContain("Senha", propertyNames);
+            Assert.DoesNotContain("SenhaHash", propertyNames);
+            Assert.DoesNotContain("TokenRedefinicao", propertyNames);
+            Assert.DoesNotContain("TokenExpiracao", propertyNames);
+            Assert.DoesNotContain("ResponsavelId", propertyNames);
+            Assert.DoesNotContain("VersaoSessao", propertyNames);
+        });
     }
 
     [Fact]
@@ -172,6 +199,18 @@ public class UsuarioDataContractTests
             .ToArray();
 
         Assert.Equal(UserAccompanimentContractProperties, propertyNames);
+    }
+
+    [Fact]
+    public void UserApprovalProjectionAddsOnlyAccountTypeToTheApprovedProfileFields()
+    {
+        var propertyNames = typeof(UsuarioAprovacaoDTO)
+            .GetProperties()
+            .Select(property => property.Name)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(UserApprovalContractProperties, propertyNames);
     }
 
     [Fact]
@@ -192,6 +231,7 @@ public class UsuarioDataContractTests
     [InlineData(typeof(ResponsavelDTO))]
     [InlineData(typeof(DependenteDTO))]
     [InlineData(typeof(UsuarioAcompanhamentoDTO))]
+    [InlineData(typeof(UsuarioAprovacaoDTO))]
     [InlineData(typeof(UsuarioDTOPatchResponse))]
     public void OpenApi_DescribesDataIngressoAsNullableDateString(Type dtoType)
     {

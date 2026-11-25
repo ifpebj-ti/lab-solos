@@ -1,6 +1,8 @@
 import { format, parseISO, isValid } from 'date-fns';
 
 const CIVIL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const CIVIL_DATE_INPUT_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+export const CIVIL_DATE_INPUT_MASK = 'dd/mm/aaaa';
 const NOT_INFORMED = 'Não informado';
 
 const isLeapYear = (year: number): boolean =>
@@ -38,6 +40,18 @@ export const isCivilDate = (value: string): boolean => {
   const day = Number(dayPart);
 
   return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(year, month);
+};
+
+export const parseCivilDateInput = (value: string): string | undefined => {
+  const match = CIVIL_DATE_INPUT_PATTERN.exec(value);
+
+  if (!match) {
+    return undefined;
+  }
+
+  const [, day, month, year] = match;
+  const civilDate = `${year}-${month}-${day}`;
+  return isCivilDate(civilDate) ? civilDate : undefined;
 };
 
 export const formatCivilDate = (

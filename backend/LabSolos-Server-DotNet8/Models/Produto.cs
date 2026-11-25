@@ -16,6 +16,7 @@ namespace LabSolos_Server_DotNet8.Models
         public DateTime? DataValidade { get; set; }
         public string? LocalizacaoProduto { get; set; }
         public required StatusProduto Status { get; set; }
+        public bool Desativado { get; set; }
         public DateTime UltimaModificacao { get; set; } // Decidir
 
         public int? LoteId { get; set; }

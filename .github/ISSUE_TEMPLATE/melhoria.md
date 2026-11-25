@@ -1,6 +1,6 @@
 ---
-name: Funcionalidade, correção ou melhoria
-about: Descrever uma entrega com contexto, escopo e critérios verificáveis.
+name: Proposta de melhoria
+about: Propor uma funcionalidade ou aprimorar um fluxo existente.
 title: ""
 labels: ""
 assignees: ""
@@ -12,10 +12,13 @@ assignees: ""
 <!-- Descreva a situação atual e o requisito ou necessidade que motivou a issue. -->
 
 ## Problema
-<!-- Explique o comportamento observado e seu impacto. Para bugs, inclua os passos para reproduzir. -->
+<!-- Explique a necessidade atual e seu impacto para quem usa ou opera o sistema. -->
+
+## Objetivo
+<!-- Indique o que a melhoria deve alcançar. -->
 
 ## Resultado esperado
-<!-- Descreva o objetivo e o comportamento observável após a entrega. -->
+<!-- Descreva o que a pessoa usuária poderá fazer ou observar após a entrega. -->
 
 ## Escopo
 <!-- Delimite o trabalho e registre o que fica fora desta entrega. -->

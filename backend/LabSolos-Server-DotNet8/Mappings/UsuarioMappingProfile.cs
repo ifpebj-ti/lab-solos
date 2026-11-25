@@ -31,7 +31,11 @@ namespace Core.DTOs.Mappings
                 .ReverseMap();
 
             // Mapeamento de AddUsuarioDTO para Usuarios
-            CreateMap<AddUsuarioDTO, Usuario>(MemberList.None);
+            CreateMap<AddUsuarioDTO, Usuario>(MemberList.None)
+                .ForMember(dest => dest.NivelUsuario, opt => opt.Ignore())
+                .ForMember(dest => dest.TipoUsuario, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.ResponsavelId, opt => opt.Ignore());
             CreateMap<AddUsuarioDTO, Administrador>(MemberList.None)
                 .IncludeBase<AddUsuarioDTO, Usuario>();
             CreateMap<AddUsuarioDTO, Academico>(MemberList.None)
@@ -78,6 +82,16 @@ namespace Core.DTOs.Mappings
                 .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()));
             CreateMap<Academico, UsuarioAcompanhamentoDTO>(MemberList.None)
                 .IncludeBase<Usuario, UsuarioAcompanhamentoDTO>()
+                .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
+                .ForMember(dest => dest.Cidade, opt => opt.MapFrom(src => src.Cidade))
+                .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));
+
+            CreateMap<Usuario, UsuarioAprovacaoDTO>(MemberList.None)
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.TipoUsuario, opt => opt.MapFrom(src => src.TipoUsuario.ToString()))
+                .ForMember(dest => dest.NivelUsuario, opt => opt.MapFrom(src => src.NivelUsuario.ToString()));
+            CreateMap<Academico, UsuarioAprovacaoDTO>(MemberList.None)
+                .IncludeBase<Usuario, UsuarioAprovacaoDTO>()
                 .ForMember(dest => dest.Instituicao, opt => opt.MapFrom(src => src.Instituicao))
                 .ForMember(dest => dest.Cidade, opt => opt.MapFrom(src => src.Cidade))
                 .ForMember(dest => dest.Curso, opt => opt.MapFrom(src => src.Curso));

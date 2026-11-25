@@ -1,10 +1,11 @@
-import Cookie from 'js-cookie';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import ViewClass from './ViewClass';
 
@@ -54,7 +55,7 @@ function useSuccessfulHandlers() {
 
 describe('ViewClass: estados de consulta', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token');
+    establishTestSession('7', 'Mentor');
     useSuccessfulHandlers();
   });
 
@@ -179,7 +180,7 @@ describe('ViewClass: estados de consulta', () => {
     expect(feedback).toHaveTextContent('Não foi possível carregar os dependentes da turma');
     expect(feedback).toHaveTextContent('Você não tem permissão para esta ação.');
     expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
-    expect(Cookie.get('doorKey')).toBe('session-token');
+    expect(readSession()?.userId).toBe('7');
     expect(window.location.pathname).toBe('/');
     expect(screen.queryByText('Nenhum usuário encontrado nesta turma.')).not.toBeInTheDocument();
   });

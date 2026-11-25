@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "owner": "CI quality maintainer",
+  "passive_only": true,
+  "send_requests": false,
+  "scope": {
+    "scheme": "https",
+    "hostname": "localhost",
+    "port_source": "SECURITY_E2E_HTTPS_PORT"
+  },
+  "blocking": {
+    "risk": "High",
+    "confidence": "High"
+  },
+  "limits": {
+    "max_messages": 10000,
+    "startup_seconds": 90,
+    "processing_seconds": 240
+  },
+  "report_fields": [
+    "schema_version",
+    "status",
+    "messages",
+    "messages.body_unavailable",
+    "messages.cache_skipped",
+    "messages.body_unavailable_cache_skipped",
+    "messages.cache_evidence_ambiguous",
+    "messages.wire_304_responses",
+    "messages.wire_304_ambiguous",
+    "processing_seconds",
+    "alerts",
+    "reason",
+    "rule_id",
+    "risk",
+    "confidence",
+    "count",
+    "alert_status",
+    "exception_id"
+  ],
+  "exceptions": "exceptions.json"
+}

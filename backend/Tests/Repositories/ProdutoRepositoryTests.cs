@@ -26,7 +26,7 @@ namespace Tests.Repositories
         private ProdutoRepository ObterProdutoRepositoryComLogger(AppDbContext contexto)
         {
             var loggerMock = new Mock<ILogger<ProdutoRepository>>();
-            return new ProdutoRepository(contexto, loggerMock.Object);
+            return new ProdutoRepository(contexto, loggerMock.Object, new UnitOfWork(contexto));
         }
 
         [Fact]
@@ -96,6 +96,37 @@ namespace Tests.Repositories
 
             // Assert
             Assert.Equal(2, resultado.Count());
+        }
+
+        [Fact]
+        public async Task GetAllAsyncOmitsDeactivatedProductsFromActiveCatalog()
+        {
+            var context = ObterDbContextEmMemoria("BancoTeste_GetActiveCatalog");
+            var repository = ObterProdutoRepositoryComLogger(context);
+            await repository.AddAsync(new Produto
+            {
+                Id = 1,
+                NomeProduto = "Produto ativo",
+                Tipo = TipoProduto.Outro,
+                Quantidade = 4,
+                QuantidadeMinima = 1,
+                Status = StatusProduto.Disponivel
+            });
+            await repository.AddAsync(new Produto
+            {
+                Id = 2,
+                NomeProduto = "Produto desativado",
+                Tipo = TipoProduto.Outro,
+                Quantidade = 4,
+                QuantidadeMinima = 1,
+                Status = StatusProduto.Disponivel,
+                Desativado = true
+            });
+
+            var result = await repository.GetAllAsync();
+
+            var onlyProduct = Assert.Single(result);
+            Assert.Equal(1, onlyProduct.Id);
         }
 
         [Fact]

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Filters;
 using LabSolos_Server_DotNet8.Middlewares;
 using LabSolos_Server_DotNet8.Models;
@@ -27,16 +28,15 @@ namespace Tests.Security;
 public sealed class AuthenticationAuditPrivacyTests
 {
     [Theory]
-    [InlineData("POST", "/api/Auth/login?email=CANARY_EMAIL%40example.org", "authentication.login")]
-    [InlineData("POST", "/api/Email/request-password-reset?address=CANARY_EMAIL%40example.org", "authentication.recovery")]
-    [InlineData("POST", "/api/Auth/change-password/123", "authentication.password_change")]
-    [InlineData("GET", "/api/usuarios/123?include=CANARY_PERSON_ID", "users.read")]
-    [InlineData("PATCH", "/api/usuarios/123?include=CANARY_PERSON_ID", "users.write")]
-    [InlineData("GET", "/api/emprestimos/456?requester=CANARY_PERSON_ID", "loans.read")]
-    public async Task SensitiveRoutesPersistOnlyAggregatedSanitizedAudit(
+    [InlineData("POST", "/api/Auth/login?email=CANARY_EMAIL%40example.org")]
+    [InlineData("POST", "/api/Email/request-password-reset?address=CANARY_EMAIL%40example.org")]
+    [InlineData("POST", "/api/Auth/change-password/123")]
+    [InlineData("GET", "/api/usuarios/123?include=CANARY_PERSON_ID")]
+    [InlineData("PATCH", "/api/usuarios/123?include=CANARY_PERSON_ID")]
+    [InlineData("GET", "/api/emprestimos/456?requester=CANARY_PERSON_ID")]
+    public async Task DeniedSensitiveRoutesPersistOnlyServerDefinedAuditMetadata(
         string method,
-        string pathAndQuery,
-        string expectedPurpose)
+        string pathAndQuery)
     {
         await using var database = CreateDatabase();
         var telemetry = CreateAuditService(database);
@@ -53,19 +53,27 @@ public sealed class AuthenticationAuditPrivacyTests
         var log = await database.LogsAuditoria.SingleAsync();
         var storedValues = SerializeAuditContent(log);
 
-        Assert.Equal($"{expectedPurpose} {method}", log.Acao);
-        Assert.Equal(expectedPurpose, log.Recurso);
-        Assert.Equal("Status: 403; Resultado: negado", log.Detalhes);
-        Assert.Equal("403", log.DadosResposta);
+        Assert.Equal(CodigoEventoAuditoria.FalhaOperacao, log.CodigoEvento);
+        Assert.Equal("falha_operacao", log.Acao);
+        Assert.Equal("operacao", log.Recurso);
+        Assert.Equal(OrigemConfiavelAuditoria.UsuarioAutenticado, log.OrigemConfiavel);
+        Assert.Equal("usuario:987654", log.ReferenciaAtor);
+        Assert.Equal(ResultadoOperacaoAuditoria.Negado, log.Resultado);
+        Assert.Equal(CategoriaRegistroAuditoria.DiagnosticoOperacional, log.CategoriaRegistro);
+        Assert.Equal(TipoAcaoAuditoria.TentativaAcessoNaoAutorizado, log.TipoAcao);
+        Assert.False(string.IsNullOrWhiteSpace(log.CorrelationId));
+        Assert.InRange(log.ExpiraEmUtc, DateTimeOffset.UtcNow.AddDays(29), DateTimeOffset.UtcNow.AddDays(31));
+        Assert.Null(log.Detalhes);
+        Assert.Null(log.DadosResposta);
         Assert.Null(log.DadosRequisicao);
-        Assert.Null(log.UsuarioId);
-        Assert.Equal(string.Empty, log.EnderecoIP);
+        Assert.Equal(987654, log.UsuarioId);
         Assert.Null(log.UserAgent);
         Assert.DoesNotContain("123", storedValues);
         Assert.DoesNotContain("456", storedValues);
         Assert.DoesNotContain("CANARY", storedValues);
-        Assert.DoesNotContain("203.0.113.77", storedValues);
-        Assert.DoesNotContain("198.51.100.42", storedValues);
+        Assert.DoesNotContain("CANARY_USER_AGENT", storedValues);
+        Assert.DoesNotContain("CANARY_PASSWORD", storedValues);
+        Assert.DoesNotContain("CANARY_JWT", storedValues);
     }
 
     [Fact]
@@ -75,6 +83,7 @@ public sealed class AuthenticationAuditPrivacyTests
         {
             Id = 123,
             DataHora = new DateTime(2026, 10, 13, 23, 10, 6, DateTimeKind.Utc).AddTicks(4561230),
+            ExpiraEmUtc = new DateTimeOffset(2026, 10, 13, 23, 10, 6, TimeSpan.Zero).AddTicks(1234560),
             Acao = "loans.read GET",
             Recurso = "loans.read",
             Detalhes = "Status: 403; Resultado: negado",
@@ -93,7 +102,7 @@ public sealed class AuthenticationAuditPrivacyTests
     }
 
     [Fact]
-    public async Task UnrelatedRouteRedactsSecretsFromHeadersQueryAndNestedBody()
+    public async Task SuccessfulRequestDoesNotCreateOperationalAuditRecords()
     {
         await using var database = CreateDatabase();
         var telemetry = CreateAuditService(database);
@@ -117,18 +126,7 @@ public sealed class AuthenticationAuditPrivacyTests
 
         await middleware.InvokeAsync(context);
 
-        var log = await database.LogsAuditoria.SingleAsync();
-        var requestLog = log.DadosRequisicao!;
-
-        Assert.Contains("produto sintetico", requestLog);
-        Assert.Contains("pagina", requestLog);
-        Assert.DoesNotContain("CANARY_PASSWORD", requestLog);
-        Assert.DoesNotContain("CANARY_JWT", requestLog);
-        Assert.DoesNotContain("CANARY_CODE", requestLog);
-        Assert.DoesNotContain("CANARY_COOKIE", requestLog);
-        Assert.DoesNotContain("CANARY_QUERY_TOKEN", requestLog);
-        Assert.DoesNotContain("CANARY_API_KEY", requestLog);
-        Assert.DoesNotContain("X-Recovery-Code", requestLog);
+        Assert.Empty(await database.LogsAuditoria.ToListAsync());
     }
 
     [Fact]
@@ -195,11 +193,13 @@ public sealed class AuthenticationAuditPrivacyTests
 
     private static string SerializeAuditContent(LogAuditoria log)
     {
-        // Only generated metadata is excluded; every other property, including
-        // navigation properties and future fields, remains covered by the canaries.
+        // Only generated identifiers and timestamps are excluded; every other
+        // property, including navigation properties and future fields, remains covered.
         var serialized = JsonSerializer.SerializeToElement(log);
         var content = serialized.EnumerateObject()
-            .Where(property => property.Name is not nameof(LogAuditoria.Id) and not nameof(LogAuditoria.DataHora))
+            .Where(property => property.Name is not nameof(LogAuditoria.Id)
+                and not nameof(LogAuditoria.DataHora)
+                and not nameof(LogAuditoria.ExpiraEmUtc))
             .ToDictionary(property => property.Name, property => property.Value);
         return JsonSerializer.Serialize(content);
     }

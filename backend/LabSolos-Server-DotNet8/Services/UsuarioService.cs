@@ -13,6 +13,8 @@ namespace LabSolos_Server_DotNet8.Services
     {
         UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto);
         PasswordPolicyResult PrepararSenhaCadastro(Usuario usuario, string? senha);
+        bool PodeDecidir(Usuario ator, Usuario solicitacao);
+        IEnumerable<Usuario> FiltrarSolicitacoesElegiveis(Usuario ator, IEnumerable<Usuario> solicitacoes);
     }
     
     public class UsuarioService(
@@ -20,6 +22,12 @@ namespace LabSolos_Server_DotNet8.Services
         IPasswordPolicy passwordPolicy,
         IPasswordHasher<Usuario> passwordHasher) : IUsuarioService
     {
+        private static readonly Action<ILogger, string, Exception?> LogPasswordPolicyRejected =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(1001, nameof(LogPasswordPolicyRejected)),
+                "Cadastro de usuário rejeitado pela política de senha; motivo {Reason}");
+
         private readonly ILogger<UsuarioService> _logger = logger;
         private readonly IPasswordPolicy _passwordPolicy = passwordPolicy;
         private readonly IPasswordHasher<Usuario> _passwordHasher = passwordHasher;
@@ -27,21 +35,18 @@ namespace LabSolos_Server_DotNet8.Services
         private const string InvalidCityMessage = "Informe uma cidade válida.";
         private const string InvalidCourseMessage = "O curso deve ter entre 2 e 100 caracteres.";
 
-        public readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
+        private static readonly string[] NiveisAcademico = ["Mentor", "Mentorado"];
 
 
         public UsuarioValidationResult ValidarEstrutura(AddUsuarioDTO usuarioDto)
         {
-            // Verificar se o nivel e tipo são consistentes
-            if (NiveisAcademico.Contains(usuarioDto.NivelUsuario) && usuarioDto.TipoUsuario != "Academico")
+            if (!string.IsNullOrWhiteSpace(usuarioDto.Email))
+                usuarioDto.Email = EmailAddressReservationService.Normalize(usuarioDto.Email);
+
+            if (!PoliticaContas.TryGetPublicRole(usuarioDto, out _))
             {
                 return UsuarioValidationResult.Invalid(
-                    $"Se o nível de usuário for '{usuarioDto.NivelUsuario}', o tipo de usuário deve ser 'Academico'.");
-            }
-
-            if (usuarioDto.TipoUsuario != "Academico")
-            {
-                return UsuarioValidationResult.Valid();
+                    "Selecione Mentor ou Mentorado para o cadastro acadêmico.");
             }
 
             // Preservar as validações estruturais acadêmicas existentes.
@@ -78,15 +83,34 @@ namespace LabSolos_Server_DotNet8.Services
             var policyResult = _passwordPolicy.Validate(senha);
             if (!policyResult.IsValid)
             {
-                _logger.LogInformation(
-                    "Cadastro de usuário rejeitado pela política de senha; motivo {Reason}",
-                    policyResult.Code ?? "password_invalid");
+                LogPasswordPolicyRejected(
+                    _logger,
+                    policyResult.Code ?? "password_invalid",
+                    null);
                 return policyResult;
             }
 
             usuario.SenhaHash = _passwordHasher.HashPassword(usuario, senha!);
             usuario.ExigeTrocaSenha = false;
             return PasswordPolicyResult.Valid;
+        }
+
+        public bool PodeDecidir(Usuario ator, Usuario solicitacao)
+        {
+            ArgumentNullException.ThrowIfNull(ator);
+            ArgumentNullException.ThrowIfNull(solicitacao);
+
+            return PoliticaContas.CanDecide(ator, solicitacao) &&
+                (solicitacao.NivelUsuario != NivelUsuario.Mentorado ||
+                 PoliticaContas.IsEligibleResponsible(solicitacao.Responsavel));
+        }
+
+        public IEnumerable<Usuario> FiltrarSolicitacoesElegiveis(
+            Usuario ator,
+            IEnumerable<Usuario> solicitacoes)
+        {
+            ArgumentNullException.ThrowIfNull(solicitacoes);
+            return solicitacoes.Where(solicitacao => PodeDecidir(ator, solicitacao));
         }
     }
 }

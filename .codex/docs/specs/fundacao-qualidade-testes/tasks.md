@@ -1,6 +1,6 @@
 # Tarefas: Fundação de qualidade e testes críticos
 
-- Status: concluído
+- Status: concluída; retomada local de T025/T026 validada
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
 - Atualizado em: 2026-09-15
@@ -1029,6 +1029,10 @@ O caso real atravessa frontend, API e PostgreSQL, sem route.fulfill. Usuários e
 
 Executar a stack t025 com portas exclusivas e variáveis da tabela de ambientes. Não alterar helper/configuração compartilhados durante a onda 16. Falha de seletor deve ser distinguida de falha de produto.
 
+### Retomada — 2026-11-24
+
+A validação cruzada T016 encontrou divergência no cenário de cadastro inválido: o E2E espera HTTP 404 para responsável inexistente, enquanto o contrato público aprovado e a API retornam HTTP 400. Revisar o resultado contra o PRD/techspec e atualizar apenas a expectativa/evidência E2E se o contrato vigente estiver sendo cumprido.
+
 ## T026 — Executar solicitação e decisão de empréstimo com API real
 
 - Status: concluída
@@ -1063,6 +1067,10 @@ A jornada percorre navegador e backend real; confirma os efeitos observáveis e 
 ### Notas
 
 Executar stack t026 em portas próprias. CT-009/QC-001 não é disfarçado como devolução aprovada nem resolvido nesta jornada.
+
+### Retomada — 2026-11-24
+
+A integração ampla revelou que `critical/loans.spec.ts` espera `login.token`, mas o contrato de navegador retorna sessão por cookie HttpOnly sem token no corpo. Alinhar apenas a preparação de autenticação do E2E e reexecutar os quatro casos seriais da jornada real.
 
 ## T027 — Consolidar o inventário, a dívida histórica e os impedimentos
 
@@ -1321,3 +1329,6 @@ vez de fazer backfill silencioso.
 | 2026-09-15 | T030 encerramento | concluída | ruleset 9464959 atualizado preservando 7 checks e adicionando `Code quality baseline`/`Quality gate`; PR de prova com RED bloqueado e GREEN aprovado | Evidências remotas e links/SHA registrados em [evidencias/T030.md](evidencias/T030.md); PR não foi mesclado |
 | 2026-09-14 | Planejamento | 30 tarefas pendentes | PRD, techspec, manifestos, workflows e issues #227/#237 consultados | Nenhuma implementação iniciada; os testes relatados na techspec pertencem à inspeção anterior |
 | 2026-09-15 | T030 prova remota final | concluida | RED em `35000986662`; GREEN em `35008036822`; dependency gates em `35008036907`; PR `CLEAN` | Commit final `29c8050`; Project 41: issues #227 e #237 em `Done`; PR permanece aberto sem merge automatico |
+
+| 2026-11-24 | T026 retomada sessão | concluída | RED: T016 reproduziu `login.token` indefinido após HTTP 200. GREEN: 4/4 cenários críticos da T026, discovery 255/255, ESLint e `git diff --check` aprovados. | O helper usa cookie HttpOnly e `/Auth/session` com CSRF; nenhum código de produção mudou. O CT-009 co-localizado falha fora do escopo porque ainda trata a página `/Auditoria/logs` como array; stack/artefatos T026 removidos e tsbuildinfo preservado. Ver evidência T026. |
+| 2026-11-24 | T025 retomada cadastro | concluída | RED: E2E real confirmou HTTP 400/código `registration_responsible_invalid`; GREEN: suíte real 4/4, discovery 22 testes, ESLint, Prettier e `git diff --check` aprovados. | Assertivas alinhadas ao contrato público e à mensagem específica, preservando verificação de não persistência. Stack T025 removida e tsbuildinfo preservado; porta 4173 usada por limite CORS da composição. Ver evidência T025; sem ação remota. |

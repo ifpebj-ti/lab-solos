@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "id": "labon.backend.tls-validation-disabled",
+      "languages": ["csharp"],
+      "severity": "ERROR",
+      "message": "Preserve a verificação do certificado TLS nas conexões.",
+      "metadata": {
+        "security-severity": "HIGH",
+        "confidence": "HIGH",
+        "blocking-approved": true
+      },
+      "pattern-either": [
+        { "pattern": "HttpClientHandler.DangerousAcceptAnyServerCertificateValidator" },
+        { "pattern": "$HANDLER.ServerCertificateCustomValidationCallback = ($REQ, $CERT, $CHAIN, $ERRORS) => true;" }
+      ]
+    }
+  ]
+}

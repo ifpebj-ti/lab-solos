@@ -1,0 +1,136 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using LabSolos_Server_DotNet8.Data.Context;
+using LabSolos_Server_DotNet8.Enums;
+using LabSolos_Server_DotNet8.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Tests.Infrastructure;
+
+namespace Tests.Integration;
+
+[Collection(PostgreSqlIntegrationCollection.Name)]
+public sealed class QuimicoFormulaCreationTests(PostgreSqlContainerFixture database)
+{
+    private const string ProductName = "Químico sintético T010";
+
+    [Theory]
+    [InlineData("2H₂O")]
+    [InlineData("2H2O")]
+    public async Task PreservaFormulaNaCriacaoELeitura(string formula)
+    {
+        await using var factory = new IntegrationWebApplicationFactory(database);
+        using var client = await AutenticarAdministradorAsync(factory);
+
+        using var criacao = await client.PostAsJsonAsync("/api/Produtos", CriarQuimico(formula));
+
+        Assert.Equal(HttpStatusCode.Created, criacao.StatusCode);
+        Assert.NotNull(criacao.Headers.Location);
+        var produto = await client.GetFromJsonAsync<JsonElement>(criacao.Headers.Location);
+        Assert.Equal(formula, produto.GetProperty("formulaQuimica").GetString());
+    }
+
+    [Fact]
+    public async Task FormulaComSubscritoDeLetraERetornadaComoInvalida()
+    {
+        await using var factory = new IntegrationWebApplicationFactory(database);
+        using var client = await AutenticarAdministradorAsync(factory);
+
+        using var response = await client.PostAsJsonAsync("/api/Produtos", CriarQuimico("HₐO"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var payload = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains(payload.GetProperty("errors").EnumerateObject(), property =>
+            property.Name.Equals("formulaQuimica", StringComparison.OrdinalIgnoreCase));
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(await context.Produtos.AnyAsync(produto => produto.NomeProduto == ProductName));
+    }
+
+    [Fact]
+    public async Task FormulaLegadaPermaneceConsultavelSemNormalizacao()
+    {
+        await using var factory = new IntegrationWebApplicationFactory(database);
+        using var client = await AutenticarAdministradorAsync(factory);
+        var legado = new Quimico
+        {
+            NomeProduto = "Químico histórico T010",
+            Tipo = TipoProduto.Quimico,
+            FormulaQuimica = "2H2O",
+            Grupo = Grupo.Indefinido,
+            Cor = Cor.Incolor,
+            Odor = Odor.Inodoro,
+            Quantidade = 10,
+            QuantidadeMinima = 1,
+            Status = StatusProduto.Disponivel,
+            UltimaModificacao = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.Produtos.Add(legado);
+            await context.SaveChangesAsync();
+        }
+
+        var detalhe = await client.GetFromJsonAsync<JsonElement>($"/api/Produtos/{legado.Id}");
+        var listagem = await client.GetFromJsonAsync<JsonElement>($"/api/Produtos/tipo/{(int)TipoProduto.Quimico}");
+
+        foreach (var produto in new[]
+        {
+            detalhe,
+            Assert.Single(listagem.GetProperty("itens").EnumerateArray())
+        })
+        {
+            Assert.Equal(legado.FormulaQuimica, produto.GetProperty("formulaQuimica").GetString());
+        }
+    }
+
+    private static object CriarQuimico(string formula) => new
+    {
+        nomeProduto = ProductName,
+        tipo = nameof(TipoProduto.Quimico),
+        quantidade = 10,
+        quantidadeMinima = 1,
+        unidadeMedida = nameof(UnidadeMedida.Grama),
+        formulaQuimica = formula,
+        dataValidade = "2028-02-29",
+        grupo = nameof(Grupo.Oxido)
+    };
+
+    private static async Task<HttpClient> AutenticarAdministradorAsync(IntegrationWebApplicationFactory factory)
+    {
+        await factory.RecreateDatabaseAsync();
+        const string senha = "Cadastro-T010-Admin-Synthetic!";
+        var administrador = new Administrador
+        {
+            NomeCompleto = "Administrador sintético",
+            Email = "cadastro-t010-admin@integration.test",
+            SenhaHash = string.Empty,
+            NivelUsuario = NivelUsuario.Administrador,
+            TipoUsuario = TipoUsuario.Administrador,
+            Status = StatusUsuario.Habilitado
+        };
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var services = scope.ServiceProvider;
+            var context = services.GetRequiredService<AppDbContext>();
+            var passwordHasher = services.GetRequiredService<IPasswordHasher<Usuario>>();
+            administrador.SenhaHash = passwordHasher.HashPassword(administrador, senha);
+            context.Administradores.Add(administrador);
+            await context.SaveChangesAsync();
+        }
+
+        var client = factory.CreateClient();
+        using var login = await client.PostAsJsonAsync(
+            "/api/Auth/login", new { email = administrador.Email, password = senha });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        var payload = await login.Content.ReadFromJsonAsync<JsonElement>();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", payload.GetProperty("token").GetString());
+        return client;
+    }
+}

@@ -1,0 +1,62 @@
+# Evidências de validação — notificações e auditoria (T010)
+
+- **Data:** 2026-11-23
+- **Checkout de referência:** `c642854` (a execução usou o código local em andamento)
+- **Ambiente:** composição descartável Docker Compose com PostgreSQL 15, API .NET 8.0.419, frontend React/Vite e contas/eventos sintéticos `E2E`; não houve sincronização remota.
+- **Versões de ferramentas observadas:** Node.js 24.21.0, npm 11.19.0, Playwright 1.62.1.
+- **Sanitização:** contas, títulos, mensagens, justificativas, tokens e chaves do ensaio são sintéticos. Nenhum valor de credencial foi incluído neste documento.
+
+## Matriz executada
+
+| Camada            | Cenário                                                                                                                                                                                                                                                                                    | Resultado                                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Playwright `ui`   | Popover de notificações, marcar como lida, filtro de recurso, paginação mantendo filtro, exportação CSV sem contexto bruto, reclassificação com autor e histórico.                                                                                                                         | 1/1 aprovado.                                                                                                                                    |
+| Playwright `real` | Administrador emite avisos sintéticos; Mentor e Mentorado consultam lista/contador isolados; leitura individual não altera o outro destinatário; trilha de emissão, revisão, filtro e CSV minimizado; restart do backend; confirmação de leitura e histórico no PostgreSQL após o retorno. | 1/1 aprovado na execução T010 padrão.                                                                                                            |
+| Testes backend    | `dotnet test backend/Tests/Tests.csproj --configuration Release --artifacts-path .tmp/t010-backend-artifacts -p:RestoreLockedMode=true --logger "console;verbosity=minimal"`                                                                                                               | 846 aprovados, 0 falhas, 0 skips (3m55s). Foram emitidos avisos de advisories NuGet preexistentes.                                               |
+| Testes frontend   | `npm run test -- --run`                                                                                                                                                                                                                                                                    | 158 arquivos e 1021 testes aprovados.                                                                                                            |
+| Lint frontend     | `npm run lint`                                                                                                                                                                                                                                                                             | Aprovado, sem avisos.                                                                                                                            |
+| Build frontend    | `npm run build`                                                                                                                                                                                                                                                                            | Aprovado. Avisos existentes: `/env.js` sem `type="module"`, referência não resolvida a `public/images/laboratory.png` e bundles acima de 500 kB. |
+
+## Ensaio de retorno para a versão anterior
+
+O ensaio foi feito numa segunda composição isolada, compartilhando somente o banco descartável do projeto `lab-sol-t010-compat`. A imagem anterior foi compilada a partir do commit `c642854`; sua inicialização registrou que nenhuma migração era pendente. Não foi executado rollback do esquema.
+
+1. Com a API atual, foi criada uma notificação coletiva sintética para os destinatários habilitados. Antes da leitura, Mentor e Mentorado viam uma pendência cada.
+2. O Mentor marcou a notificação como lida; o Mentorado permaneceu sem ler. A API atual mostrou contadores `0` e `1`, respectivamente. A emissão recebeu uma revisão de auditoria sintética (revisão 1).
+3. A API do commit anterior foi inicializada sobre o mesmo esquema e executou apenas autenticação sintética e consultas GET de notificações/contadores. Ela mostrou a notificação como não lida para ambos e contadores `1` e `1`. Nenhuma operação antiga de escrita em notificação ou auditoria foi executada.
+4. A API atual foi restaurada. Ela voltou a mostrar contadores `0` e `1`; a revisão 1, a única entrada de histórico e sua justificativa continuaram presentes.
+
+**Resultado:** a persistência aditiva preservou a leitura individual e o histórico depois de restaurar a API atual. Porém, a versão em `c642854` não preserva a visualização do isolamento durante a janela de retorno: ela consulta o campo coletivo legado `Notificacao.Lida` e não representa a leitura por destinatário. Portanto, essa versão não pode ser considerada uma versão de rollback compatível para o requisito de isolamento. A evidência comprova retorno dos dados, não compatibilidade funcional daquele binário.
+
+## Candidato de retorno compatível — ensaio automatizado aprovado (2026-11-24)
+
+A revisão local identificou `a0e9929287a0d97a0743a95b3771d45099e2a099` como um candidato de código anterior ao `HEAD` atual. A comparação `git diff --name-only a0e9929..HEAD -- backend/LabSolos-Server-DotNet8` não encontrou diferenças: a revisão candidata inclui os modelos e as migrações de `NotificacaoLeitura` e de revisões de auditoria que faltam em `c642854`. Isso identifica um candidato reproduzível, mas não comprova seu comportamento em execução.
+
+O spec `frontend/e2e/notifications-audit.real.spec.ts` prepara uma worktree destacada dessa revisão, constrói uma imagem de backend com tag exclusiva e substitui somente o serviço `backend` no mesmo projeto Compose. PostgreSQL, rede e dados permanecem no volume descartável existente. O teste verifica que, durante o retorno, a leitura coletiva continua isolada entre Mentor e Mentorado, os filtros e contadores seguem iguais e a revisão/histórico de auditoria persistem; em `finally`, restaura e aguarda o backend do checkout atual antes de remover a worktree, o override e a imagem temporária. Se o SHA não estiver no checkout raso do runner, o teste o busca por hash imutável com permissão de leitura. Nenhum schema é revertido e nenhuma publicação é alterada.
+
+**Resultado:** `docker compose --project-name lab-solos-quality-e2e --file docker-compose-e2e.yml up --detach --build --wait` concluiu; `E2E_COMPOSE_PROJECT=lab-solos-quality-e2e npm run test:e2e -- --project=real notifications-audit.real.spec.ts` passou (`1 passed`, 1,3 min). O ensaio construiu e ativou a imagem exclusiva do SHA `a0e9929`, conferiu a imagem em execução, preservou leituras individuais, lista/contadores e histórico de revisão da auditoria, restaurou o backend do checkout atual e confirmou sua saúde. A execução usou o engine Linux do Docker Desktop local com dados sintéticos; não foi disparada uma execução hospedada no GitHub Actions. O stack, seus volumes e redes foram removidos ao final. A comparação de código continua mostrando o backend sem diferenças entre o candidato e o checkout atual, então a aprovação vale para esse candidato identificado e não para `c642854` nem para outro binário.
+
+## RED, GREEN e REFACTOR
+
+- **RED:** a validação de retorno encontrou a divergência observável em `c642854`: `1/1` pendente para ambos, embora o estado persistido fosse lido/não lido. A tentativa Playwright auxiliar com portas não padrão expirou porque a origem `18173` não constava na allowlist de CORS da composição; não é evidência de falha de produto e não alterou a configuração produtiva.
+- **GREEN:** as jornadas UI e real padrão passaram; a verificação controlada confirmou isolamento e trilha na API atual e após reinício. O retorno automatizado para `a0e9929` também passou na composição descartável; a API candidata preservou leituras individuais, lista/contadores e histórico de auditoria, e a API atual voltou saudável após a restauração.
+- **REFACTOR:** os specs foram integrados aos projetos `ui` e `real`, reutilizando o cenário sintético e mantendo asserções nas fronteiras UI/API/persistência. O teste `real` seleciona a revisão candidata pelo SHA, verifica a imagem efetivamente ativa e restaura a API atual mesmo em caso de falha. Não houve alteração de código de produção nesta tarefa.
+
+## Limites e limpeza
+
+- O retorno foi exercitado contra o binário anterior `c642854`, não contra qualquer release publicada. O ensaio mostra a incompatibilidade de leitura dessa versão e não autoriza uma reversão operacional.
+- O engine Linux foi executado localmente via Docker Desktop; não houve execução hospedada no GitHub Actions nem alteração remota. A tarefa pode ser revalidada pelo job `Authentication E2E` quando a mudança entrar no fluxo normal de CI.
+- O teste exige que a revisão imutável `a0e9929` esteja acessível no repositório do runner; se o SHA não estiver no checkout raso, tenta buscá-lo com `contents: read`. Se o fetch ou a troca/restauração do serviço falhar, o teste falha e a evidência não deve ser tratada como compatibilidade aprovada.
+- A execução E2E padrão também comprovou persistência após reiniciar a API atual; isso, por si só, não comprova compatibilidade entre versões.
+- A composição de compatibilidade foi encerrada com remoção dos containers, redes e volumes nomeados `lab-sol-t010-compat`. A execução Playwright auxiliar fora da porta padrão deixou um diretório de artefatos sintéticos ignorado por Git, pois a remoção foi bloqueada pela política automática do shell. O diretório é `frontend/e2e/infra/artifacts/test-results/notifications-audit.real-n-73350-leitura-após-retorno-da-API-real`.
+
+## Revalidação do helper de retorno após findings de qualidade — 25/11/2026
+
+A CI #45535221035 encontrou avisos novos de `complexity` (30, máximo 20) e `max-depth` (5/6, máximo 4) em `withCompatibleRollbackBackend`. Extraí a garantia do commit candidato, as operações Compose, a identificação/inspeção da imagem, a restauração e a remoção da worktree em helpers separados. A sequência continua restaurando e verificando o backend atual antes de limpar recursos; falhas de restauração continuam sendo expostas.
+
+- `npm exec -- eslint e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado sem avisos.
+- `npm exec -- prettier --check e2e/notifications-audit.real.spec.ts e2e/infra/security-passive-capture.ts`: aprovado.
+- `npm run test:e2e -- --project=real notifications-audit.real.spec.ts --reporter=list`, com `E2E_COMPOSE_PROJECT=lab-solos-quality-e2e`: **1/1 passou em 39,9 s**. A ativação do backend candidato, isolamento de leitura, histórico de auditoria, restauração e saúde da API foram confirmados.
+- `git diff --check`: sem erros. O run #45539003181 confirmou a remoção dos achados: Code quality baseline passou no novo head. O gate global desse run ainda falhou no job independente de Browser security E2E.
+
+O stack isolado `lab-solos-quality-e2e`, seus volumes e redes foi removido ao terminar; nenhum outro projeto Docker foi tocado.

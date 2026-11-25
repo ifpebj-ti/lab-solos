@@ -1,18 +1,21 @@
+using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Enums;
 
-namespace LabSolos_Server_DotNet8.DTOs.Auditoria
+namespace LabSolos_Server_DotNet8.DTOs.Auditoria;
+
+/// <summary>
+/// Server-created event context. This type is not an HTTP request contract: callers
+/// supply only trusted identifiers and the catalog derives action, resource type,
+/// purpose, risk and retention.
+/// </summary>
+public sealed record CreateLogAuditoriaDTO
 {
-    public class CreateLogAuditoriaDTO
-    {
-        public string Acao { get; set; } = string.Empty;
-        public string Recurso { get; set; } = string.Empty;
-        public string? Detalhes { get; set; }
-        public TipoAcaoAuditoria TipoAcao { get; set; }
-        public NivelRiscoAuditoria NivelRisco { get; set; }
-        public string? DadosRequisicao { get; set; }
-        public string? DadosResposta { get; set; }
-        public TimeSpan? TempoSessao { get; set; }
-        public int? TentativasAcesso { get; set; }
-        public string? Origem { get; set; }
-    }
+    public CodigoEventoAuditoria CodigoEvento { get; init; }
+    public OrigemConfiavelAuditoria OrigemConfiavel { get; init; }
+    public ResultadoOperacaoAuditoria Resultado { get; init; }
+    public int? UsuarioId { get; init; }
+    public string? IdentidadeProcesso { get; init; }
+    public string? ReferenciaRecurso { get; init; }
+    public string? CorrelationId { get; init; }
+    public TipoAcaoAuditoria? TipoAcaoDiagnostica { get; init; }
 }

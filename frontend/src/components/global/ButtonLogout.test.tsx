@@ -1,11 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import { clearSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
 import ButtonLogout from './ButtonLogout';
 
-vi.mock('@/auth/session', () => ({
-  clearSession: vi.fn(),
+vi.mock('@/integration/Auth', () => ({
+  logoutSession: vi.fn(),
 }));
 
 function CurrentPath() {
@@ -13,7 +13,8 @@ function CurrentPath() {
 }
 
 describe('ButtonLogout', () => {
-  it('limpa a sessao antes de navegar para o login', () => {
+  it('revoga a sessao antes de navegar para o login', async () => {
+    vi.mocked(logoutSession).mockResolvedValue(undefined);
     render(
       <MemoryRouter initialEntries={['/admin/home']}>
         <ButtonLogout />
@@ -21,9 +22,11 @@ describe('ButtonLogout', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByRole('link'));
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
 
-    expect(clearSession).toHaveBeenCalledWith({ discardAuthContext: true });
-    expect(screen.getByLabelText('rota atual')).toHaveTextContent('/');
+    await waitFor(() => {
+      expect(logoutSession).toHaveBeenCalledOnce();
+      expect(screen.getByLabelText('rota atual')).toHaveTextContent('/');
+    });
   });
 });

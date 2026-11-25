@@ -1,16 +1,25 @@
+import os
 import re
+import shutil
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
+
+import yaml
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "container-release.yml"
+RELEASE_SCRIPTS = REPOSITORY_ROOT / ".github" / "scripts"
 
 
 class ContainerReleaseWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.text = WORKFLOW.read_text(encoding="utf-8") if WORKFLOW.exists() else ""
+        cls.jobs = yaml.safe_load(cls.text)["jobs"]
 
     def assert_has(self, fragment: str):
         self.assertIn(fragment, self.text)
@@ -46,6 +55,103 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
         self.assert_has("ref: ${{ steps.source.outputs.sha }}")
         self.assertGreaterEqual(self.text.count("ref: ${{ needs.prepare.outputs.sha }}"), 2)
 
+    def changelog_step(self):
+        steps = self.jobs["prepare"]["steps"]
+        checks = [
+            step for step in steps if "check_release_changelog.py" in step.get("run", "")
+        ]
+        self.assertEqual(len(checks), 1, "prepare must validate the release changelog")
+        return checks[0]
+
+    def test_changelog_check_runs_after_resolution_before_release_reuse(self):
+        steps = self.jobs["prepare"]["steps"]
+        positions = {step["id"]: index for index, step in enumerate(steps) if "id" in step}
+        check = self.changelog_step()
+        self.assertLess(positions["release"], steps.index(check))
+        self.assertLess(steps.index(check), positions["reuse"])
+        self.assertEqual(check["if"], "steps.release.outputs.release == 'true'")
+        self.assertFalse(check.get("continue-on-error", False))
+        self.assertEqual(
+            check["env"],
+            {
+                "VERSION": "${{ steps.release.outputs.version }}",
+                "RELEASE_SHA": "${{ steps.release.outputs.sha }}",
+            },
+        )
+
+    def test_publication_and_artifact_jobs_require_successful_preparation(self):
+        for name in ("build", "scan", "promote-version", "finalize-release"):
+            with self.subTest(job=name):
+                job = self.jobs[name]
+                needs = job["needs"]
+                self.assertIn("prepare", [needs] if isinstance(needs, str) else needs)
+                condition = job["if"]
+                self.assertIn("needs.prepare.outputs.release == 'true'", condition)
+                # A status function disables GitHub Actions' implicit success() guard.
+                if re.search(r"\b(?:always|cancelled|failure)\(\)", condition):
+                    self.assertIn("needs.prepare.result == 'success' &&", condition)
+
+    def test_changelog_check_uses_selected_git_snapshot_even_with_a_different_checkout(self):
+        check = self.changelog_step()
+        bash = "bash"
+        if os.name == "nt":
+            git_exec_path = subprocess.check_output(["git", "--exec-path"], text=True)
+            bash = str(Path(git_exec_path.strip()).parents[2] / "bin" / "bash.exe")
+        python_path = os.pathsep.join((str(Path(sys.executable).parent), os.environ["PATH"]))
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def git(*arguments):
+                return subprocess.check_output(["git", *arguments], cwd=root, text=True).strip()
+
+            git("init", "--quiet")
+            scripts = root / ".github" / "scripts"
+            scripts.mkdir(parents=True)
+            for name in ("check_release_changelog.py", "resolve_container_version.py"):
+                shutil.copyfile(RELEASE_SCRIPTS / name, scripts / name)
+
+            fixture = Path(__file__).with_name("fixtures") / "release_changelog" / "valid.md"
+            matching_heading = fixture.read_text(encoding="utf-8")
+            other_heading = matching_heading.replace("2.7.5", "2.7.4")
+            changelog = root / "CHANGELOG.md"
+            changelog.write_text(other_heading, encoding="utf-8")
+            git("add", "CHANGELOG.md")
+            different_version_sha = git("write-tree")
+            changelog.write_text(matching_heading, encoding="utf-8")
+            git("add", "CHANGELOG.md")
+            valid_sha = git("write-tree")
+            git("rm", "--cached", "--quiet", "CHANGELOG.md")
+            missing_file_sha = git("write-tree")
+
+            for sha, working_copy, diagnostic in (
+                (valid_sha, other_heading, None),
+                (different_version_sha, matching_heading, "no release heading"),
+                (missing_file_sha, matching_heading, "could not read changelog"),
+            ):
+                with self.subTest(sha=sha):
+                    changelog.write_text(working_copy, encoding="utf-8")
+                    result = subprocess.run(
+                        [bash, "-e", "-o", "pipefail", "-c", check["run"]],
+                        cwd=root,
+                        env={
+                            **os.environ,
+                            "PATH": python_path,
+                            "VERSION": "2.7.5",
+                            "RELEASE_SHA": sha,
+                        },
+                        capture_output=True,
+                        encoding="utf-8",
+                        check=False,
+                    )
+                    if diagnostic is None:
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        self.assertIn("changelog release heading verified", result.stdout)
+                    else:
+                        self.assertNotEqual(result.returncode, 0, result.stdout)
+                        for message in ("2.7.5", sha, diagnostic):
+                            self.assertIn(message, result.stderr)
+
     def test_published_release_for_the_same_sha_reuses_verified_images(self):
         prepare = self.text.split("\n  prepare:\n", 1)[1].split(
             "\n  finalize-release:\n", 1
@@ -58,7 +164,7 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
         finalization = self.finalization()
 
         self.assertIn("reuse: ${{ steps.reuse.outputs.reuse }}", prepare)
-        self.assertIn('gh release view "$VERSION" --json tagName,targetCommitish,url', prepare)
+        self.assertIn('gh release view "$VERSION" --json tagName,targetCommitish,url,isDraft,isPrerelease', prepare)
         self.assertIn('if [[ "$EXISTING_TARGET" != "$RELEASE_SHA" ]]', prepare)
         self.assertIn("Release conflict", prepare)
         self.assertIn("printf 'reuse=true\\n' >> \"$GITHUB_OUTPUT\"", prepare)
@@ -67,7 +173,7 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("needs.prepare.outputs.reuse != 'true'", promotion)
         self.assertIn("always()", finalization)
         self.assertIn("needs.promote-version.result == 'success'", finalization)
-        self.assertIn("needs.prepare.outputs.reuse == 'true'", finalization)
+        self.assertIn("needs.prepare.outputs.proof-available == 'true'", finalization)
 
     def test_every_version_platform_matches_the_release_revision(self):
         finalization = self.finalization()
@@ -326,12 +432,23 @@ class ContainerReleaseWorkflowTests(unittest.TestCase):
     def test_github_release_is_idempotent_and_is_the_last_external_write(self):
         finalization = self.finalization()
         self.assertEqual(finalization.count('gh release create "$VERSION"'), 1)
-        self.assertIn('gh release view "$VERSION"', finalization)
+        self.assertIn('"gh", "release", "view", version', finalization)
         self.assertIn("existing-identical", finalization)
-        self.assertIn("Release conflict", finalization)
-        last_latest_write = finalization.rindex("imagetools create --tag")
-        release_write = finalization.index('gh release create "$VERSION"')
-        self.assertLess(last_latest_write, release_write)
+        self.assertIn("Release conflict", self.text.split("\n  prepare:\n", 1)[1].split("\n  finalize-release:\n", 1)[0])
+        steps = self.jobs["finalize-release"]["steps"]
+        latest_step = next(i for i, step in enumerate(steps)
+                           if 'imagetools create --tag "$FRONTEND_LATEST"' in step.get("run", ""))
+        draft_step = next(i for i, step in enumerate(steps)
+                          if 'gh release create "$VERSION"' in step.get("run", ""))
+        stable_step = next(i for i, step in enumerate(steps)
+                           if "--method PATCH" in step.get("run", ""))
+        final_check = next(i for i, step in enumerate(steps)
+                           if "Verify all four release channels after publication" in step.get("name", ""))
+        self.assertLess(draft_step, latest_step)
+        self.assertLess(latest_step, stable_step)
+        self.assertLess(stable_step, final_check)
+        publish = steps[stable_step]["run"]
+        self.assertLess(publish.index("check_release_channels.py"), publish.index("--method PATCH"))
 
     def test_final_summary_records_release_identity_and_verified_digests(self):
         finalization = self.finalization()

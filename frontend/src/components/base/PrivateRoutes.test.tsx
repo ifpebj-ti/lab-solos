@@ -1,19 +1,23 @@
-import Cookie from 'js-cookie';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { clearSession, startSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
 import PrivateRoute from './PrivateRoutes';
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+vi.mock('@/integration/Auth', () => ({
+  logoutSession: vi.fn(),
+  getHomePathForRole: (role: string) =>
+    role === 'Mentor' ? '/mentor/' : role === 'Mentorado' ? '/mentee/' : '/admin/',
+}));
 
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+const createSession = (userId: string, role: string, required = false) => ({
+  userId,
+  role,
+  requiresPasswordChange: required,
+  csrfToken: 'session-bound-proof',
+});
 
 const renderProtectedRoute = () =>
   render(
@@ -43,12 +47,7 @@ describe('PrivateRoute', () => {
   });
 
   it('nega perfil incorreto sem montar Login ou a tela proibida', () => {
-    const token = createToken({
-      sub: '7',
-      role: 'Mentor',
-      password_change_required: false,
-    });
-    startSession(token);
+    startSession(createSession('7', 'Mentor'));
 
     renderProtectedRoute();
 
@@ -59,7 +58,7 @@ describe('PrivateRoute', () => {
     );
     expect(screen.queryByText('Login')).not.toBeInTheDocument();
     expect(screen.queryByText('Tela administrativa proibida')).not.toBeInTheDocument();
-    expect(Cookie.get('doorKey')).toBe(token);
+    expect(sessionStorage.getItem('auth:session-context')).toContain('Mentor');
   });
 
   it('envia visitante ao Login', () => {
@@ -68,21 +67,16 @@ describe('PrivateRoute', () => {
     expect(screen.getByRole('main')).toHaveTextContent('Login');
   });
 
-  it('mostra saída explícita para perfil não suportado', () => {
-    startSession(
-      createToken({
-        sub: '7',
-        role: 'Comum',
-        password_change_required: false,
-      })
-    );
+  it('mostra saída explícita para perfil não suportado', async () => {
+    startSession(createSession('7', 'Comum'));
 
     renderProtectedRoute();
 
     expect(
       screen.getByRole('heading', { name: 'Acesso indisponível' })
     ).toBeInTheDocument();
+    vi.mocked(logoutSession).mockResolvedValue(undefined);
     screen.getByRole('button', { name: 'Sair' }).click();
-    expect(Cookie.get('doorKey')).toBeUndefined();
+    await waitFor(() => expect(logoutSession).toHaveBeenCalledOnce());
   });
 });

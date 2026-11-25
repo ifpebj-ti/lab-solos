@@ -17,7 +17,7 @@ import TableItemWithActions from '@/components/global/table/TableItemWithActions
 import UserActionsMenu from '@/components/global/UserActionsMenu';
 import ButtonLinkNotify from '@/components/screens/ButtonLinkNotify';
 import { getDependentesForApproval } from '@/integration/Class';
-import Cookie from 'js-cookie';
+import { readSession } from '@/auth/session';
 import {
   Popover,
   PopoverContent,
@@ -37,13 +37,15 @@ const registeredUserColumns: readonly ResponsiveColumn[] = [
   { key: 'joinedAt', label: 'Data de ingresso', weight: 2.5 },
   { key: 'name', label: 'Nome', weight: 3.5 },
   { key: 'role', label: 'Tipo de usuário', weight: 2 },
-  { key: 'status', label: 'Status', weight: 2 },
+  { key: 'status', label: 'Status', weight: 3.5 },
 ];
 
 type RegisteredUser = Pick<
   Usuario,
   | 'id'
   | 'nomeCompleto'
+  | 'email'
+  | 'telefone'
   | 'dataIngresso'
   | 'nivelUsuario'
   | 'tipoUsuario'
@@ -55,7 +57,7 @@ type ReportSigner = Pick<Usuario, 'nomeCompleto' | 'nivelUsuario'>;
 function RegisteredUsers() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const id = Cookie.get('rankID')!;
+  const id = readSession()?.userId ?? '';
   const [value, setValue] = useState('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
@@ -485,6 +487,8 @@ function RegisteredUsers() {
                               userId={Number(rowData.id)}
                               currentStatus={rowData.status}
                               userName={rowData.nomeCompleto}
+                              userEmail={rowData.email}
+                              userPhone={rowData.telefone}
                               onStatusUpdate={(newStatus) => {
                                 const parsedStatus =
                                   statusUsuarioSchema.safeParse(newStatus);
@@ -498,6 +502,15 @@ function RegisteredUsers() {
                                   prev.map((user) =>
                                     user.id === rowData.id
                                       ? { ...user, status: parsedStatus.data }
+                                      : user
+                                  )
+                                );
+                              }}
+                              onEmailUpdate={(email) => {
+                                setRegisteredUsers((prev) =>
+                                  prev.map((user) =>
+                                    user.id === rowData.id
+                                      ? { ...user, email }
                                       : user
                                   )
                                 );

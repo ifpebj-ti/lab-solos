@@ -1,5 +1,5 @@
+import { readSession } from '@/auth/session';
 import { api } from '../services/BaseApi';
-import Cookie from 'js-cookie';
 import { parseResourceId } from '@/contracts/identifier';
 
 import { emprestimoSchema, emprestimosSchema } from '@/contracts/loan';
@@ -12,17 +12,10 @@ interface ILoansByUserId {
 
 export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Emprestimos/usuario/${parseResourceId(id)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     emprestimosSchema.parse(response.data);
     return response.data;
@@ -33,16 +26,9 @@ export const getLoansByUserId = async ({ id }: ILoansByUserId) => {
 
 export const getLoansById = async ({ id }: ILoansByUserId) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Emprestimos/${parseResourceId(id)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     emprestimoSchema.parse(response.data);
     return response.data;
@@ -63,17 +49,10 @@ interface ICreateLoan {
 
 export const createLoan = async (data: ICreateLoan) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'POST',
       url: 'Emprestimos',
       data: data,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     return response;
   } catch (error) {
@@ -83,16 +62,9 @@ export const createLoan = async (data: ICreateLoan) => {
 
 export const getAllLoans = async () => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
     const response = await api({
       method: 'GET',
       url: `Emprestimos`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
     emprestimosSchema.parse(response.data);
     return response.data;
@@ -103,19 +75,15 @@ export const getAllLoans = async () => {
 
 export const approveLoan = async (EmprestimoId: string | number) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
 
     const response = await api({
       method: 'PATCH',
       url: `/Emprestimos/aprovar/${parseResourceId(EmprestimoId)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
       data: {
         aprovadorId: parseResourceId(rankID),
       },
@@ -129,19 +97,15 @@ export const approveLoan = async (EmprestimoId: string | number) => {
 
 export const rejectLoan = async (EmprestimoId: string | number) => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    const rankID = Cookie.get('rankID');
+    const rankID = readSession()?.userId;
 
-    if (!doorKey || !rankID) {
+    if (!rankID) {
       throw new Error('Usuário não autenticado.');
     }
 
     const response = await api({
       method: 'PATCH',
       url: `/Emprestimos/reprovar/${parseResourceId(EmprestimoId)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
       data: {
         aprovadorId: parseResourceId(rankID),
       },
@@ -155,18 +119,11 @@ export const rejectLoan = async (EmprestimoId: string | number) => {
 
 export const returnLoan = async (EmprestimoId: string | number) => {
   try {
-    const doorKey = Cookie.get('doorKey');
 
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
 
     const response = await api({
       method: 'PATCH',
       url: `/Emprestimos/devolver/${parseResourceId(EmprestimoId)}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
     return response.data;

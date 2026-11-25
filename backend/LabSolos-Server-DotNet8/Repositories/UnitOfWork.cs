@@ -1,5 +1,7 @@
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LabSolos_Server_DotNet8.Repositories
 {
@@ -19,6 +21,8 @@ namespace LabSolos_Server_DotNet8.Repositories
         INotificacaoRepository NotificacaoRepository { get; }
         ILogAuditoriaRepository LogAuditoriaRepository { get; }
 
+        Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+        Task LockProductsForMutationAsync(IEnumerable<int> productIds, CancellationToken cancellationToken = default);
         Task CommitAsync();
     }
 
@@ -143,6 +147,28 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
+            _context.Database.BeginTransactionAsync(cancellationToken);
+
+        public async Task LockProductsForMutationAsync(
+            IEnumerable<int> productIds,
+            CancellationToken cancellationToken = default)
+        {
+            var orderedIds = productIds.Distinct().Order().ToArray();
+            if (orderedIds.Length == 0)
+            {
+                return;
+            }
+
+            await _context.Produtos
+                .FromSqlRaw("SELECT * FROM \"Produtos\" WHERE \"Id\" = ANY (@orderedIds) ORDER BY \"Id\" FOR UPDATE",
+                    new Npgsql.NpgsqlParameter("orderedIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer)
+                    {
+                        Value = orderedIds
+                    })
+                .LoadAsync(cancellationToken);
         }
 
         public void Dispose()

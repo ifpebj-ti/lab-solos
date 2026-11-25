@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { getUserById } from '@/integration/Users';
 import { ThemeProvider } from '@/theme/ThemeProvider';
+import { establishTestSession } from '@/test/session';
 import { AppSidebar } from './app-sidebar';
 import { SidebarProvider } from './sidebar';
 
@@ -69,7 +70,7 @@ describe('AppSidebar', () => {
         dispatchEvent: vi.fn(),
       })),
     });
-    document.cookie = 'rankID=1';
+    establishTestSession('1', 'Administrador');
   });
 
   it('não exibe Extras, Comunicação InterLab ou grupos vazios', async () => {

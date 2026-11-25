@@ -1,15 +1,12 @@
-import Cookie from 'js-cookie';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/services/BaseApi';
 import { updateOwnUserProfile } from './Users';
 
 vi.mock('@/services/BaseApi', () => ({ api: vi.fn() }));
-vi.mock('js-cookie', () => ({ default: { get: vi.fn() } }));
 
 describe('updateOwnUserProfile', () => {
   beforeEach(() => {
-    vi.mocked(Cookie.get).mockReturnValue('session-token' as never);
     vi.mocked(api).mockReset();
     vi.mocked(api).mockResolvedValue({ data: {} });
   });
@@ -28,10 +25,7 @@ describe('updateOwnUserProfile', () => {
     expect(api).toHaveBeenCalledWith({
       method: 'PATCH',
       url: 'Usuarios/7',
-      headers: {
-        Authorization: 'Bearer session-token',
-        'Content-Type': 'application/json-patch+json',
-      },
+      headers: { 'Content-Type': 'application/json-patch+json' },
       data: [
         { op: 'replace', path: '/nomeCompleto', value: 'Ada Byron' },
         { op: 'replace', path: '/telefone', value: '555-0123' },

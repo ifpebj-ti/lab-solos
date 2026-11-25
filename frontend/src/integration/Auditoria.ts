@@ -1,29 +1,41 @@
 import { api } from '../services/BaseApi';
-import Cookie from 'js-cookie';
 
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { reportAppError } from '@/errors/reportAppError';
 
+export interface HistoricoClassificacaoAuditoria {
+  numeroRevisao: number;
+  suspeitaAnterior: boolean;
+  suspeitaResultante: boolean;
+  justificativa: string;
+  criadaEmUtc: string;
+  autorUsuarioId?: number;
+  origem: string;
+}
+
 export interface LogAuditoria {
   id: number;
-  dataHora: string;
+  codigoEvento: string;
   acao: string;
   recurso: string;
-  detalhes?: string;
-  enderecoIP: string;
-  userAgent?: string;
-  tipoAcao: string;
-  nivelRisco: string;
+  dataHoraUtc: string;
+  origem: string;
+  resultado: string;
   suspeita: boolean;
-  motivoSuspeita?: string;
-  usuarioId?: number;
-  nomeUsuario?: string;
-  emailUsuario?: string;
-  dadosRequisicao?: string;
-  dadosResposta?: string;
-  tempoSessao?: string;
-  tentativasAcesso?: number;
-  origem?: string;
+  categoriaDeteccao: string;
+  codigoRegraDeteccao?: string | null;
+  versaoRegraDeteccao?: number | null;
+  quantidadeObservadaDeteccao?: number | null;
+  revisaoClassificacao: number;
+  historicoClassificacao: HistoricoClassificacaoAuditoria[];
+}
+
+export interface ResultadoPaginadoAuditoria {
+  itens: LogAuditoria[];
+  pagina: number;
+  tamanhoPagina: number;
+  totalItens: number;
+  totalPaginas: number;
 }
 
 export interface FiltroAuditoria {
@@ -33,10 +45,14 @@ export interface FiltroAuditoria {
   tipoAcao?: string;
   nivelRisco?: string;
   apenasSuspeitas?: boolean;
-  enderecoIP?: string;
   recurso?: string;
   pagina?: number;
   tamanhoPagina?: number;
+}
+
+export interface SolicitacaoReclassificacaoAuditoria {
+  revisaoEsperada: number;
+  justificativa: string;
 }
 
 export interface RelatorioAuditoria {
@@ -44,43 +60,40 @@ export interface RelatorioAuditoria {
   logsSuspeitos: number;
   logsCriticos: number;
   logsPorTipo: { [key: string]: number };
-  logsPorUsuario: { [key: string]: number };
-  logsPorIP: { [key: string]: number };
   logsPorDia: { [key: string]: number };
   ultimosLogsSuspeitos: LogAuditoria[];
-  ipsSuspeitos: string[];
-  usuariosComMaisAcessos: string[];
 }
+
+const criarParametrosFiltro = (
+  filtro: FiltroAuditoria,
+  incluirPaginacao = false
+): URLSearchParams => {
+  const params = new URLSearchParams();
+  if (filtro.dataInicio) params.append('dataInicio', filtro.dataInicio);
+  if (filtro.dataFim) params.append('dataFim', filtro.dataFim);
+  if (filtro.usuarioId !== undefined)
+    params.append('usuarioId', filtro.usuarioId.toString());
+  if (filtro.tipoAcao) params.append('tipoAcao', filtro.tipoAcao);
+  if (filtro.nivelRisco) params.append('nivelRisco', filtro.nivelRisco);
+  if (filtro.apenasSuspeitas)
+    params.append('apenasSuspeitas', 'true');
+  if (filtro.recurso) params.append('recurso', filtro.recurso);
+  if (incluirPaginacao && filtro.pagina !== undefined)
+    params.append('pagina', filtro.pagina.toString());
+  if (incluirPaginacao && filtro.tamanhoPagina !== undefined)
+    params.append('tamanhoPagina', filtro.tamanhoPagina.toString());
+  return params;
+};
 
 export const obterLogsAuditoria = async (
   filtro: FiltroAuditoria = {}
-): Promise<LogAuditoria[]> => {
+): Promise<ResultadoPaginadoAuditoria> => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-
-    const params = new URLSearchParams();
-    if (filtro.dataInicio) params.append('dataInicio', filtro.dataInicio);
-    if (filtro.dataFim) params.append('dataFim', filtro.dataFim);
-    if (filtro.usuarioId)
-      params.append('usuarioId', filtro.usuarioId.toString());
-    if (filtro.tipoAcao) params.append('tipoAcao', filtro.tipoAcao);
-    if (filtro.nivelRisco) params.append('nivelRisco', filtro.nivelRisco);
-    if (filtro.apenasSuspeitas) params.append('apenasSuspeitas', 'true');
-    if (filtro.enderecoIP) params.append('enderecoIP', filtro.enderecoIP);
-    if (filtro.recurso) params.append('recurso', filtro.recurso);
-    if (filtro.pagina) params.append('pagina', filtro.pagina.toString());
-    if (filtro.tamanhoPagina)
-      params.append('tamanhoPagina', filtro.tamanhoPagina.toString());
+    const params = criarParametrosFiltro(filtro, true);
 
     const response = await api({
       method: 'GET',
       url: `/Auditoria/logs?${params.toString()}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
     return response.data;
@@ -90,25 +103,14 @@ export const obterLogsAuditoria = async (
 };
 
 export const gerarRelatorioAuditoria = async (
-  dataInicio?: string,
-  dataFim?: string
+  filtro: FiltroAuditoria = {}
 ): Promise<RelatorioAuditoria> => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-
-    const params = new URLSearchParams();
-    if (dataInicio) params.append('dataInicio', dataInicio);
-    if (dataFim) params.append('dataFim', dataFim);
+    const params = criarParametrosFiltro(filtro);
 
     const response = await api({
       method: 'GET',
       url: `/Auditoria/relatorio?${params.toString()}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
     return response.data;
@@ -117,24 +119,35 @@ export const gerarRelatorioAuditoria = async (
   }
 };
 
+export const exportarAuditoria = async (
+  filtro: FiltroAuditoria = {}
+): Promise<Blob> => {
+  try {
+    const params = criarParametrosFiltro(filtro);
+    const response = await api({
+      method: 'GET',
+      url: `/Auditoria/exportar?${params.toString()}`,
+      responseType: 'blob',
+    });
+
+    return response.data as Blob;
+  } catch (error) {
+    throw reportAppError(error, OPERATION_IDS.auditExport);
+  }
+};
+
 export const marcarLogComoSuspeito = async (
   logId: number,
-  motivo: string
+  solicitacao: SolicitacaoReclassificacaoAuditoria
 ): Promise<void> => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-
     await api({
       method: 'PATCH',
       url: `/Auditoria/marcar-suspeito/${logId}`,
       headers: {
-        Authorization: `Bearer ${doorKey}`,
         'Content-Type': 'application/json',
       },
-      data: JSON.stringify(motivo),
+      data: solicitacao,
     });
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.markAuditLogSuspicious);
@@ -142,20 +155,17 @@ export const marcarLogComoSuspeito = async (
 };
 
 export const marcarLogComoNaoSuspeito = async (
-  logId: number
+  logId: number,
+  solicitacao: SolicitacaoReclassificacaoAuditoria
 ): Promise<void> => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
-
     await api({
       method: 'PATCH',
       url: `/Auditoria/marcar-nao-suspeito/${logId}`,
       headers: {
-        Authorization: `Bearer ${doorKey}`,
+        'Content-Type': 'application/json',
       },
+      data: solicitacao,
     });
   } catch (error) {
     throw reportAppError(error, OPERATION_IDS.markAuditLogNotSuspicious);
@@ -166,17 +176,10 @@ export const verificarAtividadeSuspeita = async (
   usuarioId: number
 ): Promise<{ suspeita: boolean }> => {
   try {
-    const doorKey = Cookie.get('doorKey');
-    if (!doorKey) {
-      throw new Error('Usuário não autenticado.');
-    }
 
     const response = await api({
       method: 'GET',
       url: `/Auditoria/verificar-atividade-suspeita?usuarioId=${usuarioId}`,
-      headers: {
-        Authorization: `Bearer ${doorKey}`,
-      },
     });
 
     return response.data;

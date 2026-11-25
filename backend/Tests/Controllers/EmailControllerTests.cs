@@ -1,8 +1,10 @@
 using System.Net.Mail;
+using System.Reflection;
 using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Email;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,6 +14,33 @@ namespace Tests.Controllers;
 
 public sealed class EmailControllerTests
 {
+    [Fact]
+    public void GenericSendingIsAdministrativeWhileRecoveryAliasesAreExplicitlyPublic()
+    {
+        var sendPolicy = typeof(EmailController)
+            .GetMethod(nameof(EmailController.EnviarEmail))!
+            .GetCustomAttribute<AuthorizeAttribute>();
+
+        Assert.Equal("ApenasAdministradores", sendPolicy?.Policy);
+
+        var publicRecoveryActions = new[]
+        {
+            nameof(EmailController.RequestPasswordReset),
+            nameof(EmailController.SolicitarRedefinicao),
+            nameof(EmailController.ResetPassword),
+            nameof(EmailController.RedefinirSenha)
+        };
+
+        var recoveryMethods = publicRecoveryActions
+            .Select(action => typeof(EmailController).GetMethod(action))
+            .ToArray();
+        Assert.All(recoveryMethods, method =>
+        {
+            Assert.NotNull(method);
+            Assert.NotNull(method!.GetCustomAttribute<AllowAnonymousAttribute>());
+        });
+    }
+
     [Fact]
     public void EnviarEmailSuccessReturnsOk()
     {

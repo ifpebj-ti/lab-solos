@@ -30,7 +30,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
             "/api/Emprestimos",
             new
             {
-                diasParaDevolucao = 7,
+                diasParaDevolucao = 5,
                 produtos = new[]
                 {
                     new
@@ -45,7 +45,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
             await createResponse.Content.ReadAsStringAsync());
         var loanId = createdDocument.RootElement.GetProperty("id").GetInt32();
         Assert.Equal(
-            ScenarioNow.UtcDateTime.AddDays(7),
+            ScenarioNow.UtcDateTime.AddDays(5),
             createdDocument.RootElement.GetProperty("dataPrevistaDevolucao").GetDateTime());
         Assert.Equal(
             JsonValueKind.Null,
@@ -58,7 +58,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
 
         var beforeApproval = await ReadLoanStateAsync(factory, loanId);
         Assert.Equal(StatusEmprestimo.Pendente, beforeApproval.Status);
-        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(7), beforeApproval.ScheduledReturnDate);
+        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(5), beforeApproval.ScheduledReturnDate);
         Assert.Null(beforeApproval.EffectiveReturnDate);
 
         using var approvalResponse = await SendPatchAsync(
@@ -68,7 +68,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
 
         var afterApproval = await ReadLoanStateAsync(factory, loanId);
         Assert.Equal(StatusEmprestimo.Aprovado, afterApproval.Status);
-        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(7), afterApproval.ScheduledReturnDate);
+        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(5), afterApproval.ScheduledReturnDate);
         Assert.Null(afterApproval.EffectiveReturnDate);
         Assert.Equal(8, afterApproval.ProductQuantity);
 
@@ -80,7 +80,7 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
 
         var afterFirstReturn = await ReadLoanStateAsync(factory, loanId);
         Assert.Equal(StatusEmprestimo.Aprovado, afterFirstReturn.Status);
-        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(7), afterFirstReturn.ScheduledReturnDate);
+        Assert.Equal(ScenarioNow.UtcDateTime.AddDays(5), afterFirstReturn.ScheduledReturnDate);
         Assert.Equal(ScenarioNow.UtcDateTime, afterFirstReturn.EffectiveReturnDate);
         Assert.Equal(10, afterFirstReturn.ProductQuantity);
 
@@ -95,19 +95,32 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
                 .EnumerateArray(),
             item => item.GetProperty("emprestimoId").GetInt32() == loanId);
         Assert.Equal(
-            ScenarioNow.UtcDateTime.AddDays(7),
-            historyEntry.GetProperty("dataPrevistaDevolucao").GetDateTime());
+            ScenarioNow.UtcDateTime,
+            historyEntry.GetProperty("dataSaida").GetDateTime());
+        Assert.Equal(2, historyEntry.GetProperty("quantidadeEmprestada").GetInt32());
+
+        using var detailResponse = await client.GetAsync($"/api/Emprestimos/{loanId}");
+        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
+        using var detailDocument = JsonDocument.Parse(await detailResponse.Content.ReadAsStringAsync());
+        Assert.Equal(
+            ScenarioNow.UtcDateTime.AddDays(5),
+            detailDocument.RootElement.GetProperty("dataPrevistaDevolucao").GetDateTime());
         Assert.Equal(
             ScenarioNow.UtcDateTime,
-            historyEntry.GetProperty("dataDevolucao").GetDateTime());
+            detailDocument.RootElement.GetProperty("dataDevolucao").GetDateTime());
 
         using var secondReturnResponse = await SendPatchAsync(
             client,
             $"/api/Emprestimos/devolver/{loanId}");
 
-        Assert.Equal(HttpStatusCode.BadRequest, secondReturnResponse.StatusCode);
-        var returnMessage = await secondReturnResponse.Content.ReadAsStringAsync();
-        Assert.Contains("devolvido", returnMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.Conflict, secondReturnResponse.StatusCode);
+        using var returnProblemDocument = JsonDocument.Parse(
+            await secondReturnResponse.Content.ReadAsStringAsync());
+        var returnProblem = returnProblemDocument.RootElement;
+        Assert.Equal(409, returnProblem.GetProperty("status").GetInt32());
+        Assert.Equal("loan_return_already_recorded", returnProblem.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(
+            returnProblem.GetProperty("correlationId").GetString()));
 
         var afterSecondReturn = await ReadLoanStateAsync(factory, loanId);
         Assert.Equal(afterFirstReturn.ScheduledReturnDate, afterSecondReturn.ScheduledReturnDate);

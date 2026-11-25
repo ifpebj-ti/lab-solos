@@ -9,6 +9,10 @@ const realTestFiles = [
   '**/infra/smoke.e2e.ts',
   '**/critical/registration-approval.spec.ts',
   '**/critical/loans.spec.ts',
+  '**/critical/product-integrity.spec.ts',
+  '**/critical/product-alerts.spec.ts',
+  '**/critical/product-expiry.spec.ts',
+  '**/notifications-audit.real.spec.ts',
 ];
 
 const uiTestFiles = [
@@ -20,6 +24,7 @@ const uiTestFiles = [
   '**/authentication-protection.ui.spec.ts',
   '**/design-system.spec.ts',
   '**/design-pilots.spec.ts',
+  '**/notifications-audit.ui.spec.ts',
 ];
 
 const securityTestFiles = [

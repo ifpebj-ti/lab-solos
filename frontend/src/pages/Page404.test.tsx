@@ -1,19 +1,23 @@
-import Cookie from 'js-cookie';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Page404 from './Page404';
-import { clearSession, startSession } from '@/auth/session';
+import { clearSession, readSession, startSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+vi.mock('@/integration/Auth', () => ({
+  logoutSession: vi.fn(),
+  getHomePathForRole: (role: string) =>
+    role === 'Mentor' ? '/mentor/' : role === 'Mentorado' ? '/mentee/' : '/admin/',
+}));
 
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+const createSession = (userId: string, role: string, required = false) => ({
+  userId,
+  role,
+  requiresPasswordChange: required,
+  csrfToken: 'session-bound-proof',
+});
 
 const renderFallback = (path: string) =>
   render(
@@ -34,12 +38,7 @@ describe('Page404', () => {
   });
 
   it('preserva a sessão e retorna à home do perfil autenticado', () => {
-    const token = createToken({
-      sub: '42',
-      role: 'Mentor',
-      password_change_required: false,
-    });
-    startSession(token);
+    startSession(createSession('42', 'Mentor'));
 
     renderFallback('/rota-inexistente');
 
@@ -47,18 +46,11 @@ describe('Page404', () => {
       'href',
       '/mentor/'
     );
-    expect(Cookie.get('doorKey')).toBe(token);
-    expect(Cookie.get('rankID')).toBe('42');
-    expect(Cookie.get('level')).toBe('Mentor');
+    expect(readSession()).toMatchObject({ userId: '42', role: 'Mentor' });
   });
 
   it('prioriza a troca obrigatória sem limpar a sessão', () => {
-    const token = createToken({
-      sub: '42',
-      role: 'Administrador',
-      password_change_required: true,
-    });
-    startSession(token);
+    startSession(createSession('42', 'Administrador', true));
 
     renderFallback('/rota-inexistente');
 
@@ -66,7 +58,7 @@ describe('Page404', () => {
       'href',
       '/change-password-required'
     );
-    expect(Cookie.get('doorKey')).toBe(token);
+    expect(readSession()).toMatchObject({ role: 'Administrador' });
   });
 
   it('mantém o visitante no fluxo de login', () => {
@@ -78,13 +70,9 @@ describe('Page404', () => {
     );
   });
 
-  it('oferece saída explícita para uma sessão de nível não suportado', () => {
-    const token = createToken({
-      sub: '42',
-      role: 'Comum',
-      password_change_required: false,
-    });
-    startSession(token);
+  it('oferece saída explícita para uma sessão de nível não suportado', async () => {
+    startSession(createSession('42', 'Comum'));
+    vi.mocked(logoutSession).mockResolvedValue(undefined);
 
     renderFallback('/rota-inexistente');
 
@@ -92,6 +80,6 @@ describe('Page404', () => {
       screen.getByRole('heading', { name: 'Acesso indisponível' })
     ).toBeInTheDocument();
     screen.getByRole('button', { name: 'Sair' }).click();
-    expect(Cookie.get('doorKey')).toBeUndefined();
+    await waitFor(() => expect(logoutSession).toHaveBeenCalledOnce());
   });
 });

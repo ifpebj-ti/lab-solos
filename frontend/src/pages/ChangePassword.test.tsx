@@ -56,7 +56,6 @@ describe('ChangePassword', () => {
     mocks.readSession.mockReset();
     mocks.notifyError.mockReset();
     mocks.readSession.mockReturnValue({
-      token: 'door-key',
       userId: 'user-1',
       role: 'Administrador',
       requiresPasswordChange: false,
@@ -77,11 +76,6 @@ describe('ChangePassword', () => {
           currentPassword: 'senha-atual-valida',
           newPassword: 'nova-senha-valida',
           confirmation: 'nova-senha-valida',
-        },
-        {
-          headers: {
-            Authorization: 'Bearer door-key',
-          },
         }
       );
     });
@@ -128,15 +122,7 @@ describe('ChangePassword', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
 
     await waitFor(() => {
-      expect(mocks.post).toHaveBeenCalledWith(
-        'Auth/change-password',
-        expect.any(Object),
-        {
-          headers: {
-            Authorization: 'Bearer door-key',
-          },
-        }
-      );
+      expect(mocks.post).toHaveBeenCalledWith('Auth/change-password', expect.any(Object));
       expect(mocks.clearSession).toHaveBeenCalledOnce();
       expect(mocks.navigate).toHaveBeenCalledWith('/', { replace: true });
       expect(mocks.notifyError).toHaveBeenCalledWith(

@@ -1,32 +1,29 @@
-import Cookie from 'js-cookie';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { authenticate } from '@/integration/Auth';
-import { api } from '@/services/BaseApi';
 import { startSession } from '@/auth/session';
 import PrivateRoute from '@/components/base/PrivateRoutes';
 import PasswordChangeRequiredRoute from '@/components/base/PasswordChangeRequiredRoute';
 
+const apiMocks = vi.hoisted(() => ({ request: vi.fn(), get: vi.fn() }));
 vi.mock('@/services/BaseApi', () => ({
-  api: vi.fn(),
+  api: Object.assign(apiMocks.request, { get: apiMocks.get }),
 }));
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
+const sessionContext = (userId: string, role: string, required: boolean) => ({
+  userId,
+  role,
+  requiresPasswordChange: required,
+  csrfToken: 'session-bound-proof',
+});
 
 describe('primeiro acesso', () => {
   beforeEach(() => {
-    Cookie.remove('doorKey', { path: '/' });
-    Cookie.remove('rankID', { path: '/' });
-    Cookie.remove('level', { path: '/' });
+    sessionStorage.clear();
+    apiMocks.request.mockReset();
+    apiMocks.get.mockReset();
   });
 
   afterEach(() => {
@@ -34,16 +31,10 @@ describe('primeiro acesso', () => {
   });
 
   it('inicia a sessão e navega somente para a troca quando o login a exige', async () => {
-    const token = createToken({
-      sub: '42',
-      role: 'Administrador',
-      password_change_required: true,
-    });
     const navigate = vi.fn();
 
-    vi.mocked(api).mockResolvedValue({
-      data: { token, requiresPasswordChange: true },
-    } as never);
+    apiMocks.request.mockResolvedValue({ data: { requiresPasswordChange: true } });
+    apiMocks.get.mockResolvedValue({ data: sessionContext('42', 'Administrador', true) });
 
     await authenticate(
       {
@@ -53,22 +44,16 @@ describe('primeiro acesso', () => {
       navigate
     );
 
-    expect(Cookie.get('doorKey')).toBe(token);
+    expect(sessionStorage.getItem('auth:session-context')).toContain('Administrador');
     expect(navigate).toHaveBeenCalledWith('/change-password-required');
     expect(navigate).not.toHaveBeenCalledWith('/admin/');
   });
 
   it('mantém a navegação por perfil quando o login não exige troca', async () => {
-    const token = createToken({
-      sub: '7',
-      role: 'Mentor',
-      password_change_required: false,
-    });
     const navigate = vi.fn();
 
-    vi.mocked(api).mockResolvedValue({
-      data: { token, requiresPasswordChange: false },
-    } as never);
+    apiMocks.request.mockResolvedValue({ data: { requiresPasswordChange: false } });
+    apiMocks.get.mockResolvedValue({ data: sessionContext('7', 'Mentor', false) });
 
     await authenticate(
       {
@@ -82,13 +67,7 @@ describe('primeiro acesso', () => {
   });
 
   it('redireciona uma sessão pendente de qualquer rota privada para a troca obrigatória', () => {
-    startSession(
-      createToken({
-        sub: '42',
-        role: 'Administrador',
-        password_change_required: true,
-      })
-    );
+    startSession(sessionContext('42', 'Administrador', true));
 
     render(
       <MemoryRouter initialEntries={['/admin']}>
@@ -114,13 +93,7 @@ describe('primeiro acesso', () => {
   });
 
   it('impede a rota de troca obrigatória sem uma sessão pendente', () => {
-    startSession(
-      createToken({
-        sub: '42',
-        role: 'Administrador',
-        password_change_required: false,
-      })
-    );
+    startSession(sessionContext('42', 'Administrador', false));
 
     render(
       <MemoryRouter initialEntries={['/change-password-required']}>

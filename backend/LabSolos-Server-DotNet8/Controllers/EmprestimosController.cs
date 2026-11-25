@@ -31,6 +31,7 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly TimeProvider _timeProvider;
         private readonly AppDbContext? _dbContext;
         private readonly UserResourceAccessService _userResourceAccess;
+        private readonly OperationAdmissionPolicy? _operationAdmissionPolicy;
 
         public EmprestimosController(
             IUnitOfWork uow,
@@ -38,7 +39,8 @@ namespace LabSolos_Server_DotNet8.Controllers
             INotificacaoService notificacaoService,
             TimeProvider timeProvider,
             AppDbContext? dbContext = null,
-            UserResourceAccessService? userResourceAccess = null)
+            UserResourceAccessService? userResourceAccess = null,
+            OperationAdmissionPolicy? operationAdmissionPolicy = null)
         {
             _uow = uow;
             _mapper = mapper;
@@ -46,6 +48,7 @@ namespace LabSolos_Server_DotNet8.Controllers
             _timeProvider = timeProvider;
             _dbContext = dbContext;
             _userResourceAccess = userResourceAccess ?? new UserResourceAccessService();
+            _operationAdmissionPolicy = operationAdmissionPolicy;
         }
 
         [HttpGet("usuario/{userId}")]
@@ -193,15 +196,61 @@ namespace LabSolos_Server_DotNet8.Controllers
                 return Unauthorized("Administradores não podem criar empréstimos.");
             }
 
-            var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
+            var erroEstrutura = ValidarEstruturaDosProdutos(emprestimoDto.Produtos);
+            if (erroEstrutura is not null)
+            {
+                return erroEstrutura;
+            }
 
-            emprestimo.SolicitanteId = userId;
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
-            emprestimo.DataPrevistaDevolucao = now.AddDays(emprestimoDto.DiasParaDevolucao);
-            emprestimo.DataDevolucao = null;
+            var dataSolicitacao = _timeProvider.GetUtcNow();
+            var erroPrazo = LoanDomainRules.GetExpectedReturnDate(
+                dataSolicitacao, emprestimoDto.DiasParaDevolucao, out var dataPrevista);
+            if (erroPrazo is not null)
+            {
+                return ProblemaDeDominio("diasParaDevolucao", erroPrazo);
+            }
 
-            var novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
-            await _uow.CommitAsync();
+            if (_operationAdmissionPolicy is not null)
+            {
+                var admission = await _operationAdmissionPolicy.AdmitLoanCreationAsync(
+                    userId,
+                    HttpContext.RequestAborted);
+                if (admission.Status == OperationAdmissionStatus.RateLimited)
+                    return OperationAdmissionResponses.RateLimited(Response, admission.RetryAfterSeconds);
+                if (admission.Status == OperationAdmissionStatus.Unavailable)
+                    return OperationAdmissionResponses.Unavailable(Response);
+            }
+
+            Emprestimo novoEmprestimo;
+            await using (var transaction = await _uow.BeginTransactionAsync(HttpContext.RequestAborted))
+            {
+                try
+                {
+                    var productIds = emprestimoDto.Produtos.Select(item => item.ProdutoId).ToArray();
+                    await _uow.LockProductsForMutationAsync(productIds, HttpContext.RequestAborted);
+                    var erroDisponibilidade = await ValidarDisponibilidadeDosProdutosAsync(emprestimoDto.Produtos);
+                    if (erroDisponibilidade is not null)
+                    {
+                        await transaction.RollbackAsync(HttpContext.RequestAborted);
+                        return erroDisponibilidade;
+                    }
+
+                    var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
+                    emprestimo.SolicitanteId = userId;
+                    emprestimo.DataRealizacao = dataSolicitacao.UtcDateTime;
+                    emprestimo.DataPrevistaDevolucao = dataPrevista;
+                    emprestimo.DataDevolucao = null;
+
+                    novoEmprestimo = _uow.EmprestimoRepository.Criar(emprestimo);
+                    await _uow.CommitAsync();
+                    await transaction.CommitAsync(HttpContext.RequestAborted);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(CancellationToken.None);
+                    throw;
+                }
+            }
 
             // Criar notificação para administradores sobre novo empréstimo
             try
@@ -229,242 +278,207 @@ namespace LabSolos_Server_DotNet8.Controllers
             return CreatedAtAction(nameof(ObterEmprestimosUsuario), new { userId = novoEmprestimo.SolicitanteId }, emprestimoResponseDto);
         }
 
+        private ActionResult? ValidarEstruturaDosProdutos(List<ProdutoQuantidadeDTO> produtos)
+        {
+            if (produtos is not { Count: > 0 })
+            {
+                return ProblemaNosProdutos("produtos", "Informe pelo menos um produto.");
+            }
+
+            if (produtos.Count > OperationAdmissionPolicy.MaximumLoanItems)
+            {
+                return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    ["produtos"] = [$"Informe no máximo {OperationAdmissionPolicy.MaximumLoanItems} itens por solicitação."]
+                })
+                {
+                    Title = "A solicitação excede o limite de itens.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Extensions = { ["code"] = "loan_item_limit_exceeded" }
+                });
+            }
+
+            var produtoIds = new HashSet<int>();
+            for (var indice = 0; indice < produtos.Count; indice++)
+            {
+                var item = produtos[indice];
+                if (item is null)
+                {
+                    return ProblemaNosProdutos($"produtos[{indice}]", "Informe os dados do produto.");
+                }
+
+                if (item.ProdutoId <= 0)
+                {
+                    return ProblemaNosProdutos($"produtos[{indice}].produtoId", "Informe um identificador de produto válido.");
+                }
+
+                if (!produtoIds.Add(item.ProdutoId))
+                {
+                    return ProblemaNosProdutos($"produtos[{indice}].produtoId", "Cada produto deve aparecer uma única vez.");
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<IActionResult?> ValidarDisponibilidadeDosProdutosAsync(
+            List<ProdutoQuantidadeDTO> produtos)
+        {
+            var productIds = produtos.Select(item => item.ProdutoId).ToHashSet();
+            var produtosExistentes = await _uow.ProdutoRepository.ObterTodosAsync(
+                produto => productIds.Contains(produto.Id));
+            var produtosPorId = produtosExistentes.ToDictionary(produto => produto.Id);
+            for (var indice = 0; indice < produtos.Count; indice++)
+            {
+                var item = produtos[indice];
+                if (!produtosPorId.TryGetValue(item.ProdutoId, out var produto))
+                {
+                    return ProblemaNosProdutos($"produtos[{indice}].produtoId", "Produto não encontrado.");
+                }
+
+                if (produto.Desativado)
+                {
+                    return Conflict(new ProblemDetails
+                    {
+                        Type = "about:blank",
+                        Title = "O empréstimo contém um produto desativado.",
+                        Status = StatusCodes.Status409Conflict,
+                        Extensions = { ["code"] = "loan_product_deactivated" }
+                    });
+                }
+
+                var erroQuantidade = LoanDomainRules.ValidateDebit(produto.Quantidade, item.Quantidade, out _);
+                if (erroQuantidade is not null)
+                {
+                    return ProblemaDeDominio($"produtos[{indice}].quantidade", erroQuantidade);
+                }
+            }
+
+            return null;
+        }
+
+        private ActionResult ProblemaDeDominio(string campo, LoanRuleViolation erro) =>
+            ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                [campo] = [erro.Message]
+            })
+            {
+                Title = "Dados do empréstimo inválidos.",
+                Status = StatusCodes.Status400BadRequest,
+                Extensions = { ["code"] = erro.Code }
+            });
+
+        private ActionResult ProblemaNosProdutos(string campo, string mensagem) =>
+            ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                [campo] = [mensagem]
+            })
+            {
+                Title = "Itens do empréstimo inválidos.",
+                Status = StatusCodes.Status400BadRequest
+            });
+
         [HttpPatch("aprovar/{emprestimoId}")]
         [Authorize("ApenasAdministradores")]
-        public async Task<IActionResult> AprovarEmprestimo(int emprestimoId)
-        {
-            // Obter usuário autenticado
-            var user = HttpContext.User;
-
-            if (user == null)
-            {
-                return Unauthorized("Usuário não autenticado.");
-            }
-
-            // Obter o ID do usuário autenticado
-            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Unauthorized("Token inválido. ID do usuário não encontrado.");
-            }
-
-            // Verificar se o usuário tem o papel de admin
-            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-            if (nivelClaim == null || nivelClaim.Value != NivelUsuario.Administrador.ToString())
-            {
-                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
-            }
-
-            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
-
-            // Buscar o empréstimo pelo ID
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
-                query => query
-                    .Include(e => e.Produtos)
-            );
-            if (emprestimo == null)
-            {
-                return NotFound("Empréstimo não encontrado.");
-            }
-
-            // Buscar o solicitante do empréstimo
-            var solicitante = await _uow.UsuarioRepository.ObterAsync(u => u.Id == emprestimo.SolicitanteId);
-            if (solicitante == null)
-            {
-                return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            // Verificar se o empréstimo já foi aprovado ou rejeitado
-            if (emprestimo.Status != StatusEmprestimo.Pendente)
-            {
-                return BadRequest("Este empréstimo já foi processado (aprovado ou rejeitado).");
-            }
-
-            // Reduzir a quantidade dos produtos
-            foreach (var item in emprestimo.Produtos)
-            {
-                var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == item.ProdutoId);
-                if (produto == null)
-                {
-                    return NotFound($"Produto com ID {item.ProdutoId} não encontrado.");
-                }
-
-                if (produto.Quantidade < item.Quantidade)
-                {
-                    return BadRequest($"O produto {produto.NomeProduto} não tem estoque suficiente para este empréstimo.");
-                }
-
-                produto.Quantidade -= item.Quantidade;
-
-                var currentDate = _timeProvider.GetUtcNow().UtcDateTime.Date;
-                produto.Status = produto.DataValidade < currentDate
-                    ? StatusProduto.Vencido
-                    : produto.Quantidade > 0
-                        ? StatusProduto.Disponivel
-                        : StatusProduto.Esgotado;
-
-                _uow.ProdutoRepository.Atualizar(produto);
-            }
-
-            // Atualizar o status do empréstimo para aprovado
-            emprestimo.Status = StatusEmprestimo.Aprovado;
-            emprestimo.DataAprovacao = _timeProvider.GetUtcNow().UtcDateTime;
-            emprestimo.AprovadorId = userId;
-
-            // Salvar as mudanças no banco de dados
-            _uow.EmprestimoRepository.Atualizar(emprestimo);
-            await _uow.CommitAsync();
-
-            return NoContent();
-        }
+        public Task<IActionResult> AprovarEmprestimo(
+            int emprestimoId,
+            [FromServices] ILoanDecisionService decisionService) =>
+            DecidirEmprestimoAsync(emprestimoId, approve: true, decisionService);
 
         [HttpPatch("reprovar/{emprestimoId}")]
         [Authorize("ApenasAdministradores")]
-        public async Task<IActionResult> ReprovarEmprestimo(int emprestimoId)
-        {
-            // Obter usuário autenticado
-            var user = HttpContext.User;
+        public Task<IActionResult> ReprovarEmprestimo(
+            int emprestimoId,
+            [FromServices] ILoanDecisionService decisionService) =>
+            DecidirEmprestimoAsync(emprestimoId, approve: false, decisionService);
 
-            if (user == null)
+        private async Task<IActionResult> DecidirEmprestimoAsync(
+            int emprestimoId,
+            bool approve,
+            ILoanDecisionService decisionService)
+        {
+            var user = HttpContext.User;
+            if (user?.Identity?.IsAuthenticated != true)
             {
                 return Unauthorized("Usuário não autenticado.");
             }
 
-            // Obter o ID do usuário autenticado
-            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, NumberStyles.None, CultureInfo.InvariantCulture, out var userId))
             {
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            var userId = int.Parse(userIdClaim.Value, CultureInfo.InvariantCulture);
-
-            // Verificar se o usuário tem o papel de admin
-            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-            if (nivelClaim == null || nivelClaim.Value != NivelUsuario.Administrador.ToString())
+            if (!user.IsInRole(NivelUsuario.Administrador.ToString()))
             {
-                return Unauthorized("Apenas administradores podem aprovar empréstimos.");
+                return Unauthorized("Apenas administradores podem decidir empréstimos.");
             }
 
-            // Buscar o empréstimo pelo ID
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId);
-            if (emprestimo == null)
+            var result = await decisionService.DecideAsync(
+                emprestimoId,
+                userId,
+                approve,
+                HttpContext.RequestAborted);
+            if (result.Succeeded)
+            {
+                return NoContent();
+            }
+
+            if (result.LoanNotFound)
             {
                 return NotFound("Empréstimo não encontrado.");
             }
 
-            // Verificar se o empréstimo já foi aprovado ou rejeitado
-            if (emprestimo.Status != StatusEmprestimo.Pendente)
+            return Conflict(new ProblemDetails
             {
-                return BadRequest("Este empréstimo já foi processado (aprovado ou rejeitado).");
-            }
-
-            // Buscar o solicitante do empréstimo
-            var solicitante = await _uow.UsuarioRepository.ObterAsync(u => u.Id == emprestimo.SolicitanteId);
-            if (solicitante == null)
-            {
-                return NotFound("Solicitante do empréstimo não encontrado.");
-            }
-
-            // Atualizar o status do empréstimo para rejeitado
-            emprestimo.Status = StatusEmprestimo.Rejeitado;
-            emprestimo.AprovadorId = userId;
-
-            // Salvar as mudanças no banco de dados
-            _uow.EmprestimoRepository.Atualizar(emprestimo);
-            await _uow.CommitAsync();
-
-            return NoContent();
+                Type = "about:blank",
+                Title = "O empréstimo não pôde ser decidido.",
+                Status = StatusCodes.Status409Conflict,
+                Extensions = { ["code"] = result.ConflictCode }
+            });
         }
 
         [HttpPatch("devolver/{emprestimoId}")]
         [Authorize]
-        public async Task<IActionResult> DevolverEmprestimo(int emprestimoId)
+        public async Task<IActionResult> DevolverEmprestimo(
+            int emprestimoId,
+            [FromServices] IAuditoriaService? auditService = null,
+            [FromServices] ProductCivilDay? productCivilDay = null)
         {
-            // Obter usuário autenticado
-            var user = HttpContext.User;
-
-            if (user == null)
-            {
-                return Unauthorized("Usuário não autenticado.");
-            }
-
-            // Obter o ID do usuário autenticado
-            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            var userIdClaim = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, NumberStyles.None, CultureInfo.InvariantCulture, out var userId) || userId <= 0)
             {
                 return Unauthorized("Token inválido. ID do usuário não encontrado.");
             }
 
-            if (!int.TryParse(userIdClaim.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+            var service = new LoanReturnService(
+                _uow,
+                DbContext,
+                auditService ?? throw new InvalidOperationException("The mandatory audit service is required for loan returns."),
+                _timeProvider,
+                productCivilDay ?? throw new InvalidOperationException("The product civil-day service is required for loan returns."));
+            var result = await service.ReturnAsync(
+                emprestimoId,
+                userId,
+                HttpContext.TraceIdentifier,
+                HttpContext.RequestAborted);
+            if (result.Succeeded)
             {
-                return Unauthorized("Token inválido. ID do usuário não encontrado.");
+                return NoContent();
             }
 
-            // Verificar se o usuário tem o papel de admin ou mentor
-            var nivelClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-            if (nivelClaim == null || (nivelClaim.Value != NivelUsuario.Administrador.ToString() && nivelClaim.Value != NivelUsuario.Mentor.ToString()))
+            if (result.LoanNotFound)
             {
-                return Unauthorized("Apenas administradores ou mentores podem registrar devoluções de empréstimos.");
+                return ResourceNotFound();
             }
 
-            // Buscar o empréstimo pelo ID
-            var emprestimo = await _uow.EmprestimoRepository.ObterAsync(e => e.Id == emprestimoId,
-                query => query
-                    .Include(e => e.Produtos)
-                    .ThenInclude(p => p.Produto)
-            );
-
-            if (emprestimo == null)
+            return Conflict(new ProblemDetails
             {
-                return NotFound("Empréstimo não encontrado.");
-            }
-
-            // Verificar se o empréstimo está aprovado
-            if (emprestimo.Status != StatusEmprestimo.Aprovado)
-            {
-                return BadRequest("Apenas empréstimos aprovados podem ser devolvidos.");
-            }
-
-            // Verificar se o empréstimo já foi devolvido
-            if (emprestimo.DataDevolucao != null)
-            {
-                return BadRequest("Este empréstimo já foi devolvido.");
-            }
-
-            // Restaurar a quantidade dos produtos
-            foreach (var item in emprestimo.Produtos)
-            {
-                var produto = await _uow.ProdutoRepository.ObterAsync(p => p.Id == item.ProdutoId);
-                if (produto == null)
-                {
-                    return NotFound($"Produto com ID {item.ProdutoId} não encontrado.");
-                }
-
-                // Restaurar quantidade
-                produto.Quantidade += item.Quantidade;
-
-                // Atualizar status do produto baseado na disponibilidade e validade
-                if (produto.DataValidade < _timeProvider.GetUtcNow().UtcDateTime.Date)
-                {
-                    produto.Status = StatusProduto.Vencido;
-                }
-                else if (produto.Quantidade > 0)
-                {
-                    produto.Status = StatusProduto.Disponivel;
-                }
-
-                _uow.ProdutoRepository.Atualizar(produto);
-            }
-
-            // Atualizar a data de devolução para agora
-            emprestimo.DataDevolucao = _timeProvider.GetUtcNow().UtcDateTime;
-
-            // Salvar as mudanças no banco de dados
-            _uow.EmprestimoRepository.Atualizar(emprestimo);
-            await _uow.CommitAsync();
-
-            return NoContent();
+                Type = "about:blank",
+                Title = "O empréstimo não pôde ser devolvido.",
+                Status = StatusCodes.Status409Conflict,
+                Extensions = { ["code"] = result.ConflictCode }
+            });
         }
     }
 }

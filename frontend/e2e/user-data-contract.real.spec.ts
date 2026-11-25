@@ -25,7 +25,7 @@ test.beforeEach(async () => {
   await seedE2eScenario();
 });
 
-test('cadastra academico com cidade real e curso curto normalizados', async ({
+test('cadastra Mentor acadêmico sem responsável e normaliza cidade e curso', async ({
   page,
 }) => {
   await page.goto('/create-account');
@@ -34,15 +34,19 @@ test('cadastra academico com cidade real e curso curto normalizados', async ({
   await page.getByRole('option', { name: 'Mentor', exact: true }).click();
   await page.getByLabel('Nome Completo').fill('Pessoa Sintetica E2E');
   await page.getByLabel('Email', { exact: true }).fill(uniqueEmail('browser'));
-  await page.locator('input[name="senha"]').fill('Synthetic User Data Password 2026!');
-  await page.locator('input[name="repeat"]').fill('Synthetic User Data Password 2026!');
+  await page
+    .locator('input[name="senha"]')
+    .fill('Synthetic User Data Password 2026!');
+  await page
+    .locator('input[name="repeat"]')
+    .fill('Synthetic User Data Password 2026!');
   await page.getByLabel('Instituição').fill('IFPE');
   await page.getByLabel('Curso').fill('  ES  ');
   await page.getByLabel('Cidade').fill('  Belo Jardim  ');
   await page.getByLabel('Telefone').fill('81999999999');
-  await page
-    .getByLabel('Email do Mentor Responsável')
-    .fill(e2eScenario.mentor.email);
+  await expect(
+    page.getByRole('textbox', { name: /email do .*responsável/i })
+  ).toHaveCount(0);
 
   const responsePromise = page.waitForResponse(
     (response) =>
@@ -54,7 +58,13 @@ test('cadastra academico com cidade real e curso curto normalizados', async ({
 
   expect(response.status()).toBe(201);
   const requestBody = response.request().postDataJSON();
-  expect(requestBody).toMatchObject({ cidade: 'Belo Jardim', curso: 'ES' });
+  expect(requestBody).toMatchObject({
+    cidade: 'Belo Jardim',
+    curso: 'ES',
+    nivelUsuario: 'Mentor',
+    responsavelEmail: '',
+    tipoUsuario: 'Academico',
+  });
   expect(requestBody.cidade).not.toBe('Indefinido');
   const body = await response.json();
   expect(body.dataIngresso).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -68,18 +78,31 @@ test('API rejeita cidade e curso invalidos com Problem Details por campo', async
   });
 
   expect(invalid.status()).toBe(400);
-  expect(invalid.headers()['content-type']).toContain('application/problem+json');
+  expect(invalid.headers()['content-type']).toContain(
+    'application/problem+json'
+  );
   const invalidBody = await invalid.json();
   expect(invalidBody.errors).toMatchObject({
     cidade: ['Informe uma cidade válida.'],
     curso: ['O curso deve ter entre 2 e 100 caracteres.'],
   });
 
-  const sentinel = await request.post(`${e2eScenario.apiUrl}/Usuarios`, {
-    data: academicPayload({ cidade: ' indefinido ', curso: 'A'.repeat(101) }),
+  const sentinelCity = await request.post(`${e2eScenario.apiUrl}/Usuarios`, {
+    data: academicPayload({ cidade: ' indefinido ', curso: 'ES' }),
   });
-  expect(sentinel.status()).toBe(400);
-  expect((await sentinel.json()).errors).toEqual(
-    expect.objectContaining({ cidade: expect.any(Array), curso: expect.any(Array) })
+  expect(sentinelCity.status()).toBe(400);
+  expect((await sentinelCity.json()).errors).toMatchObject({
+    cidade: ['Informe uma cidade válida.'],
+  });
+
+  const overlengthCourse = await request.post(
+    `${e2eScenario.apiUrl}/Usuarios`,
+    {
+      data: academicPayload({ cidade: 'Belo Jardim', curso: 'A'.repeat(101) }),
+    }
+  );
+  expect(overlengthCourse.status()).toBe(400);
+  expect((await overlengthCourse.json()).errors).toEqual(
+    expect.objectContaining({ curso: expect.any(Array) })
   );
 });

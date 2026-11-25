@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
@@ -26,6 +27,20 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
         "status",
         "nivelUsuario"
     ];
+    private static readonly string[] ApprovalProfileFields =
+    [
+        "cidade",
+        "curso",
+        "dataIngresso",
+        "email",
+        "id",
+        "instituicao",
+        "nivelUsuario",
+        "nomeCompleto",
+        "status",
+        "telefone",
+        "tipoUsuario"
+    ];
 
     [Fact]
     public async Task MentorReadsLinkedMenteeProjectionAndCrossMentorProfileMatchesMissingResource()
@@ -43,11 +58,10 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
             using var crossResponse = await mentor.GetAsync($"/api/Usuarios/{scenario.MenteeTwoId}");
             using var missingResponse = await mentor.GetAsync("/api/Usuarios/999999");
             var crossBody = await crossResponse.Content.ReadAsStringAsync();
-            var missingBody = await missingResponse.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.NotFound, crossResponse.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, missingResponse.StatusCode);
-            Assert.Equal(missingBody, crossBody);
+            await AssertEquivalentErrorsAsync(missingResponse, crossResponse);
             using var notFoundPayload = JsonDocument.Parse(crossBody);
             Assert.Equal("Recurso não encontrado.", notFoundPayload.RootElement.GetProperty("title").GetString());
             Assert.Equal(
@@ -61,9 +75,7 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
             using var missingMenteeResponse = await mentee.GetAsync("/api/Usuarios/999999");
             Assert.Equal(HttpStatusCode.NotFound, crossMenteeResponse.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, missingMenteeResponse.StatusCode);
-            Assert.Equal(
-                await missingMenteeResponse.Content.ReadAsStringAsync(),
-                await crossMenteeResponse.Content.ReadAsStringAsync());
+            await AssertEquivalentErrorsAsync(missingMenteeResponse, crossMenteeResponse);
         }
     }
 
@@ -136,6 +148,7 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
         await using (factory)
         {
             await SetStatusAsync(factory, scenario.MenteeOneId, StatusUsuario.Pendente);
+            await SetStatusAsync(factory, scenario.MenteeTwoId, StatusUsuario.Pendente);
             await AddLoanAsync(factory, scenario.MenteeTwoId, scenario.MentorTwoId);
 
             using var mentor = CreateClient(factory, scenario.MentorOneId, NivelUsuario.Mentor);
@@ -150,6 +163,12 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
                 .GetProperty("id").GetInt32());
             Assert.Equal(scenario.MenteeOneId, Assert.Single(pendingPayload.RootElement.EnumerateArray())
                 .GetProperty("id").GetInt32());
+            Assert.Equal(
+                ApprovalProfileFields.Order(StringComparer.Ordinal),
+                pendingPayload.RootElement[0].EnumerateObject()
+                    .Select(property => property.Name)
+                    .Order(StringComparer.Ordinal));
+            Assert.Equal("Academico", pendingPayload.RootElement[0].GetProperty("tipoUsuario").GetString());
             Assert.Equal(
                 MinimalProfileFields.Order(StringComparer.Ordinal),
                 dependentsPayload.RootElement[0].EnumerateObject()
@@ -173,15 +192,16 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
                     .GetInt32());
 
             using var crossResponse = await mentor.GetAsync($"/api/Usuarios/{scenario.MentorTwoId}/dependentes");
+            using var crossApprovalsResponse = await mentor.GetAsync(
+                $"/api/Usuarios/{scenario.MentorTwoId}/dependentes/aprovacao");
             using var crossLoansResponse = await mentor.GetAsync(
                 $"/api/Usuarios/{scenario.MentorTwoId}/dependentes/emprestimos");
             using var missingResponse = await mentor.GetAsync("/api/Usuarios/999999/dependentes");
             Assert.Equal(HttpStatusCode.NotFound, crossResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, crossApprovalsResponse.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, crossLoansResponse.StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, missingResponse.StatusCode);
-            Assert.Equal(
-                await missingResponse.Content.ReadAsStringAsync(),
-                await crossResponse.Content.ReadAsStringAsync());
+            await AssertEquivalentErrorsAsync(missingResponse, crossResponse);
         }
     }
 
@@ -191,21 +211,41 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
         var (factory, scenario) = await CreateScenarioAsync();
         await using (factory)
         {
+            await SetStatusAsync(factory, scenario.MenteeTwoId, StatusUsuario.Pendente);
+            // Simula vínculo legado inválido: Mentor deve ficar apenas na fila global.
+            await SetPendingAndResponsibleAsync(factory, scenario.MentorOneId, scenario.AdministratorId);
+            var unlinkedMentorId = await AddUnlinkedPendingMentorAsync(factory, scenario.MenteeTwoId + 10);
             using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
             using var emptyDependents = await administrator.GetAsync($"/api/Usuarios/{scenario.AdministratorId}/dependentes");
             using var emptyPending = await administrator.GetAsync($"/api/Usuarios/{scenario.AdministratorId}/dependentes/aprovacao");
             using var emptyLoans = await administrator.GetAsync($"/api/Usuarios/{scenario.AdministratorId}/dependentes/emprestimos");
-            using var emptyGlobalPending = await administrator.GetAsync("/api/Usuarios/aprovacao");
+            using var adminGlobalPending = await administrator.GetAsync("/api/Usuarios/aprovacao");
+            using var globalPendingPayload = await ReadJsonAsync(adminGlobalPending);
             using var adminDependents = await administrator.GetAsync($"/api/Usuarios/{scenario.MentorTwoId}/dependentes");
             using var adminPayload = await ReadJsonAsync(adminDependents);
+            using var adminPending = await administrator.GetAsync(
+                $"/api/Usuarios/{scenario.MentorTwoId}/dependentes/aprovacao");
+            using var adminPendingPayload = await ReadJsonAsync(adminPending);
 
             await AssertEmptyListAsync(emptyDependents);
             await AssertEmptyListAsync(emptyPending);
             await AssertEmptyListAsync(emptyLoans);
-            await AssertEmptyListAsync(emptyGlobalPending);
+            Assert.Equal(HttpStatusCode.OK, adminGlobalPending.StatusCode);
+            Assert.Equal(
+                new[] { scenario.MenteeTwoId, scenario.MentorOneId, unlinkedMentorId }.Order(),
+                globalPendingPayload.RootElement.EnumerateArray()
+                    .Select(request => request.GetProperty("id").GetInt32())
+                    .Order());
             Assert.Equal(HttpStatusCode.OK, adminDependents.StatusCode);
             Assert.Equal(scenario.MenteeTwoId, Assert.Single(adminPayload.RootElement.EnumerateArray())
                 .GetProperty("id").GetInt32());
+            Assert.Equal(HttpStatusCode.OK, adminPending.StatusCode);
+            var pending = Assert.Single(adminPendingPayload.RootElement.EnumerateArray());
+            Assert.Equal(scenario.MenteeTwoId, pending.GetProperty("id").GetInt32());
+            Assert.Equal("Academico", pending.GetProperty("tipoUsuario").GetString());
+            Assert.Equal(
+                ApprovalProfileFields.Order(StringComparer.Ordinal),
+                pending.EnumerateObject().Select(property => property.Name).Order(StringComparer.Ordinal));
         }
     }
 
@@ -247,6 +287,43 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
         await context.SaveChangesAsync();
     }
 
+    private static async Task SetPendingAndResponsibleAsync(
+        IntegrationWebApplicationFactory factory,
+        int userId,
+        int? responsibleId)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == userId);
+        user.Status = StatusUsuario.Pendente;
+        user.ResponsavelId = responsibleId;
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task<int> AddUnlinkedPendingMentorAsync(
+        IntegrationWebApplicationFactory factory,
+        int userId)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        context.Academicos.Add(new Academico
+        {
+            Id = userId,
+            NomeCompleto = "Solicitante Mentor sem vínculo",
+            Email = $"mentor-unlinked-{Guid.NewGuid():N}@integration.test",
+            SenhaHash = "synthetic-hash",
+            TipoUsuario = TipoUsuario.Academico,
+            NivelUsuario = NivelUsuario.Mentor,
+            Status = StatusUsuario.Pendente,
+            ExigeTrocaSenha = false,
+            Instituicao = "Instituição de teste",
+            Cidade = "Recife",
+            Curso = "Química"
+        });
+        await context.SaveChangesAsync();
+        return userId;
+    }
+
     private static async Task AddLoanAsync(
         IntegrationWebApplicationFactory factory,
         int borrowerId,
@@ -262,6 +339,22 @@ public sealed class UserResourceAuthorizationTests(PostgreSqlContainerFixture da
             AprovadorId = approverId
         });
         await context.SaveChangesAsync();
+    }
+
+    private static async Task AssertEquivalentErrorsAsync(HttpResponseMessage expected, HttpResponseMessage actual)
+    {
+        var expectedBody = JsonNode.Parse(await expected.Content.ReadAsStringAsync())!.AsObject();
+        var actualBody = JsonNode.Parse(await actual.Content.ReadAsStringAsync())!.AsObject();
+        var expectedCorrelation = expectedBody["correlationId"]!.GetValue<string>();
+        var actualCorrelation = actualBody["correlationId"]!.GetValue<string>();
+        Assert.True(Guid.TryParseExact(expectedCorrelation, "N", out _));
+        Assert.True(Guid.TryParseExact(actualCorrelation, "N", out _));
+        Assert.Equal(expectedCorrelation, Assert.Single(expected.Headers.GetValues("X-Correlation-ID")));
+        Assert.Equal(actualCorrelation, Assert.Single(actual.Headers.GetValues("X-Correlation-ID")));
+        Assert.NotEqual(expectedCorrelation, actualCorrelation);
+        expectedBody.Remove("correlationId");
+        actualBody.Remove("correlationId");
+        Assert.Equal(expectedBody.ToJsonString(), actualBody.ToJsonString());
     }
 
     private static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response)

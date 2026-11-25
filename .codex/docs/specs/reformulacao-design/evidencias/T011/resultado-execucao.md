@@ -50,3 +50,21 @@ A captura enviada por Nathan mostrou que o painel do catálogo e o campo de busc
 O relatório axe dos pilotos ainda aponta `button-name` e `color-contrast` no catálogo Mentor, em claro e escuro. Esses achados já constavam no aceite final como limitações de acessibilidade pendentes; os cenários funcionais e responsivos passaram. A retomada não alterou código de produção porque os tokens visuais já estavam corrigidos.
 
 Sem issue/Project por autorização explícita; sem commit, push, deploy ou publicação.
+
+## Retomada em 2026-11-24 — fixture do catálogo Mentor
+
+### RED
+
+A validação cruzada T016 reproduziu os dois cenários do catálogo Mentor em falha: a lista era renderizada, porém tinha zero produtos, embora o teste esperasse os dois itens da fixture. A interface chama `getAllProducts`, que usa o catálogo comum `GET /api/Produtos` com `pagina=1&tamanhoPagina=100` e consome a resposta paginada `{ itens, pagina, tamanhoPagina, totalItens, totalPaginas }`; o mock interceptava apenas a rota sem query e respondia um array. O catálogo administrativo continua sendo outra rota, `Produtos/catalogo-administrativo`, usada somente no perfil administrador.
+
+### GREEN
+
+- A fixture do Mentor agora intercepta a rota comum mesmo com parâmetros, responde por `paginatedProductResponse` e verifica os parâmetros de paginação recebidos, sem interceptar o catálogo administrativo.
+- `npm.cmd run test:e2e -- --project=ui --grep "mentor catalog" --output=e2e/infra/artifacts/t011-mentor-catalog-final` → 2/2 cenários passaram em claro e escuro.
+- `npm.cmd run test -- --run src/components/screens/SearchMaterialComponent src/integration/Product` → 4 arquivos e 29 testes aprovados.
+- ESLint dirigido, Prettier e `git diff --check` no spec → aprovados.
+- O hash de `frontend/tsconfig.app.tsbuildinfo` permaneceu `5DFFAD801A9AB8EF895E51E3A04311176D9FC613B4C070EB3399E166F6426800`.
+
+### Limitações
+
+O E2E UI usa a aplicação Vite local e intercepta a API do catálogo; não exercita o backend nesta retomada. A auditoria Axe ainda registra os achados conhecidos `button-name` e `color-contrast` para o catálogo em ambos os temas, preservados no inventário e fora desta correção de fixture. Nenhum código de produção foi alterado; sem GitHub, Wiki, commit ou push.

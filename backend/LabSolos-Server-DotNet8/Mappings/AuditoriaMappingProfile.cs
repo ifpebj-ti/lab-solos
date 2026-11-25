@@ -1,26 +1,33 @@
 using AutoMapper;
-using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
+using LabSolos_Server_DotNet8.Models;
 
-namespace LabSolos_Server_DotNet8.Mappings
+namespace LabSolos_Server_DotNet8.Mappings;
+
+public class AuditoriaMappingProfile : Profile
 {
-    public class AuditoriaMappingProfile : Profile
+    public AuditoriaMappingProfile()
     {
-        public AuditoriaMappingProfile()
-        {
-            CreateMap<LogAuditoria, LogAuditoriaDTO>()
-                .ForMember(dest => dest.NomeUsuario, opt => opt.MapFrom(src => src.Usuario != null ? src.Usuario.NomeCompleto : null))
-                .ForMember(dest => dest.EmailUsuario, opt => opt.MapFrom(src => src.Usuario != null ? src.Usuario.Email : null));
+        CreateMap<AuditClassificationRevision, AuditClassificationRevisionDTO>()
+            .ForMember(destination => destination.Origem, options => options.MapFrom(source => source.Origem.ToString()));
 
-            CreateMap<CreateLogAuditoriaDTO, LogAuditoria>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.DataHora, opt => opt.Ignore())
-                .ForMember(dest => dest.EnderecoIP, opt => opt.Ignore())
-                .ForMember(dest => dest.UserAgent, opt => opt.Ignore())
-                .ForMember(dest => dest.UsuarioId, opt => opt.Ignore())
-                .ForMember(dest => dest.Usuario, opt => opt.Ignore())
-                .ForMember(dest => dest.Suspeita, opt => opt.Ignore())
-                .ForMember(dest => dest.MotivoSuspeita, opt => opt.Ignore());
-        }
+        CreateMap<LogAuditoria, LogAuditoriaDTO>()
+            .ForMember(destination => destination.Detalhes, options => options.Ignore())
+            .ForMember(destination => destination.EnderecoIP, options => options.Ignore())
+            .ForMember(destination => destination.UserAgent, options => options.Ignore())
+            .ForMember(destination => destination.NomeUsuario, options => options.Ignore())
+            .ForMember(destination => destination.EmailUsuario, options => options.Ignore())
+            .ForMember(destination => destination.DadosRequisicao, options => options.Ignore())
+            .ForMember(destination => destination.DadosResposta, options => options.MapFrom(source => source.Resultado.ToString()))
+            .ForMember(destination => destination.TempoSessao, options => options.Ignore())
+            .ForMember(destination => destination.TentativasAcesso, options => options.Ignore())
+            .ForMember(destination => destination.MotivoSuspeita, options => options.Ignore())
+            .ForMember(destination => destination.RevisaoClassificacao, options => options.MapFrom(source => source.RevisaoClassificacao))
+            .ForMember(destination => destination.HistoricoClassificacao, options => options.MapFrom(source => source.RevisoesClassificacao))
+            .ForMember(destination => destination.UsuarioId, options => options.MapFrom(source => source.UsuarioId))
+            .ForMember(destination => destination.Origem, options => options.MapFrom(source =>
+                source.OrigemConfiavel == OrigemConfiavelAuditoria.ProcessoAutorizado
+                    ? $"{source.OrigemConfiavel}:{source.ReferenciaAtor}"
+                    : source.OrigemConfiavel.ToString()));
     }
 }

@@ -20,6 +20,16 @@ export const productFixtures = Array.from({ length: 42 }, (_, index) => ({
   unidadeMedida: index === 1 ? undefined : 'ml',
   status: 'Disponivel',
 }));
+export function paginatedProductResponse<TItem>(itens: TItem[]) {
+  const tamanhoPagina = 100;
+  return {
+    itens,
+    pagina: 1,
+    tamanhoPagina,
+    totalItens: itens.length,
+    totalPaginas: Math.ceil(itens.length / tamanhoPagina),
+  };
+}
 export const registrationRequestFixtures = Array.from(
   { length: 8 },
   (_, index) => ({
@@ -29,6 +39,7 @@ export const registrationRequestFixtures = Array.from(
         ? 'Pessoa ' + 'A'.repeat(200)
         : `Pessoa sintetica ${index + 1}`,
     email: `pessoa-${index + 1}@example.invalid`,
+    tipoUsuario: 'Academico',
     telefone: null,
     dataIngresso: `2026-09-${String(index + 1).padStart(2, '0')}`,
     status: 'Pendente',
@@ -159,6 +170,82 @@ export const loanCreationDependents = [
 const normalizeNullableDate = (value: unknown): string | null =>
   typeof value === 'string' && value.length > 0 ? value : null;
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function stringOr(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function nullableStringOrNull(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === 'number' ? value : fallback;
+}
+
+function normalizeLoanProductType(value: Record<string, unknown>): string {
+  if (typeof value.tipoProduto === 'string') return value.tipoProduto;
+  return stringOr(value.tipo, 'Quimico');
+}
+
+function normalizeLoanProductBatch(
+  rawBatch: unknown,
+  productId: number
+): ReturnType<typeof makeLoanBatch> | null {
+  if (rawBatch === null || rawBatch === undefined) return null;
+  if (typeof rawBatch === 'object') {
+    const batch = asRecord(rawBatch);
+    return makeLoanBatch(String(batch.codigoLote ?? `L-${productId}`));
+  }
+  return makeLoanBatch(String(rawBatch));
+}
+
+function normalizeLoanProduct(
+  rawProduct: unknown,
+  index: number,
+  loanId: number
+) {
+  const item = asRecord(rawProduct);
+  const rawProductValue =
+    item.produto && typeof item.produto === 'object'
+      ? asRecord(item.produto)
+      : item;
+  const productId = Number(
+    rawProductValue.id ?? item.produtoId ?? loanId * 100 + index + 1
+  );
+
+  return {
+    emprestimoId: loanId,
+    quantidade: numberOr(item.quantidade, 1),
+    produto: {
+      id: productId,
+      catmat: stringOr(rawProductValue.catmat, `CAT-${productId}`),
+      nomeProduto: stringOr(rawProductValue.nomeProduto, `Produto ${productId}`),
+      tipoProduto: normalizeLoanProductType(rawProductValue),
+      fornecedor: nullableStringOrNull(rawProductValue.fornecedor),
+      unidadeMedida: stringOr(rawProductValue.unidadeMedida, 'Unidade'),
+      quantidade: numberOr(rawProductValue.quantidade, 1),
+      quantidadeMinima: numberOr(rawProductValue.quantidadeMinima, 1),
+      localizacaoProduto: nullableStringOrNull(
+        rawProductValue.localizacaoProduto
+      ),
+      dataFabricacao: nullableStringOrNull(rawProductValue.dataFabricacao),
+      dataValidade: nullableStringOrNull(rawProductValue.dataValidade),
+      ultimaModificacao: stringOr(
+        rawProductValue.ultimaModificacao,
+        '2026-09-01T10:00:00Z'
+      ),
+      status: stringOr(rawProductValue.status, 'Disponivel'),
+      lote: normalizeLoanProductBatch(rawProductValue.lote, productId),
+    },
+  };
+}
+
 const normalizeLoanFixture = (value: Record<string, unknown>) => {
   const rawProducts = Array.isArray(value.produtos)
     ? value.produtos
@@ -166,91 +253,10 @@ const normalizeLoanFixture = (value: Record<string, unknown>) => {
       ? value.emprestimoProdutos
       : [];
 
-  const produtos = rawProducts.map((rawProduct, index) => {
-    const item =
-      rawProduct && typeof rawProduct === 'object'
-        ? (rawProduct as Record<string, unknown>)
-        : {};
-    const rawProductValue =
-      item.produto && typeof item.produto === 'object'
-        ? (item.produto as Record<string, unknown>)
-        : item;
-    const productId = Number(
-      rawProductValue.id ?? item.produtoId ?? Number(value.id) * 100 + index + 1
-    );
-    const rawBatch = rawProductValue.lote;
-    const lote =
-      rawBatch === null || rawBatch === undefined
-        ? null
-        : makeLoanBatch(
-            typeof rawBatch === 'object'
-              ? String(
-                  (rawBatch as Record<string, unknown>).codigoLote ??
-                    `L-${productId}`
-                )
-              : String(rawBatch)
-          );
-
-    return {
-      emprestimoId: Number(value.id),
-      quantidade:
-        typeof item.quantidade === 'number' ? item.quantidade : 1,
-      produto: {
-        id: productId,
-        catmat:
-          typeof rawProductValue.catmat === 'string'
-            ? rawProductValue.catmat
-            : `CAT-${productId}`,
-        nomeProduto:
-          typeof rawProductValue.nomeProduto === 'string'
-            ? rawProductValue.nomeProduto
-            : `Produto ${productId}`,
-        tipoProduto:
-          typeof rawProductValue.tipoProduto === 'string'
-            ? rawProductValue.tipoProduto
-            : typeof rawProductValue.tipo === 'string'
-              ? rawProductValue.tipo
-              : 'Quimico',
-        fornecedor:
-          typeof rawProductValue.fornecedor === 'string'
-            ? rawProductValue.fornecedor
-            : null,
-        unidadeMedida:
-          typeof rawProductValue.unidadeMedida === 'string'
-            ? rawProductValue.unidadeMedida
-            : 'Unidade',
-        quantidade:
-          typeof rawProductValue.quantidade === 'number'
-            ? rawProductValue.quantidade
-            : 1,
-        quantidadeMinima:
-          typeof rawProductValue.quantidadeMinima === 'number'
-            ? rawProductValue.quantidadeMinima
-            : 1,
-        localizacaoProduto:
-          typeof rawProductValue.localizacaoProduto === 'string'
-            ? rawProductValue.localizacaoProduto
-            : null,
-        dataFabricacao:
-          typeof rawProductValue.dataFabricacao === 'string'
-            ? rawProductValue.dataFabricacao
-            : null,
-        dataValidade:
-          typeof rawProductValue.dataValidade === 'string'
-            ? rawProductValue.dataValidade
-            : null,
-        ultimaModificacao:
-          typeof rawProductValue.ultimaModificacao === 'string'
-            ? rawProductValue.ultimaModificacao
-            : '2026-09-01T10:00:00Z',
-        status:
-          typeof rawProductValue.status === 'string'
-            ? rawProductValue.status
-            : 'Disponivel',
-        lote,
-      },
-    };
-  });
+  const loanId = Number(value.id);
+  const produtos = rawProducts.map((rawProduct, index) =>
+    normalizeLoanProduct(rawProduct, index, loanId)
+  );
 
   const normalizedBase = Object.fromEntries(
     Object.entries(value).filter(
@@ -473,35 +479,19 @@ export const verificationHistoryFixture = {
   historico: [
     {
       emprestimoId: 2001,
-      dataEmprestimo: '2026-09-01T10:00:00',
-      dataDevolucao: null,
+      dataSaida: '2026-09-01T10:00:00',
       quantidadeEmprestada: 2,
-      statusEmprestimo: 'Emprestado',
-      solicitante: {
-        id: 4242,
-        nome: 'Pessoa sintética',
-        email: 'sessao@example.invalid',
-        instituicao: null,
-      },
-      aprovador: null,
-      identificador: 'ID-2001',
+      unidadeMedida: 'kg',
       lote: null,
+      solicitanteNome: 'Pessoa sintética',
     },
     {
       emprestimoId: 2002,
-      dataEmprestimo: '2026-09-02T10:00:00',
-      dataDevolucao: null,
+      dataSaida: '2026-09-02T10:00:00',
       quantidadeEmprestada: 3,
-      statusEmprestimo: 'Devolvido',
-      solicitante: {
-        id: 4243,
-        nome: 'Outra pessoa',
-        email: 'outra@example.invalid',
-        instituicao: null,
-      },
-      aprovador: null,
-      identificador: 'ID-2002',
+      unidadeMedida: 'kg',
       lote: 'L-2002',
+      solicitanteNome: 'Outra pessoa',
     },
   ],
 };
@@ -523,19 +513,24 @@ export const loanHistoriesFixtures = Array.from({ length: 8 }, (_, index) => ({
   aprovador: null,
 })).map(normalizeLoanFixture);
 
-export const alertFixtures = [
+export const followUpCatalogFixtures = [
   {
     id: 1901,
+    catmat: 'CAT-1901',
     nomeProduto: 'Alerta ' + 'A'.repeat(200),
     tipoProduto: 'Quimico',
     fornecedor: 'Fornecedor sintético',
+    unidadeMedida: 'Litro',
     quantidade: 2,
     quantidadeMinima: 8,
     localizacaoProduto: 'Armário 1',
     dataFabricacao: null,
     dataValidade: '2026-12-20',
+    ultimaModificacao: '2026-11-01T10:00:00Z',
     status: 'Disponível',
-    unidadeMedida: 'Litro',
+    lote: null,
+    capacidadeMl: null,
+    motivosAlerta: ['estoque_abaixo_minimo'],
   },
 ];
 
@@ -654,22 +649,28 @@ export const menteeMentoringHistoryFixtures = [
   },
 ].map(normalizeLoanFixture);
 export async function mockResponsiveSession(page: Page, role: string) {
-  const payload = Buffer.from(
-    JSON.stringify({ sub: '4242', role, password_change_required: false })
-  ).toString('base64url');
-  const hostname = new URL(process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173')
-    .hostname;
-  await page.context().addCookies([
-    {
-      name: 'doorKey',
-      value: `eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.${payload}.`,
-      domain: hostname,
-      path: '/',
-    },
-    { name: 'rankID', value: '4242', domain: hostname, path: '/' },
-    { name: 'level', value: role, domain: hostname, path: '/' },
-  ]);
+  await page.addInitScript((sessionRole) => {
+    sessionStorage.setItem(
+      'auth:session-context',
+      JSON.stringify({
+        userId: '4242',
+        role: sessionRole,
+        requiresPasswordChange: false,
+      })
+    );
+    sessionStorage.setItem('auth:csrf-token', 'responsive-test-csrf-proof');
+  }, role);
   await page.route('**/api/**', (route) => route.fulfill({ json: [] }));
+  await page.route('**/api/Auth/session', (route) =>
+    route.fulfill({
+      json: {
+        userId: 4242,
+        role,
+        requiresPasswordChange: false,
+        csrfToken: 'responsive-test-csrf-proof',
+      },
+    })
+  );
   await page.route('**/api/Usuarios/4242', (route) =>
     route.fulfill({
       json: {
@@ -692,6 +693,9 @@ export async function mockResponsiveSession(page: Page, role: string) {
     route.fulfill({
       json: { produtos: { Vidraria: 1, Quimico: 41, Outro: 0 } },
     })
+  );
+  await page.route('**/api/Auth/logout', (route) =>
+    route.fulfill({ status: 204 })
   );
 }
 export async function expectPageFits(page: Page, listName: string | RegExp = 'Produtos') {
@@ -761,7 +765,6 @@ export async function fillResponsiveAccount(page: Page) {
     curso: '  ES  ',
     cidade: '  Belo Jardim  ',
     telefone: '81999999999',
-    emailMentor: 'mentor@example.invalid',
   }))
     await page.locator(`input[name="${name}"]`).fill(value);
 }

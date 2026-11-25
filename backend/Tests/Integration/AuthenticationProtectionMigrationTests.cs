@@ -22,15 +22,22 @@ public sealed class AuthenticationProtectionMigrationTests(PostgreSql15Container
         await context.Database.MigrateAsync();
         await context.Database.MigrateAsync();
 
-        Assert.Equal(5, await CountAppliedMigrationsAsync());
+        Assert.Equal(context.Database.GetMigrations().Count(), await CountAppliedMigrationsAsync());
         Assert.True(await TableExistsAsync("AuthenticationThrottleBuckets"));
         Assert.True(await TableExistsAsync("AuthenticationProtectionCapacity"));
         Assert.True(await TableExistsAsync("PasswordRecoveryJobs"));
         Assert.True(await IndexExistsAsync("IX_Usuarios_Email"));
         Assert.Equal(
             [
+                "audit:export:administrator",
+                "audit:query:administrator",
+                "loan-creation:account",
                 "login:account",
                 "login:ip",
+                "notification:automatic:service",
+                "notification:manual:administrator",
+                "password-change:account",
+                "public-registration:ip",
                 "recovery-code:ip",
                 "recovery-code:recipient",
                 "recovery-jobs",
@@ -84,7 +91,7 @@ public sealed class AuthenticationProtectionMigrationTests(PostgreSql15Container
 
         await context.Database.MigrateAsync();
 
-        Assert.Equal(5, await CountAppliedMigrationsAsync());
+        Assert.Equal(context.Database.GetMigrations().Count(), await CountAppliedMigrationsAsync());
         Assert.Equal(
             [
                 "CASE-VARIANT@example.invalid",

@@ -9,7 +9,14 @@ public enum ThrottlePurpose
 {
     Login,
     RecoveryRequest,
-    RecoveryCode
+    RecoveryCode,
+    PasswordChange,
+    PublicRegistration,
+    LoanCreation,
+    NotificationManual,
+    NotificationAutomatic,
+    AuditQuery,
+    AuditExport
 }
 
 public sealed class ThrottleKeyFactory : IDisposable
@@ -51,10 +58,32 @@ public sealed class ThrottleKeyFactory : IDisposable
         return CreateKey(GetPurposeName(purpose), "recipient", normalizedEmail);
     }
 
+    public byte[] CreateAccountQuotaKey(ThrottlePurpose purpose, int accountId)
+    {
+        ThrowIfDisposed();
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(accountId);
+        return CreateKey(
+            GetPurposeName(purpose),
+            "account",
+            accountId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
     public byte[] CreateIpQuotaKey(ThrottlePurpose purpose, IPAddress? ipAddress)
     {
         ThrowIfDisposed();
         return CreateKey(GetPurposeName(purpose), "ip", CanonicalizeIp(ipAddress));
+    }
+
+    public byte[] CreateServiceQuotaKey(ThrottlePurpose purpose, string serviceIdentity)
+    {
+        ThrowIfDisposed();
+        if (purpose != ThrottlePurpose.NotificationAutomatic)
+        {
+            throw new ArgumentOutOfRangeException(nameof(purpose));
+        }
+
+        ValidateIdentifier(serviceIdentity, nameof(serviceIdentity));
+        return CreateKey(GetPurposeName(purpose), "service", serviceIdentity.Trim());
     }
 
     public byte[] CreateRecoveryDeliveryKey(string exactEmail)
@@ -62,6 +91,13 @@ public sealed class ThrottleKeyFactory : IDisposable
         ThrowIfDisposed();
         ValidateIdentifier(exactEmail, nameof(exactEmail));
         return CreateKey("recovery-delivery", "recipient-exact", exactEmail);
+    }
+
+    public byte[] CreateEmailAddressKey(string normalizedEmail)
+    {
+        ThrowIfDisposed();
+        ValidateIdentifier(normalizedEmail, nameof(normalizedEmail));
+        return CreateKey("email-address", "normalized", normalizedEmail.Trim().ToLowerInvariant());
     }
 
     public void Dispose()
@@ -96,6 +132,13 @@ public sealed class ThrottleKeyFactory : IDisposable
         ThrottlePurpose.Login => "login",
         ThrottlePurpose.RecoveryRequest => "recovery-request",
         ThrottlePurpose.RecoveryCode => "recovery-code",
+        ThrottlePurpose.PasswordChange => "password-change",
+        ThrottlePurpose.PublicRegistration => "public-registration",
+        ThrottlePurpose.LoanCreation => "loan-creation",
+        ThrottlePurpose.NotificationManual => "notification-manual",
+        ThrottlePurpose.NotificationAutomatic => "notification-automatic",
+        ThrottlePurpose.AuditQuery => "audit-query",
+        ThrottlePurpose.AuditExport => "audit-export",
         _ => throw new ArgumentOutOfRangeException(nameof(purpose))
     };
 

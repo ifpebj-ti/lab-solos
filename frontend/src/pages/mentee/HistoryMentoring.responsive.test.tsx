@@ -6,11 +6,11 @@ import HistoryMentoring from './HistoryMentoring';
 
 const usersApi = vi.hoisted(() => ({ getUserById: vi.fn() }));
 const loansApi = vi.hoisted(() => ({ getLoansByUserId: vi.fn() }));
-const cookieApi = vi.hoisted(() => ({ get: vi.fn() }));
+const sessionApi = vi.hoisted(() => ({ readSession: vi.fn() }));
 
 vi.mock('@/integration/Users', () => usersApi);
 vi.mock('@/integration/Loans', () => loansApi);
-vi.mock('js-cookie', () => ({ default: cookieApi }));
+vi.mock('@/auth/session', () => sessionApi);
 vi.mock('@/components/global/OpenSearch', () => ({ default: () => null }));
 
 const user = {
@@ -44,7 +44,11 @@ const loan = {
 describe('histórico de mentorias do mentorado responsivo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    cookieApi.get.mockReturnValue('4242');
+    sessionApi.readSession.mockReturnValue({
+      userId: '4242',
+      role: 'Mentorado',
+      requiresPasswordChange: false,
+    });
     usersApi.getUserById.mockResolvedValue(user);
     loansApi.getLoansByUserId.mockResolvedValue([loan]);
   });

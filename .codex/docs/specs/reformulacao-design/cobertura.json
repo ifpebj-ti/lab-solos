@@ -1,6 +1,6 @@
 {
   "versao": 1,
-  "atualizado_em": "2026-09-23",
+  "atualizado_em": "2026-11-24",
   "status": "aceite final local registrado sob limitações documentadas",
   "fontes": [
     "frontend/src/routes.tsx",
@@ -27,6 +27,15 @@
       "versao": "2026-09-23.1",
       "alcance": "Todas as 63 superfícies aplicáveis e 44 rotas do inventário; limitações de E2E compartilhado, audit/critique, leitor de tela e Wiki registradas explicitamente.",
       "data": "2026-09-23"
+    },
+    {
+      "id": "404-aliases-2026-11-24",
+      "referencia": ".codex/docs/specs/decisoes-de-planejamento.md",
+      "autor": "Nathan",
+      "resposta": "O LabOn em andamento é a referência aprovada pelo cliente; não há protótipo independente aprovado.",
+      "versao": "2026-11-24.1",
+      "alcance": "Os fallbacks /admin/*, /mentor/* e /mentee/* renderizam a mesma Page404 já coberta pela T016; os aliases são inventariados sem declarar novas telas aprovadas.",
+      "data": "2026-11-24"
     }
   ],
   "regras": {
@@ -3160,6 +3169,72 @@
       "observacoes": "Inventário estático inicial; T001 confere aplicabilidade e estados em runtime, registrando justificativas para ajustes. Cada perfil requer evidência de autorização e integração.",
       "superficie": "Sistema visual documentado",
       "caminho": "DESIGN.md"
+    },
+    {
+      "id": "SUP-064",
+      "tipo": "rota",
+      "rota": "/admin/*",
+      "perfil": ["Visitante", "Administrador", "Mentor", "Mentorado"],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": ["rota não encontrada", "retorno autorizado"],
+      "larguras": [320, 375, 767, 768, 1440],
+      "temas": ["claro", "escuro"],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": ["RF-004", "RF-005", "RF-008", "RNF-003", "CA-004", "CA-005", "CA-009"],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T016/resultado-execucao.md",
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "404-aliases-2026-11-24",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Alias para a Page404 compartilhada; não introduz superfície visual própria."
+    },
+    {
+      "id": "SUP-065",
+      "tipo": "rota",
+      "rota": "/mentor/*",
+      "perfil": ["Visitante", "Administrador", "Mentor", "Mentorado"],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": ["rota não encontrada", "retorno autorizado"],
+      "larguras": [320, 375, 767, 768, 1440],
+      "temas": ["claro", "escuro"],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": ["RF-004", "RF-005", "RF-008", "RNF-003", "CA-004", "CA-005", "CA-009"],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T016/resultado-execucao.md",
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "404-aliases-2026-11-24",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Alias para a Page404 compartilhada; não introduz superfície visual própria."
+    },
+    {
+      "id": "SUP-066",
+      "tipo": "rota",
+      "rota": "/mentee/*",
+      "perfil": ["Visitante", "Administrador", "Mentor", "Mentorado"],
+      "familia": "conta e estados globais",
+      "estados_aplicaveis": ["rota não encontrada", "retorno autorizado"],
+      "larguras": [320, 375, 767, 768, 1440],
+      "temas": ["claro", "escuro"],
+      "onda": 15,
+      "tarefa": "T016",
+      "marco_aceite": "T017",
+      "requisitos": ["RF-004", "RF-005", "RF-008", "RNF-003", "CA-004", "CA-005", "CA-009"],
+      "evidencias": [
+        ".codex/docs/specs/reformulacao-design/evidencias/T016/resultado-execucao.md",
+        ".codex/docs/specs/reformulacao-design/evidencias/T031/resultado-execucao.md"
+      ],
+      "decisao": "404-aliases-2026-11-24",
+      "status": "compartilhada e validada",
+      "nao_aplicavel": [],
+      "observacoes": "Alias para a Page404 compartilhada; não introduz superfície visual própria."
     }
   ]
 }

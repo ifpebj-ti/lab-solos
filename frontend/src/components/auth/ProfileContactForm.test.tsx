@@ -36,6 +36,7 @@ describe('ProfileContactForm', () => {
       target: { value: 'ada.new@example.com' },
     });
     expect(screen.getByLabelText('Senha atual')).toBeRequired();
+    expect(screen.getByLabelText('Senha atual')).toHaveFocus();
 
     fireEvent.change(screen.getByLabelText('Senha atual'), {
       target: { value: 'transient-secret' },
@@ -56,7 +57,7 @@ describe('ProfileContactForm', () => {
       currentPassword: 'transient-secret',
     }));
     expect(await screen.findByRole('status')).toHaveTextContent(
-      'Perfil atualizado.'
+      'E-mail atualizado. O endereço anterior ficará reservado para esta conta por 7 dias. Avisos para os dois endereços foram programados.'
     );
     expect(screen.getByLabelText('Senha atual')).toHaveValue('');
     expect(onSaved).toHaveBeenCalledWith({
@@ -86,7 +87,7 @@ describe('ProfileContactForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Este e-mail já está em uso. Os dados do perfil não foram alterados.'
+      'Este e-mail não está disponível agora. Se foi usado recentemente, aguarde o prazo de carência de até 7 dias. Os dados do perfil não foram alterados.'
     );
     expect(screen.getByLabelText('Nome completo')).toHaveValue('Ada Byron');
     expect(screen.getByLabelText('E-mail')).toHaveValue('used@example.com');
@@ -94,11 +95,40 @@ describe('ProfileContactForm', () => {
     expect(onSaved).not.toHaveBeenCalled();
   });
 
+  it('explica a falha de autorização e preserva o e-mail digitado', async () => {
+    vi.mocked(updateOwnUserProfile).mockRejectedValue({
+      response: {
+        status: 403,
+        data: { code: 'forbidden', title: 'remote details must stay private' },
+      },
+    });
+    render(
+      <ProfileContactForm user={user} onSaved={onSaved} onCancel={onCancel} />
+    );
+
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'ada.new@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Senha atual'), {
+      target: { value: 'transient-secret' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Você não tem autorização para atualizar este perfil. Os dados não foram alterados.'
+    );
+    expect(screen.getByLabelText('E-mail')).toHaveValue('ada.new@example.com');
+    expect(screen.getByLabelText('Senha atual')).toHaveValue('');
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(screen.queryByText(/remote details/)).not.toBeInTheDocument();
+  });
+
   it('mantém os dados após senha atual incorreta e exige nova confirmação', async () => {
     vi.mocked(updateOwnUserProfile).mockRejectedValue({
       response: {
         status: 400,
         data: {
+          code: 'validation_failed',
           errors: {
             senhaAtual: ['current_password_invalid', 'Confirme a senha atual.'],
           },

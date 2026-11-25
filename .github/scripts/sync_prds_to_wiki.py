@@ -9,7 +9,10 @@ from pathlib import Path
 
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-TITLE_PATTERN = re.compile(r"^#\s+PRD:\s*(.+?)\s*$", re.MULTILINE)
+TITLE_PATTERN = re.compile(
+    r"^#\s+PRD(?:(?::\s*)|(?:\s+de\s+)|(?:\s*[—–-]\s*))(.+?)\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
 
 
 def metadata(content: str, label: str, fallback: str = "—") -> str:
@@ -65,7 +68,10 @@ def publish(source: Path, wiki: Path, repository: str, ref: str) -> int:
         content = prd_path.read_text(encoding="utf-8-sig").strip()
         title_match = TITLE_PATTERN.search(content)
         if not title_match:
-            raise ValueError(f"Título '# PRD:' não encontrado em {prd_path}")
+            raise ValueError(
+                "Título do PRD não encontrado (use '# PRD: título', "
+                f"'# PRD de título' ou '# PRD — título') em {prd_path}"
+            )
 
         title = title_match.group(1).strip()
         status = metadata(content, "Status")

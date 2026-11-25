@@ -215,8 +215,10 @@ public sealed class LoanResourceAuthorizationTests(PostgreSqlContainerFixture da
         Assert.Equal(HttpStatusCode.NotFound, inaccessible.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
         Assert.Equal(
-            await inaccessible.Content.ReadAsStringAsync(),
-            await missing.Content.ReadAsStringAsync());
+            await ApiProblemContractAssertions.ReadAsync(
+                inaccessible, HttpStatusCode.NotFound, "resource_not_found"),
+            await ApiProblemContractAssertions.ReadAsync(
+                missing, HttpStatusCode.NotFound, "resource_not_found"));
     }
 
     private static async Task AssertEmptyListAsync(HttpResponseMessage response)

@@ -1,11 +1,12 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import ReturnLoan from './ReturnLoan';
 
@@ -16,7 +17,6 @@ vi.mock('@/components/global/OpenSearch', () => ({ default: () => null }));
 const API_ORIGIN = 'http://localhost:8080/api';
 const loanUrl = `${API_ORIGIN}/Emprestimos/99`;
 const returnUrl = `${API_ORIGIN}/Emprestimos/devolver/99`;
-const sessionToken = 'session-token';
 
 const loan = {
   id: 99,
@@ -78,12 +78,11 @@ const renderPage = () =>
 describe('ReturnLoan: erros de consulta e devolução', () => {
   beforeEach(() => {
     toastMock.mockReset();
-    Cookie.set('doorKey', sessionToken);
+    establishTestSession('12', 'Administrador');
     server.use(http.get(loanUrl, () => HttpResponse.json(loan)));
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
   });
 
   it('mantém a falha de carga persistente e recupera o empréstimo', async () => {
@@ -131,7 +130,7 @@ describe('ReturnLoan: erros de consulta e devolução', () => {
     button.click();
 
     await waitFor(() => expect(button).toBeEnabled());
-    expect(Cookie.get('doorKey')).toBe(sessionToken);
+    expect(readSession()?.userId).toBe('12');
     expect(screen.getByText('Registrar Devolução')).toBeInTheDocument();
     expect(toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0]).toEqual(
       expect.objectContaining({
@@ -144,30 +143,49 @@ describe('ReturnLoan: erros de consulta e devolução', () => {
     );
   });
 
-  it('orienta atualização no conflito e registra a devolução após recuperação', async () => {
-    let attempts = 0;
+  it('exibe as datas prevista e efetiva de devolução em campos separados', async () => {
     server.use(
-      http.patch(returnUrl, () => {
-        attempts += 1;
-        return attempts === 1
-          ? HttpResponse.json(
-              { detail: 'RETURN_CONFLICT_SECRET' },
-              { status: 409 }
-            )
-          : HttpResponse.json({ ok: true });
-      }),
       http.get(loanUrl, () =>
-        attempts < 2
-          ? HttpResponse.json(loan)
-          : HttpResponse.json({ ...loan, dataDevolucao: '2026-09-07T10:00:00' })
+        HttpResponse.json({
+          ...loan,
+          dataDevolucao: '2026-09-07T12:00:00',
+        })
       )
     );
 
     renderPage();
-    const button = await screen.findByRole('button', { name: 'Registrar Devolução' });
-    button.click();
 
-    await waitFor(() => expect(button).toBeEnabled());
+    expect(await screen.findByText('08/09/2026')).toBeInTheDocument();
+    expect(screen.getByText('07/09/2026')).toBeInTheDocument();
+    expect(screen.getByText('Data prevista para devolução')).toBeInTheDocument();
+    expect(screen.getByText('Data efetiva da devolução')).toBeInTheDocument();
+  });
+
+  it('reconsulta e bloqueia o reenvio quando outra pessoa conclui a devolução', async () => {
+    let attempts = 0;
+    let reads = 0;
+    server.use(
+      http.patch(returnUrl, () => {
+        attempts += 1;
+        return HttpResponse.json(
+          { code: 'loan_return_already_recorded' },
+          { status: 409 }
+        );
+      }),
+      http.get(loanUrl, () => {
+        reads += 1;
+        return HttpResponse.json(
+          reads === 1 ? loan : { ...loan, dataDevolucao: '2026-09-07T10:00:00' }
+        );
+      })
+    );
+
+    renderPage();
+    await screen.findByRole('button', { name: 'Registrar Devolução' });
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Devolução' }));
+
+    expect(await screen.findByText('Devolvido')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Registrar Devolução' })).not.toBeInTheDocument();
     const conflictNotification = toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0];
     expect(conflictNotification).toEqual(
       expect.objectContaining({
@@ -175,17 +193,39 @@ describe('ReturnLoan: erros de consulta e devolução', () => {
         description: expect.stringContaining(ERROR_CATALOG.conflict.message),
       })
     );
-    expect(conflictNotification.description).toContain(
-      ERROR_CATALOG.conflict.suggestedAction
+    expect(attempts).toBe(1);
+    expect(reads).toBe(2);
+  });
+
+  it('reconsulta antes de reabilitar a devolução após resposta de rede incerta', async () => {
+    let attempts = 0;
+    let reads = 0;
+    server.use(
+      http.patch(returnUrl, () => {
+        attempts += 1;
+        return HttpResponse.error();
+      }),
+      http.get(loanUrl, () => {
+        reads += 1;
+        return HttpResponse.json(
+          reads === 1 ? loan : { ...loan, dataDevolucao: '2026-09-07T10:00:00' }
+        );
+      })
     );
 
-    button.click();
-    await waitFor(() =>
-      expect(toastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Devolução registrada' })
-      )
-    );
+    renderPage();
+    await screen.findByRole('button', { name: 'Registrar Devolução' });
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Devolução' }));
+
     expect(await screen.findByText('Devolvido')).toBeInTheDocument();
-    expect(attempts).toBe(2);
+    expect(screen.queryByRole('button', { name: 'Registrar Devolução' })).not.toBeInTheDocument();
+    expect(attempts).toBe(1);
+    expect(reads).toBe(2);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Não foi possível registrar a devolução',
+        description: expect.stringContaining(ERROR_CATALOG.network.message),
+      })
+    );
   });
 });

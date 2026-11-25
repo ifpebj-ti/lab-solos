@@ -21,6 +21,7 @@ import {
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
 import { notifyError } from '@/errors/presentError';
+import { isApplicationError } from '@/errors/applicationError';
 import { toast } from '@/components/hooks/use-toast';
 import { FileText, RefreshCw } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ import {
 import BackLink from '@/components/global/BackLink';
 import type { Emprestimo } from '@/contracts/loan';
 import type { Usuario } from '@/contracts/user';
+import { formatDate } from '@/function/date';
 import {
   buildDetailUrl,
   readIdFromLocation,
@@ -62,6 +64,39 @@ const columnWidthsExport = ['10%', '45%', '15%', '15%', '15%'];
 
 const userName = (user: Usuario | null) =>
   user?.nomeCompleto ?? 'Não informado';
+
+const shouldRefreshAfterMutationError = (error: unknown) =>
+  isApplicationError(error) &&
+  ['conflict', 'network', 'timeout', 'server'].includes(error.category);
+
+function LoanDates({ loan }: { loan: Emprestimo }) {
+  const dates = [
+    {
+      label: 'Devolução prevista',
+      value: loan.dataPrevistaDevolucao
+        ? formatDate(loan.dataPrevistaDevolucao)
+        : 'Não informada',
+    },
+    {
+      label: 'Devolução efetiva',
+      value: loan.dataDevolucao ? formatDate(loan.dataDevolucao) : 'Ainda não devolvido',
+    },
+  ];
+
+  return (
+    <section
+      aria-label='Datas do empréstimo'
+      className='mt-5 grid w-full min-w-0 grid-cols-1 gap-4 rounded-xl border border-borderMy bg-surface p-4 sm:grid-cols-2'
+    >
+      {dates.map(({ label, value }) => (
+        <div key={label} className='min-w-0'>
+          <p className='font-inter-regular text-sm text-clt-1'>{label}</p>
+          <p className='wrap-break-word font-inter-medium text-clt-2'>{value}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
 
 function LoanProductRows({ products }: { products: Emprestimo['produtos'] }) {
   if (products.length === 0) {
@@ -102,11 +137,11 @@ function LoanProductRows({ products }: { products: Emprestimo['produtos'] }) {
 
 function LoanReturnAction({
   loan,
-  pendingAction,
+  isActionPending,
   onReturn,
 }: {
   loan: Emprestimo;
-  pendingAction: 'approve' | 'reject' | 'return' | null;
+  isActionPending: boolean;
   onReturn: () => void;
 }) {
   if (loan.status !== 'Aprovado') return null;
@@ -115,7 +150,7 @@ function LoanReturnAction({
       <button
         type='button'
         onClick={onReturn}
-        disabled={pendingAction === 'return'}
+        disabled={isActionPending}
         className='flex h-11 items-center justify-center gap-x-3 rounded-md border border-success px-4 font-rajdhani-semibold text-xl text-success transition-colors hover:bg-surface-selected'
       >
         Registrar Devolução
@@ -135,7 +170,7 @@ function LoanReturnAction({
 type LoanProductsSectionProps = {
   loan: Emprestimo;
   products: Emprestimo['produtos'];
-  pendingAction: 'approve' | 'reject' | 'return' | null;
+  isActionPending: boolean;
   onReturn: () => void;
   searchTerm: string;
   onSearch: (value: string) => void;
@@ -149,7 +184,7 @@ type LoanProductsSectionProps = {
 function LoanProductsSection({
   loan,
   products,
-  pendingAction,
+  isActionPending,
   onReturn,
   searchTerm,
   onSearch,
@@ -170,7 +205,7 @@ function LoanProductsSection({
         </p>
         <LoanReturnAction
           loan={loan}
-          pendingAction={pendingAction}
+          isActionPending={isActionPending}
           onReturn={onReturn}
         />
       </div>
@@ -245,36 +280,40 @@ function LoanProductsSection({
 }
 
 function LoanDecisionActions({
-  loan,
-  pendingAction,
+  disabled,
   onApprove,
   onReject,
 }: {
-  loan: Emprestimo;
-  pendingAction: 'approve' | 'reject' | 'return' | null;
+  disabled: boolean;
   onApprove: () => void;
   onReject: () => void;
 }) {
-  if (loan.status === 'Aprovado') return null;
+  const actions = [
+    {
+      label: 'Rejeitar',
+      onClick: onReject,
+      colors: 'border-danger text-danger enabled:hover:bg-danger',
+    },
+    {
+      label: 'Aceitar',
+      onClick: onApprove,
+      colors: 'border-[rgb(var(--color-success))] text-[rgb(var(--color-success))] enabled:hover:bg-[rgb(var(--color-success))]',
+    },
+  ];
 
   return (
-    <div className='mt-6 flex h-11 w-full min-w-0 flex-wrap items-center justify-end gap-3'>
-      <button
-        type='button'
-        onClick={onReject}
-        disabled={pendingAction === 'reject'}
-        className='h-11 w-28 rounded-md border border-danger font-inter-medium text-danger transition-colors hover:bg-danger hover:text-on-danger'
-      >
-        Rejeitar
-      </button>
-      <button
-        type='button'
-        onClick={onApprove}
-        disabled={pendingAction === 'approve'}
-        className='h-11 w-28 rounded-md border border-success font-inter-medium text-success transition-colors hover:bg-success hover:text-on-success'
-      >
-        Aceitar
-      </button>
+    <div className='mt-6 flex w-full min-w-0 flex-wrap items-center justify-end gap-3'>
+      {actions.map(({ label, onClick, colors }) => (
+        <button
+          key={label}
+          type='button'
+          onClick={onClick}
+          disabled={disabled}
+          className={`h-11 w-28 rounded-md border bg-canvas font-inter-medium enabled:hover:text-[rgb(var(--color-text-inverse))] focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-wait disabled:opacity-60 ${colors}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -283,9 +322,11 @@ function useLoanDetails(id: number | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [loan, setLoan] = useState<Emprestimo | null>(null);
   const [loadError, setLoadError] = useState<unknown | null>(null);
+  const activeLoanId = useRef(id);
   const requestSequence = useRef(0);
 
   const fetchGetLoan = useCallback(async (): Promise<boolean> => {
+    if (id !== activeLoanId.current) return false;
     if (id === null) {
       setIsLoading(false);
       setLoan(null);
@@ -313,11 +354,13 @@ function useLoanDetails(id: number | null) {
   }, [id]);
 
   useEffect(() => {
+    activeLoanId.current = id;
     void fetchGetLoan();
     return () => {
+      activeLoanId.current = null;
       requestSequence.current += 1;
     };
-  }, [fetchGetLoan]);
+  }, [fetchGetLoan, id]);
 
   return { isLoading, loan, loadError, fetchGetLoan };
 }
@@ -326,57 +369,50 @@ function useLoanActions(
   loan: Emprestimo | null,
   fetchGetLoan: () => Promise<boolean>
 ) {
-  const [pendingAction, setPendingAction] = useState<
-    'approve' | 'reject' | 'return' | null
-  >(null);
+  const [isActionPending, setIsActionPending] = useState(false);
+  const pendingMutation = useRef(false);
 
   const runAction = async (
-    action: 'approve' | 'reject' | 'return',
     mutation: (loanId: number) => Promise<unknown>,
     operation:
       | typeof OPERATION_IDS.approveLoan
       | typeof OPERATION_IDS.rejectLoan
       | typeof OPERATION_IDS.returnLoan,
-    successToast: { title: string; description: string },
-    refreshAfterSuccess = false
+    successToast: { title: string; description: string }
   ) => {
-    if (!loan || pendingAction !== null) return;
+    if (!loan || pendingMutation.current) return;
 
-    setPendingAction(action);
+    pendingMutation.current = true;
+    setIsActionPending(true);
     try {
       await mutation(loan.id);
-      if (refreshAfterSuccess && !(await fetchGetLoan())) return;
-      toast(successToast);
+      if (await fetchGetLoan()) toast(successToast);
     } catch (error) {
       notifyError(error, operation);
+      if (shouldRefreshAfterMutationError(error)) await fetchGetLoan();
     } finally {
-      setPendingAction(null);
+      pendingMutation.current = false;
+      setIsActionPending(false);
     }
   };
 
   const handleApprove = () =>
-    runAction('approve', approveLoan, OPERATION_IDS.approveLoan, {
+    runAction(approveLoan, OPERATION_IDS.approveLoan, {
       title: 'Solicitação aceita',
       description: 'Empréstimo autorizado para uso...',
     });
   const handleReject = () =>
-    runAction('reject', rejectLoan, OPERATION_IDS.rejectLoan, {
+    runAction(rejectLoan, OPERATION_IDS.rejectLoan, {
       title: 'Solicitação rejeitada',
       description: 'Empréstimo não autorizado para uso...',
     });
   const handleReturn = () =>
-    runAction(
-      'return',
-      returnLoan,
-      OPERATION_IDS.returnLoan,
-      {
-        title: 'Devolução registrada',
-        description: 'A devolução do empréstimo foi registrada com sucesso!',
-      },
-      true
-    );
+    runAction(returnLoan, OPERATION_IDS.returnLoan, {
+      title: 'Devolução registrada',
+      description: 'A devolução do empréstimo foi registrada com sucesso!',
+    });
 
-  return { pendingAction, handleApprove, handleReject, handleReturn };
+  return { isActionPending, handleApprove, handleReject, handleReturn };
 }
 
 function useLoanExports(
@@ -521,7 +557,7 @@ function LoanHistoryMentee() {
     () => navigate(resolveParentPath(location.pathname)),
     [location.pathname, navigate]
   );
-  const { pendingAction, handleApprove, handleReject, handleReturn } =
+  const { isActionPending, handleApprove, handleReject, handleReturn } =
     useLoanActions(loan, fetchGetLoan);
 
   useEffect(() => {
@@ -616,6 +652,7 @@ function LoanHistoryMentee() {
             <OpenSearch />
           </div>
         </div>
+        <LoanDates loan={loan} />
         <section
           aria-label='Mentorado vinculado'
           className='mt-7 flex min-h-32 w-full min-w-0 flex-col rounded-xl border border-borderMy bg-surface'
@@ -646,7 +683,7 @@ function LoanHistoryMentee() {
         <LoanProductsSection
           loan={loan}
           products={sortedUsers}
-          pendingAction={pendingAction}
+          isActionPending={isActionPending}
           onReturn={handleReturn}
           searchTerm={searchTerm}
           onSearch={setSearchTerm}
@@ -656,12 +693,13 @@ function LoanHistoryMentee() {
           onExportPdf={() => void exportToPdf()}
           onExportExcel={() => void exportToExcel()}
         />
-        <LoanDecisionActions
-          loan={loan}
-          pendingAction={pendingAction}
-          onApprove={handleApprove}
-          onReject={handleReject}
-        />
+        {loan.status === 'Pendente' && (
+          <LoanDecisionActions
+            disabled={isActionPending}
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
+        )}
       </main>
     </>
   );

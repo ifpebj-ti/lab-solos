@@ -124,11 +124,7 @@ describe('VerificationPage: navegação recuperável', () => {
 
     expect(await screen.findByText('Produto 42')).toBeInTheDocument();
     expect(productApi.getProductById).toHaveBeenCalledWith({ id: 42 });
-    if (userType === 'admin') {
-      expect(productApi.getProductHistoricoSaida).toHaveBeenCalledWith({ id: 42 });
-    } else {
-      expect(productApi.getProductHistoricoSaida).not.toHaveBeenCalled();
-    }
+    await waitFor(() => expect(productApi.getProductHistoricoSaida).toHaveBeenCalledWith({ id: 42 }));
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute(
       'href',
       parent

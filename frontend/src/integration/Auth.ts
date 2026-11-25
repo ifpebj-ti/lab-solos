@@ -1,7 +1,11 @@
 import { NavigateFunction } from 'react-router-dom';
 
 import { consumeIntendedRoute } from '@/auth/intendedRoute';
-import { clearSession, startSession } from '@/auth/session';
+import {
+  clearSession,
+  hasStoredSessionContext,
+  startSession,
+} from '@/auth/session';
 import type { CreateAcademicUserData } from '@/contracts/userRegistration';
 import { normalizeError } from '@/errors/normalizeError';
 import { api } from '../services/BaseApi';
@@ -28,7 +32,6 @@ interface IPasswordResetParams {
 }
 
 type LoginResponse = {
-  token?: unknown;
   requiresPasswordChange?: unknown;
 };
 
@@ -57,14 +60,12 @@ export const authenticate = async (
     });
 
     const login = response.data as LoginResponse;
-    if (
-      typeof login.token !== 'string' ||
-      typeof login.requiresPasswordChange !== 'boolean'
-    ) {
+    if (typeof login.requiresPasswordChange !== 'boolean') {
       throw new Error('Resposta de autenticacao invalida.');
     }
 
-    const session = startSession(login.token);
+    const sessionResponse = await api.get('Auth/session');
+    const session = startSession(sessionResponse.data);
     if (
       !session ||
       session.requiresPasswordChange !== login.requiresPasswordChange
@@ -82,6 +83,41 @@ export const authenticate = async (
         : intendedRoute ?? getHomePathForRole(session.role)
     );
     return response;
+  } catch (error: unknown) {
+    throw normalizeError(error);
+  }
+};
+
+export const restoreSession = async () => {
+  if (!hasStoredSessionContext()) return null;
+
+  try {
+    const response = await api.get('Auth/session');
+    const session = startSession(response.data);
+    if (!session) clearSession();
+    return session;
+  } catch {
+    clearSession();
+    return null;
+  }
+};
+
+export const logoutSession = async (): Promise<void> => {
+  try {
+    await api.post('Auth/logout', undefined);
+    clearSession({ discardAuthContext: true });
+  } catch (error: unknown) {
+    throw normalizeError(error);
+  }
+};
+
+export const renewSession = async () => {
+  try {
+    await api.post('Auth/renew', undefined);
+    const response = await api.get('Auth/session');
+    const session = startSession(response.data);
+    if (!session) throw new Error('Resposta de sessao invalida.');
+    return session;
   } catch (error: unknown) {
     throw normalizeError(error);
   }

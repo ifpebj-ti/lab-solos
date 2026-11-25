@@ -1,4 +1,3 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
@@ -6,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ERROR_CATALOG } from '@/errors/errorCatalog';
 import { server } from '@/test/msw/server';
+import { establishTestSession } from '@/test/session';
+import { readSession } from '@/auth/session';
 
 import LoansRequest from './LoansRequest';
 
@@ -17,7 +18,6 @@ const API_ORIGIN = 'http://localhost:8080/api';
 const loansUrl = `${API_ORIGIN}/Emprestimos`;
 const approveUrl = `${loansUrl}/aprovar/71`;
 const rejectUrl = `${loansUrl}/reprovar/71`;
-const sessionToken = 'session-token';
 
 const pendingLoan = {
   id: 71,
@@ -57,16 +57,13 @@ function LocationProbe() {
 describe('LoansRequest: erros de consulta e mutação', () => {
   beforeEach(() => {
     toastMock.mockReset();
-    Cookie.set('doorKey', sessionToken);
-    Cookie.set('rankID', '12');
+    establishTestSession('12', 'Administrador');
     server.use(
       http.get(loansUrl, () => HttpResponse.json([pendingLoan]))
     );
   });
 
   afterEach(() => {
-    Cookie.remove('doorKey');
-    Cookie.remove('rankID');
   });
 
   it('mantém a falha de carga persistente e recupera a lista pelo mesmo controle', async () => {
@@ -155,7 +152,7 @@ describe('LoansRequest: erros de consulta e mutação', () => {
     button.click();
 
     await waitFor(() => expect(button).toBeEnabled());
-    expect(Cookie.get('doorKey')).toBe(sessionToken);
+    expect(readSession()?.userId).toBe('12');
     expect(screen.getByText('Ana Silva')).toBeInTheDocument();
     expect(toastMock.mock.calls[toastMock.mock.calls.length - 1]?.[0]).toEqual(
       expect.objectContaining({

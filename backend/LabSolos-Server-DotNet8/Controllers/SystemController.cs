@@ -13,16 +13,18 @@ namespace LabSolos_Server_DotNet8.Controllers
         private readonly ILogger<SystemController> _logger = logger;
 
         [HttpGet("quantities")]
+        [Authorize]
         public async Task<IActionResult> ObterQuantidadesDoSistema()
         {
             var result = await _systemService.ObterQuantidadesDoSistema();
-            return Ok(result);
+            return Ok(new { produtos = result.Produtos });
         }
 
         [HttpGet("health")]
+        [AllowAnonymous]
         public IActionResult VerificarSaudeDoSistema()
         {
-            return Ok(new { status = "healthy 1.0" });
+            return Ok(new { status = "healthy", version = "1.0" });
         }
     }
 }

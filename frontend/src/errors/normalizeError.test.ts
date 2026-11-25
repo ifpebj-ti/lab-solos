@@ -12,6 +12,7 @@ describe('normalizeError', () => {
     [404, 'not_found', false],
     [409, 'conflict', false],
     [429, 'rate_limited', false],
+    [413, 'request_too_large', false],
     [500, 'server', true],
     [599, 'server', true],
     [418, 'unknown', false],
@@ -117,6 +118,44 @@ describe('normalizeError', () => {
 
     expect(result.category).toBe('validation');
     expect(result.message).toBe('Os dados informados precisam de revisão.');
+  });
+
+  it('preserva somente as datas civis tipadas da confirmação de validade', () => {
+    const valid = normalizeError({
+      response: {
+        status: 409,
+        headers: { 'x-correlation-id': 'server-correlation-id' },
+        data: {
+          status: 409,
+          title: 'Confirme o cadastro do químico vencido.',
+          code: 'product_expiration_confirmation_required',
+          correlationId: 'server-correlation-id',
+          dataValidade: '2026-09-08',
+          diaCivil: '2026-09-09',
+          body: 'não deve ser propagado',
+        },
+      },
+    });
+    const invalid = normalizeError({
+      response: {
+        status: 409,
+        data: {
+          code: 'product_expiration_confirmation_required',
+          dataValidade: '31/02/2026',
+          diaCivil: 'amanhã',
+        },
+      },
+    });
+
+    expect(valid.code).toBe('product_expiration_confirmation_required');
+    expect(valid.requestId).toBe('server-correlation-id');
+    expect(
+      (valid as unknown as Record<string, unknown>).productExpiryConfirmation
+    ).toEqual({ dataValidade: '2026-09-08', diaCivil: '2026-09-09' });
+    expect(JSON.stringify(valid)).not.toContain('não deve ser propagado');
+    expect(
+      (invalid as unknown as Record<string, unknown>).productExpiryConfirmation
+    ).toBeUndefined();
   });
 
   it('classifica timeout, rede e rejeição desconhecida sem ecoar a mensagem', () => {

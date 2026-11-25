@@ -6,7 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PopoverInput from '@/components/global/inputs/PopoverInput';
 import { useEffect, useState } from 'react';
-import { getAllProducts } from '@/integration/Product';
+import {
+  getAllProducts,
+  type ProductCatalogItem,
+} from '@/integration/Product';
 import InputText from '@/components/global/inputs/Text';
 import { getDependentes } from '@/integration/Class';
 import HeaderTable from '@/components/global/table/Header';
@@ -17,6 +20,7 @@ import type { Dependente } from '@/contracts/user';
 import { ResponsiveTable } from '@/components/global/table/ResponsiveTable';
 import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { OPERATION_IDS } from '@/errors/errorCatalog';
+import { isApplicationError } from '@/errors/applicationError';
 
 const loanCreationColumns = [
   { key: 'codigo', label: 'Código', weight: 2 },
@@ -25,18 +29,7 @@ const loanCreationColumns = [
   { key: 'acao', label: 'Ação', weight: 1 },
 ] as const;
 
-interface Produto {
-  id: number;
-  nomeProduto: string;
-  tipoProduto: string;
-  fornecedor: string;
-  quantidade: number;
-  quantidadeMinima: number;
-  localizacaoProduto: string;
-  dataFabricacao: string | null;
-  dataValidade: string | null;
-  status: string;
-}
+type Produto = ProductCatalogItem;
 
 interface IProduto {
   produtoId: number | string;
@@ -60,6 +53,26 @@ const selectProductSchema = z.object({
   user: z.string().nonempty('Selecione um usuário'),
   unidadeMedida: z.string().nonempty('Selecione uma unidade de medida'),
 });
+
+const loanCreationErrorMessages: Readonly<Record<string, string>> = {
+  loan_insufficient_stock:
+    'A quantidade de um ou mais produtos excede o saldo disponível. Reduza a quantidade ou remova o item e adicione novamente.',
+  loan_quantity_invalid:
+    'A quantidade deve ser um número inteiro positivo para cada produto. Revise os itens selecionados.',
+  loan_return_period_invalid:
+    'O prazo de devolução deve ser de cinco dias corridos. Atualize a tela e tente novamente.',
+  loan_return_date_out_of_range:
+    'A data prevista de devolução está fora do intervalo permitido. Tente novamente.',
+  loan_stock_invalid:
+    'O saldo de um produto precisa ser conferido antes do empréstimo. Atualize os produtos e tente novamente.',
+  loan_stock_out_of_range:
+    'A quantidade ultrapassa a faixa suportada. Revise os produtos ou solicite ajuda da administração.',
+};
+
+const getLoanCreationErrorMessage = (error: unknown): string | undefined =>
+  isApplicationError(error) && error.code
+    ? loanCreationErrorMessages[error.code]
+    : undefined;
 
 type SelectItemFormData = z.infer<typeof selectProductSchema>;
 
@@ -154,6 +167,7 @@ function LoanCreation() {
       (produto) => produto.id === Number(data.item)
     );
     if (selectedProduct) {
+      setSubmitError(null);
       setSelectedProducts((prev) => [
         ...prev,
         {
@@ -202,6 +216,7 @@ function LoanCreation() {
       toast({
         title: 'Erro na criação do empréstimo',
         description:
+          getLoanCreationErrorMessage(error) ??
           'Verifique disponibilidade dos produtos selecionados e tente novamente...',
       });
     } finally {
@@ -396,6 +411,7 @@ function LoanCreation() {
                       itemLabel={getProductNameById(rowData.produtoId)}
                       actionLabel='Remover'
                       onClick={() => {
+                        setSubmitError(null);
                         setSelectedProducts((prev) =>
                           prev.filter(
                             (p) => p.produtoId !== rowData.produtoId
@@ -410,12 +426,24 @@ function LoanCreation() {
           </div>
           {submitError ? (
             <div className='mt-5 flex w-11/12 min-w-0'>
-              <ErrorFeedback
-                error={submitError}
-                operationId={OPERATION_IDS.createLoan}
-                onRetry={() => void handleSubmitLoan()}
-                className='w-full'
-              />
+              {getLoanCreationErrorMessage(submitError) ? (
+                <div
+                  role='alert'
+                  aria-live='assertive'
+                  className='w-full rounded-md border border-danger/60 bg-surface p-4 text-clt-2'
+                >
+                  <p className='font-semibold'>Não foi possível criar o empréstimo</p>
+                  <p className='mt-1'>{getLoanCreationErrorMessage(submitError)}</p>
+                  <p className='mt-1'>Os itens selecionados foram mantidos para revisão.</p>
+                </div>
+              ) : (
+                <ErrorFeedback
+                  error={submitError}
+                  operationId={OPERATION_IDS.createLoan}
+                  onRetry={() => void handleSubmitLoan()}
+                  className='w-full'
+                />
+              )}
             </div>
           ) : null}
           <div className='mt-9 flex w-11/12 min-w-0 items-center justify-end'>

@@ -1,0 +1,9 @@
+{
+  "module": "backend",
+  "metric": "lines",
+  "numerator": 14,
+  "denominator": 20,
+  "sha": "0123456789abcdef0123456789abcdef01234567",
+  "run_id": "123456789",
+  "run_attempt": 2
+}

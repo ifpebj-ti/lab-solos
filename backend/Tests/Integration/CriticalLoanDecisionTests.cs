@@ -41,7 +41,8 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
 
         using var replay = await SendDecisionAsync(client, "aprovar", scenario.LoanId);
 
-        Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, replay.StatusCode);
+        await AssertProblemCodeAsync(replay, "loan_decision_already_recorded");
 
         await AssertPersistedDecisionAsync(
             factory,
@@ -104,7 +105,8 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
 
         using var replay = await SendDecisionAsync(client, "reprovar", scenario.LoanId);
 
-        Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, replay.StatusCode);
+        await AssertProblemCodeAsync(replay, "loan_decision_already_recorded");
 
         await AssertPersistedDecisionAsync(
             factory,
@@ -113,6 +115,33 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             expectedQuantity: 10,
             expectedProductStatus: StatusProduto.Disponivel,
             expectDecisionTimestamp: false);
+    }
+
+    [Fact]
+    public async Task OppositeDecisionReturnsTypedConflictWithoutChangingTheRecordedDecision()
+    {
+        var seeded = await SeedScenarioAsync("loan-decision-opposite");
+        await using var factory = seeded.Factory;
+        var scenario = seeded.Scenario;
+        using var client = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.AdministratorEmail,
+            scenario.AdministratorPassword);
+
+        using var approval = await SendDecisionAsync(client, "aprovar", scenario.LoanId);
+        Assert.Equal(HttpStatusCode.NoContent, approval.StatusCode);
+
+        using var opposite = await SendDecisionAsync(client, "reprovar", scenario.LoanId);
+
+        Assert.Equal(HttpStatusCode.Conflict, opposite.StatusCode);
+        await AssertProblemCodeAsync(opposite, "loan_opposite_decision_recorded");
+        await AssertPersistedDecisionAsync(
+            factory,
+            scenario,
+            StatusEmprestimo.Aprovado,
+            expectedQuantity: 8,
+            expectedProductStatus: StatusProduto.Disponivel,
+            expectDecisionTimestamp: true);
     }
 
     [Theory]
@@ -173,7 +202,8 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
 
         using var response = await SendDecisionAsync(client, "aprovar", scenario.LoanId);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        await AssertProblemCodeAsync(response, "loan_insufficient_stock");
 
         var persisted = await ReadLoanStateAsync(factory, scenario.LoanId);
         Assert.Equal(StatusEmprestimo.Pendente, persisted.Status);
@@ -309,6 +339,17 @@ public sealed class CriticalLoanDecisionTests(PostgreSqlContainerFixture databas
             HttpMethod.Patch,
             $"/api/Emprestimos/{action}/{loanId}");
         return await client.SendAsync(request);
+    }
+
+    private static async Task AssertProblemCodeAsync(HttpResponseMessage response, string expectedCode)
+    {
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(expectedCode, document.RootElement.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(
+            document.RootElement.GetProperty("correlationId").GetString()));
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var correlationIds));
+        Assert.False(string.IsNullOrWhiteSpace(correlationIds!.Single()));
     }
 
     private static async Task<LoanState> ReadLoanStateAsync(

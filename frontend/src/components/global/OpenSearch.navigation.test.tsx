@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Cookie from 'js-cookie';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearSession, startSession } from '@/auth/session';
 import OpenSearch from './OpenSearch';
 
 describe('OpenSearch navigation contract', () => {
@@ -16,10 +16,15 @@ describe('OpenSearch navigation contract', () => {
         disconnect() {}
       }
     );
-    Cookie.set('doorKey', 'e30.eyJyb2xlIjoiQWRtaW5pc3RyYWRvciJ9.');
+    startSession({
+      userId: '1',
+      role: 'Administrador',
+      requiresPasswordChange: false,
+      csrfToken: 'test-session-proof',
+    });
   });
 
-  afterEach(() => Cookie.remove('doorKey'));
+  afterEach(() => clearSession());
 
   it('has an accessible trigger and returns focus after closing', async () => {
     render(

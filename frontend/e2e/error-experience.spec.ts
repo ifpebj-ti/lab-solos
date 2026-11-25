@@ -1,20 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-const syntheticLoginToken = (): string => {
-  const header = Buffer.from(
-    JSON.stringify({ alg: 'none', typ: 'JWT' })
-  ).toString('base64url');
-  const payload = Buffer.from(
-    JSON.stringify({
-      sub: '13013',
-      role: 'Mentor',
-      password_change_required: false,
-    })
-  ).toString('base64url');
-
-  return `${header}.${payload}.synthetic-e2e-signature`;
-};
-
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(120_000);
 
@@ -26,6 +11,7 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
 
   let shouldExpire = true;
   let shouldForbid = false;
+  let problemStatus: 400 | 404 | 409 | 413 | undefined;
   await page.route('**/api/**', async (route) => {
     const url = route.request().url();
     if (url.includes('/Auth/login') || url.includes('/Emprestimos/13013')) {
@@ -55,8 +41,19 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        token: syntheticLoginToken(),
         requiresPasswordChange: false,
+      }),
+    });
+  });
+  await page.route('**/api/Auth/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        userId: '13013',
+        role: 'Mentor',
+        requiresPasswordChange: false,
+        csrfToken: 'error-experience-session-csrf-proof',
       }),
     });
   });
@@ -82,6 +79,29 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
         body: JSON.stringify({
           title: 'REMOTE_403_TITLE_MUST_NOT_RENDER',
           detail: 'REMOTE_403_DETAIL_MUST_NOT_RENDER',
+        }),
+      });
+      return;
+    }
+
+    if (problemStatus) {
+      const codes = {
+        400: 'validation_failed',
+        404: 'resource_not_found',
+        409: 'operation_conflict',
+        413: 'request_body_too_large',
+      };
+      await route.fulfill({
+        status: problemStatus,
+        contentType: 'application/problem+json; charset=utf-8',
+        headers: { 'X-Correlation-ID': `server:typed-${problemStatus}` },
+        body: JSON.stringify({
+          status: problemStatus,
+          code: codes[problemStatus],
+          title: 'REMOTE_TYPED_TITLE_MUST_NOT_RENDER',
+          detail: 'REMOTE_TYPED_DETAIL_MUST_NOT_RENDER',
+          correlationId: `server:typed-${problemStatus}`,
+          errors: problemStatus === 400 ? { dataValidade: ['REMOTE_TYPED_FIELD'] } : undefined,
         }),
       });
       return;
@@ -137,6 +157,12 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
 
   await gotoProtectedRoute('/mentor/history/loan?id=13013&context=allowed#details');
   await expect(page).toHaveURL(/\/$/);
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('auth:session-context'))
+  ).toBeNull();
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('auth:csrf-token'))
+  ).toBeNull();
   const clearedCookieNames = (await page.context().cookies()).map(
     (cookie) => cookie.name
   );
@@ -182,10 +208,36 @@ test('mantém a sessão segura, retoma a rota e diferencia 401 de 403', async ({
   await expect(page.getByText(/REMOTE_403_/)).toHaveCount(0);
   expect(consoleMessages.join('\n')).not.toContain('REMOTE_403_');
 
-  const retainedCookieNames = (await page.context().cookies()).map(
-    (cookie) => cookie.name
-  );
-  expect(retainedCookieNames).toContain('doorKey');
-  expect(retainedCookieNames).toContain('rankID');
-  expect(retainedCookieNames).toContain('level');
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('auth:session-context'))
+  ).toContain('13013');
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('auth:csrf-token'))
+  ).toBe('error-experience-session-csrf-proof');
+
+  shouldForbid = false;
+  const publicProblems = [
+    [400, 'Os dados informados precisam de revisão.'],
+    [404, 'O recurso solicitado não foi encontrado.'],
+    [409, 'O conteúdo foi alterado ou já processado.'],
+    [413, 'A solicitação excede o tamanho permitido.'],
+  ] as const;
+  for (const [status, message] of publicProblems) {
+    problemStatus = status;
+    await gotoProtectedRoute(`/mentor/history/loan?id=13013&context=typed-${status}`);
+    const typedFeedback = page.getByRole('alert', {
+      name: /não foi possível carregar o empréstimo/i,
+    });
+    await expect(typedFeedback).toContainText(message);
+    await expect(typedFeedback).toContainText(`server:typed-${status}`);
+    if (status === 400) {
+      await expect(typedFeedback.getByRole('list', { name: 'Campos para revisar' }))
+        .toContainText('dataValidade');
+    }
+    if (status === 413) {
+      await expect(typedFeedback).toContainText('Reduzir os dados enviados');
+    }
+    await expect(page.getByText(/REMOTE_TYPED_/)).toHaveCount(0);
+  }
+  expect(consoleMessages.join('\n')).not.toContain('REMOTE_TYPED_');
 });

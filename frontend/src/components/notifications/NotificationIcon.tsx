@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Bell, X, Check, CheckCheck } from 'lucide-react';
 import {
   Popover,
@@ -13,11 +13,96 @@ import {
   marcarVariasNotificacoesComoLidas,
 } from '@/integration/Notifications';
 import { Button } from '@/components/ui/button';
-import { OPERATION_IDS } from '@/errors/errorCatalog';
-import { notifyError } from '@/errors/presentError';
-// import { useNavigate } from 'react-router-dom';
+import { OPERATION_IDS, type OperationId } from '@/errors/errorCatalog';
+import ErrorFeedback from '@/components/global/ErrorFeedback';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+type NotificationFailure = { error: unknown; operation: OperationId };
+
+// eslint-disable-next-line react-refresh/only-export-components -- This hook is shared by the notification variants.
+export function useNotificationReading() {
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
+  const [countNaoLidas, setCountNaoLidas] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [failure, setFailure] = useState<NotificationFailure | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [notifs, count] = await Promise.all([
+        getMinhasNotificacoes(false),
+        getCountNotificacoesNaoLidas(),
+      ]);
+      setNotificacoes(notifs);
+      setCountNaoLidas(count.count);
+      setFailure(null);
+    } catch (error) {
+      setFailure({ error, operation: OPERATION_IDS.notifications });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const interval = setInterval(() => void refresh(), 60000);
+    return () => clearInterval(interval);
+  }, [refresh]);
+
+  const markAsRead = useCallback(
+    async (notificationId: number) => {
+      try {
+        await marcarNotificacaoComoLida(notificationId);
+        await refresh();
+      } catch (error) {
+        setFailure({ error, operation: OPERATION_IDS.markNotificationRead });
+      }
+    },
+    [refresh]
+  );
+
+  const markManyAsRead = useCallback(
+    async (notificationIds: number[]) => {
+      try {
+        await marcarVariasNotificacoesComoLidas(notificationIds);
+        await refresh();
+      } catch (error) {
+        setFailure({ error, operation: OPERATION_IDS.markNotificationsRead });
+      }
+    },
+    [refresh]
+  );
+
+  return {
+    notificacoes,
+    countNaoLidas,
+    loading,
+    failure,
+    refresh,
+    markAsRead,
+    markManyAsRead,
+  };
+}
+
+export function NotificationFailureFeedback({
+  failure,
+  onRetry,
+}: {
+  failure: NotificationFailure | null;
+  onRetry: () => void;
+}) {
+  if (!failure) return null;
+
+  return (
+    <ErrorFeedback
+      error={failure.error}
+      operation={failure.operation}
+      onRetry={onRetry}
+      className='rounded-none border-0 p-4'
+    />
+  );
+}
 
 interface NotificationIconProps {
   className?: string;
@@ -82,61 +167,28 @@ const getTipoColor = (tipo: string) => {
 };
 
 export function NotificationIcon({ className = '' }: NotificationIconProps) {
-  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
-  const [countNaoLidas, setCountNaoLidas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate();
-
-  const fetchNotificacoes = async () => {
-    try {
-      setLoading(true);
-      const [notifs, count] = await Promise.all([
-        getMinhasNotificacoes(false),
-        getCountNotificacoesNaoLidas(),
-      ]);
-      setNotificacoes(notifs);
-      setCountNaoLidas(count.count);
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.notifications);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotificacoes();
-    // Buscar notificações a cada 30 segundos
-    const interval = setInterval(fetchNotificacoes, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleMarcarComoLida = async (notificacaoId: number) => {
-    try {
-      await marcarNotificacaoComoLida(notificacaoId);
-      await fetchNotificacoes();
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.markNotificationRead);
-    }
-  };
+  const {
+    notificacoes,
+    countNaoLidas,
+    loading,
+    failure,
+    refresh,
+    markAsRead,
+    markManyAsRead,
+  } = useNotificationReading();
 
   const handleMarcarTodasComoLidas = async () => {
-    try {
-      const naoLidas = notificacoes.filter((n) => !n.lida);
-      if (naoLidas.length > 0) {
-        const ids = naoLidas.map((n) => n.id);
-        await marcarVariasNotificacoesComoLidas(ids);
-        await fetchNotificacoes();
-      }
-    } catch (error) {
-      notifyError(error, OPERATION_IDS.markNotificationsRead);
+    const naoLidas = notificacoes.filter((n) => !n.lida);
+    if (naoLidas.length > 0) {
+      await markManyAsRead(naoLidas.map((n) => n.id));
     }
   };
 
   const handleNotificacaoClick = async (notificacao: Notificacao) => {
     // Marcar como lida se não estiver lida
     if (!notificacao.lida) {
-      await handleMarcarComoLida(notificacao.id);
+      await markAsRead(notificacao.id);
     }
 
     // Navegar para o link de ação se existir
@@ -167,7 +219,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
           aria-label='Notificações'
         >
           <Bell className='h-5 w-5' />
-          {countNaoLidas > 0 && (
+          {!failure && countNaoLidas > 0 && (
             <span className='absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-xs font-bold text-white'>
               {countNaoLidas > 99 ? '99+' : countNaoLidas}
             </span>
@@ -184,7 +236,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
             Notificações
           </h3>
           <div className='flex items-center gap-2'>
-            {countNaoLidas > 0 && (
+            {!failure && countNaoLidas > 0 && (
               <Button
                 variant='ghost'
                 size='sm'
@@ -211,6 +263,8 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
             <div className='flex items-center justify-center p-8'>
               <div className='h-6 w-6 animate-spin rounded-full border-2 border-primaryMy border-t-transparent'></div>
             </div>
+          ) : failure ? (
+            <NotificationFailureFeedback failure={failure} onRetry={refresh} />
           ) : notificacoes.length === 0 ? (
             <div className='flex flex-col items-center justify-center p-8 text-center'>
               <Bell className='h-12 w-12 text-gray-300 mb-3' />
@@ -252,7 +306,7 @@ export function NotificationIcon({ className = '' }: NotificationIconProps) {
                           <div className='shrink-0'>
                             <Check
                               className='h-3 w-3 text-primaryMy'
-                              aria-label='Lida'
+                              aria-label='Não lida'
                             />
                           </div>
                         )}

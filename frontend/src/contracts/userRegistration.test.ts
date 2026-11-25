@@ -27,6 +27,64 @@ describe('userRegistrationSchema', () => {
     expect(registration.curso).toBe('ES');
   });
 
+  it('permite Mentor sem responsável e exige e-mail válido para Mentorado', () => {
+    expect(
+      userRegistrationSchema.safeParse({
+        ...validRegistration,
+        emailMentor: '',
+      }).success
+    ).toBe(true);
+    expect(
+      userRegistrationSchema.safeParse({
+        ...validRegistration,
+        emailMentor: undefined,
+      }).success
+    ).toBe(true);
+
+    const missingResponsible = userRegistrationSchema.safeParse({
+      ...validRegistration,
+      tipoUsuario: 'mentorado',
+      emailMentor: '',
+    });
+    expect(missingResponsible.success).toBe(false);
+    if (!missingResponsible.success) {
+      expect(missingResponsible.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ['emailMentor'],
+            message: 'Informe o e-mail do responsável.',
+          }),
+        ])
+      );
+    }
+
+    const malformedResponsible = userRegistrationSchema.safeParse({
+      ...validRegistration,
+      tipoUsuario: 'mentorado',
+      emailMentor: 'email-invalido',
+    });
+    expect(malformedResponsible.success).toBe(false);
+    if (!malformedResponsible.success) {
+      expect(malformedResponsible.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ['emailMentor'],
+            message: 'Digite um email válido',
+          }),
+        ])
+      );
+    }
+  });
+
+  it.each(['', 'Administrador', 'Comum'])('rejects unsupported public roles: %j', (tipoUsuario) => {
+    expect(
+      userRegistrationSchema.safeParse({
+        ...validRegistration,
+        tipoUsuario,
+      }).success
+    ).toBe(false);
+  });
+
   it.each(['', '   ', 'Indefinido', ' indefinido '])(
     'rejeita cidade invalida: %j',
     (cidade) => {

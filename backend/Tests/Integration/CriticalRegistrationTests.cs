@@ -36,7 +36,7 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         Assert.Equal(RegistrationName, dto.GetProperty("nomeCompleto").GetString());
         Assert.Equal(RegistrationEmail, dto.GetProperty("email").GetString());
         Assert.Equal("Pendente", dto.GetProperty("status").GetString());
-        Assert.Equal("Comum", dto.GetProperty("tipoUsuario").GetString());
+        Assert.Equal("Academico", dto.GetProperty("tipoUsuario").GetString());
         Assert.DoesNotContain("senha", dto.EnumerateObject().Select(property => property.Name), StringComparer.OrdinalIgnoreCase);
         Assert.DoesNotContain("hash", dto.EnumerateObject().Select(property => property.Name), StringComparer.OrdinalIgnoreCase);
 
@@ -45,8 +45,8 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         var persisted = await context.Usuarios.AsNoTracking().SingleAsync(user => user.Email == RegistrationEmail);
 
         Assert.Equal(StatusUsuario.Pendente, persisted.Status);
-        Assert.Equal(TipoUsuario.Comum, persisted.TipoUsuario);
-        Assert.Equal(NivelUsuario.Comum, persisted.NivelUsuario);
+        Assert.Equal(TipoUsuario.Academico, persisted.TipoUsuario);
+        Assert.Equal(NivelUsuario.Mentor, persisted.NivelUsuario);
         Assert.NotEqual(RegistrationPassword, persisted.SenhaHash);
         Assert.Equal(RegistrationName, persisted.NomeCompleto);
     }
@@ -92,8 +92,11 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
             nomeCompleto = "Senha inválida",
             email = "critical-registration-password@example.test",
             senha = "12345678901234",
-            nivelUsuario = "Comum",
-            tipoUsuario = "Comum"
+            nivelUsuario = "Mentor",
+            tipoUsuario = "Academico",
+            instituicao = "IFPE",
+            cidade = "Belo Jardim",
+            curso = "ES"
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -129,6 +132,134 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         Assert.Equal(0, await context.Notificacoes.CountAsync());
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("missing@example.test")]
+    [InlineData("disabled@example.test")]
+    [InlineData("mentee@example.test")]
+    public async Task InvalidResponsibleUsesSamePublicFailure(string? responsible)
+    {
+        await using var factory = await CreateFactoryAsync();
+        await SeedResponsibleAsync(factory, "disabled@example.test", NivelUsuario.Mentor, StatusUsuario.Desabilitado);
+        await SeedResponsibleAsync(factory, "mentee@example.test", NivelUsuario.Mentorado, StatusUsuario.Habilitado);
+        using var client = factory.CreateClient();
+
+        using var response = await client.PostAsJsonAsync("/api/Usuarios", AcademicRegistration("Mentorado", responsible));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("registration_responsible_invalid", payload.RootElement.GetProperty("code").GetString());
+        Assert.Equal("Verifique o e-mail do responsável informado.", payload.RootElement.GetProperty("detail").GetString());
+        await using var scope = factory.Services.CreateAsyncScope();
+        Assert.Equal(2, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.CountAsync());
+    }
+
+    [Theory]
+    [InlineData(NivelUsuario.Mentor)]
+    [InlineData(NivelUsuario.Administrador)]
+    public async Task MenteeLinksToEnabledResponsible(NivelUsuario role)
+    {
+        await using var factory = await CreateFactoryAsync();
+        var responsibleId = await SeedResponsibleAsync(factory, "responsible@example.test", role, StatusUsuario.Habilitado);
+        using var client = factory.CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/Usuarios", AcademicRegistration("Mentorado", "responsible@example.test"));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var saved = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.SingleAsync(user => user.Email == RegistrationEmail);
+        Assert.Equal(responsibleId, saved.ResponsavelId);
+        Assert.Equal(NivelUsuario.Mentorado, saved.NivelUsuario);
+        Assert.Equal(StatusUsuario.Pendente, saved.Status);
+    }
+
+    [Fact]
+    public async Task MentorIgnoresResponsibleFromOlderForm()
+    {
+        await using var factory = await CreateFactoryAsync();
+        using var client = factory.CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/Usuarios", AcademicRegistration("Mentor", "unknown@example.test"));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var saved = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.SingleAsync();
+        Assert.Null(saved.ResponsavelId);
+        Assert.Equal(TipoUsuario.Academico, saved.TipoUsuario);
+        Assert.Equal(NivelUsuario.Mentor, saved.NivelUsuario);
+    }
+
+    [Theory]
+    [InlineData("Comum", "Comum")]
+    [InlineData("Administrador", "Academico")]
+    [InlineData("0", "0")]
+    [InlineData("Mentor", "2")]
+    public async Task RejectsUnsupportedPublicAccountWithoutPersistence(string role, string type)
+    {
+        await using var factory = await CreateFactoryAsync();
+        using var client = factory.CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/Usuarios", new
+        {
+            nomeCompleto = RegistrationName, email = RegistrationEmail, senha = RegistrationPassword,
+            nivelUsuario = role, tipoUsuario = type, instituicao = "IFPE", cidade = "Belo Jardim", curso = "ES"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope();
+        Assert.Empty(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
+    }
+
+    [Fact]
+    public async Task DuplicateEmailReturnsNeutralConflict()
+    {
+        await using var factory = await CreateFactoryAsync();
+        using var client = factory.CreateClient();
+        using var first = await client.PostAsJsonAsync("/api/Usuarios", ValidRegistration());
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        using var response = await client.PostAsJsonAsync("/api/Usuarios", ValidRegistration());
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("registration_conflict", payload.RootElement.GetProperty("code").GetString());
+        Assert.Equal("Não foi possível concluir o cadastro com os dados informados.", payload.RootElement.GetProperty("detail").GetString());
+        await using var scope = factory.Services.CreateAsyncScope();
+        Assert.Single(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
+    }
+
+    [Fact]
+    public async Task ConcurrentDuplicateRegistrationCreatesOneAccountAndReturnsPublicConflict()
+    {
+        await using var factory = await CreateFactoryAsync();
+        using var firstClient = factory.CreateClient();
+        using var secondClient = factory.CreateClient();
+        var responses = await Task.WhenAll(
+            firstClient.PostAsJsonAsync("/api/Usuarios", ValidRegistration()),
+            secondClient.PostAsJsonAsync("/api/Usuarios", ValidRegistration()));
+        using var firstResponse = responses[0];
+        using var secondResponse = responses[1];
+        Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Created);
+        var conflict = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
+        using var payload = JsonDocument.Parse(await conflict.Content.ReadAsStringAsync());
+        Assert.Equal("registration_conflict", payload.RootElement.GetProperty("code").GetString());
+        await using var scope = factory.Services.CreateAsyncScope();
+        Assert.Single(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
+    }
+
+    private static object AcademicRegistration(string role, string? responsible) => new
+    {
+        nomeCompleto = RegistrationName, email = RegistrationEmail, senha = RegistrationPassword,
+        nivelUsuario = role, tipoUsuario = "Academico", instituicao = "IFPE", cidade = "Belo Jardim", curso = "ES",
+        responsavelEmail = responsible
+    };
+
+    private static async Task<int> SeedResponsibleAsync(IntegrationWebApplicationFactory factory, string email, NivelUsuario role, StatusUsuario status)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = new Usuario
+        {
+            NomeCompleto = "Responsável sintético", Email = email, SenhaHash = "synthetic",
+            NivelUsuario = role, TipoUsuario = TipoUsuario.Comum, Status = status
+        };
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        return user.Id;
+    }
+
     private async Task<IntegrationWebApplicationFactory> CreateFactoryAsync()
     {
         var factory = new IntegrationWebApplicationFactory(database);
@@ -141,8 +272,11 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         nomeCompleto = RegistrationName,
         email = RegistrationEmail,
         senha = RegistrationPassword,
-        nivelUsuario = "Comum",
-        tipoUsuario = "Comum"
+        nivelUsuario = "Mentor",
+        tipoUsuario = "Academico",
+        instituicao = "IFPE",
+        cidade = "Belo Jardim",
+        curso = "ES"
     };
 
     private const string RegistrationName = "Cadastro HTTP crítico";
@@ -181,20 +315,26 @@ public sealed class UsuariosControllerRegistrationFailureTests
             NomeCompleto = "Cadastro com falha de notificação",
             Email = "notification-failure@example.test",
             Senha = "critical-registration-password-2026",
-            NivelUsuario = NivelUsuario.Comum.ToString(),
-            TipoUsuario = TipoUsuario.Comum.ToString()
+            NivelUsuario = NivelUsuario.Mentor.ToString(),
+            TipoUsuario = TipoUsuario.Academico.ToString(),
+            Instituicao = "IFPE",
+            Cidade = "Belo Jardim",
+            Curso = "ES"
         };
-        var user = new Usuario
+        var user = new Academico
         {
             NomeCompleto = request.NomeCompleto,
             Email = request.Email,
             SenhaHash = "generated-hash",
-            NivelUsuario = NivelUsuario.Comum,
-            TipoUsuario = TipoUsuario.Comum
+            NivelUsuario = NivelUsuario.Mentor,
+            TipoUsuario = TipoUsuario.Academico,
+            Instituicao = "IFPE",
+            Cidade = "Belo Jardim",
+            Curso = "ES"
         };
 
         var mapper = new Mock<IMapper>();
-        mapper.Setup(instance => instance.Map<Usuario>(request)).Returns(user);
+        mapper.Setup(instance => instance.Map<Academico>(request)).Returns(user);
         mapper.Setup(instance => instance.Map<UsuarioDTO>(user)).Returns(new UsuarioDTO
         {
             NomeCompleto = user.NomeCompleto,

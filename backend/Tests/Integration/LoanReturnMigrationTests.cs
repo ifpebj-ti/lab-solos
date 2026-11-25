@@ -58,6 +58,32 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
         Assert.Equal(new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc), rolledBack);
     }
 
+    [Fact]
+    public async Task ReturnAuditIndexIsAddedAfterProvenanceAndCanBeRolledBack()
+    {
+        await database.RecreateEmptyDatabaseAsync();
+        await using var context = CreateContext();
+        var migrations = context.Database.GetMigrations().ToArray();
+        var target = migrations.Single(migration =>
+            migration.EndsWith("_LoanReturnAuditUniqueness", StringComparison.Ordinal));
+        var previous = GetPredecessor(migrations, target);
+        Assert.EndsWith("_AuditEventProvenance", previous, StringComparison.Ordinal);
+
+        var migrator = context.GetService<IMigrator>();
+        await migrator.MigrateAsync(previous);
+        Assert.Null(await ReadIndexDefinitionAsync());
+
+        await migrator.MigrateAsync(target);
+        var indexDefinition = await ReadIndexDefinitionAsync();
+        Assert.NotNull(indexDefinition);
+        Assert.Contains("CREATE UNIQUE INDEX", indexDefinition, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("DevolucaoEmprestimo", indexDefinition, StringComparison.Ordinal);
+        Assert.Contains("TrilhaObrigatoria", indexDefinition, StringComparison.Ordinal);
+
+        await migrator.MigrateAsync(previous);
+        Assert.Null(await ReadIndexDefinitionAsync());
+    }
+
     private AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -153,5 +179,14 @@ public sealed class LoanReturnMigrationTests(PostgreSqlContainerFixture database
         return Convert.ToInt32(
             await command.ExecuteScalarAsync(),
             CultureInfo.InvariantCulture);
+    }
+
+    private async Task<string?> ReadIndexDefinitionAsync()
+    {
+        await using var connection = new NpgsqlConnection(database.ConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT indexdef FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'UX_LogsAuditoria_DevolucaoEmprestimo_Recurso';";
+        return await command.ExecuteScalarAsync() as string;
     }
 }

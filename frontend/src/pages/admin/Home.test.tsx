@@ -198,7 +198,9 @@ describe('Home administrativa', () => {
       expect(screen.getByRole('button', { name: /solicita.*701/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/Falha de rede/i);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /Não foi possível conectar ao serviço/i
+    );
     expect(screen.getByText('Nenhuma solicitação de cadastro disponível.')).toBeInTheDocument();
     expect(screen.queryByText('0')).not.toBeInTheDocument();
   });

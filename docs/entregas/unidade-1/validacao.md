@@ -6,7 +6,7 @@ Data: 29/09/2026 · [Issue #425](https://github.com/ifpebj-ti/lab-solos/issues/4
 
 - Exemplos sintéticos completos para os Compose de desenvolvimento e produção.
 - Template de issue conforme as seções usadas no backlog; convenções de branches e commits; regra de issue antes de PR; DoR/DoD e changelog.
-- README com equipe, execução e referências visuais. O link de um protótipo independente ainda depende do responsável.
+- README com equipe, execução e referências visuais. O sistema LabOn em andamento é a referência aprovada pelo cliente; não há protótipo independente aprovado.
 - Wiki com licença Apache 2.0, logos e fontes dos concorrentes, riscos/objetivos/critérios de sucesso e consulta atualizada de dependências.
 - Quatro rascunhos históricos do Project consolidados nas issues #352 e #353, com referências e estado Done. Itens preservados.
 - Indicador de proteção de develop corrigido para consultar regras efetivamente aplicadas à branch, incluindo rulesets, e diferenciar indisponibilidade da API.
@@ -47,6 +47,12 @@ A imagem backend publicada não atende ao critério de zero críticas no scan co
 
 ## Dependabot e acesso
 
-A consulta autenticada em 29/09/2026 retornou zero alertas abertos do Dependabot. A configuração remota tem atualizações automáticas de segurança desabilitadas; existem PRs de atualização de versão. Os riscos de aplicação registrados no Threat Dragon continuam independentes dos alertas de dependências.
+A consulta autenticada de 29/09/2026 retornou zero alertas abertos do Dependabot naquele snapshot. A configuração remota tinha atualizações automáticas de segurança desabilitadas; existiam PRs de atualização de versão. Os riscos de aplicação registrados no Threat Dragon continuam independentes dos alertas de dependências. Esse resultado é histórico e não descreve o estado atual.
 
-O Project 41 permanece privado enquanto o responsável define o mecanismo de acesso dos avaliadores. A confirmação de acesso, o link de protótipos e a validação pelo cliente não são presumidos nesta evidência.
+O Project #41 permanece privado. O acesso por perfil de avaliação não foi testado nesta execução. O usuário autorizou concluir as verificações de acesso pendentes sem esses testes; T006 e T011 foram encerradas sob essa exceção, sem afirmar acesso positivo ou validação humana. Não existe protótipo independente aprovado; o sistema LabOn em andamento é a referência aprovada pelo cliente.
+
+## Snapshot de segurança e regras efetivas — 24/11/2026
+
+- Snapshot agregado de Dependabot e code scanning: [evidência T009](../../../.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T009.md). A coleta percorreu as páginas disponíveis, estados e severidades. O relatório não mantém IDs, pacotes, caminhos ou trechos.
+- Regras efetivas de develop e main: [evidência T010](../../../.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T010.md). Checks obrigatórios vêm das regras efetivas e rulesets. As rotas de proteção clássica responderam 404; essa fonte está registrada como ausente.
+- A coleta usou APIs de leitura autenticadas. O perfil de avaliação não foi usado para consultar esses registros; não se afirma que ele tenha acesso aos materiais.

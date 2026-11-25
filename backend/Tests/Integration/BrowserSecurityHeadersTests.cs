@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
         using var request = new HttpRequestMessage(HttpMethod.Options, "/api/Usuarios");
         request.Headers.Add("Origin", AllowedOrigin);
         request.Headers.Add("Access-Control-Request-Method", "PATCH");
-        request.Headers.Add("Access-Control-Request-Headers", "authorization,content-type");
+        request.Headers.Add("Access-Control-Request-Headers", "authorization,content-type,x-csrf-token");
 
         using var response = await client.SendAsync(request);
 
@@ -39,8 +40,9 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
         Assert.Contains("PATCH", Header(response, "Access-Control-Allow-Methods"));
         Assert.Contains("authorization", Header(response, "Access-Control-Allow-Headers"), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("content-type", Header(response, "Access-Control-Allow-Headers"), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("x-csrf-token", Header(response, "Access-Control-Allow-Headers"), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Origin", response.Headers.Vary);
-        Assert.False(response.Headers.Contains("Access-Control-Allow-Credentials"));
+        Assert.Equal("true", Header(response, "Access-Control-Allow-Credentials"));
 
         using var rejectedPreflight = new HttpRequestMessage(HttpMethod.Options, "/api/Usuarios");
         rejectedPreflight.Headers.Add("Origin", AllowedOrigin);
@@ -68,7 +70,8 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
         Assert.Equal(AllowedOrigin, Header(allowedResponse, "Access-Control-Allow-Origin"));
         Assert.Contains("Retry-After", Header(allowedResponse, "Access-Control-Expose-Headers"));
         Assert.Contains("Origin", allowedResponse.Headers.Vary);
-        Assert.False(allowedResponse.Headers.Contains("Access-Control-Allow-Credentials"));
+        Assert.Equal("true", Header(allowedResponse, "Access-Control-Allow-Credentials"));
+        AssertApiHeaders(allowedResponse);
 
         using var rejectedOriginRequest = new HttpRequestMessage(HttpMethod.Get, "/api/Usuarios");
         rejectedOriginRequest.Headers.Add("Origin", OtherOrigin);
@@ -86,6 +89,39 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
         using var responseWithoutOrigin = await client.SendAsync(requestWithoutOrigin);
         Assert.Equal(HttpStatusCode.Unauthorized, responseWithoutOrigin.StatusCode);
         Assert.False(responseWithoutOrigin.Headers.Contains("Access-Control-Allow-Origin"));
+    }
+
+    [Fact]
+    public async Task ApiSuccessAuthenticationFailureAndUnknownRouteKeepHeadersAndUnknownRouteIsNotAuthenticated()
+    {
+        await using var factory = CreateDevelopmentFactory();
+        await factory.RecreateDatabaseAsync();
+        using var client = factory.CreateClient();
+
+        using var successRequest = new HttpRequestMessage(HttpMethod.Get, "/api/System/health");
+        successRequest.Headers.Add("Origin", AllowedOrigin);
+        using var successResponse = await client.SendAsync(successRequest);
+
+        using var unauthorizedRequest = new HttpRequestMessage(HttpMethod.Get, "/api/Usuarios");
+        unauthorizedRequest.Headers.Add("Origin", AllowedOrigin);
+        using var unauthorizedResponse = await client.SendAsync(unauthorizedRequest);
+
+        using var unknownRequest = new HttpRequestMessage(HttpMethod.Get, "/api/route-that-does-not-exist");
+        unknownRequest.Headers.Add("Origin", AllowedOrigin);
+        using var unknownResponse = await client.SendAsync(unknownRequest);
+
+        Assert.Equal(HttpStatusCode.OK, successResponse.StatusCode);
+        AssertApiHeaders(successResponse);
+        Assert.Equal(HttpStatusCode.Unauthorized, unauthorizedResponse.StatusCode);
+        AssertApiHeaders(unauthorizedResponse);
+
+        Assert.Equal(HttpStatusCode.NotFound, unknownResponse.StatusCode);
+        AssertApiHeaders(unknownResponse);
+        Assert.Equal("application/problem+json", unknownResponse.Content.Headers.ContentType?.MediaType);
+        var problem = await unknownResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("resource_not_found", problem.GetProperty("code").GetString());
+        Assert.Equal(404, problem.GetProperty("status").GetInt32());
+        Assert.Equal(Header(unknownResponse, "X-Correlation-ID"), problem.GetProperty("correlationId").GetString());
     }
 
     [Fact]
@@ -195,4 +231,14 @@ public sealed class BrowserSecurityHeadersTests(PostgreSql15ContainerFixture dat
         response.Headers.TryGetValues(name, out var values)
             ? string.Join(",", values)
             : string.Empty;
+
+    private static void AssertApiHeaders(HttpResponseMessage response)
+    {
+        Assert.Equal("no-store", Header(response, "Cache-Control"));
+        Assert.Contains("Origin", response.Headers.Vary);
+        Assert.Equal("default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+            Header(response, "Content-Security-Policy"));
+        Assert.Equal("camera=(), geolocation=(), microphone=()", Header(response, "Permissions-Policy"));
+        Assert.Equal("nosniff", Header(response, "X-Content-Type-Options"));
+    }
 }

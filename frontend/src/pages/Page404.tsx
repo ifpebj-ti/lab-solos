@@ -1,7 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import img404 from '../../public/images/404.png';
 import { ArrowLeft } from 'lucide-react';
-import { clearSession, readSession } from '@/auth/session';
+import { readSession } from '@/auth/session';
+import { logoutSession } from '@/integration/Auth';
+import { notifyError } from '@/errors/presentError';
 import BackLink from '@/components/global/BackLink';
 
 const SUPPORTED_ROLES = new Set(['Administrador', 'Mentor', 'Mentorado']);
@@ -13,9 +15,13 @@ function Page404() {
   const isUnsupportedSession =
     session !== null && !SUPPORTED_ROLES.has(session.role);
 
-  const handleExplicitLogout = () => {
-    clearSession({ discardAuthContext: true });
-    navigate('/');
+  const handleExplicitLogout = async () => {
+    try {
+      await logoutSession();
+      navigate('/', { replace: true });
+    } catch (error: unknown) {
+      notifyError(error, 'encerrar a sessão');
+    }
   };
 
   return (
@@ -33,7 +39,7 @@ function Page404() {
               <p>Nível de acesso não suportado para esta sessão.</p>
               <button
                 type='button'
-                onClick={handleExplicitLogout}
+                onClick={() => void handleExplicitLogout()}
                 className='mt-3 flex min-h-11 items-center gap-2 rounded-md bg-primaryMy px-5 text-white transition-colors hover:bg-primaryMy/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
               >
                 Sair

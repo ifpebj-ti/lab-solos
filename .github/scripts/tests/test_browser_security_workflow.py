@@ -21,7 +21,7 @@ class BrowserSecurityWorkflowTests(unittest.TestCase):
         self.assertIsNotNone(match, "missing required browser-security job")
         return match.group("body")
 
-    def test_runs_the_fixed_security_stack_and_focused_browser_project(self) -> None:
+    def test_runs_the_fixed_security_stack_and_passive_analysis_runner(self) -> None:
         job = self.job()
         normalized_job = re.sub(r"\s+", " ", job)
 
@@ -37,21 +37,33 @@ class BrowserSecurityWorkflowTests(unittest.TestCase):
             "--file docker-compose-security-e2e.yml up --detach --build --wait",
             normalized_job,
         )
-        self.assertIn("npm run test:e2e -- --project=security", job)
+        self.assertIn("run_security_zap_e2e.py", job)
+        self.assertIn("--compose-project lab-solos-ci-browser-security", normalized_job)
+        self.assertIn("--report-root", job)
+        self.assertIn("zap-passive", job)
+        self.assertIn('SECURITY_E2E_COMPOSE_PROJECT: lab-solos-ci-browser-security', job)
         self.assertNotIn("secrets.", job.lower())
 
     def test_uploads_only_sanitized_summary_and_report_even_after_failure(self) -> None:
         job = self.job()
 
         self.assertIn("steps.security-tests.outcome", job)
-        self.assertIn('printf \'browser-security=%s\\n\' "$SECURITY_E2E_OUTCOME"', job)
+        self.assertIn("GITHUB_SHA", job)
+        self.assertIn("GITHUB_RUN_ID", job)
+        self.assertIn("GITHUB_RUN_ATTEMPT", job)
+        self.assertIn("GITHUB_STEP_SUMMARY", job)
+        self.assertIn("report_unavailable", job)
         self.assertIn("if: always()", job)
         self.assertIn("actions/upload-artifact@", job)
-        self.assertIn("${{ runner.temp }}/browser-security-summary.txt", job)
+        self.assertIn("${{ runner.temp }}/browser-security-summary.json", job)
         self.assertIn("frontend/e2e/infra/artifacts/report", job)
+        self.assertIn("browser-security-summary.json", job)
+        self.assertIn("zap-passive/*.json", job)
         self.assertIn("retention-days: 7", job)
         self.assertNotIn("test-results", job)
         self.assertNotIn("docker compose logs", job)
+        self.assertNotIn("*.har", job)
+        self.assertNotIn("SECURITY_ZAP_CAPTURE_DIR", job)
 
         config = (ROOT / "frontend" / "playwright.config.ts").read_text(encoding="utf-8")
         security_project = config.split("name: 'security'", 1)[1]

@@ -33,15 +33,16 @@ public class AuthChangePasswordTests
     [Fact]
     public async Task ChangePassword_DerivesUserIdFromAuthenticatedSubjectAndReturnsNoContent()
     {
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.ChangePasswordAsync(
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
                 42,
-                "current-password",
-                "valid-new-password",
-                "valid-new-password",
+                It.Is<ChangePasswordDTO>(request =>
+                    request.CurrentPassword == "current-password"
+                    && request.NewPassword == "valid-new-password"
+                    && request.Confirmation == "valid-new-password"),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.Success());
-        var controller = CreateController(credentials.Object, "42");
+        var controller = CreateController(passwordChanges.Object, "42");
 
         var result = await controller.ChangePassword(new ChangePasswordDTO
         {
@@ -53,7 +54,7 @@ public class AuthChangePasswordTests
         Assert.IsType<NoContentResult>(result);
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
         Assert.Equal("no-cache", controller.Response.Headers.Pragma);
-        credentials.VerifyAll();
+        passwordChanges.VerifyAll();
     }
 
     [Theory]
@@ -64,15 +65,13 @@ public class AuthChangePasswordTests
         string code,
         string expectedField)
     {
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.ChangePasswordAsync(
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
                 42,
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
+                It.IsAny<ChangePasswordDTO>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.ValidationFailed(code));
-        var controller = CreateController(credentials.Object, "42");
+        var controller = CreateController(passwordChanges.Object, "42");
 
         var result = await controller.ChangePassword(new ChangePasswordDTO(), CancellationToken.None);
 
@@ -91,15 +90,13 @@ public class AuthChangePasswordTests
     [Fact]
     public async Task ChangePassword_ConcurrencyFailure_ReturnsConflictProblemDetails()
     {
-        var credentials = new Mock<ICredentialService>();
-        credentials.Setup(service => service.ChangePasswordAsync(
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
                 42,
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
+                It.IsAny<ChangePasswordDTO>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CredentialChangeResult.Conflict());
-        var controller = CreateController(credentials.Object, "42");
+        var controller = CreateController(passwordChanges.Object, "42");
 
         var result = await controller.ChangePassword(new ChangePasswordDTO(), CancellationToken.None);
 
@@ -110,10 +107,52 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
+    public async Task ChangePasswordRateLimitedReturnsRetryAfterProblemDetails()
+    {
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
+                42,
+                It.IsAny<ChangePasswordDTO>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CredentialChangeResult.RateLimited(17));
+        var controller = CreateController(passwordChanges.Object, "42");
+
+        var result = await controller.ChangePassword(new ChangePasswordDTO(), CancellationToken.None);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status429TooManyRequests, objectResult.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("authentication_rate_limited", details.Extensions["code"]);
+        Assert.Equal(17, details.Extensions["retryAfterSeconds"]);
+        Assert.Equal("17", controller.Response.Headers.RetryAfter);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl);
+    }
+
+    [Fact]
+    public async Task ChangePasswordLimiterUnavailableReturnsTransientServiceUnavailable()
+    {
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
+                42,
+                It.IsAny<ChangePasswordDTO>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CredentialChangeResult.Unavailable());
+        var controller = CreateController(passwordChanges.Object, "42");
+
+        var result = await controller.ChangePassword(new ChangePasswordDTO(), CancellationToken.None);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, objectResult.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("authentication_protection_unavailable", details.Extensions["code"]);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl);
+    }
+
+    [Fact]
     public async Task ChangePassword_MissingOrMalformedSubject_ReturnsUnauthorizedWithoutCallingService()
     {
-        var credentials = new Mock<ICredentialService>(MockBehavior.Strict);
-        var controller = CreateController(credentials.Object, "not-an-integer");
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>(MockBehavior.Strict);
+        var controller = CreateController(passwordChanges.Object, "not-an-integer");
 
         var result = await controller.ChangePassword(new ChangePasswordDTO(), CancellationToken.None);
 
@@ -130,12 +169,12 @@ public class AuthChangePasswordTests
         Assert.Equal(CredentialAuthorizationPolicies.ChangeOwnPassword, authorize.Policy);
     }
 
-    private static AuthController CreateController(ICredentialService credentials, string subject)
+    private static AuthController CreateController(IPasswordChangeRateLimitService passwordChanges, string subject)
     {
         var controller = new AuthController(
             CreateJwtService(),
             Mock.Of<IUnitOfWork>(),
-            credentials,
+            passwordChanges,
             new PasswordHasher<Usuario>(),
             Options.Create(new AuthenticationProtectionOptions()),
             Mock.Of<ISecretFileReader>(),

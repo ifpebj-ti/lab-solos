@@ -1,6 +1,6 @@
-import Cookie from 'js-cookie';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { startSession } from '@/auth/session';
 import { api } from '@/services/BaseApi';
 import {
   approveLoan,
@@ -16,7 +16,6 @@ import {
 } from './Product';
 
 vi.mock('@/services/BaseApi', () => ({ api: vi.fn() }));
-vi.mock('js-cookie', () => ({ default: { get: vi.fn() } }));
 
 const requests = [
   ['product', (id: string) => getProductById({ id: id as unknown as number })],
@@ -39,9 +38,12 @@ const requests = [
 describe('resource identifiers cannot change API endpoints', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Cookie.get).mockImplementation(
-      (name?: string) => (name === 'rankID' ? '7' : 'synthetic-token') as never
-    );
+    startSession({
+      userId: '7',
+      role: 'admin',
+      requiresPasswordChange: false,
+      csrfToken: 'synthetic-token',
+    });
     vi.mocked(api).mockResolvedValue({ data: {} });
   });
 
@@ -84,10 +86,12 @@ describe('resource identifiers cannot change API endpoints', () => {
   it.each([approveLoan, rejectLoan])(
     'rejects a forged approver identifier before HTTP',
     async (request) => {
-      vi.mocked(Cookie.get).mockImplementation(
-        (name?: string) =>
-          (name === 'rankID' ? '../Auth' : 'synthetic-token') as never
-      );
+      startSession({
+        userId: '../Auth',
+        role: 'admin',
+        requiresPasswordChange: false,
+        csrfToken: 'synthetic-token',
+      });
       await expect(request(42)).rejects.toBeDefined();
       expect(api).not.toHaveBeenCalled();
     }

@@ -37,7 +37,11 @@ public sealed class AuthLoginContractTests(PostgreSql15ContainerFixture database
             var body = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-            Assert.Equal("Credenciais inválidas.", body);
+            var normalized = await Tests.Integration.ApiProblemContractAssertions.ReadAsync(
+                response, HttpStatusCode.Unauthorized, "authentication_required");
+            using var problem = JsonDocument.Parse(normalized);
+            Assert.Equal("Entre na sua conta para continuar.", problem.RootElement.GetProperty("title").GetString());
+            Assert.DoesNotContain("token", body, StringComparison.OrdinalIgnoreCase);
             Assert.True(response.Headers.CacheControl?.NoStore);
         }
     }

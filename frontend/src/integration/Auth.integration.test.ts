@@ -1,29 +1,23 @@
-import Cookie from 'js-cookie';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/services/BaseApi';
 import { authenticate } from './Auth';
 import { server } from '@/test/msw/server';
+import { readSession, startSession } from '@/auth/session';
 
 const API_ORIGIN = 'http://localhost:8080/api';
 
-const encodeSegment = (value: object) =>
-  btoa(JSON.stringify(value))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-const createToken = (payload: object) =>
-  `${encodeSegment({ alg: 'none', typ: 'JWT' })}.${encodeSegment(payload)}.`;
-
 describe('Auth e BaseApi com MSW', () => {
   beforeEach(() => {
-    Cookie.set('doorKey', 'session-token', { path: '/' });
-    Cookie.set('rankID', '42', { path: '/' });
-    Cookie.set('level', 'Mentor', { path: '/' });
     sessionStorage.clear();
     localStorage.clear();
+    startSession({
+      userId: '42',
+      role: 'Mentor',
+      requiresPasswordChange: false,
+      csrfToken: 'session-bound-proof',
+    });
     window.history.replaceState(
       {},
       '',
@@ -31,7 +25,7 @@ describe('Auth e BaseApi com MSW', () => {
     );
   });
 
-  it('normaliza 401 de Auth/login sem redirecionar nem limpar cookies', async () => {
+  it('normaliza 401 de Auth/login sem redirecionar nem limpar o contexto anterior', async () => {
     server.use(
       http.post(`${API_ORIGIN}/Auth/login`, () =>
         HttpResponse.json(
@@ -60,7 +54,7 @@ describe('Auth e BaseApi com MSW', () => {
       status: 401,
     });
     expect(replace).not.toHaveBeenCalled();
-    expect(Cookie.get('doorKey')).toBe('session-token');
+    expect(readSession()?.userId).toBe('42');
     expect(JSON.stringify(error)).not.toContain('segredo');
   });
 
@@ -83,9 +77,7 @@ describe('Auth e BaseApi com MSW', () => {
       category: 'authorization',
       status: 403,
     });
-    expect(Cookie.get('doorKey')).toBe('session-token');
-    expect(Cookie.get('rankID')).toBe('42');
-    expect(Cookie.get('level')).toBe('Mentor');
+    expect(readSession()).toMatchObject({ userId: '42', role: 'Mentor' });
     expect(sessionStorage.getItem('draft')).toBe('preserve');
     expect(localStorage.getItem('theme')).toBe('dark');
     expect(window.location.href).toBe(currentUrl);
@@ -125,22 +117,23 @@ describe('Auth e BaseApi com MSW', () => {
   });
 
   it('conclui login por MSW e persiste a sessao para o perfil autenticado', async () => {
-    const token = createToken({
-      sub: '42',
-      role: 'Mentor',
-      password_change_required: false,
-    });
     server.use(
       http.post(`${API_ORIGIN}/Auth/login`, async ({ request }) => {
         expect(await request.json()).toEqual({
           email: 'user@example.org',
           password: 'senha-segura',
         });
-        return HttpResponse.json(
-          { token, requiresPasswordChange: false },
-          { status: 200 }
-        );
-      })
+        expect(request.headers.get('authorization')).toBeNull();
+        return HttpResponse.json({ requiresPasswordChange: false }, { status: 200 });
+      }),
+      http.get(`${API_ORIGIN}/Auth/session`, () =>
+        HttpResponse.json({
+          userId: '42',
+          role: 'Mentor',
+          requiresPasswordChange: false,
+          csrfToken: 'rotated-session-proof',
+        })
+      )
     );
     const navigate = vi.fn();
 
@@ -154,8 +147,10 @@ describe('Auth e BaseApi com MSW', () => {
 
     expect(response.status).toBe(200);
     expect(navigate).toHaveBeenCalledWith('/mentor/');
-    expect(Cookie.get('doorKey')).toBe(token);
-    expect(Cookie.get('rankID')).toBe('42');
-    expect(Cookie.get('level')).toBe('Mentor');
+    expect(readSession()).toEqual({
+      userId: '42',
+      role: 'Mentor',
+      requiresPasswordChange: false,
+    });
   });
 });

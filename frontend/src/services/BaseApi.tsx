@@ -4,7 +4,7 @@ import {
   saveAuthNotice,
   saveIntendedRoute,
 } from '@/auth/intendedRoute';
-import { clearSession } from '@/auth/session';
+import { clearSession, readCsrfToken } from '@/auth/session';
 import { normalizeError } from '@/errors/normalizeError';
 
 const baseURL =
@@ -14,6 +14,19 @@ const baseURL =
 
 export const api = axios.create({
   baseURL: baseURL,
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  config.withCredentials = true;
+  config.headers.delete('Authorization');
+
+  const method = (config.method ?? 'get').toUpperCase();
+  const isMutation = !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method);
+  const csrfToken = isMutation ? readCsrfToken() : null;
+  if (csrfToken) config.headers.set('X-CSRF-Token', csrfToken);
+
+  return config;
 });
 
 let sessionExpirationRedirected = false;

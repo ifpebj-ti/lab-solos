@@ -1,7 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookie from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 import { Check } from 'lucide-react';
 
 import SearchIcon from '../../../public/icons/SearchIcon';
@@ -30,24 +28,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getNavigationSearchEntries } from '@/navigation/navigationModel';
-
-interface JwtPayload {
-  role?: string;
-}
+import { readSession } from '@/auth/session';
 
 function OpenSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [value] = useState('');
   const navigate = useNavigate();
-  const auth = Cookie.get('doorKey');
-  const role = useMemo(() => {
-    if (!auth) return null;
-    try {
-      return jwtDecode<JwtPayload>(auth).role ?? null;
-    } catch {
-      return null;
-    }
-  }, [auth]);
+  const role = readSession()?.role ?? null;
   const routes = getNavigationSearchEntries(role);
 
   const selectRoute = (route: string) => {

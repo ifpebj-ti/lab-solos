@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
@@ -6,6 +7,7 @@ using System.Text;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
+using LabSolos_Server_DotNet8.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +18,42 @@ namespace Tests.Integration;
 [Collection(PostgreSqlIntegrationCollection.Name)]
 public sealed class JwtSessionVersionTests(PostgreSqlContainerFixture database)
 {
+    private const string Utf8Key = "chave-sintética-de-integração-para-sessões-jwt";
+
+    [Theory]
+    [InlineData("synthetic-jwt-round-trip-key-with-at-least-thirty-two-bytes", false, HttpStatusCode.OK)]
+    [InlineData(Utf8Key, false, HttpStatusCode.OK)]
+    [InlineData(Utf8Key, true, HttpStatusCode.Forbidden)]
+    public async Task IssuedSessionUsesConfiguredJwtAndRespectsPasswordChangeRestriction(
+        string key,
+        bool passwordChangeRequired,
+        HttpStatusCode expectedStatus)
+    {
+        const string issuer = "synthetic-session-issuer";
+        const string audience = "synthetic-session-audience";
+        const int expiresInMinutes = 13;
+        var user = CreateUser();
+        user.ExigeTrocaSenha = passwordChangeRequired;
+        await using var factory = await CreateFactoryWithUserAsync(user, new()
+        {
+            Configuration = new Dictionary<string, string?>
+            {
+                ["Jwt:Key"] = key,
+                ["Jwt:Issuer"] = issuer,
+                ["Jwt:Audience"] = audience,
+                ["Jwt:ExpiresInMinutes"] = expiresInMinutes.ToString(CultureInfo.InvariantCulture)
+            }
+        });
+
+        var token = factory.Services.GetRequiredService<JwtService>().GenerateToken(user);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        Assert.Equal(issuer, jwt.Issuer);
+        Assert.Equal(audience, Assert.Single(jwt.Audiences));
+        Assert.Equal(TimeSpan.FromMinutes(expiresInMinutes), jwt.ValidTo - jwt.IssuedAt);
+        Assert.Equal(expectedStatus, await GetPrivateStatusAsync(factory, token));
+    }
+
     [Fact]
     public async Task TokensIssuedBeforeVersionIncrement_AreRejectedAfterIncrement()
     {
@@ -46,7 +84,7 @@ public sealed class JwtSessionVersionTests(PostgreSqlContainerFixture database)
         int subject,
         StatusUsuario status)
     {
-        await using var factory = await CreateFactoryWithUserAsync(status);
+        await using var factory = await CreateFactoryWithUserAsync(CreateUser(status));
         var token = CreateToken(subject, sessionVersion, passwordChangeRequired);
 
         var response = await GetPrivateStatusAsync(factory, token);
@@ -55,13 +93,14 @@ public sealed class JwtSessionVersionTests(PostgreSqlContainerFixture database)
     }
 
     private async Task<IntegrationWebApplicationFactory> CreateFactoryWithUserAsync(
-        StatusUsuario status = StatusUsuario.Habilitado)
+        Usuario? user = null,
+        IntegrationApplicationOptions? options = null)
     {
-        var factory = new IntegrationWebApplicationFactory(database);
+        var factory = new IntegrationWebApplicationFactory(database, options);
         await factory.RecreateDatabaseAsync();
         await using var scope = factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        context.Usuarios.Add(CreateUser(status));
+        context.Usuarios.Add(user ?? CreateUser());
         await context.SaveChangesAsync();
         return factory;
     }

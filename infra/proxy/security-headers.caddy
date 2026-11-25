@@ -14,3 +14,44 @@
 		defer
 	}
 }
+
+(api_security_policy) {
+	header {
+		Cache-Control "no-store"
+		Content-Security-Policy "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		defer
+	}
+}
+
+(api_request_body_limit) {
+	@limited_json_write {
+		path /api/Usuarios /api/Emprestimos
+		method POST
+		header_regexp Content-Type (?i)^application/(json|[a-zA-Z0-9.+-]+\+json)(;.*)?$
+	}
+	request_body @limited_json_write {
+		max_size 1MiB
+	}
+}
+
+(api_proxy_error_contract) {
+	handle_errors {
+		@api_error_path path /api /api/*
+		handle @api_error_path {
+			@body_too_large expression `{err.status_code} == 413`
+			handle @body_too_large {
+				header Content-Type application/problem+json
+				header X-Correlation-ID {err.id}
+				respond `{"type":"https://httpstatuses.com/413","title":"A solicitação excede o tamanho permitido.","status":413,"code":"request_body_too_large","correlationId":"{err.id}"}` 413
+			}
+
+			@upstream_unavailable expression `{err.status_code} in [502, 503, 504]`
+			handle @upstream_unavailable {
+				header Content-Type application/problem+json
+				header X-Correlation-ID {err.id}
+				respond `{"type":"https://httpstatuses.com/503","title":"O serviço está temporariamente indisponível.","status":503,"code":"service_unavailable","correlationId":"{err.id}"}` 503
+			}
+		}
+	}
+}

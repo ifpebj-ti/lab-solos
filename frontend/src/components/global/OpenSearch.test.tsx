@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import Cookie from 'js-cookie';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearSession, startSession } from '@/auth/session';
 import OpenSearch from './OpenSearch';
 
 function LocationProbe() {
@@ -13,7 +13,7 @@ function LocationProbe() {
 
 describe('OpenSearch administrativo', () => {
   afterEach(() => {
-    Cookie.remove('doorKey');
+    clearSession();
   });
 
   beforeEach(() => {
@@ -26,7 +26,12 @@ describe('OpenSearch administrativo', () => {
         disconnect() {}
       }
     );
-    Cookie.set('doorKey', 'e30.eyJyb2xlIjoiQWRtaW5pc3RyYWRvciJ9.');
+    startSession({
+      userId: '1',
+      role: 'Administrador',
+      requiresPasswordChange: false,
+      csrfToken: 'test-session-proof',
+    });
   });
 
   it('navega solicitações de cadastros para o destino operacional', async () => {
