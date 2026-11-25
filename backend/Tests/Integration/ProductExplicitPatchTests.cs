@@ -49,11 +49,12 @@ public sealed class ProductExplicitPatchTests(PostgreSqlContainerFixture databas
         await using var factory = new IntegrationWebApplicationFactory(database);
         var scenario = await CreateScenarioAsync(factory);
         using var client = scenario.Client;
+        string? clearedValue = null;
 
         using var response = await PatchAsync(client, scenario.ProductId,
-            new { op = operation, path = "/fornecedor", value = (string?)null },
-            new { op = operation, path = "/dataFabricacao", value = (string?)null },
-            new { op = operation, path = "/dataValidade", value = (string?)null });
+            new { op = operation, path = "/fornecedor", value = clearedValue },
+            new { op = operation, path = "/dataFabricacao", value = clearedValue },
+            new { op = operation, path = "/dataValidade", value = clearedValue });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var saved = await ReadProductAsync(factory, scenario.ProductId);
