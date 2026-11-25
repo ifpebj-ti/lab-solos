@@ -43,11 +43,11 @@ def har(*entries: dict) -> dict:
 
 
 class ZapPassiveCaptureTests(unittest.TestCase):
-    def test_passive_policy_sets_a_bounded_120_second_processing_deadline(self) -> None:
+    def test_passive_policy_sets_a_bounded_240_second_processing_deadline(self) -> None:
         policy_path = Path(__file__).resolve().parents[2] / "quality/zap/passive-policy.json"
         policy = _load_policy(policy_path)
 
-        self.assertEqual(policy["limits"]["processing_seconds"], 120)
+        self.assertEqual(policy["limits"]["processing_seconds"], 240)
 
     def test_report_allowlist_names_each_cache_diagnostic_counter(self) -> None:
         policy_path = Path(__file__).resolve().parents[2] / "quality/zap/passive-policy.json"

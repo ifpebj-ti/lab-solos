@@ -1,6 +1,13 @@
 import { execFileSync } from 'node:child_process';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+} from '@playwright/test';
 
 import { scenarioData, seedE2eScenario } from './infra/e2e-data';
 
@@ -26,9 +33,14 @@ type AuditLog = {
     origem: string;
   }>;
 };
-type AuditPage = { itens: AuditLog[]; totalItens: number; totalPaginas: number };
+type AuditPage = {
+  itens: AuditLog[];
+  totalItens: number;
+  totalPaginas: number;
+};
 
 const frontendBaseUrl = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173';
+const compatibleRollbackCommit = 'a0e9929287a0d97a0743a95b3771d45099e2a099';
 let scenario = scenarioData(`notifications-audit-${process.pid}-${Date.now()}`);
 
 test.describe.configure({ mode: 'serial' });
@@ -111,6 +123,280 @@ function restartSyntheticBackend(): void {
   );
 }
 
+async function withCompatibleRollbackBackend(
+  api: APIRequestContext,
+  verifyState: () => Promise<void>
+): Promise<void> {
+  const repositoryRoot = path.resolve(process.cwd(), '..');
+  const composeFile = path.join(repositoryRoot, 'docker-compose-e2e.yml');
+  const temporaryRoot = await mkdtemp(
+    path.join(tmpdir(), 'lab-solos-t010-compatible-rollback-')
+  );
+  const candidateWorktree = path.join(temporaryRoot, 'candidate');
+  const composeOverride = path.join(temporaryRoot, 'compose.compatible.yml');
+  const candidateImage = `lab-solos-t010-compatible-rollback:${compatibleRollbackCommit.slice(0, 12)}-${process.pid}`;
+  let worktreeCreated = false;
+  let candidateSwitchAttempted = false;
+  let operationFailed = false;
+  let operationError: unknown;
+  let cleanupError: Error | undefined;
+
+  const runCompose = (args: string[], failureMessage: string) => {
+    try {
+      execFileSync(
+        'docker',
+        [
+          'compose',
+          '--project-name',
+          scenario.composeProject,
+          '--file',
+          composeFile,
+          ...args,
+        ],
+        {
+          cwd: repositoryRoot,
+          stdio: 'pipe',
+          timeout: 180_000,
+        }
+      );
+    } catch {
+      throw new Error(failureMessage);
+    }
+  };
+
+  try {
+    try {
+      execFileSync(
+        'git',
+        ['cat-file', '-e', `${compatibleRollbackCommit}^{commit}`],
+        { cwd: repositoryRoot, stdio: 'ignore' }
+      );
+    } catch {
+      try {
+        execFileSync(
+          'git',
+          [
+            'fetch',
+            '--no-tags',
+            '--depth=1',
+            'origin',
+            compatibleRollbackCommit,
+          ],
+          { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
+        );
+      } catch {
+        throw new Error('A revisão compatível de retorno não está disponível.');
+      }
+    }
+
+    execFileSync(
+      'git',
+      [
+        'worktree',
+        'add',
+        '--detach',
+        candidateWorktree,
+        compatibleRollbackCommit,
+      ],
+      { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
+    );
+    worktreeCreated = true;
+
+    const candidateBackendContext = path.join(candidateWorktree, 'backend');
+    await writeFile(
+      composeOverride,
+      [
+        'services:',
+        '  backend:',
+        `    image: ${JSON.stringify(candidateImage)}`,
+        '    build:',
+        `      context: ${JSON.stringify(candidateBackendContext)}`,
+        '      dockerfile: Dockerfile',
+        '',
+      ].join('\n'),
+      'utf8'
+    );
+
+    candidateSwitchAttempted = true;
+    runCompose(
+      [
+        '--file',
+        composeOverride,
+        'up',
+        '--detach',
+        '--wait',
+        '--no-deps',
+        '--build',
+        'backend',
+      ],
+      'A composição descartável não iniciou o backend candidato.'
+    );
+
+    let containerId: string;
+    try {
+      containerId = execFileSync(
+        'docker',
+        [
+          'compose',
+          '--project-name',
+          scenario.composeProject,
+          '--file',
+          composeFile,
+          '--file',
+          composeOverride,
+          'ps',
+          '--quiet',
+          'backend',
+        ],
+        { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
+      ).trim();
+    } catch {
+      throw new Error('Não foi possível identificar o backend candidato.');
+    }
+    if (!containerId) {
+      throw new Error('O contêiner de retorno compatível não foi iniciado.');
+    }
+    let runningImage: string;
+    try {
+      runningImage = execFileSync(
+        'docker',
+        ['inspect', '--format', '{{.Config.Image}}', containerId],
+        { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
+      ).trim();
+    } catch {
+      throw new Error('Não foi possível conferir a imagem ativa do backend.');
+    }
+    if (runningImage !== candidateImage) {
+      throw new Error('A imagem compatível esperada não está ativa.');
+    }
+
+    await waitForApi(api);
+    await verifyState();
+  } catch (error) {
+    operationFailed = true;
+    operationError = error;
+  } finally {
+    try {
+      if (candidateSwitchAttempted) {
+        try {
+          runCompose(
+            [
+              'up',
+              '--detach',
+              '--wait',
+              '--no-deps',
+              '--build',
+              '--force-recreate',
+              'backend',
+            ],
+            'O backend do checkout atual não foi restaurado.'
+          );
+        } catch {
+          cleanupError = new Error(
+            'O backend do checkout atual não foi restaurado.'
+          );
+        }
+        let restoredContainerId = '';
+        try {
+          restoredContainerId = execFileSync(
+            'docker',
+            [
+              'compose',
+              '--project-name',
+              scenario.composeProject,
+              '--file',
+              composeFile,
+              'ps',
+              '--quiet',
+              'backend',
+            ],
+            { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
+          ).trim();
+        } catch {
+          cleanupError ??= new Error(
+            'Não foi possível confirmar o backend restaurado.'
+          );
+        }
+        if (!restoredContainerId) {
+          cleanupError ??= new Error(
+            'O backend do checkout atual não está ativo.'
+          );
+        } else {
+          try {
+            const restoredImage = execFileSync(
+              'docker',
+              ['inspect', '--format', '{{.Config.Image}}', restoredContainerId],
+              { cwd: repositoryRoot, encoding: 'utf8', stdio: 'pipe' }
+            ).trim();
+            if (restoredImage === candidateImage) {
+              cleanupError ??= new Error(
+                'O backend candidato continuou ativo após o retorno.'
+              );
+            }
+          } catch {
+            cleanupError ??= new Error(
+              'Não foi possível conferir a imagem restaurada.'
+            );
+          }
+        }
+        try {
+          await waitForApi(api);
+        } catch {
+          cleanupError ??= new Error(
+            'A API do checkout atual não ficou disponível após o retorno.'
+          );
+        }
+      }
+    } finally {
+      try {
+        if (worktreeCreated) {
+          try {
+            execFileSync(
+              'git',
+              ['worktree', 'remove', '--force', candidateWorktree],
+              { cwd: repositoryRoot, stdio: 'ignore', timeout: 60_000 }
+            );
+          } catch {
+            cleanupError ??= new Error(
+              'A worktree descartável não foi removida.'
+            );
+          }
+        }
+      } finally {
+        try {
+          execFileSync('docker', ['image', 'rm', '--force', candidateImage], {
+            cwd: repositoryRoot,
+            stdio: 'ignore',
+            timeout: 30_000,
+          });
+        } catch {
+          // The image can be absent when building the candidate failed.
+        }
+        try {
+          await rm(temporaryRoot, { recursive: true, force: true });
+        } catch {
+          cleanupError ??= new Error(
+            'Os arquivos temporários do retorno não foram removidos.'
+          );
+        }
+      }
+    }
+  }
+
+  if (operationFailed && cleanupError) {
+    throw new AggregateError(
+      [operationError, cleanupError],
+      'O ensaio de retorno e a restauração do backend falharam.'
+    );
+  }
+  if (operationFailed) {
+    throw operationError;
+  }
+  if (cleanupError) {
+    throw cleanupError;
+  }
+}
+
 test('notificação e auditoria mantêm escopo, revisão e leitura após retorno da API', async ({
   browser,
   page,
@@ -161,6 +447,24 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
 
   const mentorNotification = await createNotification(mentor!.id, mentorTitle);
   const menteeNotification = await createNotification(mentee!.id, menteeTitle);
+  const collectiveTitle = `Aviso E2E ${scenario.scenario} Coletivo`;
+  const collectiveResponse = await adminApi.post(
+    `${scenario.apiUrl}/Notificacoes`,
+    {
+      headers: writeHeaders,
+      data: {
+        titulo: collectiveTitle,
+        mensagem:
+          'Conteúdo coletivo sintético para validar o retorno compatível.',
+        tipo: 'Sistema',
+        usuarioId: null,
+        ehGlobal: true,
+      },
+    }
+  );
+  expect(collectiveResponse.status()).toBe(201);
+  const collectiveNotification =
+    (await collectiveResponse.json()) as Notification;
 
   const mentorContext = await browser.newContext();
   const mentorPage = await mentorContext.newPage();
@@ -187,12 +491,17 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
     expect(mentorUnread.status()).toBe(200);
     const mentorUnreadItems = (await mentorUnread.json()) as Notification[];
     expect(mentorUnreadItems.map((item) => item.titulo)).toContain(mentorTitle);
-    expect(mentorUnreadItems.map((item) => item.titulo)).not.toContain(menteeTitle);
+    expect(mentorUnreadItems.map((item) => item.titulo)).toContain(
+      collectiveTitle
+    );
+    expect(mentorUnreadItems.map((item) => item.titulo)).not.toContain(
+      menteeTitle
+    );
     const mentorCount = await mentorContext.request.get(
       `${scenario.apiUrl}/Notificacoes/count-nao-lidas`
     );
     expect(mentorCount.status()).toBe(200);
-    expect((await mentorCount.json()).count).toBe(1);
+    expect((await mentorCount.json()).count).toBe(2);
 
     const menteeUnread = await menteeContext.request.get(
       `${scenario.apiUrl}/Notificacoes/minhas?apenasNaoLidas=true`
@@ -200,27 +509,53 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
     expect(menteeUnread.status()).toBe(200);
     const menteeUnreadItems = (await menteeUnread.json()) as Notification[];
     expect(menteeUnreadItems.map((item) => item.titulo)).toContain(menteeTitle);
-    expect(menteeUnreadItems.map((item) => item.titulo)).not.toContain(mentorTitle);
+    expect(menteeUnreadItems.map((item) => item.titulo)).toContain(
+      collectiveTitle
+    );
+    expect(menteeUnreadItems.map((item) => item.titulo)).not.toContain(
+      mentorTitle
+    );
     const menteeCount = await menteeContext.request.get(
       `${scenario.apiUrl}/Notificacoes/count-nao-lidas`
     );
     expect(menteeCount.status()).toBe(200);
-    expect((await menteeCount.json()).count).toBe(1);
+    expect((await menteeCount.json()).count).toBe(2);
 
     const notificationButton = mentorPage
       .getByRole('button', { name: /Notificações/ })
       .first();
     await expect(notificationButton).toBeVisible();
     await notificationButton.click();
-    await expect(mentorPage.getByText(mentorTitle, { exact: true })).toBeVisible();
+    await expect(
+      mentorPage.getByText(mentorTitle, { exact: true })
+    ).toBeVisible();
     await mentorPage.getByText(mentorTitle, { exact: true }).click();
     await expect
-      .poll(async () => (await readNotification(mentorContext.request, mentorNotification.id)).lida)
+      .poll(
+        async () =>
+          (await readNotification(mentorContext.request, mentorNotification.id))
+            .lida
+      )
       .toBe(true);
-    expect((await readNotification(menteeContext.request, menteeNotification.id)).lida).toBe(false);
+    expect(
+      (await readNotification(menteeContext.request, menteeNotification.id))
+        .lida
+    ).toBe(false);
+
+    const mentorSession = await readSession(mentorContext.request);
+    const collectiveRead = await mentorContext.request.patch(
+      `${scenario.apiUrl}/Notificacoes/${collectiveNotification.id}/marcar-lida`,
+      {
+        headers: {
+          Origin: frontendBaseUrl,
+          'X-CSRF-Token': mentorSession.csrfToken,
+        },
+      }
+    );
+    expect(collectiveRead.status()).toBe(200);
 
     const auditResponse = await adminApi.get(
-      `${scenario.apiUrl}/Auditoria/logs?recurso=notificacao:${mentorNotification.id}&pagina=1&tamanhoPagina=25`
+      `${scenario.apiUrl}/Auditoria/logs?recurso=notificacao:${collectiveNotification.id}&pagina=1&tamanhoPagina=25`
     );
     expect(auditResponse.status()).toBe(200);
     const auditPage = (await auditResponse.json()) as AuditPage;
@@ -228,7 +563,7 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
       (item) => item.codigoEvento === 'EmissaoNotificacao'
     );
     expect(emission).toBeDefined();
-    expect(emission?.recurso).toBe(`notificacao:${mentorNotification.id}`);
+    expect(emission?.recurso).toBe(`notificacao:${collectiveNotification.id}`);
     expect(emission?.origem).toBe('UsuarioAutenticado');
     expect(emission?.resultado).toBe('Sucesso');
     for (const sensitiveField of [
@@ -244,9 +579,13 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
     await expect(
       page.getByRole('heading', { name: 'Auditoria de Segurança' })
     ).toBeVisible();
-    await page.getByLabel('Recurso').fill(`notificacao:${mentorNotification.id}`);
+    await page
+      .getByLabel('Recurso')
+      .fill(`notificacao:${collectiveNotification.id}`);
     await page.getByRole('button', { name: 'Aplicar filtros' }).click();
-    await expect(page.getByText('EmissaoNotificacao', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('EmissaoNotificacao', { exact: true })
+    ).toBeVisible();
     await page.getByRole('button', { name: 'Marcar suspeito' }).click();
     await page
       .getByLabel('Justificativa da revisão')
@@ -255,47 +594,110 @@ test('notificação e auditoria mantêm escopo, revisão e leitura após retorno
     await expect(page.getByText('Suspeito', { exact: true })).toBeVisible();
     await page.getByText('Histórico e regra').click();
     await expect(page.getByText('Revisão 1', { exact: true })).toBeVisible();
-    await expect(page.getByText(`Autor: ID ${adminId}`, { exact: true })).toBeVisible();
-    const auditSection = page.getByRole('region', { name: 'Logs de auditoria' });
+    await expect(
+      page.getByText(`Autor: ID ${adminId}`, { exact: true })
+    ).toBeVisible();
+    const auditSection = page.getByRole('region', {
+      name: 'Logs de auditoria',
+    });
     await expect(
       auditSection.getByText(scenario.administrator.email, { exact: true })
     ).toHaveCount(0);
 
     const exportResponse = await adminApi.get(
-      `${scenario.apiUrl}/Auditoria/exportar?recurso=notificacao:${mentorNotification.id}`
+      `${scenario.apiUrl}/Auditoria/exportar?recurso=notificacao:${collectiveNotification.id}`
     );
     expect(exportResponse.status()).toBe(200);
     expect(exportResponse.headers()['content-type']).toContain('text/csv');
     expect(exportResponse.headers()['cache-control']).toContain('no-store');
     const csv = await exportResponse.text();
-    expect(csv).toContain(`notificacao:${mentorNotification.id}`);
+    expect(csv).toContain(`notificacao:${collectiveNotification.id}`);
     expect(csv).not.toContain(scenario.administrator.email);
     expect(csv).not.toContain('synthetic-e2e-jwt-signing-key');
 
+    const assertPersistedStateAndAudit = async () => {
+      expect(
+        (await readNotification(mentorContext.request, mentorNotification.id))
+          .lida
+      ).toBe(true);
+      expect(
+        (await readNotification(menteeContext.request, menteeNotification.id))
+          .lida
+      ).toBe(false);
+      expect(
+        (
+          await readNotification(
+            mentorContext.request,
+            collectiveNotification.id
+          )
+        ).lida
+      ).toBe(true);
+      expect(
+        (
+          await readNotification(
+            menteeContext.request,
+            collectiveNotification.id
+          )
+        ).lida
+      ).toBe(false);
+
+      const mentorUnreadAfter = await mentorContext.request.get(
+        `${scenario.apiUrl}/Notificacoes/minhas?apenasNaoLidas=true`
+      );
+      const menteeUnreadAfter = await menteeContext.request.get(
+        `${scenario.apiUrl}/Notificacoes/minhas?apenasNaoLidas=true`
+      );
+      expect(mentorUnreadAfter.status()).toBe(200);
+      expect(menteeUnreadAfter.status()).toBe(200);
+      expect(
+        ((await mentorUnreadAfter.json()) as Notification[]).map(
+          (item) => item.titulo
+        )
+      ).not.toContain(collectiveTitle);
+      expect(
+        ((await menteeUnreadAfter.json()) as Notification[]).map(
+          (item) => item.titulo
+        )
+      ).toContain(collectiveTitle);
+
+      const mentorCountAfter = await mentorContext.request.get(
+        `${scenario.apiUrl}/Notificacoes/count-nao-lidas`
+      );
+      const menteeCountAfter = await menteeContext.request.get(
+        `${scenario.apiUrl}/Notificacoes/count-nao-lidas`
+      );
+      expect(mentorCountAfter.status()).toBe(200);
+      expect(menteeCountAfter.status()).toBe(200);
+      expect((await mentorCountAfter.json()).count).toBe(0);
+      expect((await menteeCountAfter.json()).count).toBe(2);
+
+      const persistedAuditResponse = await adminApi.get(
+        `${scenario.apiUrl}/Auditoria/logs?recurso=notificacao:${collectiveNotification.id}&pagina=1&tamanhoPagina=25`
+      );
+      expect(persistedAuditResponse.status()).toBe(200);
+      const persistedAudit = (await persistedAuditResponse.json()) as AuditPage;
+      const persistedEmission = persistedAudit.itens.find(
+        (item) => item.codigoEvento === 'EmissaoNotificacao'
+      );
+      expect(persistedEmission?.revisaoClassificacao).toBe(1);
+      expect(persistedEmission?.historicoClassificacao).toEqual([
+        expect.objectContaining({
+          numeroRevisao: 1,
+          suspeitaAnterior: false,
+          suspeitaResultante: true,
+          justificativa: 'Revisão sintética de emissão de notificação.',
+          autorUsuarioId: adminId,
+          origem: 'RevisaoManual',
+        }),
+      ]);
+    };
+
     restartSyntheticBackend();
     await waitForApi(adminApi);
+    await assertPersistedStateAndAudit();
 
-    expect((await readNotification(mentorContext.request, mentorNotification.id)).lida).toBe(true);
-    expect((await readNotification(menteeContext.request, menteeNotification.id)).lida).toBe(false);
-    const persistedAuditResponse = await adminApi.get(
-      `${scenario.apiUrl}/Auditoria/logs?recurso=notificacao:${mentorNotification.id}&pagina=1&tamanhoPagina=25`
-    );
-    expect(persistedAuditResponse.status()).toBe(200);
-    const persistedAudit = (await persistedAuditResponse.json()) as AuditPage;
-    const persistedEmission = persistedAudit.itens.find(
-      (item) => item.codigoEvento === 'EmissaoNotificacao'
-    );
-    expect(persistedEmission?.revisaoClassificacao).toBe(1);
-    expect(persistedEmission?.historicoClassificacao).toEqual([
-      expect.objectContaining({
-        numeroRevisao: 1,
-        suspeitaAnterior: false,
-        suspeitaResultante: true,
-        justificativa: 'Revisão sintética de emissão de notificação.',
-        autorUsuarioId: adminId,
-        origem: 'RevisaoManual',
-      }),
-    ]);
+    await withCompatibleRollbackBackend(adminApi, assertPersistedStateAndAudit);
+    await assertPersistedStateAndAudit();
   } finally {
     await mentorContext.close();
     await menteeContext.close();

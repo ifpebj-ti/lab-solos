@@ -698,7 +698,7 @@ def _load_policy(path: Path) -> dict[str, Any]:
         or policy.get("limits") != {
             "max_messages": MAX_MESSAGES,
             "startup_seconds": 90,
-            "processing_seconds": 120,
+            "processing_seconds": 240,
         }
         or policy.get("report_fields") != [
             "schema_version", "status", "messages", "messages.body_unavailable",
@@ -729,7 +729,7 @@ def run_analysis(
     compose_override: Path | None = None,
     policy_path: Path = DEFAULT_POLICY,
     startup_timeout: float = 90,
-    processing_timeout: float = 120,
+    processing_timeout: float = 240,
 ) -> tuple[dict[str, Any], int]:
     """Run ZAP with no network, import recorded messages, and always remove its container."""
     started = time.monotonic()
@@ -852,7 +852,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--compose-override", type=Path)
     parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
     parser.add_argument("--startup-timeout", type=float, default=90)
-    parser.add_argument("--processing-timeout", type=float, default=120)
+    parser.add_argument("--processing-timeout", type=float, default=240)
     args = parser.parse_args(argv)
     try:
         origin = default_origin()

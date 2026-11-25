@@ -59,7 +59,11 @@ O usuário autorizou aplicar as recomendações de planejamento sem pedir confir
 
 ## Dispensas e referência aprovada — 2026-11-24
 
+- **Aceite pós-publicação.** O usuário autorizou concluir localmente a T030 de Proteção de Acesso sem publicar nem executar testes que não poderá realizar. Não afirmar que a versão publicada, os cabeçalhos, as contas de teste, a matriz autenticada, login/cotas ou recuperação foram validados. A evidência está em `protecao-acesso-autenticacao/evidencias/T030/dispensa-validacao-pos-publicacao.md`; o runbook permanece para uma futura validação real.
+
 - **Acesso do avaliador na governança.** O usuário autorizou encerrar as verificações de acesso do Project #41 e de consulta às evidências de alertas/regras sem testes de perfil de avaliação, pois não poderá executá-los. T006 e T011 ficam concluídas sob exceção documental; não afirmar que o perfil tem acesso, que o barema aceita o recorte datado ou que houve navegação humana. As limitações constam em [evidência T006](./governanca-e-evidencias-da-entrega/evidencias/T006.md) e [validação da Unidade 1](../../../docs/entregas/unidade-1/validacao.md).
+
+- **Perfil de avaliação da CI.** O usuário dispensou os testes de navegação que não poderá executar. A T011 de Cobertura e Segurança na CI pode concluir a conferência documental com os registros consultáveis da esteira, registrando que navegação com perfil de avaliação, permissões percebidas pelo avaliador e aceitação do material não foram comprovadas. Essa dispensa não transforma uma execução incompleta ou falha em aprovação.
 
 - **Autonomia no manual.** O usuário autorizou encerrar as tarefas T015–T018 do manual sem sessões humanas, pois não poderá organizá-las. As sessões não foram realizadas nem substituídas por testes automatizados. O encerramento é uma exceção de aceite; CA-001 permanece sem comprovação humana e essa limitação deve acompanhar a entrega.
 - **Conferência operacional.** O usuário autorizou encerrar Integridade de produtos e lotes T010 e Conciliação operacional T006 sem consulta a fontes reais, acesso operacional ou ensaio controlado. Os artefatos sintéticos locais continuam válidos como preparação, mas não comprovam dados reais, retorno operacional nem conciliação executada.

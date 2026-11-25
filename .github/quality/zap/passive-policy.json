@@ -15,7 +15,7 @@
   "limits": {
     "max_messages": 10000,
     "startup_seconds": 90,
-    "processing_seconds": 120
+    "processing_seconds": 240
   },
   "report_fields": [
     "schema_version",

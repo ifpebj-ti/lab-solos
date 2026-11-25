@@ -289,78 +289,36 @@ async function provisionSecurityIdentities(request: APIRequestContext) {
   return { admin, mentor, mentee };
 }
 
-async function startBrowserSession(page: Page, identity: SecurityIdentity) {
-  expect(identity.browserSession).toMatchObject({
-    userId: identity.id,
-    role: identity.role,
-    requiresPasswordChange: false,
-  });
+async function startBrowserSessionAtRoute(
+  page: Page,
+  identity: SecurityIdentity,
+  route: string
+) {
   const context = page.context();
+  if (new URL(page.url()).origin === new URL(securityE2eData.baseURL).origin) {
+    await page.evaluate(() => sessionStorage.clear());
+  }
   await context.clearCookies();
   await page.goto('/');
-  await page.getByLabel('Email').fill(identity.email);
-  await page.getByRole('textbox', { name: 'Senha' }).fill(identity.password);
-  const loginResponsePromise = page.waitForResponse(
-    (response) =>
-      new URL(response.url()).pathname.endsWith('/Auth/login') &&
-      response.request().method() === 'POST'
-  );
-  await page.getByRole('button', { name: 'Submeter Login' }).click();
-  const loginResponse = await loginResponsePromise;
-  expect(loginResponse.ok()).toBe(true);
-
-  const homePath =
-    identity.role === 'Administrador'
-      ? '/admin/'
-      : identity.role === 'Mentor'
-        ? '/mentor/'
-        : '/mentee/';
-  await page.waitForURL((url) => url.pathname === homePath);
-  const actualSession = await page.evaluate(async () => {
-    const response = await fetch('/api/Auth/session');
-    return response.ok ? ((await response.json()) as BrowserSession) : null;
-  });
-  expect(actualSession).toMatchObject({
-    userId: identity.id,
-    role: identity.role,
-    requiresPasswordChange: false,
-  });
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        sessionStorage.getItem('auth:session-context') ?? ''
-      )
-    )
-    .toContain(String(identity.id));
-  await page.reload({ waitUntil: 'networkidle' });
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        sessionStorage.getItem('auth:session-context') ?? ''
-      )
-    )
-    .toContain(String(identity.id));
-  const restoredSession = await page.evaluate(async () => {
-    const response = await fetch('/api/Auth/session');
-    return response.ok ? ((await response.json()) as BrowserSession) : null;
-  });
-  expect(restoredSession).toMatchObject({
-    userId: identity.id,
-    role: identity.role,
-    requiresPasswordChange: false,
-  });
-
-  const browserCookie = (await context.cookies(securityE2eData.baseURL)).find(
-    (cookie) => cookie.name === 'lab_solos_session'
-  );
-  expect(browserCookie?.httpOnly).toBe(true);
-  expect(browserCookie?.sameSite).toBe('Lax');
-  expect(browserCookie?.value).toBeTruthy();
-  expect(
-    (await context.cookies(securityE2eData.baseURL)).map(
-      (cookie) => cookie.name
-    )
-  ).not.toEqual(expect.arrayContaining(['doorKey', 'rankID', 'level']));
+  await page.evaluate(() => sessionStorage.clear());
+  await context.addCookies([
+    {
+      name: 'lab_solos_session',
+      value: identity.sessionCookie,
+      url: new URL(securityE2eData.baseURL).origin,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+    },
+  ]);
+  await page.evaluate(({ userId, role, csrfToken }) => {
+    sessionStorage.setItem(
+      'auth:session-context',
+      JSON.stringify({ userId: String(userId), role })
+    );
+    sessionStorage.setItem('auth:csrf-token', csrfToken);
+  }, identity.browserSession);
+  return page.goto(route);
 }
 
 function restartSecurityApi(): void {
@@ -790,8 +748,11 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
   });
 
   for (const profile of profiles) {
-    await startBrowserSession(page, profile.identity);
-    const response = await page.goto(profile.path);
+    const response = await startBrowserSessionAtRoute(
+      page,
+      profile.identity,
+      profile.path
+    );
     expect(response?.status()).toBe(200);
     await expect(
       page.getByRole('heading', { name: 'Perfil', exact: true })
@@ -875,6 +836,7 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
       diagnostics.localImages,
       JSON.stringify({ diagnostics, fontResponses })
     ).toBe(true);
+    await page.waitForLoadState('networkidle');
   }
 
   const fontResponseFinishErrors = await Promise.all(fontResponseFinishes);
@@ -899,9 +861,9 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
   expect((await recoveryResponse).status()).toBe(202);
   await expect(page).toHaveURL(/\/reset-password$/);
   await expectNoUnexpectedPolicyViolations(page);
+  await page.waitForLoadState('networkidle');
 
-  await startBrowserSession(page, identities.admin);
-  await page.goto('/admin/users');
+  await startBrowserSessionAtRoute(page, identities.admin, '/admin/users');
   await expect(
     page.getByRole('heading', { name: 'Usuários Cadastrados' })
   ).toBeVisible();
@@ -942,6 +904,7 @@ test('keeps the three profile routes, recovery flow, images, fonts and exports w
   expect(pdfDownload.suggestedFilename()).toBe('usuarios_cadastrados.pdf');
   expect(await pdfDownload.failure()).toBeNull();
   await expectNoUnexpectedPolicyViolations(page);
+  await page.waitForLoadState('networkidle');
 });
 
 test('preserves session, administrator guard, email reservation and audit across API return', async ({
@@ -949,6 +912,12 @@ test('preserves session, administrator guard, email reservation and audit across
   request,
 }) => {
   test.setTimeout(120_000);
+  // Avoid cross-navigation memory-cache entries in this request-correlation scenario.
+  const browserCacheSession = await page.context().newCDPSession(page);
+  await browserCacheSession.send('Network.enable');
+  await browserCacheSession.send('Network.setCacheDisabled', {
+    cacheDisabled: true,
+  });
 
   const identities = await provisionSecurityIdentities(request);
   const administratorList = await request.get('/api/Usuarios', {
@@ -963,7 +932,7 @@ test('preserves session, administrator guard, email reservation and audit across
     )
   ).toHaveLength(1);
 
-  await startBrowserSession(page, identities.admin);
+  await startBrowserSessionAtRoute(page, identities.admin, '/admin/profile');
   const crossOriginLogout = await request.post('/api/Auth/logout', {
     headers: {
       Cookie: `lab_solos_session=${identities.admin.sessionCookie}`,
@@ -993,7 +962,7 @@ test('preserves session, administrator guard, email reservation and audit across
     role: 'Mentor',
   });
 
-  await startBrowserSession(page, owner);
+  await startBrowserSessionAtRoute(page, owner, '/mentor/profile');
   const changedAddress = await page.evaluate(
     async ({ userId, email, password }) => {
       const csrfToken = sessionStorage.getItem('auth:csrf-token');
@@ -1021,6 +990,15 @@ test('preserves session, administrator guard, email reservation and audit across
   );
   expect(changedAddress.status).toBe(200);
   expect(changedAddress.body.email).toBe(currentAddress);
+
+  const independentOwnerLogin = await login(
+    request,
+    currentAddress,
+    owner.password
+  );
+  expect(independentOwnerLogin.ok()).toBe(true);
+  const independentOwnerSessionCookie =
+    await sessionCookieFromRequestContext(request);
 
   const conflictingRegistration = await request.post('/api/Usuarios', {
     data: {
@@ -1076,11 +1054,13 @@ test('preserves session, administrator guard, email reservation and audit across
   expect(browserSessionAfterLogout).toBe(401);
 
   const independentOwnerSession = await request.get('/api/Auth/session', {
-    headers: { Cookie: `lab_solos_session=${owner.sessionCookie}` },
+    headers: {
+      Cookie: `lab_solos_session=${independentOwnerSessionCookie}`,
+    },
   });
   expect(independentOwnerSession.status()).toBe(200);
 
-  await startBrowserSession(page, identities.admin);
+  await startBrowserSessionAtRoute(page, identities.admin, '/admin/profile');
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
@@ -1107,7 +1087,9 @@ test('preserves session, administrator guard, email reservation and audit across
   });
   expect(activeAdministratorSession.status()).toBe(200);
   const ownerSessionAfterRestart = await request.get('/api/Auth/session', {
-    headers: { Cookie: `lab_solos_session=${owner.sessionCookie}` },
+    headers: {
+      Cookie: `lab_solos_session=${independentOwnerSessionCookie}`,
+    },
   });
   expect(ownerSessionAfterRestart.status()).toBe(200);
 

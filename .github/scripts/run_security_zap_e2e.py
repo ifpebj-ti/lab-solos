@@ -214,10 +214,14 @@ def parse_caddy_access_log_lines(lines: Iterable[str]) -> list[CaddyAccessRecord
             raise AccessLogEvidenceError("invalid_access_log_host")
         if not isinstance(uri, str) or not uri.startswith("/"):
             raise AccessLogEvidenceError("invalid_access_log_uri")
+        # Caddy records status 0 when the request ends before an HTTP response
+        # is written. Keep that evidence so reconciliation can fail the capture
+        # as an unmatched request or a status conflict instead of hiding it as
+        # malformed input.
         if (
             isinstance(status, bool)
             or not isinstance(status, int)
-            or not 100 <= status <= 599
+            or (status != 0 and not 100 <= status <= 599)
         ):
             raise AccessLogEvidenceError("invalid_access_log_status")
         if (
@@ -399,6 +403,14 @@ def reconcile_caddy_access_logs(
         for observation_index, log_index in optimal_paths[0]:
             matched_observation_to_log[observation_index] = log_index
             matched_log_to_observation[log_index] = observation_index
+            observation_status = observations[observation_index].get("status")
+            if (
+                isinstance(observation_status, int)
+                and not isinstance(observation_status, bool)
+                and observation_status != access_records[log_index].status
+            ):
+                key = f"status_mismatch:{route_fingerprint}"
+                route_diagnostic_counts[key] = route_diagnostic_counts.get(key, 0) + 1
         unmatched_in_group = [
             index for index in log_indexes if index not in matched_log_to_observation
         ]

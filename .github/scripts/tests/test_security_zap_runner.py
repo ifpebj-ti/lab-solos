@@ -110,7 +110,7 @@ class SecurityZapRunnerTests(unittest.TestCase):
         self.assertEqual(str(raised.exception), "invalid_access_log_json")
         self.assertNotIn("synthetic-raw-line-sentinel", str(raised.exception))
 
-    def test_reports_sanitized_reason_for_invalid_access_status(self) -> None:
+    def test_preserves_caddy_no_response_status_and_fails_reconciliation(self) -> None:
         event = {
             "logger": "http.log.access.log0",
             "ts": 1001.25,
@@ -123,11 +123,47 @@ class SecurityZapRunnerTests(unittest.TestCase):
             },
         }
 
+        records = runner.parse_caddy_access_log_lines([json.dumps(event)])
+        result = runner.reconcile_caddy_access_logs(
+            [
+                {
+                    "method": "GET",
+                    "url": "https://localhost:18443/api/items?synthetic-query-sentinel",
+                    "started_at": 1001.0,
+                    "status": 200,
+                    "cache_source": "network",
+                    "body_unavailable": False,
+                    "skipped": False,
+                }
+            ],
+            records,
+            expected_origin="https://localhost:18443",
+        )
+
+        self.assertEqual(records[0].status, 0)
+        self.assertFalse(result.complete)
+        self.assertTrue(
+            any(item.startswith("status_mismatch:") for item in result.route_diagnostics)
+        )
+        self.assertNotIn("synthetic-query-sentinel", repr(result))
+
+    def test_rejects_access_status_outside_caddy_range(self) -> None:
+        event = {
+            "logger": "http.log.access.log0",
+            "ts": 1001.25,
+            "duration": 0.25,
+            "status": 99,
+            "request": {
+                "method": "GET",
+                "host": "localhost:18443",
+                "uri": "/api/items",
+            },
+        }
+
         with self.assertRaises(runner.AccessLogEvidenceError) as raised:
             runner.parse_caddy_access_log_lines([json.dumps(event)])
 
         self.assertEqual(str(raised.exception), "invalid_access_log_status")
-        self.assertNotIn("synthetic-query-sentinel", str(raised.exception))
 
     def test_reports_sanitized_reason_for_invalid_access_uri(self) -> None:
         event = {

@@ -1,6 +1,6 @@
 # Tarefas: Proteção de acesso, autenticação e frontend
 
-- Status: bloqueada operacionalmente — tarefas locais concluídas; T030 aguarda publicação autorizada e contas de teste
+- Status: tarefas locais concluídas; T030 concluída sob dispensa explícita, sem validação de publicação
 - PRD: `./prd.md`
 - Especificação técnica: `./techspec.md`
 - Atualizado em: 2026-11-24
@@ -36,32 +36,32 @@ Somente tarefas sem dependência são marcadas `Paralela: sim` neste estado inic
 
 ## Ondas de execução
 
-| Onda | Tarefas | Motivo de segurança do paralelismo |
-|---|---|---|
-| 1 | T001, T002, T003, T005 | Infraestrutura de teste, opções/chaves, política de recurso e modelo de erros possuem fontes independentes. |
-| 2 | T004, T006, T007, T008 | Cifragem, migração, auditoria e GETs de usuários têm posse disjunta; nenhuma migração concorrente. |
-| 3 | T009, T010, T011, T013, T014 | Cotas, repositório de fila, consultas de empréstimos, configuração de IP/CORS e telemetria usam componentes distintos. |
-| 4 | T012, T015, T023 | PATCH da API, consumidores de acompanhamento e política Caddy não compartilham fontes. |
-| 5 | T016, T020 | Login backend e formulário próprio frontend usam contratos já assentados, sem arquivos comuns. |
-| 6 | T017, T021 | Admissão de recuperação backend e espera de formulários frontend usam contratos de erro já definidos. |
-| 7 | T018 | Worker altera serviço de credenciais e registros compartilhados; execução exclusiva. |
-| 8 | T019 | Redefinição altera serviço de credenciais/controller após o worker; execução exclusiva. |
-| 9 | T022 | Bootstrap e Composes só mudam após integração dos dois fluxos; execução exclusiva. |
-| 10 | T024 | Projeto Playwright, helpers e composição do proxy são infraestrutura compartilhada; execução exclusiva. |
-| 11 | T025, T026 | Jornadas/seed de autenticação e testes/política do proxy têm arquivos distintos e stacks isolados. |
-| 12 | T027, T028 | Gate/contratos de CI e documentação/manual não compartilham fontes. |
-| 13 | T029 | Validação cruzada e consolidação de evidências locais são serializadas. |
-| 14 | T030 | Aceite remoto condicionado a publicação autorizada, realizado separadamente do aceite local. |
+| Onda | Tarefas                      | Motivo de segurança do paralelismo                                                                                     |
+| ---- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1    | T001, T002, T003, T005       | Infraestrutura de teste, opções/chaves, política de recurso e modelo de erros possuem fontes independentes.            |
+| 2    | T004, T006, T007, T008       | Cifragem, migração, auditoria e GETs de usuários têm posse disjunta; nenhuma migração concorrente.                     |
+| 3    | T009, T010, T011, T013, T014 | Cotas, repositório de fila, consultas de empréstimos, configuração de IP/CORS e telemetria usam componentes distintos. |
+| 4    | T012, T015, T023             | PATCH da API, consumidores de acompanhamento e política Caddy não compartilham fontes.                                 |
+| 5    | T016, T020                   | Login backend e formulário próprio frontend usam contratos já assentados, sem arquivos comuns.                         |
+| 6    | T017, T021                   | Admissão de recuperação backend e espera de formulários frontend usam contratos de erro já definidos.                  |
+| 7    | T018                         | Worker altera serviço de credenciais e registros compartilhados; execução exclusiva.                                   |
+| 8    | T019                         | Redefinição altera serviço de credenciais/controller após o worker; execução exclusiva.                                |
+| 9    | T022                         | Bootstrap e Composes só mudam após integração dos dois fluxos; execução exclusiva.                                     |
+| 10   | T024                         | Projeto Playwright, helpers e composição do proxy são infraestrutura compartilhada; execução exclusiva.                |
+| 11   | T025, T026                   | Jornadas/seed de autenticação e testes/política do proxy têm arquivos distintos e stacks isolados.                     |
+| 12   | T027, T028                   | Gate/contratos de CI e documentação/manual não compartilham fontes.                                                    |
+| 13   | T029                         | Validação cruzada e consolidação de evidências locais são serializadas.                                                |
+| 14   | T030                         | Aceite remoto condicionado a publicação autorizada, realizado separadamente do aceite local.                           |
 
 ## Associação das issues
 
-| Issue | Resultado e tarefas principais | Condição complementar |
-|---|---|---|
-| #436 | T003, T007, T008, T011, T012, T015, T020 e T025: autorização, privacidade e perfil próprio | Infraestrutura T001/T006/T010 e aceite T028–T030 |
-| #437 | T002, T005, T009, T013, T014, T016, T021 e T022: cotas do login e espera | Integração T025/T029 e aceite remoto T030 |
-| #438 | T004, T006, T010, T017, T018 e T019: recuperação protegida e fila durável | Registros T007/T014, ambientes T022 e aceite T025/T028–T030 |
-| #439 | T023, T024, T026 e T027: CSP efetiva e teste de proxy pré-merge | Documentação T028 e evidência publicada T030 |
-| #440 | T013, T022, T024 e T026: CORS por ambiente e confiança no proxy | Dependência do gate T027 e evidência publicada T030 |
+| Issue | Resultado e tarefas principais                                                             | Condição complementar                                       |
+| ----- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| #436  | T003, T007, T008, T011, T012, T015, T020 e T025: autorização, privacidade e perfil próprio | Infraestrutura T001/T006/T010 e aceite T028–T030            |
+| #437  | T002, T005, T009, T013, T014, T016, T021 e T022: cotas do login e espera                   | Integração T025/T029 e aceite remoto T030                   |
+| #438  | T004, T006, T010, T017, T018 e T019: recuperação protegida e fila durável                  | Registros T007/T014, ambientes T022 e aceite T025/T028–T030 |
+| #439  | T023, T024, T026 e T027: CSP efetiva e teste de proxy pré-merge                            | Documentação T028 e evidência publicada T030                |
+| #440  | T013, T022, T024 e T026: CORS por ambiente e confiança no proxy                            | Dependência do gate T027 e evidência publicada T030         |
 
 ## T001 — Preparar testes relacionais PG15 e controle determinístico
 
@@ -1067,8 +1067,8 @@ Composições de T024/T025 devem estar ativos e isolados. Esta tarefa não fecha
 
 ## T030 — Registrar aceite após publicação com contas de teste
 
-- Status: bloqueada
-- Bloqueio: depende de publicação identificável e execução contra o ambiente publicado. A tarefa não autoriza publicar; este fluxo permanece local e sem GitHub.
+- Status: concluída sob dispensa explícita do usuário
+- Dispensa: o usuário autorizou encerramento local sem publicação, contas de teste ou verificações externas que não poderá executar. Ver [evidência T030](./evidencias/T030/dispensa-validacao-pos-publicacao.md). Nenhum critério de produção foi afirmado como aprovado.
 - Issue de execução: #436
 - Onda: 14
 - Dependências: T029
@@ -1103,52 +1103,52 @@ Pré-condição externa: candidato publicado por fluxo autorizado, URL/versão e
 
 ## Matriz de rastreabilidade
 
-| ID do PRD | Tarefas responsáveis |
-|---|---|
-| RF-001 | T003, T008, T011, T013, T015, T025, T028, T030 |
-| RF-002 | T003, T008, T011, T015, T025, T028, T030 |
-| RF-003 | T003, T006, T012, T020, T025, T028, T029, T030 |
-| RF-004 | T003, T005, T008, T011, T012, T013, T015, T020, T025, T028, T030 |
-| RF-005 | T002, T006, T009, T016, T022, T025, T028, T029, T030 |
-| RF-006 | T005, T016, T021, T025, T028, T030 |
-| RF-007 | T002, T006, T009, T010, T017, T018, T022, T025, T028, T029, T030 |
-| RF-008 | T002, T005, T006, T009, T019, T021, T022, T025, T028, T029, T030 |
-| RF-009 | T004, T006, T010, T017, T018, T019, T025, T028, T029, T030 |
-| RF-010 | T023, T024, T026, T028, T030 |
-| RF-011 | T013, T022, T024, T026, T028, T030 |
-| RNF-001 | T002, T004, T007, T008, T010, T011, T012, T014, T016, T017, T018, T019, T020, T025, T028, T029, T030 |
-| RNF-002 | T001, T002, T006, T009, T010, T013, T016, T017, T018, T019, T024, T026, T029 |
-| RNF-003 | T001, T002, T004, T006, T007, T009, T010, T014, T018, T022, T027, T028, T029, T030 |
-| RNF-004 | T005, T008, T011, T012, T015, T016, T019, T020, T021, T023, T025, T026, T028, T029 |
-| RNF-005 | T013, T022, T023, T024, T026, T027, T028, T029, T030 |
-| CA-001 | T003, T008, T025 |
-| CA-002 | T003, T008, T011, T025 |
-| CA-003 | T003, T008, T011, T015, T025 |
-| CA-004 | T008, T011, T015, T025 |
-| CA-005 | T012, T020, T025 |
-| CA-006 | T012, T020, T025 |
-| CA-007 | T006, T012, T020, T025, T029 |
-| CA-008 | T003, T008, T011, T012, T025 |
-| CA-009 | T009, T016, T025 |
-| CA-010 | T009, T016, T025 |
-| CA-011 | T002, T009, T016 |
-| CA-012 | T009, T016 |
-| CA-013 | T005, T015, T020, T021, T025 |
-| CA-014 | T017, T018, T025 |
-| CA-015 | T009, T010, T017, T018 |
-| CA-016 | T017, T018, T025 |
-| CA-017 | T009, T019, T025 |
-| CA-018 | T018, T019, T025, T029 |
-| CA-019 | T017, T018, T019, T025, T029 |
-| CA-020 | T023, T024, T026 |
-| CA-021 | T023, T026 |
-| CA-022 | T013, T024, T026 |
-| CA-023 | T013, T026 |
-| CA-024 | T013, T026 |
-| CA-025 | T001, T006, T009, T010, T013, T018, T019, T022, T024, T026, T029 |
-| CA-026 | T004, T007, T010, T014, T016, T018, T029 |
-| CA-027 | T002, T004, T006, T014, T022, T024, T027, T028, T029, T030 |
-| CA-028 | T023, T026 |
+| ID do PRD | Tarefas responsáveis                                                                                 |
+| --------- | ---------------------------------------------------------------------------------------------------- |
+| RF-001    | T003, T008, T011, T013, T015, T025, T028, T030                                                       |
+| RF-002    | T003, T008, T011, T015, T025, T028, T030                                                             |
+| RF-003    | T003, T006, T012, T020, T025, T028, T029, T030                                                       |
+| RF-004    | T003, T005, T008, T011, T012, T013, T015, T020, T025, T028, T030                                     |
+| RF-005    | T002, T006, T009, T016, T022, T025, T028, T029, T030                                                 |
+| RF-006    | T005, T016, T021, T025, T028, T030                                                                   |
+| RF-007    | T002, T006, T009, T010, T017, T018, T022, T025, T028, T029, T030                                     |
+| RF-008    | T002, T005, T006, T009, T019, T021, T022, T025, T028, T029, T030                                     |
+| RF-009    | T004, T006, T010, T017, T018, T019, T025, T028, T029, T030                                           |
+| RF-010    | T023, T024, T026, T028, T030                                                                         |
+| RF-011    | T013, T022, T024, T026, T028, T030                                                                   |
+| RNF-001   | T002, T004, T007, T008, T010, T011, T012, T014, T016, T017, T018, T019, T020, T025, T028, T029, T030 |
+| RNF-002   | T001, T002, T006, T009, T010, T013, T016, T017, T018, T019, T024, T026, T029                         |
+| RNF-003   | T001, T002, T004, T006, T007, T009, T010, T014, T018, T022, T027, T028, T029, T030                   |
+| RNF-004   | T005, T008, T011, T012, T015, T016, T019, T020, T021, T023, T025, T026, T028, T029                   |
+| RNF-005   | T013, T022, T023, T024, T026, T027, T028, T029, T030                                                 |
+| CA-001    | T003, T008, T025                                                                                     |
+| CA-002    | T003, T008, T011, T025                                                                               |
+| CA-003    | T003, T008, T011, T015, T025                                                                         |
+| CA-004    | T008, T011, T015, T025                                                                               |
+| CA-005    | T012, T020, T025                                                                                     |
+| CA-006    | T012, T020, T025                                                                                     |
+| CA-007    | T006, T012, T020, T025, T029                                                                         |
+| CA-008    | T003, T008, T011, T012, T025                                                                         |
+| CA-009    | T009, T016, T025                                                                                     |
+| CA-010    | T009, T016, T025                                                                                     |
+| CA-011    | T002, T009, T016                                                                                     |
+| CA-012    | T009, T016                                                                                           |
+| CA-013    | T005, T015, T020, T021, T025                                                                         |
+| CA-014    | T017, T018, T025                                                                                     |
+| CA-015    | T009, T010, T017, T018                                                                               |
+| CA-016    | T017, T018, T025                                                                                     |
+| CA-017    | T009, T019, T025                                                                                     |
+| CA-018    | T018, T019, T025, T029                                                                               |
+| CA-019    | T017, T018, T019, T025, T029                                                                         |
+| CA-020    | T023, T024, T026                                                                                     |
+| CA-021    | T023, T026                                                                                           |
+| CA-022    | T013, T024, T026                                                                                     |
+| CA-023    | T013, T026                                                                                           |
+| CA-024    | T013, T026                                                                                           |
+| CA-025    | T001, T006, T009, T010, T013, T018, T019, T022, T024, T026, T029                                     |
+| CA-026    | T004, T007, T010, T014, T016, T018, T029                                                             |
+| CA-027    | T002, T004, T006, T014, T022, T024, T027, T028, T029, T030                                           |
+| CA-028    | T023, T026                                                                                           |
 
 ## Registro da validação do plano
 
@@ -1161,26 +1161,26 @@ Pré-condição externa: candidato publicado por fluxo autorizado, URL/versão e
 
 ## Log de execução
 
-| Data | Tarefa | Resultado | Testes/evidências | Observações |
-| 2026-11-24 | T030 | Bloqueada antes da execução | Não executada: não há publicação identificável disponível no escopo local | O aceite exige deployment real, contas de teste e checks remotos; não foi substituído por simulação local e nenhuma ação foi feita no GitHub. |
-|---|---|---|---|---|
-| 2026-10-13 | T001 | concluída | RED no histórico EF; filtro PG15/PG16 7/7; regressão integrada da onda 30/30; suíte backend após integração 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T001/**` | Docker Desktop iniciado (29.8.0); build integrado apontou avisos de análise existentes no repositório, sem novos avisos nos arquivos adicionados. |
-| 2026-10-13 | T002 | concluída | RED 5/11; filtro focado 17/17; regressão 287/287; suíte backend integrada 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T002/execucao.md` | Seis avisos CA1859 novos foram corrigidos; build integrado final teve 197 avisos preexistentes e nenhum em T002. Artefatos exploratórios ficaram no worktree e foram excluídos da integração. #437 permanece `In Progress`. |
-| 2026-10-13 | T003 | concluída | RED 6/8; GREEN 9/9; regressão 14/14; integração da onda 30/30; suíte backend após integração 299/299; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T003/**` | Serviço de predicados entregue; integração HTTP permanece para T008/T011. #436 continua `In Progress`. |
-| 2026-10-13 | T005 | concluída | RED 9/44; foco 44/44; suíte frontend integrada 660/660; lint, build e `git diff --check`; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T005/**` | 11 vulnerabilidades de auditoria reportadas no grafo npm bloqueado; sem alteração de dependências. Avisos de build existentes registrados. #437 permanece `In Progress`. |
-| 2026-10-13 | T004 | concluída | RED 1/1; filtro `RecoveryPayloadProtectorTests` 13/13; build Release 0 avisos/0 erros; `git diff --check`; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T004/**` | AES-256-GCM com rotação de chave entregue; DI, fila e envio permanecem para tarefas posteriores. #438 permanece `In Progress`. |
-| 2026-10-13 | T006 | concluída | RED/GREEN PostgreSQL 15/16; foco de migração/ciclo 13/13; integração backend completa 337/337; rebuild Release 0 erros/181 avisos no conjunto; script idempotente revisado; git diff --check; evidencias T006 | A quinta migração foi adicionada às caracterizações; rollback de datas usa o predecessor da migração-alvo. Avisos restantes são preexistentes. #438 permanece In Progress. |
-| 2026-10-13 | T007 | concluída | RED 9/9; filtro isolado 15/15 e integrado 23/23; rebuild Release 0 erros/181 avisos no conjunto; nenhum aviso T007 após correção de CA1848; git diff --check; evidencias T007 | Rotas sensíveis registram eventos agregados; filtro sanitiza demais dados e LoggerMessage remove avisos do filtro. #436 permanece In Progress. |
-| 2026-10-13 | T008 | concluída | RED; filtro final 45/45; suíte do worktree 310/310; integração backend completa 337/337; rebuild Release 0 erros/181 avisos no conjunto; git diff --check; evidencias T008 | Validação consolidada aprovada após T006 atualizar as caracterizações de migração; nenhum teste T008 falhou. Três CA1848 permanecem em chamadas de log preexistentes e inalteradas no controller. #436 permanece In Progress. |
-| 2026-10-13 | T009 | concluída | RED 8 falhas comportamentais/1 contrato; filtro PostgreSQL 15 11/11; regressão com migração 14/14; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T009 | Locks ordenados, capacidade exata, janelas não deslizantes e limpeza integrada. Nenhum aviso nos arquivos T009 após revisão. #437 permanece In Progress. |
-| 2026-10-13 | T010 | concluída | RED/GREEN PostgreSQL 15; filtro final do repositório 11/11; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T010 e `integracao-revisao.md` | Revisão integrada acrescentou regressão para chave expirada fora do lote de 100 e corrigiu decremento de capacidade na limpeza por admissão. #438 permanece In Progress. |
-| 2026-10-13 | T011 | concluída | RED 3 falhas funcionais/4; filtro de autorização, projeção e regressão crítica 15/15; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T011 | Mentor vinculado não consulta aprovados de outro responsável; DTO projetado não carrega dados de credencial/sessão. Nenhum aviso nos arquivos T011 após revisão. #436 permanece In Progress. |
-| 2026-10-13 | T013 | concluída | RED 5 falhas/3 aprovados; filtro de proxy/CORS/headers/autorização 18/18; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T013 | Allowlist apenas em Development e confiança só em proxies conhecidos. T022 configura valores operacionais; proxy Caddy efetivo será validado em T026. #440 permanece In Progress. |
-| 2026-10-13 | T014 | concluída | RED 2/2; filtro de telemetria e privacidade 12/12; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T014 | Primeira suíte 377/379 (listener concorrente e caso PATCH de auditoria); listener serializado; caso PATCH não se reproduziu no foco nem na suíte final. #437 permanece In Progress. |
+| Data       | Tarefa | Resultado                                   | Testes/evidências                                                                                                                                                                                                        | Observações                                                                                                                                                                                                                   |
+| ---------- | ------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-24 | T030   | concluída sob dispensa explícita do usuário | Evidência documental em `evidencias/T030/dispensa-validacao-pos-publicacao.md`; runbook preservado.                                                                                                                      | Sem publicação, contas, requisições HTTP ou matriz autenticada; os critérios técnicos pós-publicação permanecem sem comprovação. Não houve sincronização das issues.                                                          |
+| 2026-10-13 | T001   | concluída                                   | RED no histórico EF; filtro PG15/PG16 7/7; regressão integrada da onda 30/30; suíte backend após integração 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T001/**` | Docker Desktop iniciado (29.8.0); build integrado apontou avisos de análise existentes no repositório, sem novos avisos nos arquivos adicionados.                                                                             |
+| 2026-10-13 | T002   | concluída                                   | RED 5/11; filtro focado 17/17; regressão 287/287; suíte backend integrada 299/299; `dotnet build` Release 0 erros; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T002/execucao.md`                          | Seis avisos CA1859 novos foram corrigidos; build integrado final teve 197 avisos preexistentes e nenhum em T002. Artefatos exploratórios ficaram no worktree e foram excluídos da integração. #437 permanece `In Progress`.   |
+| 2026-10-13 | T003   | concluída                                   | RED 6/8; GREEN 9/9; regressão 14/14; integração da onda 30/30; suíte backend após integração 299/299; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T003/**`                                                | Serviço de predicados entregue; integração HTTP permanece para T008/T011. #436 continua `In Progress`.                                                                                                                        |
+| 2026-10-13 | T005   | concluída                                   | RED 9/44; foco 44/44; suíte frontend integrada 660/660; lint, build e `git diff --check`; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T005/**`                                                            | 11 vulnerabilidades de auditoria reportadas no grafo npm bloqueado; sem alteração de dependências. Avisos de build existentes registrados. #437 permanece `In Progress`.                                                      |
+| 2026-10-13 | T004   | concluída                                   | RED 1/1; filtro `RecoveryPayloadProtectorTests` 13/13; build Release 0 avisos/0 erros; `git diff --check`; `.codex/docs/specs/protecao-acesso-autenticacao/evidencias/T004/**`                                           | AES-256-GCM com rotação de chave entregue; DI, fila e envio permanecem para tarefas posteriores. #438 permanece `In Progress`.                                                                                                |
+| 2026-10-13 | T006   | concluída                                   | RED/GREEN PostgreSQL 15/16; foco de migração/ciclo 13/13; integração backend completa 337/337; rebuild Release 0 erros/181 avisos no conjunto; script idempotente revisado; git diff --check; evidencias T006            | A quinta migração foi adicionada às caracterizações; rollback de datas usa o predecessor da migração-alvo. Avisos restantes são preexistentes. #438 permanece In Progress.                                                    |
+| 2026-10-13 | T007   | concluída                                   | RED 9/9; filtro isolado 15/15 e integrado 23/23; rebuild Release 0 erros/181 avisos no conjunto; nenhum aviso T007 após correção de CA1848; git diff --check; evidencias T007                                            | Rotas sensíveis registram eventos agregados; filtro sanitiza demais dados e LoggerMessage remove avisos do filtro. #436 permanece In Progress.                                                                                |
+| 2026-10-13 | T008   | concluída                                   | RED; filtro final 45/45; suíte do worktree 310/310; integração backend completa 337/337; rebuild Release 0 erros/181 avisos no conjunto; git diff --check; evidencias T008                                               | Validação consolidada aprovada após T006 atualizar as caracterizações de migração; nenhum teste T008 falhou. Três CA1848 permanecem em chamadas de log preexistentes e inalteradas no controller. #436 permanece In Progress. |
+| 2026-10-13 | T009   | concluída                                   | RED 8 falhas comportamentais/1 contrato; filtro PostgreSQL 15 11/11; regressão com migração 14/14; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T009     | Locks ordenados, capacidade exata, janelas não deslizantes e limpeza integrada. Nenhum aviso nos arquivos T009 após revisão. #437 permanece In Progress.                                                                      |
+| 2026-10-13 | T010   | concluída                                   | RED/GREEN PostgreSQL 15; filtro final do repositório 11/11; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T010 e `integracao-revisao.md`                  | Revisão integrada acrescentou regressão para chave expirada fora do lote de 100 e corrigiu decremento de capacidade na limpeza por admissão. #438 permanece In Progress.                                                      |
+| 2026-10-13 | T011   | concluída                                   | RED 3 falhas funcionais/4; filtro de autorização, projeção e regressão crítica 15/15; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T011                  | Mentor vinculado não consulta aprovados de outro responsável; DTO projetado não carrega dados de credencial/sessão. Nenhum aviso nos arquivos T011 após revisão. #436 permanece In Progress.                                  |
+| 2026-10-13 | T013   | concluída                                   | RED 5 falhas/3 aprovados; filtro de proxy/CORS/headers/autorização 18/18; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T013                              | Allowlist apenas em Development e confiança só em proxies conhecidos. T022 configura valores operacionais; proxy Caddy efetivo será validado em T026. #440 permanece In Progress.                                             |
+| 2026-10-13 | T014   | concluída                                   | RED 2/2; filtro de telemetria e privacidade 12/12; integração backend completa 379/379; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T014                                                     | Primeira suíte 377/379 (listener concorrente e caso PATCH de auditoria); listener serializado; caso PATCH não se reproduziu no foco nem na suíte final. #437 permanece In Progress.                                           |
 
 | 2026-10-13 | T012 | concluída | RED 2/2; filtro integrado 48/48; regressão backend completa 396/396; rebuild Release 0 erros/176 avisos gerais; git diff --check; evidências T012 | PATCH de perfil autorizado e troca de e-mail atômica; cancelamento inclui jobs com e sem UserId por chave de entrega exata. A factory compartilhada deve ser registrada em T022; sem ela, troca falha fechada sem persistir. #436 permanece In Progress. |
 | 2026-10-13 | T015 | concluída | RED 6 falhas comportamentais; foco de consumidores 20/20; foco da tarefa 69/69; suite frontend completa 671/671 (143 arquivos); lint e build aprovados; git diff --check; evidências T015 | Testes de tela atualizados após regressão integrada: 404 protegido aparece como erro, 200/[] segue vazio, histórico usa adaptador dedicado. Build mantém avisos conhecidos de env.js, imagem em runtime e chunks grandes; npm ci reportou vulnerabilidades no grafo bloqueado sem alterar dependências. #436 permanece In Progress. |
-| 2026-10-13 | T023 | concluída | RED 2/2; contrato Python integrado 3/3; Caddy 2.10 validate aprovado; git diff --check; inventário e evidências T023 | CSP fica no ramo frontend; /api/* segue sem CSP; o inventário é estático e a verificação efetiva das jornadas/bloqueios no navegador permanece para T026. #439 permanece In Progress. |
+| 2026-10-13 | T023 | concluída | RED 2/2; contrato Python integrado 3/3; Caddy 2.10 validate aprovado; git diff --check; inventário e evidências T023 | CSP fica no ramo frontend; /api/\* segue sem CSP; o inventário é estático e a verificação efetiva das jornadas/bloqueios no navegador permanece para T026. #439 permanece In Progress. |
 | 2026-10-13 | T020 | concluída | RED comportamental; foco 27/27; frontend integrado 682/682 (145 arquivos); lint e build aprovados; git diff --check; evidências T020 | Formulário compartilhado nos três perfis, PATCH sem status e confirmação de senha apenas para troca de e-mail; dados permanecem em 400/409 e segredo é limpo em sucesso/cancelamento/desmontagem. Build mantém avisos conhecidos; #436 permanece In Progress. |
 | 2026-10-13 | T016 | concluída | RED comportamental; filtro integrado 29/29; backend completo 405/405; reconstrução Release com 0 erros e 174 avisos gerais preexistentes (nenhum em AuthController); git diff --check; evidências T016 | 429/Retry-After acontece antes do hash após cinco falhas; conta inexistente e senha obrigatória preservam contrato; 503 fechado para indisponibilidade/configuração. #437 permanece In Progress. |
 | 2026-10-13 | T021 | concluída | RED 4 falhas comportamentais; foco 36/36; frontend integrado 694/694 (146 arquivos); lint e build aprovados; git diff --check; evidências T021 | Espera acessível bloqueia submit por botão e teclado, libera após Retry-After ou 30 s genéricos sem autosubmit. 202 de ForgotPassword permanece neutro. Build mantém avisos conhecidos; #437 permanece In Progress. |

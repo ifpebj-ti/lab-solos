@@ -271,7 +271,11 @@ test.describe('cadastro e alerta por dia civil — T012', () => {
       });
       await expect(expiredDialog).toContainText(formatDisplayDate(yesterday));
       await expect(expiredDialog).toContainText(formatDisplayDate(today));
-      await honoluluPage.keyboard.press('Escape');
+      const cancelButton = expiredDialog.getByRole('button', {
+        name: 'Cancelar',
+      });
+      await expect(cancelButton).toBeFocused();
+      await honoluluPage.keyboard.press('Enter');
       await expect(expiredDialog).toHaveCount(0);
       await expect(
         honoluluPage.getByRole('button', { name: 'Adicionar' })
