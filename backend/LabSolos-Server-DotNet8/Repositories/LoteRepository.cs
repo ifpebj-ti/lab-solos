@@ -13,7 +13,7 @@ namespace LabSolos_Server_DotNet8.Repositories
     
     public class LoteRepository(AppDbContext context) : ILoteRepository
     {
-        public readonly AppDbContext _context = context;
+        private readonly AppDbContext _context = context;
         public async Task<Lote?> GetLoteByCodigoAsync(int codigoLote)
         {
             return await _context.Lotes

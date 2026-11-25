@@ -42,8 +42,8 @@ public sealed class EmailAddressReservationService(
         var normalizedPattern = EscapeLikePattern(normalized);
         var existingAddresses = _context.Usuarios.Where(
             user => EF.Functions.ILike(user.Email.Trim(), normalizedPattern, "\\"));
-        if (accountId is not null)
-            existingAddresses = existingAddresses.Where(user => user.Id != accountId.Value);
+        if (accountId is int existingAccountId)
+            existingAddresses = existingAddresses.Where(user => user.Id != existingAccountId);
         if (await existingAddresses.AnyAsync(cancellationToken))
         {
             return true;
@@ -55,8 +55,9 @@ public sealed class EmailAddressReservationService(
             var now = _timeProvider.GetUtcNow();
             var activeReservations = _context.EmailAddressReservations.Where(
                 reservation => reservation.NormalizedAddressHash == hash && reservation.ExpiresAt > now);
-            if (accountId is not null)
-                activeReservations = activeReservations.Where(reservation => reservation.OwnerUserId != accountId);
+            if (accountId is int reservationAccountId)
+                activeReservations = activeReservations.Where(
+                    reservation => reservation.OwnerUserId != reservationAccountId);
             return await activeReservations.AnyAsync(cancellationToken);
         }
         finally

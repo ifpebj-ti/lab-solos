@@ -77,7 +77,7 @@ namespace LabSolos_Server_DotNet8.Models
         [Required]
         public NivelRiscoAuditoria NivelRisco { get; set; }
 
-        public bool Suspeita { get; set; } = false;
+        public bool Suspeita { get; set; }
 
         [StringLength(1000)]
         public string? MotivoSuspeita { get; set; }

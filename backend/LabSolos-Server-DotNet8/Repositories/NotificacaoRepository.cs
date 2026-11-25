@@ -66,13 +66,13 @@ namespace LabSolos_Server_DotNet8.Repositories
         public Task<int[]> ObterDestinatariosHabilitadosAsync(int? usuarioId, NivelUsuario? nivelUsuario)
         {
             var query = _context.Usuarios.Where(user => user.Status == StatusUsuario.Habilitado);
-            if (usuarioId.HasValue)
+            if (usuarioId is int destinatarioId)
             {
-                query = query.Where(user => user.Id == usuarioId.Value);
+                query = query.Where(user => user.Id == destinatarioId);
             }
-            else if (nivelUsuario.HasValue)
+            else if (nivelUsuario is NivelUsuario nivelDestino)
             {
-                query = query.Where(user => user.NivelUsuario == nivelUsuario.Value);
+                query = query.Where(user => user.NivelUsuario == nivelDestino);
             }
 
             return query

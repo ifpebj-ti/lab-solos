@@ -826,6 +826,7 @@ def run_analysis(
         try:
             report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         except OSError:
+            # Keep the failing exit code when even the sanitized fallback report cannot be written.
             pass
     return report, exit_code
 

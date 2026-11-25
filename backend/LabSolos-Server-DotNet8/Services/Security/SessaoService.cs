@@ -170,9 +170,9 @@ public sealed class SessaoService(AppDbContext dbContext, TimeProvider timeProvi
         CancellationToken cancellationToken)
     {
         IQueryable<SessaoAutenticacao> query = dbContext.SessoesAutenticacao;
-        if (sessaoId.HasValue)
+        if (sessaoId is Guid sessionId)
         {
-            query = query.Where(session => session.Id == sessaoId.Value);
+            query = query.Where(session => session.Id == sessionId);
         }
         else if (!string.IsNullOrWhiteSpace(identificador))
         {

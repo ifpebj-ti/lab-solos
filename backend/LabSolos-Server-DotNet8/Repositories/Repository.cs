@@ -24,7 +24,7 @@ namespace LabSolos_Server_DotNet8.Repositories
         
     public class Repository<T>(AppDbContext context) : IRepository<T> where T : class
     {
-        protected readonly AppDbContext _context = context;
+        protected AppDbContext _context { get; } = context;
 
         public async Task<IEnumerable<T>> ObterTodosAsync(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {

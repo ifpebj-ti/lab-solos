@@ -285,7 +285,7 @@ class ReleasePublicationWorkflowTests(unittest.TestCase):
         publish_script = publish["run"]
         self.assertIn("--draft", recovery["run"])
         self.assertIn("gh release upload", recovery["run"])
-        first_latest = script.index('imagetools create --tag "$FRONTEND_LATEST"')
+        self.assertIn('imagetools create --tag "$FRONTEND_LATEST"', script)
         self.assertNotIn("PATCH", script)
         check = publish_script.index("check_release_channels.py")
         publish_write = publish_script.index("--method PATCH")

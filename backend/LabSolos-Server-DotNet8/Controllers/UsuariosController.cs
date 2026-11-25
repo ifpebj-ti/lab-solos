@@ -42,6 +42,21 @@ namespace LabSolos_Server_DotNet8.Controllers
                 LogLevel.Error,
                 new EventId(1001, nameof(LogNotificationPersistenceFailure)),
                 "Falha de persistência ao criar notificação para o usuário {UsuarioId}");
+        private static readonly Action<ILogger, TipoUsuario, Exception?> LogUserTypeLookupStarted =
+            LoggerMessage.Define<TipoUsuario>(
+                LogLevel.Information,
+                new EventId(1002, nameof(LogUserTypeLookupStarted)),
+                "Iniciando operação para obter usuários do tipo {Tipo}.");
+        private static readonly Action<ILogger, int, Exception?> LogInvalidUserType =
+            LoggerMessage.Define<int>(
+                LogLevel.Warning,
+                new EventId(1003, nameof(LogInvalidUserType)),
+                "Tipo de usuário inválido: {Tipo}");
+        private static readonly Action<ILogger, string, Exception?> LogRegistrationFieldsInvalid =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(1004, nameof(LogRegistrationFieldsInvalid)),
+                "Cadastro de usuário rejeitado; campos inválidos: {Fields}");
 
         public UsuariosController(
             ILogger<UsuariosController> logger,
@@ -85,12 +100,12 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosPeloTipo(int tipoUsuario)
         {
-            _logger.LogInformation("Iniciando operação para obter usuários do tipo {Tipo}.", (TipoUsuario)tipoUsuario);
+            LogUserTypeLookupStarted(_logger, (TipoUsuario)tipoUsuario, null);
 
             // Validação do tipo com o enum
             if (!Enum.IsDefined(typeof(TipoUsuario), tipoUsuario))
             {
-                _logger.LogWarning("Tipo de usuário inválido: {Tipo}", tipoUsuario);
+                LogInvalidUserType(_logger, tipoUsuario, null);
                 return BadRequest("Tipo de usuário inválido. Use um valor de TipoUsuario válido.");
             }
 
@@ -188,11 +203,10 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize("ApenasResponsaveis")]
         public async Task<IActionResult> ObterDependentesParaAprovacao(int usuarioId)
         {
-            var actorId = GetAuthenticatedUserId();
-            if (actorId is null)
+            if (GetAuthenticatedUserId() is not int actorId)
                 return Forbid();
 
-            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId);
             if (actor is not { Status: StatusUsuario.Habilitado } ||
                 actor.NivelUsuario is not (NivelUsuario.Mentor or NivelUsuario.Administrador))
                 return Forbid();
@@ -217,11 +231,10 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize("ApenasAdministradores")]
         public async Task<IActionResult> ObterUsuariosParaAprovacao()
         {
-            var actorId = GetAuthenticatedUserId();
-            if (actorId is null)
+            if (GetAuthenticatedUserId() is not int actorId)
                 return Forbid();
 
-            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId);
             if (actor is null || !PoliticaContas.IsEnabledAdministrator(actor))
                 return Forbid();
 
@@ -280,9 +293,10 @@ namespace LabSolos_Server_DotNet8.Controllers
                 {
                     if (resultadoValidacao.Errors.Count > 0)
                     {
-                        _logger.LogInformation(
-                            "Cadastro de usuário rejeitado; campos inválidos: {Fields}",
-                            string.Join(",", resultadoValidacao.Errors.Keys));
+                        LogRegistrationFieldsInvalid(
+                            _logger,
+                            string.Join(",", resultadoValidacao.Errors.Keys),
+                            null);
                         return RegistrationValidationProblem(resultadoValidacao.Errors);
                     }
 
@@ -544,12 +558,11 @@ namespace LabSolos_Server_DotNet8.Controllers
         [Authorize(Policy = "ApenasAdministradores")]
         public async Task<IActionResult> ConcederPapelAdministrador(int usuarioId)
         {
-            var actorId = GetAuthenticatedUserId();
-            if (actorId is null)
+            if (GetAuthenticatedUserId() is not int actorId)
                 return Forbid();
 
             await using var transaction = await ContinuityGuard.BeginTransactionAsync(HttpContext.RequestAborted);
-            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId);
             if (actor is null || !PoliticaContas.IsEnabledAdministrator(actor))
                 return Forbid();
 
@@ -591,12 +604,12 @@ namespace LabSolos_Server_DotNet8.Controllers
             StatusUsuario resultingStatus,
             string message)
         {
-            var actorId = GetAuthenticatedUserId();
-            if (actorId is null || expectedActorId is not null && expectedActorId != actorId.Value)
+            if (GetAuthenticatedUserId() is not int actorId ||
+                expectedActorId is not null && expectedActorId != actorId)
                 return Unauthorized(DependentDecisionUnauthorizedMessage);
 
             await using var transaction = await ContinuityGuard.BeginTransactionAsync(HttpContext.RequestAborted);
-            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId.Value);
+            var actor = await _uow.UsuarioRepository.ObterAsync(user => user.Id == actorId);
             if (actor is null || actor.Status != StatusUsuario.Habilitado ||
                 actor.NivelUsuario is not (NivelUsuario.Administrador or NivelUsuario.Mentor))
             {

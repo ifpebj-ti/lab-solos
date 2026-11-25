@@ -10,7 +10,7 @@ namespace LabSolos_Server_DotNet8.Models
         public TipoNotificacao Tipo { get; set; }
         public int? UsuarioId { get; set; } // null = notificação global
         public virtual Usuario? Usuario { get; set; }
-        public bool Lida { get; set; } = false;
+        public bool Lida { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime? DataLeitura { get; set; }
         public bool AudienciaLegadaIndeterminada { get; set; }
