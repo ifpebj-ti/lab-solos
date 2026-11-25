@@ -1,3 +1,4 @@
+using System.Globalization;
 using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,8 @@ namespace LabSolos_Server_DotNet8.Repositories
         public async Task<Lote?> GetLoteByCodigoAsync(int codigoLote)
         {
             return await _context.Lotes
-                .FirstOrDefaultAsync(lote => lote.CodigoLote == codigoLote.ToString());
+                .FirstOrDefaultAsync(lote =>
+                    lote.CodigoLote == codigoLote.ToString(CultureInfo.InvariantCulture));
         }
 
         public async Task<Lote> AddLoteAsync(Lote lote)
