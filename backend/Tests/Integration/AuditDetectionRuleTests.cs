@@ -256,6 +256,7 @@ public sealed class AuditDetectionRuleTests(PostgreSqlContainerFixture database)
         var actorReference = origin == OrigemConfiavelAuditoria.ProcessoAutorizado
             ? "processo:synthetic-worker"
             : null;
+        var originName = origin.ToString();
         return context.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "LogsAuditoria"
                 ("DataHora", "Acao", "Recurso", "EnderecoIP", "TipoAcao", "NivelRisco", "Suspeita",
@@ -263,7 +264,7 @@ public sealed class AuditDetectionRuleTests(PostgreSqlContainerFixture database)
                  "CorrelationId", "ExpiraEmUtc")
             VALUES
                 ({observedAt}, 'falha_legada', 'operacao', '', 0, 0, {suspected},
-                 'LegadoNaoClassificado', {origin.ToString()}, {actorReference}, 'Indeterminado',
+                 'LegadoNaoClassificado', {originName}, {actorReference}, 'Indeterminado',
                  'DiagnosticoOperacional', {correlationId}, {new DateTimeOffset(observedAt.AddDays(30))})
             """);
     }

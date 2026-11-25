@@ -77,20 +77,9 @@ namespace LabSolos_Server_DotNet8.DTOs.Produtos
             return scale <= 3;
         }
 
-        private static bool FormulaQuimicaEhValida(string formula)
-        {
-            foreach (var caractere in formula)
-            {
-                var permitido = char.IsAsciiLetterOrDigit(caractere)
-                    || caractere is >= '₀' and <= '₉'
-                    || caractere is '(' or ')' or '-' or '+' or ',' or '.' or ' ';
-                if (!permitido)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        private static bool FormulaQuimicaEhValida(string formula) => formula.All(caractere =>
+            char.IsAsciiLetterOrDigit(caractere)
+            || caractere is >= '₀' and <= '₉'
+            || caractere is '(' or ')' or '-' or '+' or ',' or '.' or ' ');
     }
 }

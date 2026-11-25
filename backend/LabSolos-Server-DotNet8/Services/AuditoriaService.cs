@@ -1,3 +1,5 @@
+using System.Data.Common;
+using System.Net;
 using AutoMapper;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.DTOs.Auditoria;
@@ -6,7 +8,6 @@ using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace LabSolos_Server_DotNet8.Services
 {
@@ -91,7 +92,9 @@ namespace LabSolos_Server_DotNet8.Services
                 _uow.LogAuditoriaRepository.Criar(log);
                 await _uow.CommitAsync();
             }
-            catch (Exception exception)
+            catch (Exception exception) when (
+                exception is DbException or DbUpdateException or InvalidOperationException
+                    or TimeoutException or ArgumentException or FormatException)
             {
                 LogAuditPersistenceFailure(
                     _logger,

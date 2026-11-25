@@ -171,20 +171,22 @@ public class UsuarioDataContractTests
     [Fact]
     public void DependentApprovalResponseContractDoesNotExposeCredentialsOrInternalIdentity()
     {
-        foreach (var responseType in new[] { typeof(DependenteDTO), typeof(UsuarioAprovacaoDTO) })
-        {
-            var propertyNames = responseType
+        var responsePropertyNames = new[] { typeof(DependenteDTO), typeof(UsuarioAprovacaoDTO) }
+            .Select(responseType => responseType
                 .GetProperties()
                 .Select(property => property.Name)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                .ToHashSet(StringComparer.OrdinalIgnoreCase))
+            .ToArray();
 
+        Assert.All(responsePropertyNames, propertyNames =>
+        {
             Assert.DoesNotContain("Senha", propertyNames);
             Assert.DoesNotContain("SenhaHash", propertyNames);
             Assert.DoesNotContain("TokenRedefinicao", propertyNames);
             Assert.DoesNotContain("TokenExpiracao", propertyNames);
             Assert.DoesNotContain("ResponsavelId", propertyNames);
             Assert.DoesNotContain("VersaoSessao", propertyNames);
-        }
+        });
     }
 
     [Fact]
