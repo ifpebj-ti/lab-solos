@@ -58,12 +58,16 @@ public class AuthChangePasswordTests
     }
 
     [Theory]
-    [InlineData("current_password_invalid", "currentPassword")]
-    [InlineData("password_confirmation_mismatch", "confirmation")]
-    [InlineData("password_common", "newPassword")]
+    [InlineData("current_password_invalid", "currentPassword", "A senha atual informada é inválida.")]
+    [InlineData("password_confirmation_mismatch", "confirmation", "A confirmação da nova senha não confere.")]
+    [InlineData("password_common", "newPassword", "A nova senha é muito comum.")]
+    [InlineData("password_required", "newPassword", "A nova senha é obrigatória.")]
+    [InlineData("password_too_short", "newPassword", "A nova senha deve ter pelo menos 15 caracteres.")]
+    [InlineData("password_too_long", "newPassword", "A nova senha deve ter no máximo 128 caracteres.")]
     public async Task ChangePassword_ValidationFailure_ReturnsStableProblemDetails(
         string code,
-        string expectedField)
+        string expectedField,
+        string expectedMessage)
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(
@@ -80,6 +84,7 @@ public class AuthChangePasswordTests
         var details = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
         Assert.Equal("https://httpstatuses.com/400", details.Type);
         Assert.Contains(details.Errors[expectedField], value => value == code);
+        Assert.Contains(details.Errors[expectedField], value => value == expectedMessage);
         var serialized = JsonSerializer.Serialize(objectResult.Value);
         Assert.DoesNotContain("current-password", serialized);
         Assert.DoesNotContain("valid-new-password", serialized);

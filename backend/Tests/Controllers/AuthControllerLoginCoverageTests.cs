@@ -51,13 +51,50 @@ public sealed class AuthControllerLoginCoverageTests
     }
 
     [Fact]
-    public async Task LoginFailsClosedWhenConfiguredThrottleSecretCannotBeRead()
+    public async Task LoginFailsClosedWhenProtectionOptionsValidationFails()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var protectionOptions = new Mock<IOptions<AuthenticationProtectionOptions>>(MockBehavior.Strict);
+        protectionOptions
+            .SetupGet(options => options.Value)
+            .Throws(new OptionsValidationException(
+                "AuthenticationProtection",
+                typeof(AuthenticationProtectionOptions),
+                ["synthetic invalid setting"]));
+        var harness = CreateHarness(
+            services,
+            validatedProtectionOptions: protectionOptions.Object);
+
+        var result = await harness.Controller.Login(
+            new LoginDTO { Email = "user@example.org", Password = "synthetic password" },
+            CancellationToken.None);
+
+        var unavailable = Assert.IsType<ObjectResult>(result);
+        Assert.Equal((int)HttpStatusCode.ServiceUnavailable, unavailable.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(unavailable.Value);
+        Assert.Equal("authentication_protection_unavailable", details.Extensions["code"]);
+        Assert.Equal("no-store", harness.Context.Response.Headers.CacheControl);
+        protectionOptions.VerifyAll();
+        harness.Users.Verify(
+            repository => repository.ObterAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<Usuario, bool>>>(),
+                It.IsAny<Func<IQueryable<Usuario>, IQueryable<Usuario>>?>()),
+            Times.Never);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LoginFailsClosedWhenConfiguredThrottleSecretCannotBeRead(bool accessDenied)
     {
         using var services = new ServiceCollection().BuildServiceProvider();
         var secretReader = new Mock<ISecretFileReader>(MockBehavior.Strict);
+        Exception readFailure = accessDenied
+            ? new UnauthorizedAccessException("synthetic secret access failure")
+            : new IOException("synthetic secret read failure");
         secretReader
             .Setup(reader => reader.ReadAllBytes("/synthetic/authentication-key-hash.secret"))
-            .Throws<IOException>();
+            .Throws(readFailure);
         var harness = CreateHarness(
             services,
             environmentName: "Production",
@@ -95,7 +132,8 @@ public sealed class AuthControllerLoginCoverageTests
         IServiceProvider services,
         string environmentName = "IntegrationTesting",
         AuthenticationProtectionOptions? protectionOptions = null,
-        ISecretFileReader? secretReader = null)
+        ISecretFileReader? secretReader = null,
+        IOptions<AuthenticationProtectionOptions>? validatedProtectionOptions = null)
     {
         var users = new Mock<IRepository<Usuario>>(MockBehavior.Strict);
         var unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
@@ -115,7 +153,7 @@ public sealed class AuthControllerLoginCoverageTests
             unitOfWork.Object,
             Mock.Of<IPasswordChangeRateLimitService>(),
             new PasswordHasher<Usuario>(),
-            Options.Create(protectionOptions ?? new AuthenticationProtectionOptions()),
+            validatedProtectionOptions ?? Options.Create(protectionOptions ?? new AuthenticationProtectionOptions()),
             secretReader ?? Mock.Of<ISecretFileReader>(),
             environment.Object,
             new AuthenticationProtectionTelemetry(NullLogger<AuthenticationProtectionTelemetry>.Instance),

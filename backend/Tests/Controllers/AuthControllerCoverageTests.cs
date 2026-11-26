@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Controllers;
 using LabSolos_Server_DotNet8.DTOs.Auth;
@@ -23,6 +25,37 @@ namespace Tests.Controllers;
 public class AuthControllerCoverageTests
 {
     private const string SessionCookie = SessaoAutenticacaoDefaults.CookieName;
+
+    public static TheoryData<string> MissingConstructorDependencies => new()
+    {
+        "jwtService",
+        "uow",
+        "passwordChangeRateLimitService",
+        "passwordHasher",
+        "protectionOptions",
+        "secretFileReader",
+        "hostEnvironment",
+        "telemetry"
+    };
+
+    public static TheoryData<Exception> SessionStoreProtectionFailures => new()
+    {
+        new InvalidOperationException("synthetic session store failure"),
+        new TimeoutException("synthetic session store timeout"),
+        new CryptographicException("synthetic session protection failure"),
+        new UnauthorizedAccessException("synthetic session store access failure"),
+        new SyntheticDatabaseException("synthetic session database failure")
+    };
+
+    [Theory]
+    [MemberData(nameof(MissingConstructorDependencies))]
+    public void ConstructorRejectsMissingRequiredDependency(string parameterName)
+    {
+        var exception = Assert.Throws<ArgumentNullException>(
+            () => CreateControllerWithNullDependency(parameterName));
+
+        Assert.Equal(parameterName, exception.ParamName);
+    }
 
     [Fact]
     public async Task LoginRejectsMissingBodyBeforeAccessingDependencies()
@@ -144,7 +177,23 @@ public class AuthControllerCoverageTests
     }
 
     [Fact]
-    public async Task LogoutReturnsUnavailableWhenSessionStoreFails()
+    public async Task LogoutReturnsUnavailableWhenSessionServiceIsMissing()
+    {
+        var harness = CreateHarness(includeSessionService: false);
+
+        var result = await harness.Controller.Logout(CancellationToken.None);
+
+        var unavailable = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, unavailable.StatusCode);
+        var details = Assert.IsType<ProblemDetails>(unavailable.Value);
+        Assert.Equal("authentication_protection_unavailable", details.Extensions["code"]);
+        Assert.Equal("no-store", harness.Context.Response.Headers.CacheControl);
+        harness.Sessions.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [MemberData(nameof(SessionStoreProtectionFailures))]
+    public async Task LogoutReturnsUnavailableWhenSessionStoreFails(Exception exception)
     {
         var harness = CreateHarness();
         harness.Sessions
@@ -153,7 +202,7 @@ public class AuthControllerCoverageTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("synthetic session store failure"));
+            .ThrowsAsync(exception);
 
         var result = await harness.Controller.Logout(CancellationToken.None);
 
@@ -161,6 +210,7 @@ public class AuthControllerCoverageTests
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, unavailable.StatusCode);
         var details = Assert.IsType<ProblemDetails>(unavailable.Value);
         Assert.Equal("authentication_protection_unavailable", details.Extensions["code"]);
+        Assert.Equal("no-store", harness.Context.Response.Headers.CacheControl);
     }
 
     [Theory]
@@ -264,7 +314,8 @@ public class AuthControllerCoverageTests
 
     private static ControllerHarness CreateHarness(
         IEnumerable<Claim>? claims = null,
-        string environmentName = "IntegrationTesting")
+        string environmentName = "IntegrationTesting",
+        bool includeSessionService = true)
     {
         var users = new Mock<IRepository<Usuario>>(MockBehavior.Strict);
         var unitOfWork = new Mock<IUnitOfWork>(MockBehavior.Strict);
@@ -288,12 +339,45 @@ public class AuthControllerCoverageTests
             Mock.Of<ISecretFileReader>(),
             environment.Object,
             new AuthenticationProtectionTelemetry(NullLogger<AuthenticationProtectionTelemetry>.Instance),
-            sessions.Object)
+            includeSessionService ? sessions.Object : null)
         {
             ControllerContext = new ControllerContext { HttpContext = context }
         };
 
         return new ControllerHarness(controller, context, sessions, users);
+    }
+
+    private static AuthController CreateControllerWithNullDependency(string parameterName)
+    {
+        var jwtService = CreateJwtService();
+        var unitOfWork = Mock.Of<IUnitOfWork>();
+        var passwordChanges = Mock.Of<IPasswordChangeRateLimitService>();
+        var passwordHasher = new PasswordHasher<Usuario>();
+        var protectionOptions = Options.Create(new AuthenticationProtectionOptions());
+        var secretReader = Mock.Of<ISecretFileReader>();
+        var hostEnvironment = Mock.Of<IHostEnvironment>();
+        var telemetry = new AuthenticationProtectionTelemetry(NullLogger<AuthenticationProtectionTelemetry>.Instance);
+
+        return parameterName switch
+        {
+            "jwtService" => new AuthController(
+                null!, unitOfWork, passwordChanges, passwordHasher, protectionOptions, secretReader, hostEnvironment, telemetry),
+            "uow" => new AuthController(
+                jwtService, null!, passwordChanges, passwordHasher, protectionOptions, secretReader, hostEnvironment, telemetry),
+            "passwordChangeRateLimitService" => new AuthController(
+                jwtService, unitOfWork, null!, passwordHasher, protectionOptions, secretReader, hostEnvironment, telemetry),
+            "passwordHasher" => new AuthController(
+                jwtService, unitOfWork, passwordChanges, null!, protectionOptions, secretReader, hostEnvironment, telemetry),
+            "protectionOptions" => new AuthController(
+                jwtService, unitOfWork, passwordChanges, passwordHasher, null!, secretReader, hostEnvironment, telemetry),
+            "secretFileReader" => new AuthController(
+                jwtService, unitOfWork, passwordChanges, passwordHasher, protectionOptions, null!, hostEnvironment, telemetry),
+            "hostEnvironment" => new AuthController(
+                jwtService, unitOfWork, passwordChanges, passwordHasher, protectionOptions, secretReader, null!, telemetry),
+            "telemetry" => new AuthController(
+                jwtService, unitOfWork, passwordChanges, passwordHasher, protectionOptions, secretReader, hostEnvironment, null!),
+            _ => throw new ArgumentOutOfRangeException(nameof(parameterName), parameterName, "Unknown constructor dependency.")
+        };
     }
 
     private static void SetSessionCookie(ControllerHarness harness, string identifier) =>
@@ -343,4 +427,6 @@ public class AuthControllerCoverageTests
         DefaultHttpContext Context,
         Mock<ISessaoService> Sessions,
         Mock<IRepository<Usuario>> Users);
+
+    private sealed class SyntheticDatabaseException(string message) : DbException(message);
 }

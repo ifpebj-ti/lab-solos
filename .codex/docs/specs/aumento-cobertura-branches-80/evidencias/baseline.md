@@ -2,7 +2,7 @@
 
 ## Medição oficial mais recente desta execução
 
-A Container CI run [#45770954773](https://github.com/ifpebj-ti/lab-solos/actions/runs/45770954773), tentativa 1, mediu frontend em 2833/3525 branches (80,37%) e backend em 2789/3610 (77,26% exatos). No backend, a fonte é `summary.coveredbranches/summary.totalbranches` do `Summary.json` publicado junto ao artefato HTML, somando os dois assemblies incluídos pelo ReportGenerator. O `backend-coverage.json` usado pelo gate e pelos badges repetiu exatamente 2789/3610 e os mesmos metadados de execução. `Coverage policy` passou com o mínimo de 70%; para a meta de 80% faltam 99 branches backend (2888 necessários). Cobertura de linhas não determina o progresso desta meta.
+A Container CI run [#45776498924](https://github.com/ifpebj-ti/lab-solos/actions/runs/45776498924), tentativa 1, mediu frontend em 2833/3525 branches (80,37%) e backend em 2802/3610 (77,62% exatos). No backend, a fonte é `summary.coveredbranches/summary.totalbranches` do `Summary.json` publicado junto ao artefato HTML, somando os dois assemblies incluídos pelo ReportGenerator. O `backend-coverage.json` usado pelo gate e pelos badges repetiu exatamente 2802/3610 e os mesmos metadados de execução. `Coverage policy` passou com o mínimo de 70%; para a meta de 80% faltam 86 branches backend (2888 necessários). Backend quality, Browser security E2E e Authentication E2E passaram; todos os checks do Container CI terminaram com sucesso. Cobertura de linhas não determina o progresso desta meta.
 
 Confirmada em 25/11/2026 (America/Sao_Paulo), a partir da execução mais recente da Container CI em `develop`:
 
