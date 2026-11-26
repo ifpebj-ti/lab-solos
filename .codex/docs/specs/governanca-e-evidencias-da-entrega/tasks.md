@@ -1,6 +1,6 @@
 # Tarefas — Governança e evidências da entrega
 
-- Status: 11 de 14 tarefas concluídas; T007, T013 e T014 permanecem bloqueadas por validações externas e pela integração desta revisão.
+- Status: 12 de 14 tarefas concluídas; T013 permanece bloqueada por ausência de relato de teste e T014 foi dispensada pelo usuário por falta de outro autor para PR de validação.
 - PRD: [Governança e evidências da entrega](./prd.md)
 - Especificação técnica: [Governança e evidências da entrega](./techspec.md)
 - Atualizado em: 2026-11-25
@@ -169,10 +169,10 @@ Validar o meio aprovado com o perfil de avaliação e uma amostra de itens, prio
 
 ## T007 — Documentar o canal privado de relatos de segurança
 
-- Status: bloqueada
+- Status: concluída; `SECURITY.md` criado para o canal privado habilitado
 - Issue: #496
 - Dependências: nenhuma
-- Bloqueio: o endpoint somente leitura `GET /repos/ifpebj-ti/lab-solos/private-vulnerability-reporting` retornou `enabled=false`; portanto, o canal privado do GitHub não está operacional. Não há `SECURITY.md` versionado nem destinatário alternativo confirmado. Nenhuma configuração foi alterada e nenhum relato foi enviado; ver o registro de 24/11 no log abaixo.
+- Pré-condições: o usuário habilitou GitHub Private Vulnerability Reporting; consulta confirmada em 2026-11-25 com `enabled=true`. O responsável pelo recebimento é `@nathannmvr`, confirmado pelo usuário.
 - Paralela: não
 - Requisitos: RF-005, CA-006
 - Caminhos sob responsabilidade: `SECURITY.md`
@@ -310,7 +310,7 @@ Depois que a revisão pertinente estiver disponível na branch que fornece os mo
 - Status: bloqueada
 - Issue: #496
 - Dependências: T007
-- Bloqueio: T007 aguarda confirmação de canal e responsáveis. A saída exige também autorização do ambiente e confirmação com quem receberá o relato benigno.
+- Bloqueio: o canal privado está habilitado e `@nathannmvr` é o responsável, mas confirmar recebimento requer um relator não-admin ou outro teste autorizado. Nenhum relato benigno foi enviado; não alegar recebimento.
 - Paralela: não
 - Requisitos: RF-005, CA-006
 - Caminhos sob responsabilidade: `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T013.md`
@@ -329,10 +329,10 @@ Seguir as instruções de `SECURITY.md` no ambiente autorizado e conferir o rece
 
 ## T014 — Comprovar a atribuição de revisão em PR de teste
 
-- Status: bloqueada
+- Status: dispensada pelo usuário (sem outro colaborador para validar por PR)
 - Issue: #496
 - Dependências: T008
-- Bloqueio: T008 está concluída nesta revisão, mas CODEOWNERS só será efetivo na branch-base após a integração em `develop`. A validação de atribuição ainda exige um PR de teste autorizado.
+- Decisão do usuário: não há outra pessoa disponível para abrir um PR de teste. A atribuição `@nathannmvr` com permissão admin está publicada em `develop`; a solicitação automática de revisão não foi observada e não será alegada.
 - Paralela: não
 - Requisitos: RF-006, CA-007
 - Caminhos sob responsabilidade: `.codex/docs/specs/governanca-e-evidencias-da-entrega/evidencias/T014.md`, alteração transitória de caminho aprovado para o PR de teste
@@ -366,3 +366,5 @@ No ambiente autorizado, conferir a atribuição de revisão em PR de teste que a
 | 2026-11-16 | T003                | concluída                                                  | RED: 159 saídas rastreadas. Cópia isolada: restore travado, build Release, 485/485 testes e 486 saídas ignoradas. No índice principal: 159 remoções, zero fora do escopo.                                                            | Os 159 arquivos em disco preservaram tamanho e SHA-256 em verificação independente. Nenhum manifesto ou fonte incluído no stage.                                                                                                                                 |
 | 2026-11-16 | T012                | bloqueada                                                  | A T002 já validou os dois modelos no checkout. A evidência de disponibilidade no seletor depende da interface do GitHub.                                                                                                             | Reavaliar após publicação da revisão pertinente e autorização para consultar o seletor.                                                                                                                                                                          |
 | 2026-11-16 | T004                | concluída                                                  | RED documental: faltavam links para os dois modelos. GREEN: README e guia apontam aos dois arquivos, com o mesmo procedimento. Teste de modelos 5/5 e diff --check.                                                                  | Conferência do seletor continua registrada em T012.                                                                                                                                                                                                              |
+
+| 2026-11-25 | T007 | concluída | RED documental: `SECURITY.md` ausente. GREEN: contrato documental aprovou instruções para o formulário privado, contato `@nathannmvr`, versão suportada, acompanhamento e ausência de SLA; `git diff --check` aprovado. | Private Vulnerability Reporting foi confirmado `enabled=true`. Nenhum relato de teste foi enviado; T013 segue sem evidência. O usuário dispensou T014 por falta de outro autor para PR de teste; não se alega solicitação automática observada. |
