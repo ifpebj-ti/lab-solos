@@ -234,6 +234,7 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var recoveryJob = await context.PasswordRecoveryJobs.SingleAsync();
             recoveryJob.CreatedAt = clock.GetUtcNow().AddMinutes(-2);
+            recoveryJob.NextAttemptAt = clock.GetUtcNow().AddMinutes(-10);
             recoveryJob.ExpiresAt = clock.GetUtcNow().AddMinutes(-1);
             await context.SaveChangesAsync();
         }
