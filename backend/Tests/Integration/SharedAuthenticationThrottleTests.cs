@@ -167,8 +167,12 @@ public sealed class SharedAuthenticationThrottleTests(PostgreSql15ContainerFixtu
         }
 
         await using var verification = CreateContext();
-        Assert.Equal(0, await verification.AuthenticationThrottleBuckets.CountAsync());
-        Assert.Equal(0, await ReadCapacityAsync(verification, rule.Scope));
+        var bucket = await verification.AuthenticationThrottleBuckets.SingleAsync();
+        Assert.Equal(rule.Scope, bucket.Scope);
+        Assert.Equal(rule.KeyHash, bucket.KeyHash);
+        Assert.Equal(0, bucket.Count);
+        Assert.Null(bucket.NextEmissionAt);
+        Assert.Equal(1, await ReadCapacityAsync(verification, rule.Scope));
     }
 
     [Fact]
