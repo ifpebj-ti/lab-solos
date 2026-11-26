@@ -1,45 +1,45 @@
 {
   "schemaVersion": 1,
   "status": "available",
-  "sha": "df1d55f1f0bb88f0a88d792a40efe010d75efe1a",
-  "run_id": "45727800901",
+  "sha": "645ea45dc1346d80eb2449f31522b927fdcf373e",
+  "run_id": "45807072189",
   "run_attempt": 1,
   "metrics": {
     "lines": {
       "status": "available",
-      "covered": 4234,
+      "covered": 4338,
       "total": 4992,
-      "percent": 84.82,
+      "percent": 86.9,
       "limiting_module": "frontend",
       "modules": {
         "frontend": {
-          "covered": 4234,
+          "covered": 4338,
           "total": 4992,
-          "percent": 84.82
+          "percent": 86.9
         },
         "backend": {
-          "covered": 9290,
-          "total": 10772,
-          "percent": 86.24
+          "covered": 28752,
+          "total": 30074,
+          "percent": 95.6
         }
       }
     },
     "branches": {
       "status": "available",
-      "covered": 2708,
-      "total": 3525,
-      "percent": 76.82,
-      "limiting_module": "frontend",
+      "covered": 2883,
+      "total": 3610,
+      "percent": 79.86,
+      "limiting_module": "backend",
       "modules": {
         "frontend": {
-          "covered": 2708,
+          "covered": 2833,
           "total": 3525,
-          "percent": 76.82
+          "percent": 80.37
         },
         "backend": {
-          "covered": 1540,
-          "total": 1680,
-          "percent": 91.67
+          "covered": 2883,
+          "total": 3610,
+          "percent": 79.86
         }
       }
     }
