@@ -130,6 +130,33 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
     }
 
     [Fact]
+    public async Task AdministratorCannotSetUndefinedStatusAndProfileRemainsUnchanged()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+            using var response = await PatchAsync(
+                administrator,
+                scenario.MenteeOneId,
+                "[{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"Desconhecido\"}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "status_invalid",
+                payload.RootElement.GetProperty("errors").GetProperty("status")[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+            Assert.Equal(StatusUsuario.Habilitado, user.Status);
+        }
+    }
+
+    [Fact]
     public async Task OwnerEmailChangeRequiresCorrectPasswordAndCancelsRecoveryWithoutRevokingSession()
     {
         var (factory, scenario) = await CreateScenarioAsync();

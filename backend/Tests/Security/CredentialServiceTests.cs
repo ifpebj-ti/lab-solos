@@ -484,6 +484,136 @@ public class CredentialServiceTests
     }
 
     [Fact]
+    public async Task PasswordResetWithMatchingLiveTokenUpdatesCredentialAndRevokesSessions()
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        const string token = "valid-reset-token";
+        var user = CreateUser();
+        user.TokenRedefinicaoHash = HashResetToken(token);
+        user.TokenExpiracao = FixedInstant.AddMinutes(1).UtcDateTime;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "new-hash");
+        var sut = CreateService(context, ValidPolicy(), hasher.Object, new FixedTimeProvider(FixedInstant));
+
+        var result = await sut.ResetPasswordAsync(user.Email, token, "new-password", "new-password");
+
+        Assert.Equal(CredentialChangeStatus.Success, result.Status);
+        Assert.Null(result.Code);
+        Assert.Equal("new-hash", user.SenhaHash);
+        Assert.False(user.ExigeTrocaSenha);
+        Assert.Equal(8, user.VersaoSessao);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Null(user.TokenExpiracao);
+        hasher.Verify(candidate => candidate.HashPassword(user, "new-password"), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false, StatusUsuario.Habilitado)]
+    [InlineData(true, StatusUsuario.Desabilitado)]
+    public async Task PasswordResetRejectsMissingOrDisabledAccountWithoutMutation(
+        bool persistUser,
+        StatusUsuario status)
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        const string token = "valid-reset-token";
+        var user = CreateUser();
+        user.Status = status;
+        user.TokenRedefinicaoHash = HashResetToken(token);
+        user.TokenExpiracao = FixedInstant.AddMinutes(1).UtcDateTime;
+        if (persistUser)
+        {
+            context.Usuarios.Add(user);
+            await context.SaveChangesAsync();
+        }
+
+        var policy = new Mock<IPasswordPolicy>(MockBehavior.Strict);
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "unused-hash");
+        var sut = CreateService(context, policy.Object, hasher.Object, new FixedTimeProvider(FixedInstant));
+
+        var result = await sut.ResetPasswordAsync(user.Email, token, "new-password", "new-password");
+
+        Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
+        Assert.Equal(CredentialErrorCodes.PasswordResetInvalid, result.Code);
+        if (persistUser)
+        {
+            AssertResetUnchanged(user, token);
+        }
+
+        policy.Verify(candidate => candidate.Validate(It.IsAny<string>()), Times.Never);
+        hasher.Verify(candidate => candidate.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(true, false, false, false)]
+    [InlineData(false, true, false, false)]
+    [InlineData(false, false, true, false)]
+    [InlineData(false, false, false, true)]
+    public async Task PasswordResetRejectsMissingExpiredOrMalformedTokenWithoutMutation(
+        bool expired,
+        bool missingExpiration,
+        bool malformedHash,
+        bool missingToken)
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        const string token = "valid-reset-token";
+        var user = CreateUser();
+        user.TokenRedefinicaoHash = malformedHash ? "not-a-base64-hash" : HashResetToken(token);
+        user.TokenExpiracao = missingExpiration
+            ? null
+            : expired
+                ? FixedInstant.AddTicks(-1).UtcDateTime
+                : FixedInstant.AddMinutes(1).UtcDateTime;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var policy = new Mock<IPasswordPolicy>(MockBehavior.Strict);
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "unused-hash");
+        var sut = CreateService(context, policy.Object, hasher.Object, new FixedTimeProvider(FixedInstant));
+
+        var suppliedToken = missingToken ? null : token;
+        var result = await sut.ResetPasswordAsync(user.Email, suppliedToken, "new-password", "new-password");
+
+        Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
+        Assert.Equal(CredentialErrorCodes.PasswordResetInvalid, result.Code);
+        Assert.Equal("old-hash", user.SenhaHash);
+        Assert.True(user.ExigeTrocaSenha);
+        Assert.Equal(7, user.VersaoSessao);
+        Assert.Equal(malformedHash ? "not-a-base64-hash" : HashResetToken(token), user.TokenRedefinicaoHash);
+        DateTime? expectedExpiration = missingExpiration
+            ? null
+            : expired
+                ? FixedInstant.AddTicks(-1).UtcDateTime
+                : FixedInstant.AddMinutes(1).UtcDateTime;
+        Assert.Equal(expectedExpiration, user.TokenExpiracao);
+        policy.Verify(candidate => candidate.Validate(It.IsAny<string>()), Times.Never);
+        hasher.Verify(candidate => candidate.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task PasswordResetConcurrencyConflictDoesNotPersistCredentialMutation()
+    {
+        await using var context = CreateConcurrencyContext(Guid.NewGuid().ToString());
+        const string token = "valid-reset-token";
+        var user = CreateUser();
+        user.TokenRedefinicaoHash = HashResetToken(token);
+        user.TokenExpiracao = FixedInstant.AddMinutes(1).UtcDateTime;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        context.ThrowOnSave = true;
+        var sut = CreateService(
+            context,
+            ValidPolicy(),
+            CreateHasher(PasswordVerificationResult.Success, "new-hash").Object,
+            new FixedTimeProvider(FixedInstant));
+
+        var result = await sut.ResetPasswordAsync(user.Email, token, "new-password", "new-password");
+
+        Assert.Equal(CredentialChangeStatus.Conflict, result.Status);
+        var persistedUser = await context.Usuarios.SingleAsync(candidate => candidate.Id == user.Id);
+        AssertResetUnchanged(persistedUser, token);
+    }
+
+    [Fact]
     public async Task DeliveryResetRequiresAnExternalTransaction()
     {
         await using var context = CreateContext(Guid.NewGuid().ToString());

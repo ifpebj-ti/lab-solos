@@ -221,6 +221,115 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
     }
 
     [Fact]
+    public async Task RequestExpiredBeforeMaximumAgeIsDiscardedWithoutIssuingCode()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await context.Database.ExecuteSqlRawAsync(
+                "UPDATE \"PasswordRecoveryJobs\" SET \"ExpiresAt\" = clock_timestamp() - interval '1 second';");
+        }
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var verifiedContext = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verifiedContext.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await verifiedContext.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task MalformedRequestJsonIsCompletedAndScrubbedWithoutSending()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await ReplaceRequestPayloadAsync(factory, "{ malformed");
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task UnreadableRequestPayloadIsCompletedAndScrubbedWithoutSending()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var updateContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var queuedJob = await updateContext.PasswordRecoveryJobs.SingleAsync();
+            queuedJob.PayloadCiphertext = [0];
+            await updateContext.SaveChangesAsync();
+        }
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task CancellationDuringEmailDeliveryPreservesTheActiveJobForRecovery()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var clock = NewClock();
+        var emailService = new CapturingEmailService(send: async (_, _, _, cancellationToken) =>
+        {
+            cancellation.Cancel();
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        });
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        var worker = CreateWorker(factory, clock);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => worker.ProcessPendingAsync(cancellation.Token));
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Single(emailService.Messages);
+        Assert.Equal(PasswordRecoveryJobStatus.Processing, job.Status);
+        Assert.Equal(0, job.Attempts);
+        Assert.NotEmpty(job.PayloadCiphertext);
+        Assert.NotNull(job.LeaseId);
+    }
+
+    [Fact]
     public async Task RetryIsCancelledWhenSessionVersionChangesAfterFirstFailedSend()
     {
         var clock = NewClock();
@@ -454,6 +563,30 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
         await using var scope = factory.Services.CreateAsyncScope();
         var requestService = scope.ServiceProvider.GetRequiredService<IPasswordRecoveryRequestService>();
         await requestService.AdmitAsync(email, IPAddress.Parse("203.0.113.42"));
+    }
+
+    private static async Task ReplaceRequestPayloadAsync(
+        IntegrationWebApplicationFactory factory,
+        string malformedJson)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var protector = scope.ServiceProvider.GetRequiredService<RecoveryPayloadProtector>();
+        var job = await context.PasswordRecoveryJobs.SingleAsync();
+        var plaintext = Encoding.UTF8.GetBytes(malformedJson);
+        try
+        {
+            var protectedPayload = protector.Protect(job.Id, RecoveryPayloadPurpose.Request, plaintext);
+            job.PayloadCiphertext = protectedPayload.Ciphertext;
+            job.PayloadNonce = protectedPayload.Nonce;
+            job.PayloadTag = protectedPayload.Tag;
+            job.EncryptionKeyId = protectedPayload.EncryptionKeyId;
+            await context.SaveChangesAsync();
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(plaintext);
+        }
     }
 
     private static async Task EnqueueCaseVariantAsync(
