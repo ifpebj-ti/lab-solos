@@ -172,24 +172,23 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
             Assert.Equal(1, capacityLimit);
 
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var capacity = await context.Set<AuthenticationProtectionCapacity>()
-                .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange);
-            capacity.Allocated = 1;
-
             var keyFactory = scope.ServiceProvider.GetRequiredService<ThrottleKeyFactory>();
-            var accountKey = keyFactory.CreateAccountQuotaKey(ThrottlePurpose.PasswordChange, accountId: 99);
+            var throttle = scope.ServiceProvider.GetRequiredService<PostgresAuthenticationThrottle>();
+            var otherAccountRule = PasswordChangeRateLimitPolicy.CreateRule(99, keyFactory);
+            var otherAccountAdmission = await throttle.TryBeginAsync([otherAccountRule]);
+            Assert.Equal(AuthenticationThrottleState.Allowed, otherAccountAdmission.State);
+
+            var otherAccountAttempt = Assert.IsType<AuthenticationThrottleAttempt>(otherAccountAdmission.Attempt);
+            await using (otherAccountAttempt)
+            {
+                await otherAccountAttempt.CompleteAsync(AuthenticationThrottleOutcome.Accepted);
+            }
+
+            var requestAccountKey = keyFactory.CreateAccountQuotaKey(
+                ThrottlePurpose.PasswordChange,
+                accountId: 42);
             try
             {
-                context.Set<AuthenticationThrottleBucket>().Add(new AuthenticationThrottleBucket
-                {
-                    Scope = AuthenticationProtectionCapacity.PasswordChange,
-                    KeyHash = accountKey.ToArray(),
-                    WindowStartedAt = InitialTime,
-                    WindowEndsAt = InitialTime.AddMinutes(15),
-                    Count = 0
-                });
-                await context.SaveChangesAsync();
-
                 var persistedCapacity = await context.Set<AuthenticationProtectionCapacity>()
                     .AsNoTracking()
                     .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange);
@@ -197,11 +196,22 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
                 Assert.Equal(1, await context.Set<AuthenticationThrottleBucket>()
                     .AsNoTracking()
                     .CountAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange));
+                Assert.False(await context.Set<AuthenticationThrottleBucket>()
+                    .AsNoTracking()
+                    .AnyAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange
+                        && item.KeyHash.SequenceEqual(requestAccountKey)));
             }
             finally
             {
-                System.Security.Cryptography.CryptographicOperations.ZeroMemory(accountKey);
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(requestAccountKey);
             }
+        }
+
+        using (var session = await SendWithCookieAsync(client, HttpMethod.Get, "/api/Auth/session", scenario.Cookie))
+        {
+            Assert.Equal(HttpStatusCode.OK, session.StatusCode);
+            using var sessionDocument = System.Text.Json.JsonDocument.Parse(await session.Content.ReadAsStringAsync());
+            Assert.Equal(42, sessionDocument.RootElement.GetProperty("userId").GetInt32());
         }
 
         using var exhausted = await ChangePasswordAsync(client, scenario.Cookie, Password);
