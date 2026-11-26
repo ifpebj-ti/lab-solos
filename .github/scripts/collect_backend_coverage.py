@@ -1,4 +1,8 @@
-"""Normalize one complete .NET solution Cobertura report for the shared coverage gate."""
+"""Collect backend coverage for one complete .NET test run.
+
+When supplied, ReportGenerator's Summary.json is the source of truth so the
+gate and badges use the same branch counts shown by the backend HTML artifact.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +19,56 @@ SERVER_ROOT = Path("backend") / "LabSolos-Server-DotNet8"
 EXCLUDED_DIRECTORIES = {"bin", "obj", "generated", "__generated__", "migrations"}
 EXCLUDED_SUFFIXES = (".designer.cs", ".generated.cs")
 EXCLUDED_BASENAMES = {"globalusings.g.cs", "assemblyinfo.cs"}
+
+
+def _unique_json_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    fields: dict[str, object] = {}
+    for key, value in pairs:
+        if key in fields:
+            raise ValueError(f"duplicate JSON field {ascii(key)}")
+        fields[key] = value
+    return fields
+
+
+def _summary_metric(
+    summary: dict[str, object], covered_name: str, total_name: str
+) -> tuple[int, int]:
+    covered = summary.get(covered_name)
+    total = summary.get(total_name)
+    if type(covered) is not int or type(total) is not int:
+        raise ValueError(f"ReportGenerator {covered_name}/{total_name} must be integer counts")
+    if total <= 0 or covered < 0 or covered > total:
+        raise ValueError(f"ReportGenerator {covered_name}/{total_name} counts are inconsistent")
+    return covered, total
+
+
+def _read_reportgenerator_counts(path: Path) -> tuple[int, int, int, int]:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except FileNotFoundError as error:
+        raise ValueError(f"ReportGenerator summary is missing: {path}") from error
+    except (OSError, UnicodeError) as error:
+        raise ValueError(f"cannot read ReportGenerator summary: {path}") from error
+    if not content.strip():
+        raise ValueError(f"ReportGenerator summary is empty: {path}")
+    try:
+        report = json.loads(content, object_pairs_hook=_unique_json_fields)
+    except (ValueError, RecursionError) as error:
+        raise ValueError(f"invalid ReportGenerator summary JSON in {path}: {error}") from error
+    if not isinstance(report, dict):
+        raise ValueError(f"expected a JSON object in ReportGenerator summary: {path}")
+    summary = report.get("summary")
+    if not isinstance(summary, dict):
+        raise ValueError("ReportGenerator summary object is missing")
+    if summary.get("parser") != "Cobertura":
+        raise ValueError("ReportGenerator summary must be generated from Cobertura")
+    lines_covered, lines_total = _summary_metric(
+        summary, "coveredlines", "coverablelines"
+    )
+    branches_covered, branches_total = _summary_metric(
+        summary, "coveredbranches", "totalbranches"
+    )
+    return lines_covered, lines_total, branches_covered, branches_total
 
 
 def _line_identity(raw_number: str, raw_hits: str, filename: str) -> tuple[int, int]:
@@ -221,7 +275,12 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         help="Cobertura report from one full solution run",
     )
-    parser.add_argument("--output", type=Path, required=True, help="normalized backend coverage JSON")
+    parser.add_argument(
+        "--reportgenerator-summary",
+        type=Path,
+        help="ReportGenerator Summary.json from this run's backend HTML artifact",
+    )
+    parser.add_argument("--output", type=Path, required=True, help="backend coverage JSON")
     parser.add_argument("--repository-root", type=Path, required=True, help="repository root")
     parser.add_argument(
         "--results-directory",
@@ -273,9 +332,29 @@ def main(argv: list[str] | None = None) -> int:
                 "normalized report is outside this full solution run's results directory"
             ) from error
 
-        lines_covered, lines_total, branches_covered, branches_total = _read_counts(
-            coverage_file, repository_root
-        )
+        if args.reportgenerator_summary is not None:
+            if not coverage_file.is_file():
+                raise ValueError(f"coverage report is missing: {coverage_file}")
+            reportgenerator_summary = args.reportgenerator_summary.resolve(strict=False)
+            try:
+                summary_location = reportgenerator_summary.relative_to(results_directory)
+            except ValueError as error:
+                raise ValueError(
+                    "ReportGenerator summary is outside this full solution run's results directory"
+                ) from error
+            if summary_location.parts != ("html", "Summary.json"):
+                raise ValueError(
+                    "ReportGenerator summary must be html/Summary.json from this full solution run"
+                )
+            lines_covered, lines_total, branches_covered, branches_total = (
+                _read_reportgenerator_counts(reportgenerator_summary)
+            )
+            measurement_source = "ReportGenerator Summary.json"
+        else:
+            lines_covered, lines_total, branches_covered, branches_total = _read_counts(
+                coverage_file, repository_root
+            )
+            measurement_source = "Cobertura normalization"
         report = {
             "schemaVersion": 2,
             "module": "backend",
@@ -292,7 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(2, f"backend coverage collection failed: {error}\n")
 
     print(
-        f"backend coverage normalized: lines={lines_covered}/{lines_total}, "
+        f"backend coverage ({measurement_source}): lines={lines_covered}/{lines_total}, "
         f"branches={branches_covered}/{branches_total}, "
         f"sha={args.sha} run_id={args.run_id} run_attempt={args.run_attempt}"
     )

@@ -69,6 +69,260 @@ public sealed class ProdutosControllerTests
         unitOfWork.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData(null, "Grama", "H2O")]
+    [InlineData("2027-01-01", null, "H2O")]
+    [InlineData("2027-01-01", "Grama", null)]
+    public void ValidacaoDeQuimicoExigeDataValidadeUnidadeEMolecula(
+        string? dataValidade,
+        string? unidadeMedida,
+        string? formulaQuimica)
+    {
+        var service = new ProdutoService(NullLogger<ProdutoService>.Instance, CriarDiaCivil());
+
+        var result = service.ValidarEstruturaProduto(new AddProdutoDTO
+        {
+            NomeProduto = "Químico sintético",
+            Tipo = nameof(TipoProduto.Quimico),
+            Quantidade = 2,
+            QuantidadeMinima = 1,
+            Grupo = nameof(Grupo.Outros),
+            DataValidade = dataValidade,
+            UnidadeMedida = unidadeMedida,
+            FormulaQuimica = formulaQuimica
+        });
+
+        Assert.False(result.Validado);
+        Assert.Equal(
+            "Para o tipo 'Quimico', os campos 'DataValidade', 'UnidadeMedida' e 'FormulaQuimica' são obrigatórios",
+            result.Mensagem);
+        Assert.Null(result.ErrosPorCampo);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData(250, true)]
+    public void ValidacaoDeVidrariaExigeCapacidade(int? capacidade, bool expectedValid)
+    {
+        var service = new ProdutoService(NullLogger<ProdutoService>.Instance, CriarDiaCivil());
+
+        var result = service.ValidarEstruturaProduto(new AddProdutoDTO
+        {
+            NomeProduto = "Vidraria sintética",
+            Tipo = nameof(TipoProduto.Vidraria),
+            Quantidade = 1,
+            QuantidadeMinima = 1,
+            Capacidade = capacidade
+        });
+
+        Assert.Equal(expectedValid, result.Validado);
+        if (expectedValid)
+        {
+            Assert.Equal(string.Empty, result.Mensagem);
+        }
+        else
+        {
+            Assert.Equal("Para o tipo 'Vidraria', o campo 'Capacidade' é obrigatório", result.Mensagem);
+        }
+    }
+
+    [Theory]
+    [InlineData("Indefinido")]
+    [InlineData("Outros,Acido")]
+    [InlineData("NaoExiste")]
+    public void ValidacaoDeQuimicoRejeitaGrupoIndefinidoCompostoOuDesconhecido(string grupo)
+    {
+        var service = new ProdutoService(NullLogger<ProdutoService>.Instance, CriarDiaCivil());
+
+        var result = service.ValidarEstruturaProduto(new AddProdutoDTO
+        {
+            NomeProduto = "Químico sintético",
+            Tipo = nameof(TipoProduto.Quimico),
+            Quantidade = 2,
+            QuantidadeMinima = 1,
+            Grupo = grupo,
+            DataValidade = "2027-01-01",
+            UnidadeMedida = nameof(UnidadeMedida.Grama),
+            FormulaQuimica = "H2O"
+        });
+
+        Assert.False(result.Validado);
+        var errors = result.ErrosPorCampo!;
+        Assert.Equal("grupo", Assert.Single(errors).Key);
+        Assert.Contains("grupo válido", Assert.Single(errors["grupo"]));
+    }
+
+    [Theory]
+    [InlineData("/quantidademinima", "quantidadeMinima")]
+    [InlineData("/localizacaoproduto", "localizacaoProduto")]
+    [InlineData("/catmat", "catmat")]
+    public void CampoDeErroMapeiaNomeDeContratoEConservaFallback(string path, string expected)
+    {
+        Assert.Equal(expected, ProdutoService.CampoDeErro(path));
+    }
+
+    [Fact]
+    public void ValidacaoDePatchRejeitaQuantidadeMinimaLocalizacaoEDatasInvertidas()
+    {
+        var candidate = new ProdutoDTOPatchRequest
+        {
+            QuantidadeMinima = -1,
+            LocalizacaoProduto = null,
+            DataFabricacao = "2027-02-01",
+            DataValidade = "2027-01-01"
+        };
+        var paths = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/quantidademinima",
+            "/localizacaoproduto",
+            "/datafabricacao",
+            "/datavalidade"
+        };
+
+        var errors = ProdutoService.ValidarAlteracoesExplicitas(candidate, paths);
+
+        Assert.Contains("quantidadeMinima", errors.Keys);
+        Assert.Contains("localizacaoProduto", errors.Keys);
+        Assert.Contains("dataFabricacao", errors.Keys);
+        Assert.Contains("A fabricação deve ocorrer até a validade.", errors["dataFabricacao"]);
+    }
+
+    [Fact]
+    public void AplicarPatchAtualizaCamposDeEstoqueEnderecoStatusEDataCivil()
+    {
+        var product = new Produto
+        {
+            NomeProduto = "Produto antigo",
+            Quantidade = 1,
+            QuantidadeMinima = 1,
+            Status = StatusProduto.Disponivel,
+            Fornecedor = "Marca antiga",
+            LocalizacaoProduto = "Armário A"
+        };
+        var candidate = new ProdutoDTOPatchRequest
+        {
+            NomeProduto = "Produto novo",
+            Quantidade = 4,
+            QuantidadeMinima = 2,
+            Fornecedor = null,
+            LocalizacaoProduto = "Armário B",
+            DataFabricacao = "2026-01-02",
+            DataValidade = null,
+            Status = nameof(StatusProduto.EmUso)
+        };
+        var paths = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/nomeproduto", "/quantidade", "/quantidademinima", "/fornecedor",
+            "/localizacaoproduto", "/datafabricacao", "/datavalidade", "/status"
+        };
+
+        ProdutoService.AplicarAlteracoesExplicitas(product, candidate, paths);
+
+        Assert.Equal("Produto novo", product.NomeProduto);
+        Assert.Equal(4, product.Quantidade);
+        Assert.Equal(2, product.QuantidadeMinima);
+        Assert.Null(product.Fornecedor);
+        Assert.Equal("Armário B", product.LocalizacaoProduto);
+        Assert.Equal(new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc), product.DataFabricacao);
+        Assert.Null(product.DataValidade);
+        Assert.Equal(StatusProduto.EmUso, product.Status);
+    }
+
+    [Fact]
+    public async Task TipoDeProdutoForaDoEnumRetornaBadRequestAntesDaConsulta()
+    {
+        var repository = new Mock<IProdutoRepository>(MockBehavior.Strict);
+        var controller = CreateProductController(repository.Object);
+
+        var result = await controller.ObterProdutosPeloTipo(99, null, null);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, badRequest.StatusCode);
+        repository.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task TipoDeProdutoComPaginacaoInvalidaNaoConsultaRepositorio()
+    {
+        var repository = new Mock<IProdutoRepository>(MockBehavior.Strict);
+        var controller = CreateProductController(repository.Object);
+
+        var result = await controller.ObterProdutosPeloTipo(
+            (int)TipoProduto.Quimico, pagina: "0", tamanhoPagina: "25");
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("pagination_invalid", Assert.IsType<ProblemDetails>(badRequest.Value).Extensions["code"]);
+        repository.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ConsultaPorIdMapeiaTipoOutroComDtoGenerico()
+    {
+        var product = new Produto
+        {
+            Id = 17,
+            NomeProduto = "Item genérico",
+            Tipo = TipoProduto.Outro,
+            Quantidade = 1,
+            QuantidadeMinima = 0,
+            Status = StatusProduto.Disponivel
+        };
+        var expected = new ProdutoDTO { Id = product.Id, NomeProduto = product.NomeProduto };
+        var productRepository = new Mock<IRepository<Produto>>();
+        productRepository
+            .Setup(repository => repository.ObterAsync(
+                It.IsAny<Expression<Func<Produto, bool>>>(),
+                It.IsAny<Func<IQueryable<Produto>, IQueryable<Produto>>?>()))
+            .ReturnsAsync(product);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(repository => repository.ProdutoRepository).Returns(productRepository.Object);
+        var mapper = new Mock<IMapper>();
+        mapper.Setup(item => item.Map<ProdutoDTO>(product)).Returns(expected);
+        var controller = new ProdutosController(
+            Mock.Of<IProdutoService>(),
+            Mock.Of<IUtilitiesService>(),
+            NullLogger<ProdutosController>.Instance,
+            unitOfWork.Object,
+            mapper.Object,
+            Mock.Of<IProdutoRepository>())
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var result = await controller.ObterPeloId(product.Id);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Same(expected, ok.Value);
+        mapper.Verify(item => item.Map<ProdutoDTO>(product), Times.Once);
+    }
+
+    [Fact]
+    public async Task ConsultaPorIdInexistenteRetornaNotFound()
+    {
+        var productRepository = new Mock<IRepository<Produto>>();
+        productRepository
+            .Setup(repository => repository.ObterAsync(
+                It.IsAny<Expression<Func<Produto, bool>>>(),
+                It.IsAny<Func<IQueryable<Produto>, IQueryable<Produto>>?>()))
+            .ReturnsAsync((Produto?)null);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(repository => repository.ProdutoRepository).Returns(productRepository.Object);
+        var controller = new ProdutosController(
+            Mock.Of<IProdutoService>(),
+            Mock.Of<IUtilitiesService>(),
+            NullLogger<ProdutosController>.Instance,
+            unitOfWork.Object,
+            Mock.Of<IMapper>(),
+            Mock.Of<IProdutoRepository>())
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var result = await controller.ObterPeloId(404);
+
+        Assert.IsType<NotFoundResult>(result.Result);
+    }
+
     [Fact]
     public async Task HistoricoProdutoInexistenteRetornaNotFound()
     {
@@ -202,6 +456,22 @@ public sealed class ProdutosControllerTests
             Mock.Of<LabSolos_Server_DotNet8.Repositories.IUnitOfWork>(),
             Mock.Of<IMapper>(),
             Mock.Of<IProdutoRepository>());
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        return controller;
+    }
+
+    private static ProdutosController CreateProductController(IProdutoRepository repository)
+    {
+        var controller = new ProdutosController(
+            Mock.Of<IProdutoService>(),
+            Mock.Of<IUtilitiesService>(),
+            NullLogger<ProdutosController>.Instance,
+            Mock.Of<IUnitOfWork>(),
+            Mock.Of<IMapper>(),
+            repository);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()

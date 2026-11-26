@@ -411,3 +411,66 @@ public sealed class SharedAuthenticationThrottleTests(PostgreSql15ContainerFixtu
         public ValueTask DisposeAsync() => context.DisposeAsync();
     }
 }
+
+public sealed class PostgresAuthenticationThrottleRuleValidationTests
+{
+    [Fact]
+    public async Task TryBeginRejectsMissingOrDuplicateDimensionsBeforeOpeningPostgres()
+    {
+        await using var context = CreateContext();
+        var service = CreateService(context);
+        var rule = ValidRule();
+
+        await Assert.ThrowsAsync<ArgumentNullException>(() => service.TryBeginAsync(null!));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.TryBeginAsync([]));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.TryBeginAsync(
+            Enumerable.Range(0, 7).Select(index => ValidRule(key: Enumerable.Repeat((byte)index, 32).ToArray())).ToArray()));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => service.TryBeginAsync([null!]));
+        await Assert.ThrowsAsync<ArgumentException>(() => service.TryBeginAsync([rule, rule with { KeyHash = rule.KeyHash.ToArray() }]));
+    }
+
+    [Fact]
+    public async Task TryBeginRejectsMalformedDimensionsBeforeOpeningPostgres()
+    {
+        await using var context = CreateContext();
+        var service = CreateService(context);
+        var invalidRules = new AuthenticationThrottleRule[]
+        {
+            ValidRule(scope: "unsupported-scope"),
+            ValidRule(key: new byte[31]),
+            ValidRule(limit: 0),
+            ValidRule(window: TimeSpan.Zero),
+            ValidRule(acceptedCooldown: TimeSpan.Zero),
+            ValidRule(countAccepted: false, acceptedCooldown: TimeSpan.FromSeconds(1))
+        };
+
+        foreach (var invalidRule in invalidRules)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() => service.TryBeginAsync([invalidRule]));
+        }
+    }
+
+    private static AppDbContext CreateContext() => new(
+        new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+
+    private static PostgresAuthenticationThrottle CreateService(AppDbContext context) => new(
+        context,
+        Options.Create(new AuthenticationProtectionOptions()),
+        new TimeProviderAuthenticationThrottleClock(TimeProvider.System));
+
+    private static AuthenticationThrottleRule ValidRule(
+        string scope = "login:account",
+        byte[]? key = null,
+        int limit = 1,
+        TimeSpan? window = null,
+        bool countAccepted = false,
+        TimeSpan? acceptedCooldown = null) => new(
+            scope,
+            key ?? Enumerable.Repeat((byte)1, 32).ToArray(),
+            limit,
+            window ?? TimeSpan.FromMinutes(15),
+            countAccepted,
+            acceptedCooldown);
+}

@@ -5,6 +5,7 @@ using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Http;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -190,5 +191,35 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
 
             throw new FileNotFoundException("Synthetic secret file is unavailable.");
         }
+    }
+}
+
+public sealed class OperationAdmissionPolicyRequestDetectionTests
+{
+    [Fact]
+    public void IsLimitedJsonWriteRejectsNullRequest()
+    {
+        Assert.Throws<ArgumentNullException>(() => OperationAdmissionPolicy.IsLimitedJsonWrite(null!));
+    }
+
+    [Theory]
+    [InlineData("POST", "/api/Usuarios", "application/json", true)]
+    [InlineData("post", "/api/Emprestimos", "application/vnd.lab-solos+json; charset=utf-8", true)]
+    [InlineData("GET", "/api/Usuarios", "application/json", false)]
+    [InlineData("POST", "/api/Produtos", "application/json", false)]
+    [InlineData("POST", "/api/Usuarios", null, false)]
+    [InlineData("POST", "/api/Emprestimos", "text/json", false)]
+    public void IsLimitedJsonWriteRequiresAnAllowedPostEndpointAndJsonMediaType(
+        string method,
+        string path,
+        string? contentType,
+        bool expected)
+    {
+        var request = new DefaultHttpContext().Request;
+        request.Method = method;
+        request.Path = path;
+        request.ContentType = contentType;
+
+        Assert.Equal(expected, OperationAdmissionPolicy.IsLimitedJsonWrite(request));
     }
 }

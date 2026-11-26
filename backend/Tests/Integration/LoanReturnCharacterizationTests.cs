@@ -129,6 +129,84 @@ public sealed class LoanReturnCharacterizationTests(PostgreSqlContainerFixture d
     }
 
     [Fact]
+    public async Task ApprovedLegacyLoanWithoutOutflowEvidenceCannotBeReturned()
+    {
+        var seeded = await SeedScenarioAsync("loan-return-without-approval-evidence");
+        await using var factory = seeded.Factory;
+        var scenario = seeded.Scenario;
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var loan = await context.Emprestimos.SingleAsync(item => item.Id == scenario.LoanId);
+            loan.Status = StatusEmprestimo.Aprovado;
+            loan.AprovadorId = null;
+            loan.DataAprovacao = null;
+            await context.SaveChangesAsync();
+        }
+
+        using var client = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.AdministratorEmail,
+            scenario.AdministratorPassword);
+        using var response = await SendPatchAsync(
+            client,
+            $"/api/Emprestimos/devolver/{scenario.LoanId}");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("loan_not_approved_for_return", problem.RootElement.GetProperty("code").GetString());
+        var state = await ReadLoanStateAsync(factory, scenario.LoanId);
+        Assert.Null(state.EffectiveReturnDate);
+        Assert.Equal(10, state.ProductQuantity);
+    }
+
+    [Fact]
+    public async Task MentorCanReturnMenteeLoanAndExpiredStockRemainsExpired()
+    {
+        var seeded = await SeedScenarioAsync("mentor-returns-expired-product");
+        await using var factory = seeded.Factory;
+        var scenario = seeded.Scenario;
+
+        using (var administrator = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.AdministratorEmail,
+            scenario.AdministratorPassword))
+        using (var approval = await SendPatchAsync(
+            administrator,
+            $"/api/Emprestimos/aprovar/{scenario.LoanId}"))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, approval.StatusCode);
+        }
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var product = await context.Produtos.SingleAsync(item => item.Id == scenario.ProductId);
+            product.DataValidade = ScenarioNow.UtcDateTime.Date.AddDays(-1);
+            await context.SaveChangesAsync();
+        }
+
+        using var mentor = await CreateAuthenticatedClientAsync(
+            factory,
+            scenario.ResponsibleEmail,
+            scenario.ResponsiblePassword);
+        using var response = await SendPatchAsync(
+            mentor,
+            $"/api/Emprestimos/devolver/{scenario.LoanId}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var state = await ReadLoanStateAsync(factory, scenario.LoanId);
+        Assert.Equal(10, state.ProductQuantity);
+        await using var finalScope = factory.Services.CreateAsyncScope();
+        var finalContext = finalScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var returnedProduct = await finalContext.Produtos
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == scenario.ProductId);
+        Assert.Equal(StatusProduto.Vencido, returnedProduct.Status);
+    }
+
+    [Fact]
     public async Task OverdueNotificationsUseScheduledDeadlineAndIgnoreReturnedLoans()
     {
         var seeded = await SeedScenarioAsync("loan-return-notification");

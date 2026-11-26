@@ -140,14 +140,6 @@ jobs:
               "${#coverage_reports[@]}" >&2
             exit 2
           fi
-          python -B .github/scripts/collect_backend_coverage.py \
-            --coverage-file "${coverage_reports[0]}" \
-            --output "$results_directory/backend-coverage.json" \
-            --repository-root "$GITHUB_WORKSPACE" \
-            --results-directory "$results_directory" \
-            --sha "$GITHUB_SHA" \
-            --run-id "$GITHUB_RUN_ID" \
-            --run-attempt "$GITHUB_RUN_ATTEMPT"
           html_directory="$results_directory/html"
           dotnet tool run reportgenerator \
             "-reports:${coverage_reports[0]}" \
@@ -155,8 +147,17 @@ jobs:
             "-reporttypes:Html;JsonSummary"
           test -s "$html_directory/index.html"
           test -s "$html_directory/Summary.json"
+          python -B .github/scripts/collect_backend_coverage.py \
+            --coverage-file "${coverage_reports[0]}" \
+            --reportgenerator-summary "$html_directory/Summary.json" \
+            --output "$results_directory/backend-coverage.json" \
+            --repository-root "$GITHUB_WORKSPACE" \
+            --results-directory "$results_directory" \
+            --sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --run-attempt "$GITHUB_RUN_ATTEMPT"
 
-      - name: Upload normalized backend coverage
+      - name: Upload backend coverage matching the HTML artifact
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

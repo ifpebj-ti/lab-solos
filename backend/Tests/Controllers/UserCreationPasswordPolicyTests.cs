@@ -18,6 +18,17 @@ namespace Tests.Controllers;
 
 public class UserCreationPasswordPolicyTests
 {
+    public static TheoryData<string, string, string> RegistrationPasswordFailures => new()
+    {
+        { string.Empty, "password_required", "A senha é obrigatória." },
+        {
+            new string('a', PasswordPolicy.MaximumLength + 1),
+            "password_too_long",
+            $"A senha deve ter no máximo {PasswordPolicy.MaximumLength} caracteres."
+        },
+        { "correct horse battery staple", "password_common", "A senha é muito comum." }
+    };
+
     public static TheoryData<string, bool, string?> PasswordMatrix => new()
     {
         { new string('a', 14), false, "password_too_short" },
@@ -105,6 +116,55 @@ public class UserCreationPasswordPolicyTests
         var details = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
         Assert.Contains("password_too_short", details.Errors["senha"]);
         Assert.DoesNotContain(password, JsonSerializer.Serialize(details));
+        fixture.Repository.Verify(repository => repository.Criar(It.IsAny<Usuario>()), Times.Never);
+        fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Never);
+    }
+
+    [Theory]
+    [MemberData(nameof(RegistrationPasswordFailures))]
+    public async Task Adicionar_MapsPasswordPolicyFailuresToSafeFieldErrors(
+        string password,
+        string expectedCode,
+        string expectedMessage)
+    {
+        var fixture = CreateController(password);
+
+        var result = await fixture.Controller.Adicionar(fixture.Request);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(400, objectResult.StatusCode);
+        var details = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+        Assert.Equal([expectedCode, expectedMessage], details.Errors["senha"]);
+        fixture.Repository.Verify(repository => repository.Criar(It.IsAny<Usuario>()), Times.Never);
+        fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Adicionar_InvalidPublicRoleReturnsBadRequestWithoutPersisting()
+    {
+        var fixture = CreateController("safe registration password");
+        fixture.Request.NivelUsuario = nameof(NivelUsuario.Administrador);
+
+        var result = await fixture.Controller.Adicionar(fixture.Request);
+
+        var badRequest = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(400, badRequest.StatusCode);
+        fixture.Repository.Verify(repository => repository.Criar(It.IsAny<Usuario>()), Times.Never);
+        fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Adicionar_InvalidAcademicFieldsReturnsValidationProblemWithoutPersisting()
+    {
+        var fixture = CreateController("safe registration password");
+        fixture.Request.Cidade = "Indefinido";
+
+        var result = await fixture.Controller.Adicionar(fixture.Request);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(400, objectResult.StatusCode);
+        var details = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+        Assert.Contains("Informe uma cidade válida.", details.Errors["cidade"]);
         fixture.Repository.Verify(repository => repository.Criar(It.IsAny<Usuario>()), Times.Never);
         fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Never);
     }

@@ -156,6 +156,66 @@ public sealed class AuthenticationProtectionTelemetryTests
         Assert.Equal(["operation=unknown", "reason=unknown"], measurement.Tags);
     }
 
+    [Theory]
+    [InlineData(AuthenticationProtectionOperation.PasswordChange, "password_change")]
+    [InlineData(AuthenticationProtectionOperation.UserRead, "user_read")]
+    [InlineData(AuthenticationProtectionOperation.UserWrite, "user_write")]
+    public void MapsEveryRemainingOperationToItsBoundedTag(
+        AuthenticationProtectionOperation operation,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordFailure(operation, AuthenticationProtectionReason.Unexpected);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Equal(["operation=" + expectedTag, "reason=unexpected"], measurement.Tags);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationProtectionReason.Unauthenticated, "unauthenticated")]
+    [InlineData(AuthenticationProtectionReason.NotFound, "not_found")]
+    [InlineData(AuthenticationProtectionReason.CapacityExhausted, "capacity_exhausted")]
+    [InlineData(AuthenticationProtectionReason.InvalidConfiguration, "invalid_configuration")]
+    [InlineData(AuthenticationProtectionReason.Unexpected, "unexpected")]
+    public void MapsEveryRemainingReasonToItsBoundedTag(
+        AuthenticationProtectionReason reason,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordFailure(AuthenticationProtectionOperation.Login, reason);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Equal("reason=" + expectedTag, Assert.Single(measurement.Tags.Where(tag => tag.StartsWith("reason=", StringComparison.Ordinal))));
+    }
+
+    [Theory]
+    [InlineData(AuthenticationProtectionResult.Success, "success")]
+    [InlineData(AuthenticationProtectionResult.Throttled, "throttled")]
+    [InlineData(AuthenticationProtectionResult.Accepted, "accepted")]
+    [InlineData(AuthenticationProtectionResult.Rejected, "rejected")]
+    public void MapsEveryRemainingDeliveryResultToItsBoundedTag(
+        AuthenticationProtectionResult result,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordRecoveryDelivery(result, AuthenticationProtectionReason.Unexpected);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Contains("result=" + expectedTag, measurement.Tags);
+    }
+
     [Fact]
     public void RejectsInvalidDurationAndCapacityChanges()
     {

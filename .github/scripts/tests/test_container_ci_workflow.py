@@ -125,6 +125,13 @@ class ContainerCiWorkflowTests(unittest.TestCase):
         self.assertIn("actions/upload-artifact@", backend)
         self.assertIn("dotnet tool restore", backend)
         self.assertIn("reportgenerator", backend)
+        self.assertIn("--reportgenerator-summary", backend)
+        self.assertIn("Summary.json", backend)
+        self.assertLess(
+            backend.index("dotnet tool run reportgenerator"),
+            backend.index("python -B .github/scripts/collect_backend_coverage.py"),
+        )
+        self.assertIn("Upload backend coverage matching the HTML artifact", backend)
         self.assertIn("name: backend-html-coverage", backend)
         self.assertIn("retention-days: 30", backend)
 

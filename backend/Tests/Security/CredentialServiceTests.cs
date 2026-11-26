@@ -4,6 +4,7 @@ using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -38,6 +39,33 @@ public class CredentialServiceTests
         Assert.Null(user.TokenRedefinicaoHash);
         Assert.Null(user.TokenExpiracao);
         hasher.Verify(h => h.HashPassword(user, "valid-new-password"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WithoutOptionalRecoveryRepositoryStillSucceeds()
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        var user = CreateUser();
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "new-hash");
+        using var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var sut = new CredentialService(
+            context,
+            ValidPolicy(),
+            hasher.Object,
+            new CredentialTelemetry(NullLogger<CredentialTelemetry>.Instance),
+            serviceProvider: serviceProvider);
+
+        var result = await sut.ChangePasswordAsync(
+            user.Id,
+            "current-password",
+            "valid-new-password",
+            "valid-new-password");
+
+        Assert.Equal(CredentialChangeStatus.Success, result.Status);
+        Assert.Equal("new-hash", user.SenhaHash);
+        Assert.Equal(8, user.VersaoSessao);
     }
 
     [Theory]
@@ -81,6 +109,41 @@ public class CredentialServiceTests
         Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
         Assert.Equal("current_password_invalid", result.Code);
         AssertUnchanged(user);
+        hasher.Verify(h => h.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(true, "")]
+    [InlineData(false, "current-password")]
+    public async Task ChangePasswordAsync_MissingUserOrCurrentPassword_ReturnsStableCodeWithoutMutation(
+        bool userExists,
+        string? currentPassword)
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        var user = CreateUser();
+        if (userExists)
+        {
+            context.Usuarios.Add(user);
+            await context.SaveChangesAsync();
+        }
+
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "unused-hash");
+        var sut = CreateService(context, ValidPolicy(), hasher.Object);
+
+        var result = await sut.ChangePasswordAsync(
+            userExists ? user.Id : user.Id + 1,
+            currentPassword,
+            "valid-new-password",
+            "valid-new-password");
+
+        Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
+        Assert.Equal("current_password_invalid", result.Code);
+        if (userExists)
+        {
+            AssertUnchanged(user);
+        }
+        hasher.Verify(h => h.VerifyHashedPassword(
+            It.IsAny<Usuario>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         hasher.Verify(h => h.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -130,6 +193,31 @@ public class CredentialServiceTests
 
         Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
         Assert.Equal("password_common", result.Code);
+        AssertUnchanged(user);
+        hasher.Verify(h => h.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_PolicyRejectionWithoutCodeUsesGenericFallback()
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        var user = CreateUser();
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var policy = new Mock<IPasswordPolicy>();
+        policy.Setup(p => p.Validate("blocked-password"))
+            .Returns(new PasswordPolicyResult(false, null));
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "unused-hash");
+        var sut = CreateService(context, policy.Object, hasher.Object);
+
+        var result = await sut.ChangePasswordAsync(
+            user.Id,
+            "current-password",
+            "blocked-password",
+            "blocked-password");
+
+        Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
+        Assert.Equal("password_invalid", result.Code);
         AssertUnchanged(user);
         hasher.Verify(h => h.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
     }

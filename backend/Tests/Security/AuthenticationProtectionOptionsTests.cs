@@ -122,6 +122,109 @@ public sealed class AuthenticationProtectionOptionsTests
         Assert.Contains(result.Failures ?? Array.Empty<string>(), message => message.Contains("DevelopmentOrigins", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ValidateRejectsMissingNestedProtectionConfiguration()
+    {
+        var options = ValidOptions();
+        options.Login = null!;
+        options.RecoveryRequest = null!;
+        options.RecoveryCode = null!;
+        options.Delivery = null!;
+        options.ForwardedHeaders = null!;
+        options.Cors = null!;
+
+        var result = Validate(options, ValidFiles());
+
+        Assert.False(result.Succeeded);
+        var failures = result.Failures ?? Array.Empty<string>();
+        Assert.Contains(failures, message => message.Contains("Login options", StringComparison.Ordinal));
+        Assert.Contains(failures, message => message.Contains("RecoveryRequest options", StringComparison.Ordinal));
+        Assert.Contains(failures, message => message.Contains("RecoveryCode options", StringComparison.Ordinal));
+        Assert.Contains(failures, message => message.Contains("Delivery options", StringComparison.Ordinal));
+        Assert.Contains(failures, message => message.Contains("ForwardedHeaders.KnownProxies", StringComparison.Ordinal));
+        Assert.Contains(failures, message => message.Contains("Cors.DevelopmentOrigins", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateReportsUnavailableSecretFilesWithoutExposingTheirPaths()
+    {
+        var options = ValidOptions();
+        var result = Validate(options, new FakeSecretFileReader());
+
+        Assert.False(result.Succeeded);
+        var failures = string.Join(" ", result.Failures ?? Array.Empty<string>());
+        Assert.Contains("KeyHashSecretFile could not be read", failures, StringComparison.Ordinal);
+        Assert.Contains("RecoveryEncryptionKeysFile could not be read", failures, StringComparison.Ordinal);
+        Assert.DoesNotContain(HashSecretPath, failures, StringComparison.Ordinal);
+        Assert.DoesNotContain(EncryptionKeysPath, failures, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("{\"activeKeyId\":\"missing\",\"keys\":{\"old\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\"}}")]
+    [InlineData("{\"activeKeyId\":\"key-1\",\"keys\":{}}")]
+    public void ValidateRejectsMalformedOrInactiveRecoveryKeyRings(string json)
+    {
+        var files = ValidFiles();
+        files.Set(EncryptionKeysPath, Encoding.UTF8.GetBytes(json));
+
+        var result = Validate(ValidOptions(), files);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Failures ?? Array.Empty<string>(), message =>
+            message.Contains("RecoveryEncryptionKeysFile", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("relative/path")]
+    [InlineData("ftp://example.invalid")]
+    [InlineData("https://user:secret@example.invalid")]
+    [InlineData("https://example.invalid?query=1")]
+    [InlineData("https://example.invalid#fragment")]
+    [InlineData("https://example.invalid/path")]
+    public void ValidateRejectsOriginsOutsideAnExactHttpAuthority(string origin)
+    {
+        var options = ValidOptions();
+        options.Cors.DevelopmentOrigins = [origin];
+
+        var result = Validate(options, ValidFiles());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Failures ?? Array.Empty<string>(), message =>
+            message.Contains("DevelopmentOrigins", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-ip")]
+    [InlineData("0.0.0.0")]
+    [InlineData("::")]
+    [InlineData("127.0.0.1/32")]
+    public void ValidateRejectsProxyEntriesThatAreNotExactAddresses(string proxy)
+    {
+        var options = ValidOptions();
+        options.ForwardedHeaders.KnownProxies = [proxy];
+
+        var result = Validate(options, ValidFiles());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Failures ?? Array.Empty<string>(), message =>
+            message.Contains("KnownProxies entries", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidateAcceptsCanonicalIpv6ProxyAndOrigin()
+    {
+        var options = ValidOptions();
+        options.ForwardedHeaders.KnownProxies = ["2001:db8::1"];
+        options.Cors.DevelopmentOrigins = ["https://client.example.invalid"];
+
+        var result = Validate(options, ValidFiles());
+
+        Assert.True(result.Succeeded, string.Join(" ", result.Failures ?? Array.Empty<string>()));
+    }
+
     private static AuthenticationProtectionOptions ValidOptions() => new()
     {
         KeyHashSecretFile = HashSecretPath,

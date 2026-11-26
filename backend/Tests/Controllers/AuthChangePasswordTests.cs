@@ -88,6 +88,29 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
+    public async Task ChangePassword_NullRequestAndMissingCode_UsesSafeValidationDefaults()
+    {
+        var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
+        passwordChanges.Setup(service => service.ChangePasswordAsync(
+                42,
+                It.Is<ChangePasswordDTO>(request =>
+                    request.CurrentPassword == null
+                    && request.NewPassword == null
+                    && request.Confirmation == null),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CredentialChangeResult(CredentialChangeStatus.ValidationFailed, null));
+        var controller = CreateController(passwordChanges.Object, "42");
+
+        var result = await controller.ChangePassword(null, CancellationToken.None);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
+        var details = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+        Assert.Contains("password_invalid", details.Errors["newPassword"]);
+        passwordChanges.VerifyAll();
+    }
+
+    [Fact]
     public async Task ChangePassword_ConcurrencyFailure_ReturnsConflictProblemDetails()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();

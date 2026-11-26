@@ -233,6 +233,65 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
     }
 
     [Fact]
+    public async Task JsonPatchTestOperationAllowsMatchingValueAndRejectsMismatchWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var matching = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"test\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, matching.StatusCode);
+
+            using var mismatch = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                "[{\"op\":\"test\",\"path\":\"/email\",\"value\":\"different@example.invalid\"}]");
+            Assert.Equal(HttpStatusCode.BadRequest, mismatch.StatusCode);
+            Assert.Contains("invalid_patch", await mismatch.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+        }
+    }
+
+    [Theory]
+    [InlineData("/nomeCompleto", "  ", "nomeCompleto", "name_required")]
+    [InlineData("/email", "not-an-email", "email", "email_invalid")]
+    [InlineData("/status", "ValorInexistente", "status", "status_invalid")]
+    public async Task InvalidPatchedProfileValuesReturnFieldErrorsWithoutMutation(
+        string path,
+        string value,
+        string field,
+        string expectedCode)
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var response = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"{path}\",\"value\":\"{value}\"}}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(expectedCode, payload.RootElement.GetProperty("errors").GetProperty(field)[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+            Assert.Equal(StatusUsuario.Habilitado, user.Status);
+        }
+    }
+
+    [Fact]
     public async Task JsonPatchDocumentIsLimitedToTenOperations()
     {
         var (factory, scenario) = await CreateScenarioAsync();
