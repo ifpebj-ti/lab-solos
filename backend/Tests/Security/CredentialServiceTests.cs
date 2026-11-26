@@ -508,6 +508,66 @@ public class CredentialServiceTests
         hasher.Verify(candidate => candidate.HashPassword(user, "new-password"), Times.Once);
     }
 
+    [Fact]
+    public async Task PasswordResetAcceptsLegacyTokenWithoutEmail()
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        const string token = "valid-legacy-reset-token";
+        var user = CreateUser();
+        user.TokenRedefinicaoHash = HashResetToken(token);
+        user.TokenExpiracao = FixedInstant.AddMinutes(1).UtcDateTime;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "new-hash");
+        var sut = CreateService(context, ValidPolicy(), hasher.Object, new FixedTimeProvider(FixedInstant));
+
+        var result = await sut.ResetPasswordAsync(
+            email: null,
+            token: token,
+            newPassword: "new-password",
+            confirmation: "new-password",
+            allowLegacyTokenOnly: true);
+
+        Assert.Equal(CredentialChangeStatus.Success, result.Status);
+        Assert.Null(result.Code);
+        Assert.Equal("new-hash", user.SenhaHash);
+        Assert.False(user.ExigeTrocaSenha);
+        Assert.Equal(8, user.VersaoSessao);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Null(user.TokenExpiracao);
+        hasher.Verify(candidate => candidate.HashPassword(user, "new-password"), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task PasswordResetRejectsEmptyLegacyTokenWithoutEmail(string? token)
+    {
+        await using var context = CreateContext(Guid.NewGuid().ToString());
+        const string validToken = "valid-legacy-reset-token";
+        var user = CreateUser();
+        user.TokenRedefinicaoHash = HashResetToken(validToken);
+        user.TokenExpiracao = FixedInstant.AddMinutes(1).UtcDateTime;
+        context.Usuarios.Add(user);
+        await context.SaveChangesAsync();
+        var policy = new Mock<IPasswordPolicy>(MockBehavior.Strict);
+        var hasher = CreateHasher(PasswordVerificationResult.Success, "unused-hash");
+        var sut = CreateService(context, policy.Object, hasher.Object, new FixedTimeProvider(FixedInstant));
+
+        var result = await sut.ResetPasswordAsync(
+            email: null,
+            token: token,
+            newPassword: "new-password",
+            confirmation: "new-password",
+            allowLegacyTokenOnly: true);
+
+        Assert.Equal(CredentialChangeStatus.ValidationFailed, result.Status);
+        Assert.Equal(CredentialErrorCodes.PasswordResetInvalid, result.Code);
+        AssertResetUnchanged(user, validToken);
+        policy.Verify(candidate => candidate.Validate(It.IsAny<string>()), Times.Never);
+        hasher.Verify(candidate => candidate.HashPassword(It.IsAny<Usuario>(), It.IsAny<string>()), Times.Never);
+    }
+
     [Theory]
     [InlineData(false, StatusUsuario.Habilitado)]
     [InlineData(true, StatusUsuario.Desabilitado)]

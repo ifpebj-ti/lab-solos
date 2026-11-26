@@ -149,6 +149,29 @@ public sealed class SharedAuthenticationThrottleTests(PostgreSql15ContainerFixtu
     }
 
     [Fact]
+    public async Task EmissionDeadlineCannotBeStagedForAnUnlockedBucket()
+    {
+        await ResetDatabaseAsync();
+        var clock = new ControlledTimeProvider(InitialTime);
+        var rule = Rule("recovery-request:recipient", Key(22), 3, TimeSpan.FromHours(1));
+        await using var admitted = await BeginAsync([rule], clock);
+
+        Assert.Equal(AuthenticationThrottleState.Allowed, admitted.Result.State);
+        Assert.NotNull(admitted.Result.Attempt);
+        await using (var attempt = admitted.Result.Attempt!)
+        {
+            Assert.Throws<ArgumentException>(() => attempt.SetNextEmissionAt(
+                rule.Scope,
+                Key(23),
+                InitialTime.AddMinutes(1)));
+        }
+
+        await using var verification = CreateContext();
+        Assert.Equal(0, await verification.AuthenticationThrottleBuckets.CountAsync());
+        Assert.Equal(0, await ReadCapacityAsync(verification, rule.Scope));
+    }
+
+    [Fact]
     public async Task CapacityIsExactAndFullCapacityFailsClosedWithoutAllocatingAnotherKey()
     {
         await ResetDatabaseAsync();
@@ -230,6 +253,22 @@ public sealed class SharedAuthenticationThrottleTests(PostgreSql15ContainerFixtu
         Assert.Equal(1, await verification.AuthenticationThrottleBuckets.CountAsync());
         Assert.Equal(1, await ReadCapacityAsync(verification, "login:account"));
         Assert.Equal(1, await ReadCountAsync(verification, "login:account", Key(52)));
+    }
+
+    [Fact]
+    public async Task AdmissionAndCleanupRejectAnExistingCallerTransactionWithoutMutation()
+    {
+        await ResetDatabaseAsync();
+        var clock = new ControlledTimeProvider(InitialTime);
+        var rule = Rule("login:account", Key(53), 5, TimeSpan.FromMinutes(15));
+        await using var context = CreateContext();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        var service = CreateService(context, clock);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.TryBeginAsync([rule]));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.CleanupExpiredAsync());
+
+        Assert.Equal(0, await context.AuthenticationThrottleBuckets.CountAsync());
     }
 
     [Fact]

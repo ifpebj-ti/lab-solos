@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Npgsql;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -239,6 +240,64 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
         Assert.Single(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Usuarios.ToListAsync());
     }
 
+    [Fact]
+    public async Task DatabaseUniqueViolationReturnsNeutralConflictWithoutPersistingOrNotifying()
+    {
+        await using var factory = await CreateFactoryAsync();
+        await using (var connection = new NpgsqlConnection(database.ConnectionString))
+        {
+            await connection.OpenAsync();
+            await using var createTrigger = connection.CreateCommand();
+            createTrigger.CommandText = """
+                CREATE FUNCTION reject_t030_registration_email() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN
+                    IF NEW."Email" = 'critical-registration@example.test' THEN
+                        RAISE EXCEPTION 'synthetic registration email uniqueness conflict'
+                            USING ERRCODE = '23505', CONSTRAINT = 'IX_Usuarios_Email';
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$;
+                CREATE TRIGGER reject_t030_registration_email
+                BEFORE INSERT ON "Usuarios"
+                FOR EACH ROW EXECUTE FUNCTION reject_t030_registration_email();
+                """;
+            await createTrigger.ExecuteNonQueryAsync();
+        }
+
+        try
+        {
+            using var client = factory.CreateClient();
+            using var response = await client.PostAsJsonAsync("/api/Usuarios", ValidRegistration());
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            using var payload = JsonDocument.Parse(responseBody);
+            Assert.Equal("registration_conflict", payload.RootElement.GetProperty("code").GetString());
+            Assert.Equal(
+                "Não foi possível concluir o cadastro com os dados informados.",
+                payload.RootElement.GetProperty("detail").GetString());
+            Assert.DoesNotContain(RegistrationEmail, responseBody, StringComparison.Ordinal);
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Empty(await context.Usuarios.ToListAsync());
+            Assert.Empty(await context.Notificacoes.ToListAsync());
+        }
+        finally
+        {
+            await using var connection = new NpgsqlConnection(database.ConnectionString);
+            await connection.OpenAsync();
+            await using var removeTrigger = connection.CreateCommand();
+            removeTrigger.CommandText = """
+                DROP TRIGGER IF EXISTS reject_t030_registration_email ON "Usuarios";
+                DROP FUNCTION IF EXISTS reject_t030_registration_email();
+                """;
+            await removeTrigger.ExecuteNonQueryAsync();
+        }
+    }
+
     private static object AcademicRegistration(string role, string? responsible) => new
     {
         nomeCompleto = RegistrationName, email = RegistrationEmail, senha = RegistrationPassword,
@@ -286,6 +345,22 @@ public sealed class CriticalRegistrationTests(PostgreSqlContainerFixture databas
 
 public sealed class UsuariosControllerRegistrationFailureTests
 {
+    [Fact]
+    public async Task AdicionarValidationFailureWithoutFieldErrorsReturnsTheGeneralMessage()
+    {
+        var fixture = CreateFixture(new InvalidOperationException("notification provider secret"));
+        fixture.UsuarioService.Setup(service => service.ValidarEstrutura(fixture.Request))
+            .Returns(UsuarioValidationResult.Invalid("Falha geral de validação."));
+
+        var result = await fixture.Controller.Adicionar(fixture.Request);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        using var payload = JsonDocument.Parse(JsonSerializer.Serialize(badRequest.Value));
+        Assert.Equal("Falha geral de validação.", payload.RootElement.GetProperty("Message").GetString());
+        fixture.Repository.Verify(repository => repository.Criar(It.IsAny<Usuario>()), Times.Never);
+        fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Never);
+    }
+
     [Fact]
     public async Task AdicionarUnexpectedNotificationFailureIsNotConvertedToCreated()
     {
@@ -368,6 +443,9 @@ public sealed class UsuariosControllerRegistrationFailureTests
 
         return new Fixture(
             request,
+            usuarioService,
+            repository,
+            unitOfWork,
             new UsuariosController(
                 NullLogger<UsuariosController>.Instance,
                 utilities.Object,
@@ -377,5 +455,10 @@ public sealed class UsuariosControllerRegistrationFailureTests
                 notifications.Object));
     }
 
-    private sealed record Fixture(AddUsuarioDTO Request, UsuariosController Controller);
+    private sealed record Fixture(
+        AddUsuarioDTO Request,
+        Mock<IUsuarioService> UsuarioService,
+        Mock<IRepository<Usuario>> Repository,
+        Mock<IUnitOfWork> UnitOfWork,
+        UsuariosController Controller);
 }
