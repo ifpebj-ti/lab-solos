@@ -1,6 +1,6 @@
 # Tarefas — Aumentar a cobertura de branches para 80%
 
-- Status: T001–T014 concluídas; T015 em andamento; T016–T017 concluídas; T018–T019 em andamento (validação no CI pendente)
+- Status: T001–T014 concluídas; T015 em andamento; T016–T017 concluídas; T018 em andamento; T019 concluída
 - PRD: [Aumento da cobertura de branches para 80%](./prd.md)
 - Especificação técnica: [Aumento da cobertura de branches para 80%](./techspec.md)
 - Atualizado em: 2026-11-26
@@ -535,7 +535,7 @@ Usar o relatório oficial do run `45749677986`, que registra 14/43 branches cobe
 
 ## T019 — Cobrir validações de inicialização de proteção
 
-- Status: em andamento
+- Status: concluída
 - Issue: #512
 - Dependências: T001
 - Paralela: sim
@@ -576,7 +576,8 @@ Usar o relatório oficial do run `45749677986`, que registra 40/72 branches cobe
 | 2026-11-26 | T013 | concluída | Build Release de `Tests.csproj` passou (99 avisos preexistentes, 0 erros); recorte focal 107/107; `git diff --check` passou. `ApiDateFilters` 93,93%, `ProdutoService` 57,22%, `LoanDomainRules` 92,85% e `DecidirEmprestimoAsync` 85,71% nos recortes descritos. | Testes de devolução/LoanReturnService dependem da fixture PostgreSQL/Docker e ficam para CI/T015. `backend/Tests/bin` e `obj` limpos. |
 | 2026-11-25 | T014 | concluída | Verificação textual e `git diff --check` passaram no README e na Wiki. | Documentadas meta 80%, gate 70%, cobertura de linhas informativa e contagens backend do `Summary.json`, compartilhadas com gate/badge. |
 | 2026-11-26 | T015 | em andamento | Run #45749677986, SHA `4a42688`: frontend 2833/3525 (80,37%); backend 2702/3610 (74,85%). `backend-coverage.json` coincide exatamente com o `Summary.json`; `Coverage policy` aprovou o gate de 70%. Recorte dos ajustes do quality baseline: 101/101 testes passaram localmente. | Backend ainda está abaixo da meta de 80%; foram derivadas T016–T019 a partir das lacunas do artefato. O baseline de qualidade do SHA falhou por 14 avisos em testes, corrigidos localmente. Aguardando novo run após a onda focal; [evidências T015](./evidencias/T015.md). |
+| 2026-11-26 | T015 | em andamento | Run #45753232263, SHA `47b4070`: baseline de qualidade passou; backend 453/454 testes passaram. | A única falha foi T018: esperava 429 por capacidade cheia, recebeu 204; por consequência, a cobertura não foi publicada. T019 foi executada sem falha no mesmo run. A causa da T018 foi corrigida com configuração direta de opções e verificações prévias; próxima execução pendente. |
 | 2026-11-26 | T016 | concluída | `CredentialServiceTests`: 31/31 passaram com cobertura; `git diff --check` passou e não surgiram novos avisos de analyzer no arquivo. | Cobertos pedidos sem e-mail, conta desconhecida/desabilitada, validade/identidade/hash do token, confirmação/política de senha e precondição transacional. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
 | 2026-11-26 | T017 | concluída | `AuthControllerCoverageTests`: 15/15 passaram; junto a `AuthChangePasswordTests`, 26/26. O SARIF local não apontou alertas no novo arquivo e `git diff --check` passou. | Cenários cobrem Login, Session, Logout e Renew; sem alteração em produção. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
-| 2026-11-26 | T018 | em andamento | Dois cenários adicionados em `PasswordChangeRateLimitTests.cs`; assembly compilou e `git diff --check` passou. | Docker local indisponível; os 7 casos focais falharam antes de iniciar por npipe. Capacidade esgotada e falha de infraestrutura serão confirmadas no CI. |
-| 2026-11-26 | T019 | em andamento | `AuthenticationProtectionStartupCleanupTests`: 1/1 passou; teste local exercitou o ramo de limpeza sem conexão. O filtro de integração compilou as quatro ocorrências e parou na inicialização do Docker. | Docker local indisponível (`npipe://./pipe/docker_engine`); o caso de inicialização/conexão precisa ser confirmado no CI. `git diff --check` passou e não houve novo aviso de analyzer no arquivo. |
+| 2026-11-26 | T018 | em andamento | Run #45753232263 identificou que a configuração do limite não chegava ao serviço: o caso de capacidade recebeu 204. O teste agora usa `PostConfigure`, confirma limite=1 e bucket único/alocado antes de chamar; build Release passou com 0 erros e `git diff --check` passou. | Aguarda CI PostgreSQL para confirmar o 429 e a não mutação. Docker local indisponível (`npipe://./pipe/docker_engine`). |
+| 2026-11-26 | T019 | concluída | `AuthenticationProtectionStartupCleanupTests`: 1/1 passou localmente. No run #45753232263, a suíte PostgreSQL teve 453/454 casos aprovados e sua única falha listada foi T018; os quatro casos de T019 passaram. | `Start/Stop` repetido e limpeza sem conexão cobertos; `git diff --check` passou e não houve alerta de analyzer no arquivo. |

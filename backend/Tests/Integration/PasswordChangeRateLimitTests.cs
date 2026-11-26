@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using LabSolos_Server_DotNet8.Controllers;
@@ -11,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Tests.Infrastructure;
 
@@ -166,6 +166,11 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
 
         await using (var scope = factory.Services.CreateAsyncScope())
         {
+            var capacityLimit = scope.ServiceProvider
+                .GetRequiredService<IOptions<AuthenticationProtectionOptions>>()
+                .Value.MaxBucketsPerScope;
+            Assert.Equal(1, capacityLimit);
+
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var capacity = await context.Set<AuthenticationProtectionCapacity>()
                 .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange);
@@ -184,6 +189,14 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
                     Count = 0
                 });
                 await context.SaveChangesAsync();
+
+                var persistedCapacity = await context.Set<AuthenticationProtectionCapacity>()
+                    .AsNoTracking()
+                    .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange);
+                Assert.Equal(1, persistedCapacity.Allocated);
+                Assert.Equal(1, await context.Set<AuthenticationThrottleBucket>()
+                    .AsNoTracking()
+                    .CountAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange));
             }
             finally
             {
@@ -262,17 +275,16 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
         var factory = new IntegrationWebApplicationFactory(database, new()
         {
             TimeProvider = clock,
-            Configuration = maxBucketsPerScope is int capacity
-                ? new Dictionary<string, string?>
-                {
-                    ["AuthenticationProtection:MaxBucketsPerScope"] =
-                        capacity.ToString(CultureInfo.InvariantCulture)
-                }
-                : new Dictionary<string, string?>(),
             ConfigureServices = services =>
             {
                 services.RemoveAll<IAuthenticationThrottleClock>();
                 services.AddSingleton<IAuthenticationThrottleClock>(new TimeProviderAuthenticationThrottleClock(clock));
+                if (maxBucketsPerScope is int capacity)
+                {
+                    services.PostConfigure<AuthenticationProtectionOptions>(
+                        options => options.MaxBucketsPerScope = capacity);
+                }
+
                 if (credentialService is not null)
                 {
                     services.RemoveAll<ICredentialService>();
