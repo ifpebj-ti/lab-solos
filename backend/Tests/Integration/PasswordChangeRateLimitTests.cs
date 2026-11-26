@@ -282,6 +282,87 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task CredentialStoreCancellationWithoutRequestCancellationReturnsUnavailableAndPreservesCredential()
+    {
+        var credentialService = new Mock<ICredentialService>(MockBehavior.Strict);
+        credentialService
+            .Setup(service => service.ChangePasswordAsync(
+                42,
+                Password,
+                NewPassword,
+                NewPassword,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException("synthetic credential store cancellation"));
+
+        var scenario = await CreateScenarioAsync(
+            requiresPasswordChange: false,
+            credentialService: credentialService.Object);
+        await using var factory = scenario.Factory;
+        using var client = scenario.Client;
+
+        using var unavailable = await ChangePasswordAsync(client, scenario.Cookie, Password);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, unavailable.StatusCode);
+        Assert.DoesNotContain("synthetic", await unavailable.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verificationContext.Usuarios.AsNoTracking().SingleAsync(candidate => candidate.Id == 42);
+        Assert.Equal(
+            PasswordVerificationResult.Success,
+            new PasswordHasher<Usuario>().VerifyHashedPassword(user, user.SenhaHash, Password));
+        Assert.Equal(1, user.VersaoSessao);
+        credentialService.Verify(service => service.ChangePasswordAsync(
+            42,
+            Password,
+            NewPassword,
+            NewPassword,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CallerCancellationAfterAdmissionPropagatesWithoutChangingCredentialOrSession()
+    {
+        using var requestCancellation = new CancellationTokenSource();
+        var credentialService = new Mock<ICredentialService>(MockBehavior.Strict);
+        credentialService
+            .Setup(service => service.ChangePasswordAsync(
+                42,
+                Password,
+                NewPassword,
+                NewPassword,
+                It.IsAny<CancellationToken>()))
+            .Returns((int _, string _, string _, string _, CancellationToken _) =>
+            {
+                requestCancellation.Cancel();
+                return Task.FromCanceled<CredentialChangeResult>(requestCancellation.Token);
+            });
+
+        var scenario = await CreateScenarioAsync(
+            requiresPasswordChange: false,
+            credentialService: credentialService.Object);
+        await using var factory = scenario.Factory;
+        using var client = scenario.Client;
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            ChangePasswordAsync(client, scenario.Cookie, Password, requestCancellation.Token));
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verificationContext.Usuarios.AsNoTracking().SingleAsync(candidate => candidate.Id == 42);
+        Assert.Equal(
+            PasswordVerificationResult.Success,
+            new PasswordHasher<Usuario>().VerifyHashedPassword(user, user.SenhaHash, Password));
+        Assert.Equal(1, user.VersaoSessao);
+        credentialService.Verify(service => service.ChangePasswordAsync(
+            42,
+            Password,
+            NewPassword,
+            NewPassword,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private async Task<Scenario> CreateScenarioAsync(
         bool requiresPasswordChange,
         bool seedSecondAccount = false,
@@ -333,7 +414,8 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
     private static async Task<HttpResponseMessage> ChangePasswordAsync(
         HttpClient client,
         string cookie,
-        string currentPassword)
+        string currentPassword,
+        CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/Auth/change-password")
         {
@@ -349,7 +431,7 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
         request.Headers.Add(
             "X-CSRF-Token",
             SessaoCsrfProof.Create(cookie.Split('=', 2)[1]));
-        return await client.SendAsync(request);
+        return await client.SendAsync(request, cancellationToken);
     }
 
     private static async Task<string> SignInAsync(HttpClient client, string email, string password)
