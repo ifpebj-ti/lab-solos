@@ -223,7 +223,7 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
     [Fact]
     public async Task RequestExpiredBeforeMaximumAgeIsDiscardedWithoutIssuingCode()
     {
-        var clock = NewClock();
+        var clock = new ControlledTimeProvider(DateTimeOffset.UtcNow.AddMinutes(10));
         var emailService = new CapturingEmailService();
         await using var factory = CreateFactory(clock, emailService);
         await factory.RecreateDatabaseAsync();
@@ -232,8 +232,10 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await context.Database.ExecuteSqlRawAsync(
-                "UPDATE \"PasswordRecoveryJobs\" SET \"ExpiresAt\" = clock_timestamp() - interval '1 second';");
+            var recoveryJob = await context.PasswordRecoveryJobs.SingleAsync();
+            recoveryJob.CreatedAt = clock.GetUtcNow().AddMinutes(-2);
+            recoveryJob.ExpiresAt = clock.GetUtcNow().AddMinutes(-1);
+            await context.SaveChangesAsync();
         }
 
         Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
