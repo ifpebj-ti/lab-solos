@@ -38,13 +38,13 @@ public class AuthControllerCoverageTests
         "telemetry"
     };
 
-    public static TheoryData<Exception> SessionStoreProtectionFailures => new()
+    public static TheoryData<string> SessionStoreProtectionFailureKinds => new()
     {
-        new InvalidOperationException("synthetic session store failure"),
-        new TimeoutException("synthetic session store timeout"),
-        new CryptographicException("synthetic session protection failure"),
-        new UnauthorizedAccessException("synthetic session store access failure"),
-        new SyntheticDatabaseException("synthetic session database failure")
+        "invalid-operation",
+        "timeout",
+        "cryptographic",
+        "unauthorized-access",
+        "database"
     };
 
     [Theory]
@@ -192,10 +192,11 @@ public class AuthControllerCoverageTests
     }
 
     [Theory]
-    [MemberData(nameof(SessionStoreProtectionFailures))]
-    public async Task LogoutReturnsUnavailableWhenSessionStoreFails(Exception exception)
+    [MemberData(nameof(SessionStoreProtectionFailureKinds))]
+    public async Task LogoutReturnsUnavailableWhenSessionStoreFails(string failureKind)
     {
         var harness = CreateHarness();
+        var exception = CreateSessionStoreProtectionFailure(failureKind);
         harness.Sessions
             .Setup(service => service.RevogarAsync(
                 It.IsAny<Guid?>(),
@@ -346,6 +347,16 @@ public class AuthControllerCoverageTests
 
         return new ControllerHarness(controller, context, sessions, users);
     }
+
+    private static Exception CreateSessionStoreProtectionFailure(string failureKind) => failureKind switch
+    {
+        "invalid-operation" => new InvalidOperationException("synthetic session store failure"),
+        "timeout" => new TimeoutException("synthetic session store timeout"),
+        "cryptographic" => new CryptographicException("synthetic session protection failure"),
+        "unauthorized-access" => new UnauthorizedAccessException("synthetic session store access failure"),
+        "database" => new SyntheticDatabaseException("synthetic session database failure"),
+        _ => throw new ArgumentOutOfRangeException(nameof(failureKind), failureKind, "Unknown failure kind.")
+    };
 
     private static AuthController CreateControllerWithNullDependency(string parameterName)
     {

@@ -21,7 +21,7 @@ namespace Tests.Controllers;
 public class AuthChangePasswordTests
 {
     [Fact]
-    public void ChangePasswordDto_DoesNotAcceptClientProvidedIdentity()
+    public void ChangePasswordDtoDoesNotAcceptClientProvidedIdentity()
     {
         var propertyNames = typeof(ChangePasswordDTO).GetProperties().Select(p => p.Name).ToArray();
 
@@ -31,7 +31,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_DerivesUserIdFromAuthenticatedSubjectAndReturnsNoContent()
+    public async Task ChangePasswordDerivesUserIdFromAuthenticatedSubjectAndReturnsNoContent()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(
@@ -64,7 +64,7 @@ public class AuthChangePasswordTests
     [InlineData("password_required", "newPassword", "A nova senha é obrigatória.")]
     [InlineData("password_too_short", "newPassword", "A nova senha deve ter pelo menos 15 caracteres.")]
     [InlineData("password_too_long", "newPassword", "A nova senha deve ter no máximo 128 caracteres.")]
-    public async Task ChangePassword_ValidationFailure_ReturnsStableProblemDetails(
+    public async Task ChangePasswordValidationFailureReturnsStableProblemDetails(
         string code,
         string expectedField,
         string expectedMessage)
@@ -116,7 +116,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_ConcurrencyFailure_ReturnsConflictProblemDetails()
+    public async Task ChangePasswordConcurrencyFailureReturnsConflictProblemDetails()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(
@@ -177,7 +177,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_MissingOrMalformedSubject_ReturnsUnauthorizedWithoutCallingService()
+    public async Task ChangePasswordMissingOrMalformedSubjectReturnsUnauthorizedWithoutCallingService()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>(MockBehavior.Strict);
         var controller = CreateController(passwordChanges.Object, "not-an-integer");
@@ -188,7 +188,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public void ChangePassword_RequiresDedicatedAuthorizationPolicy()
+    public void ChangePasswordRequiresDedicatedAuthorizationPolicy()
     {
         var method = typeof(AuthController).GetMethod(nameof(AuthController.ChangePassword));
 
