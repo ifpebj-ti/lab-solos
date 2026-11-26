@@ -52,8 +52,25 @@ const report = {
   ultimosLogsSuspeitos: [log],
 };
 
-const setAuditHandlers = (options?: { empty?: boolean; unauthorized?: boolean }) => {
+type AuditLogOverride = Omit<Partial<typeof log>, 'historicoClassificacao'> & {
+  historicoClassificacao?: Array<{
+    numeroRevisao: number;
+    suspeitaAnterior: boolean;
+    suspeitaResultante: boolean;
+    justificativa: string;
+    criadaEmUtc: string;
+    autorUsuarioId?: number;
+    origem: string;
+  }>;
+};
+
+const setAuditHandlers = (options?: {
+  empty?: boolean;
+  unauthorized?: boolean;
+  log?: AuditLogOverride;
+}) => {
   requests.length = 0;
+  const auditLog = { ...log, ...options?.log };
   server.use(
     http.get(`${API_ORIGIN}/Auditoria/logs`, ({ request }) => {
       requests.push({ operation: 'logs', url: new URL(request.url) });
@@ -71,7 +88,7 @@ const setAuditHandlers = (options?: { empty?: boolean; unauthorized?: boolean })
       }
       const pagina = Number(new URL(request.url).searchParams.get('pagina') ?? 1);
       return HttpResponse.json({
-        itens: [log],
+        itens: [auditLog],
         pagina,
         tamanhoPagina: 25,
         totalItens: 26,
@@ -83,7 +100,11 @@ const setAuditHandlers = (options?: { empty?: boolean; unauthorized?: boolean })
       if (options?.unauthorized) {
         return HttpResponse.json({ detail: 'SEGREDO_REMOTO' }, { status: 403 });
       }
-      return HttpResponse.json(options?.empty ? { ...report, totalLogs: 0, logsSuspeitos: 0 } : report);
+      return HttpResponse.json(
+        options?.empty
+          ? { ...report, totalLogs: 0, logsSuspeitos: 0 }
+          : { ...report, ultimosLogsSuspeitos: [auditLog] }
+      );
     }),
     http.get(`${API_ORIGIN}/Auditoria/exportar`, ({ request }) => {
       requests.push({ operation: 'exportar', url: new URL(request.url) });
@@ -97,6 +118,7 @@ const setAuditHandlers = (options?: { empty?: boolean; unauthorized?: boolean })
 describe('Auditoria administrativa', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Element.prototype.scrollIntoView = vi.fn();
     establishTestSession('11', 'Administrador');
   });
 
@@ -250,6 +272,77 @@ describe('Auditoria administrativa', () => {
     });
   });
 
+  it('aplica usuário, ação, risco e classificação nos dois relatórios', async () => {
+    setAuditHandlers();
+    render(<AuditoriaPage />);
+    await screen.findByText('FalhaOperacao');
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Usuário (ID)' }), {
+      target: { value: '11' },
+    });
+    fireEvent.change(screen.getByLabelText('Recurso'), {
+      target: { value: 'Produto' },
+    });
+
+    for (const [label, option] of [
+      ['Tipo de ação', 'Falha de login'],
+      ['Nível de risco', 'Crítico'],
+      ['Classificação', 'Suspeitos'],
+    ]) {
+      const filterLabel = screen.getByText(label).closest('label');
+      expect(filterLabel).not.toBeNull();
+      fireEvent.click(within(filterLabel as HTMLElement).getByRole('combobox'));
+      fireEvent.click(await screen.findByRole('option', { name: option }));
+    }
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    await waitFor(() => {
+      const logRequests = requests.filter(
+        (request) => request.operation === 'logs'
+      );
+      const reportRequests = requests.filter(
+        (request) => request.operation === 'relatorio'
+      );
+      const latestLogs = logRequests[logRequests.length - 1]?.url;
+      const latestReport = reportRequests[reportRequests.length - 1]?.url;
+      for (const url of [latestLogs, latestReport]) {
+        expect(url?.searchParams.get('usuarioId')).toBe('11');
+        expect(url?.searchParams.get('tipoAcao')).toBe('LoginFalhado');
+        expect(url?.searchParams.get('nivelRisco')).toBe('Critico');
+        expect(url?.searchParams.get('apenasSuspeitas')).toBe('true');
+        expect(url?.searchParams.get('recurso')).toBe('Produto');
+      }
+      expect(latestLogs?.searchParams.get('pagina')).toBe('1');
+    });
+  });
+
+  it('rejeita data final inválida sem consultar nem exportar com ela', async () => {
+    setAuditHandlers();
+    render(<AuditoriaPage />);
+    await screen.findByText('FalhaOperacao');
+    const initialRequestCount = requests.length;
+
+    const dateEnd = screen.getByRole('textbox', { name: 'Data final' });
+    fireEvent.change(dateEnd, { target: { value: '31/02/2026' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+
+    expect(dateEnd).toHaveAttribute('aria-invalid', 'true');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Data final inválida. Use dd/mm/aaaa.'
+    );
+    expect(requests).toHaveLength(initialRequestCount);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+    await waitFor(() =>
+      expect(mocks.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'auditoria.csv')
+    );
+    const exportUrl = requests.find(
+      (request) => request.operation === 'exportar'
+    )?.url;
+    expect(exportUrl?.searchParams.has('dataFim')).toBe(false);
+  });
+
   it('apresenta o histórico e a regra sem mostrar IP, e-mail ou contexto bruto', async () => {
     setAuditHandlers();
     render(<AuditoriaPage />);
@@ -263,6 +356,89 @@ describe('Auditoria administrativa', () => {
     expect(screen.queryByText('198.51.100.24')).not.toBeInTheDocument();
     expect(screen.queryByText('nao-exibir@example.test')).not.toBeInTheDocument();
     expect(screen.queryByText('CONTEXTO_BRUTO_NAO_EXIBIR')).not.toBeInTheDocument();
+  });
+
+  it('explica quando um evento normal não tem regra nem histórico', async () => {
+    setAuditHandlers({
+      log: {
+        suspeita: false,
+        categoriaDeteccao: '',
+        codigoRegraDeteccao: undefined,
+        historicoClassificacao: [],
+      },
+    });
+    render(<AuditoriaPage />);
+
+    expect(await screen.findByText('Normal')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Marcar suspeito' })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Histórico e regra'));
+
+    expect(
+      screen.getByText('Categoria da detecção: Não informada')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Este evento não possui uma regra de detecção associada.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Este evento ainda não possui revisões de classificação.')
+    ).toBeInTheDocument();
+  });
+
+  it('mostra revisão sem ator e permite marcar um evento normal como suspeito', async () => {
+    setAuditHandlers({
+      log: {
+        suspeita: false,
+        codigoRegraDeteccao: 'regra-sem-metricas',
+        versaoRegraDeteccao: undefined,
+        quantidadeObservadaDeteccao: undefined,
+        historicoClassificacao: [
+          {
+            numeroRevisao: 1,
+            suspeitaAnterior: true,
+            suspeitaResultante: false,
+            justificativa: 'Reclassificação revisada.',
+            criadaEmUtc: '2026-11-20T13:00:00Z',
+            origem: 'Revisão manual',
+          },
+        ],
+      },
+    });
+    let body: unknown;
+    server.use(
+      http.patch(
+        `${API_ORIGIN}/Auditoria/marcar-suspeito/42`,
+        async ({ request }) => {
+          body = await request.json();
+          return new HttpResponse(null, { status: 204 });
+        }
+      )
+    );
+    render(<AuditoriaPage />);
+
+    fireEvent.click(await screen.findByText('Histórico e regra'));
+    expect(screen.getByText('Regra: regra-sem-metricas')).toBeInTheDocument();
+    expect(screen.queryByText(/^Versão /)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Observações:/)).not.toBeInTheDocument();
+    expect(screen.getByText('Suspeito → Normal')).toBeInTheDocument();
+    expect(screen.getByText('Autor: Sem ator associado')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Marcar suspeito' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Marcar como suspeito' })
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Justificativa da revisão'), {
+      target: { value: 'Nova evidência revisada.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar revisão' }));
+
+    await waitFor(() => {
+      expect(body).toEqual({
+        revisaoEsperada: 1,
+        justificativa: 'Nova evidência revisada.',
+      });
+    });
   });
 
   it('indica a exportação em andamento e impede uma segunda solicitação', async () => {

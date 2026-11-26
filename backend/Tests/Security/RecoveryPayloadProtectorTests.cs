@@ -199,6 +199,99 @@ public sealed class RecoveryPayloadProtectorTests
         }
     }
 
+    [Fact]
+    public void RejectsInvalidProtectionContextsBeforeResolvingKeys()
+    {
+        using var keyRing = KeyRing(CurrentKeyId, (CurrentKeyId, CurrentKey));
+        var protector = new RecoveryPayloadProtector(keyRing);
+        var payload = protector.Protect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, Encoding.UTF8.GetBytes("synthetic"));
+
+        Assert.Throws<CryptographicException>(
+            () => protector.Protect(Guid.Empty, RecoveryPayloadPurpose.Request, ReadOnlySpan<byte>.Empty));
+        Assert.Throws<CryptographicException>(
+            () => protector.Protect(Guid.NewGuid(), (RecoveryPayloadPurpose)int.MaxValue, ReadOnlySpan<byte>.Empty));
+        Assert.Throws<CryptographicException>(
+            () => protector.Unprotect(Guid.Empty, RecoveryPayloadPurpose.Request, payload));
+        Assert.Throws<CryptographicException>(
+            () => protector.Unprotect(Guid.NewGuid(), (RecoveryPayloadPurpose)int.MaxValue, payload));
+    }
+
+    [Fact]
+    public void RejectsMalformedPayloadMetadataBeforeKeyLookup()
+    {
+        var keyProvider = new FixedRecoveryEncryptionKeyProvider(CurrentKeyId, CurrentKey);
+        var protector = new RecoveryPayloadProtector(keyProvider);
+        var payload = protector.Protect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, Encoding.UTF8.GetBytes("synthetic"));
+        var malformedPayloads = new[]
+        {
+            payload with { EncryptionKeyId = null! },
+            payload with { EncryptionKeyId = string.Empty },
+            payload with { EncryptionKeyId = new string('x', 129) },
+            payload with { EncryptionKeyId = "bad\0key" },
+            payload with { Nonce = null! },
+            payload with { Nonce = new byte[1] },
+            payload with { Tag = null! },
+            payload with { Tag = new byte[1] },
+            payload with { Ciphertext = null! }
+        };
+
+        foreach (var malformed in malformedPayloads)
+        {
+            Assert.Throws<CryptographicException>(
+                () => protector.Unprotect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, malformed));
+        }
+
+        Assert.Equal(1, keyProvider.CopyCount);
+    }
+
+    [Fact]
+    public void ProtectRejectsInvalidActiveKeyIdentifiersBeforeCopyingKey()
+    {
+        var invalidIds = new string?[]
+        {
+            null,
+            string.Empty,
+            "  ",
+            "bad\0key",
+            new string('x', 129)
+        };
+
+        foreach (var invalidId in invalidIds)
+        {
+            var keyProvider = new FixedRecoveryEncryptionKeyProvider(invalidId, CurrentKey);
+            var protector = new RecoveryPayloadProtector(keyProvider);
+
+            Assert.Throws<CryptographicException>(
+                () => protector.Protect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, ReadOnlySpan<byte>.Empty));
+            Assert.Equal(0, keyProvider.CopyCount);
+        }
+    }
+
+    [Fact]
+    public void ProtectRejectsMissingOrWrongSizedCopiedKeys()
+    {
+        foreach (var key in new byte[]?[] { null, new byte[31] })
+        {
+            var keyProvider = new FixedRecoveryEncryptionKeyProvider(CurrentKeyId, key);
+            var protector = new RecoveryPayloadProtector(keyProvider);
+
+            Assert.Throws<CryptographicException>(
+                () => protector.Protect(Guid.NewGuid(), RecoveryPayloadPurpose.Request, ReadOnlySpan<byte>.Empty));
+            Assert.Equal(1, keyProvider.CopyCount);
+        }
+    }
+
+    [Fact]
+    public void RejectsMalformedJsonKeyRingWithoutLeakingParserErrors()
+    {
+        var error = Assert.Throws<CryptographicException>(
+            () => RecoveryEncryptionKeyRing.Load(
+                SecretFilePath,
+                new FixedSecretFileReader(Encoding.UTF8.GetBytes("{"))));
+
+        Assert.DoesNotContain("JsonException", error.Message, StringComparison.Ordinal);
+    }
+
     private static ProtectedRecoveryPayload Tamper(ProtectedRecoveryPayload payload, string field) =>
         field switch
         {
@@ -229,5 +322,19 @@ public sealed class RecoveryPayloadProtectorTests
     private sealed class FixedSecretFileReader(byte[] contents) : ISecretFileReader
     {
         public byte[] ReadAllBytes(string path) => contents.ToArray();
+    }
+
+    private sealed class FixedRecoveryEncryptionKeyProvider(string? keyId, byte[]? key)
+        : IRecoveryEncryptionKeyProvider
+    {
+        public int CopyCount { get; private set; }
+
+        public string ActiveKeyId => keyId!;
+
+        public byte[] CopyKey(string requestedKeyId)
+        {
+            CopyCount++;
+            return key?.ToArray()!;
+        }
     }
 }

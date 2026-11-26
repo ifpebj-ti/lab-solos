@@ -48,7 +48,9 @@ class CollectBackendCoverageTests(unittest.TestCase):
         self.output = self.results / "normalized-backend.json"
 
     def run_collector(
-        self, coverage: Path | None = None
+        self,
+        coverage: Path | None = None,
+        reportgenerator_summary: Path | None = None,
     ) -> subprocess.CompletedProcess[str]:
         arguments = [
             sys.executable,
@@ -66,6 +68,8 @@ class CollectBackendCoverageTests(unittest.TestCase):
             "--run-attempt",
             RUN_ATTEMPT,
         ]
+        if reportgenerator_summary is not None:
+            arguments.extend(["--reportgenerator-summary", str(reportgenerator_summary)])
         arguments.extend(["--results-directory", str(self.results)])
         return subprocess.run(
             arguments,
@@ -118,6 +122,64 @@ class CollectBackendCoverageTests(unittest.TestCase):
         self.assertEqual(normalized["sha"], SHA)
         self.assertEqual(normalized["run_id"], RUN_ID)
         self.assertEqual(normalized["run_attempt"], 2)
+
+    def test_uses_reportgenerator_summary_counts_for_the_backend_artifact(self) -> None:
+        self.coverage.write_text("<coverage />", encoding="utf-8")
+        summary_path = self.results / "html" / "Summary.json"
+        summary_path.parent.mkdir()
+        summary_path.write_text(
+            json.dumps(
+                {
+                    "summary": {
+                        "parser": "Cobertura",
+                        "coveredlines": 28406,
+                        "coverablelines": 30074,
+                        "coveredbranches": 2521,
+                        "totalbranches": 3610,
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = self.run_collector(reportgenerator_summary=summary_path)
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("ReportGenerator Summary.json", result.stdout)
+        collected = json.loads(self.output.read_text(encoding="utf-8"))
+        self.assertEqual(
+            collected["metrics"]["lines"], {"covered": 28406, "total": 30074}
+        )
+        self.assertEqual(
+            collected["metrics"]["branches"], {"covered": 2521, "total": 3610}
+        )
+        self.assertEqual(collected["sha"], SHA)
+        self.assertEqual(collected["run_id"], RUN_ID)
+        self.assertEqual(collected["run_attempt"], 2)
+
+    def test_rejects_invalid_reportgenerator_summary_counts(self) -> None:
+        self.coverage.write_text("<coverage />", encoding="utf-8")
+        summary_path = self.results / "html" / "Summary.json"
+        summary_path.parent.mkdir()
+        summary_path.write_text(
+            json.dumps(
+                {
+                    "summary": {
+                        "parser": "Cobertura",
+                        "coveredlines": 10,
+                        "coverablelines": 10,
+                        "coveredbranches": 7,
+                        "totalbranches": 0,
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = self.run_collector(reportgenerator_summary=summary_path)
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("counts are inconsistent", (result.stdout + result.stderr))
 
     def test_rejects_branch_line_without_condition_metadata(self) -> None:
         self.coverage.write_text(

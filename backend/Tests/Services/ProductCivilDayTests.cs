@@ -62,6 +62,60 @@ public sealed class ProductCivilDayTests
             new FixedClock(DateTimeOffset.Parse("2026-11-17T02:30:00Z", CultureInfo.InvariantCulture)), zone));
     }
 
+    [Theory]
+    [InlineData("2026-11-17", "2026-11-17T03:00:00Z")]
+    [InlineData("2026-11-17T03:00:00Z", "2026-11-17T03:00:00Z")]
+    [InlineData("2026-11-17T05:00:00+02:00", "2026-11-17T03:00:00Z")]
+    [InlineData("2026-11-17T00:00:00-03:00", "2026-11-17T03:00:00Z")]
+    [InlineData("2026-11-17T03:00:00.1Z", "2026-11-17T03:00:00.1Z")]
+    [InlineData("2026-11-17T03:00:00.1234567-03:00", "2026-11-17T06:00:00.1234567Z")]
+    public void ApiDateFilterParsesCivilDaysAndIsoInstants(
+        string value,
+        string expectedUtc)
+    {
+        var parsed = ApiDateFilters.TryParse(
+            value,
+            TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"),
+            out var utc);
+
+        Assert.True(parsed);
+        Assert.Equal(DateTimeOffset.Parse(expectedUtc, CultureInfo.InvariantCulture).UtcDateTime, utc);
+        Assert.Equal(DateTimeKind.Utc, utc.Kind);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("2026-11-17T03:00:00")]
+    [InlineData("16/11/2026")]
+    [InlineData("x026-11-17T03:00:00Z")]
+    [InlineData("2026-1x-17T03:00:00Z")]
+    [InlineData("2026-11-x7T03:00:00Z")]
+    [InlineData("2026-11-17x03:00:00Z")]
+    [InlineData("2026-11-17t03:00:00Z")]
+    [InlineData("2026-11-17T0x:00:00Z")]
+    [InlineData("2026-11-17T03x00:00Z")]
+    [InlineData("2026-11-17T03:0x:00Z")]
+    [InlineData("2026-11-17T03:00x00Z")]
+    [InlineData("2026-11-17T03:00:0xZ")]
+    [InlineData("2026-11-17T03:00:00.Z")]
+    [InlineData("2026-11-17T03:00:00.12345678Z")]
+    [InlineData("2026-11-17T03:00:00+03:0x")]
+    [InlineData("2026-11-17T03:00:00+03x00")]
+    [InlineData("2026-11-17T03:00:00Zextra")]
+    public void ApiDateFilterRejectsMalformedOrAmbiguousSyntax(string value)
+    {
+        Assert.False(ApiDateFilters.TryParse(value, TimeZoneInfo.Utc, out _));
+    }
+
+    [Fact]
+    public void ApiDateFilterRejectsCivilMidnightInAClockGapOrOverlap()
+    {
+        var zone = CreateTransitionZone();
+
+        Assert.False(ApiDateFilters.TryParse("2026-03-01", zone, out _));
+        Assert.False(ApiDateFilters.TryParse("2026-10-01", zone, out _));
+    }
+
     private static ProductCivilDay CreateReference(TimeProvider clock, string? zone = null)
     {
         var settings = new Dictionary<string, string?>();
@@ -72,6 +126,28 @@ public sealed class ProductCivilDayTests
 
         return new ProductCivilDay(
             clock, new ConfigurationBuilder().AddInMemoryCollection(settings).Build());
+    }
+
+    private static TimeZoneInfo CreateTransitionZone()
+    {
+        var start = TimeZoneInfo.TransitionTime.CreateFixedDateRule(
+            new DateTime(1, 1, 1, 0, 0, 0), month: 3, day: 1);
+        var end = TimeZoneInfo.TransitionTime.CreateFixedDateRule(
+            new DateTime(1, 1, 1, 1, 0, 0), month: 10, day: 1);
+        var rule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+            new DateTime(2026, 1, 1),
+            new DateTime(2026, 12, 31),
+            TimeSpan.FromHours(1),
+            start,
+            end);
+
+        return TimeZoneInfo.CreateCustomTimeZone(
+            "Synthetic/SaoPauloWithDst",
+            TimeSpan.FromHours(-3),
+            "Synthetic time zone",
+            "Synthetic standard time",
+            "Synthetic daylight time",
+            [rule]);
     }
 
     private sealed class FixedClock(DateTimeOffset utcNow) : TimeProvider

@@ -166,6 +166,192 @@ public sealed class EmailChangeNoticeTests(PostgreSqlContainerFixture database)
     }
 
     [Fact]
+    public async Task ExpiredNoticeIsFailedAndExpiredRetentionIsPurgedWithoutDelivery()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = await CreateFactoryAsync(clock, emailService);
+        var scenario = await SeedScenarioAsync(factory);
+        using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+        using var changed = await ChangeEmailAsync(
+            owner,
+            scenario.MenteeOneId,
+            $"new-{scenario.ScenarioToken}@integration.test",
+            scenario.MenteeOnePassword);
+        Assert.Equal(System.Net.HttpStatusCode.OK, changed.StatusCode);
+
+        var now = clock.GetUtcNow();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var jobs = await context.EmailChangeNoticeJobs
+                .Where(job => job.UserId == scenario.MenteeOneId)
+                .ToListAsync();
+            var expired = Assert.Single(jobs, job => job.Recipient == EmailChangeNoticeRecipient.NewAddress);
+            expired.CreatedAt = now.AddDays(-2);
+            expired.DeadlineAt = now.AddSeconds(-1);
+            expired.RetainUntil = now.AddDays(30);
+
+            var retained = Assert.Single(jobs, job => job.Recipient == EmailChangeNoticeRecipient.PreviousAddress);
+            retained.CreatedAt = now.AddDays(-2);
+            retained.DeadlineAt = now.AddDays(1);
+            retained.RetainUntil = now.AddSeconds(-1);
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal(0, await ProcessPendingAsync(factory));
+        Assert.Empty(emailService.Messages);
+
+        await using var verifyScope = factory.Services.CreateAsyncScope();
+        var verified = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var failed = await verified.EmailChangeNoticeJobs.AsNoTracking().SingleAsync();
+        Assert.Equal(EmailChangeNoticeRecipient.NewAddress, failed.Recipient);
+        Assert.Equal(EmailChangeNoticeStatus.Failed, failed.Status);
+        Assert.Equal("delivery_deadline_expired", failed.LastFailureCode);
+        Assert.Empty(failed.PayloadCiphertext);
+        Assert.Null(failed.LeaseId);
+        Assert.Null(failed.LeaseUntil);
+    }
+
+    [Theory]
+    [InlineData(NoticePayloadFault.Unauthenticated, "notice_payload_unavailable")]
+    [InlineData(NoticePayloadFault.InvalidUtf8, "notice_payload_unavailable")]
+    [InlineData(NoticePayloadFault.InvalidRecipient, "notice_recipient_invalid")]
+    public async Task UnsafeStoredPayloadIsFailedWithoutExposingRecipientOrSendingNotice(
+        NoticePayloadFault payloadFault,
+        string expectedFailureCode)
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = await CreateFactoryAsync(clock, emailService);
+        var scenario = await SeedScenarioAsync(factory);
+        var newAddress = $"new-{scenario.ScenarioToken}@integration.test";
+        using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+        using var changed = await ChangeEmailAsync(
+            owner,
+            scenario.MenteeOneId,
+            newAddress,
+            scenario.MenteeOnePassword);
+        Assert.Equal(System.Net.HttpStatusCode.OK, changed.StatusCode);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var services = scope.ServiceProvider;
+            var context = services.GetRequiredService<AppDbContext>();
+            var job = await context.EmailChangeNoticeJobs.SingleAsync(candidate =>
+                candidate.UserId == scenario.MenteeOneId &&
+                candidate.Recipient == EmailChangeNoticeRecipient.NewAddress);
+
+            if (payloadFault == NoticePayloadFault.Unauthenticated)
+            {
+                job.PayloadTag = job.PayloadTag.ToArray();
+                job.PayloadTag[0] ^= 0xFF;
+            }
+            else
+            {
+                var plaintext = payloadFault == NoticePayloadFault.InvalidUtf8
+                    ? new byte[] { 0xFF }
+                    : Encoding.UTF8.GetBytes("invalid recipient");
+                var payload = services.GetRequiredService<RecoveryPayloadProtector>().Protect(
+                    job.Id,
+                    RecoveryPayloadPurpose.EmailChangeNotice,
+                    plaintext);
+                job.EncryptionKeyId = payload.EncryptionKeyId;
+                job.PayloadCiphertext = payload.Ciphertext;
+                job.PayloadNonce = payload.Nonce;
+                job.PayloadTag = payload.Tag;
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal(2, await ProcessPendingAsync(factory));
+        Assert.Equal(new[] { scenario.MenteeOneEmail }, emailService.Messages.Select(message => message.To));
+
+        await using var verifyScope = factory.Services.CreateAsyncScope();
+        var verified = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var jobs = await verified.EmailChangeNoticeJobs.AsNoTracking()
+            .Where(job => job.UserId == scenario.MenteeOneId)
+            .ToListAsync();
+        var failed = Assert.Single(jobs, job => job.Recipient == EmailChangeNoticeRecipient.NewAddress);
+        Assert.Equal(EmailChangeNoticeStatus.Failed, failed.Status);
+        Assert.Equal(expectedFailureCode, failed.LastFailureCode);
+        Assert.Equal(0, failed.Attempts);
+        Assert.Empty(failed.PayloadCiphertext);
+        Assert.Null(failed.LeaseId);
+        Assert.Null(failed.LeaseUntil);
+        Assert.Equal(EmailChangeNoticeStatus.Delivered,
+            Assert.Single(jobs, job => job.Recipient == EmailChangeNoticeRecipient.PreviousAddress).Status);
+        Assert.DoesNotContain(emailService.Messages, message => message.To == newAddress);
+    }
+
+    [Fact]
+    public async Task CallerCancellationPropagatesAndReclaimsReservedJobsAfterLeaseExpiry()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var clock = NewClock();
+        var cancelFirstSend = true;
+        var emailService = new CapturingEmailService(sendOverride: _ =>
+        {
+            if (cancelFirstSend)
+            {
+                cancelFirstSend = false;
+                cancellation.Cancel();
+                return Task.FromCanceled(cancellation.Token);
+            }
+
+            return Task.CompletedTask;
+        });
+        await using var factory = await CreateFactoryAsync(clock, emailService);
+        var scenario = await SeedScenarioAsync(factory);
+        var newAddress = $"new-{scenario.ScenarioToken}@integration.test";
+        using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+        using var changed = await ChangeEmailAsync(
+            owner,
+            scenario.MenteeOneId,
+            newAddress,
+            scenario.MenteeOnePassword);
+        Assert.Equal(System.Net.HttpStatusCode.OK, changed.StatusCode);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            await ProcessPendingAsync(factory, cancellation.Token));
+
+        Assert.Empty(emailService.Messages);
+        await using var verifyScope = factory.Services.CreateAsyncScope();
+        var verified = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var jobs = await verified.EmailChangeNoticeJobs.AsNoTracking()
+            .Where(job => job.UserId == scenario.MenteeOneId)
+            .ToListAsync();
+        Assert.Equal(2, jobs.Count);
+        Assert.All(jobs, job =>
+        {
+            Assert.Equal(EmailChangeNoticeStatus.Processing, job.Status);
+            Assert.Equal(0, job.Attempts);
+            Assert.NotEmpty(job.PayloadCiphertext);
+            Assert.NotNull(job.LeaseId);
+            Assert.NotNull(job.LeaseUntil);
+        });
+
+        clock.Advance(TimeSpan.FromMinutes(1).Add(TimeSpan.FromSeconds(1)));
+        Assert.Equal(2, await ProcessPendingAsync(factory));
+        Assert.Equal(
+            new[] { scenario.MenteeOneEmail, newAddress }.OrderBy(value => value, StringComparer.Ordinal),
+            emailService.Messages.Select(message => message.To).OrderBy(value => value, StringComparer.Ordinal));
+
+        var completedJobs = await verified.EmailChangeNoticeJobs.AsNoTracking()
+            .Where(job => job.UserId == scenario.MenteeOneId)
+            .ToListAsync();
+        Assert.All(completedJobs, job =>
+        {
+            Assert.Equal(EmailChangeNoticeStatus.Delivered, job.Status);
+            Assert.Equal(1, job.Attempts);
+            Assert.Empty(job.PayloadCiphertext);
+            Assert.Null(job.LeaseId);
+            Assert.Null(job.LeaseUntil);
+        });
+    }
+
+    [Fact]
     public async Task ApplicationRegistersEmailChangeNoticeBackgroundService()
     {
         var clock = NewClock();
@@ -215,10 +401,13 @@ public sealed class EmailChangeNoticeTests(PostgreSqlContainerFixture database)
         return scenario;
     }
 
-    private static async Task<int> ProcessPendingAsync(IntegrationWebApplicationFactory factory)
+    private static async Task<int> ProcessPendingAsync(
+        IntegrationWebApplicationFactory factory,
+        CancellationToken cancellationToken = default)
     {
         await using var scope = factory.Services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<EmailChangeNoticeService>().ProcessPendingAsync();
+        return await scope.ServiceProvider.GetRequiredService<EmailChangeNoticeService>()
+            .ProcessPendingAsync(cancellationToken);
     }
 
     private static HttpClient CreateClient(
@@ -256,9 +445,17 @@ public sealed class EmailChangeNoticeTests(PostgreSqlContainerFixture database)
 
     private static ControlledTimeProvider NewClock() => new(DateTimeOffset.UtcNow.AddMinutes(1));
 
+    public enum NoticePayloadFault
+    {
+        Unauthenticated,
+        InvalidUtf8,
+        InvalidRecipient
+    }
+
     private sealed class CapturingEmailService(
         string? failOnceFor = null,
-        string? alwaysFailFor = null) : IEmailService
+        string? alwaysFailFor = null,
+        Func<CancellationToken, Task>? sendOverride = null) : IEmailService
     {
         private readonly object _gate = new();
         private readonly List<(string To, string Subject, string Body)> _messages = [];
@@ -278,13 +475,18 @@ public sealed class EmailChangeNoticeTests(PostgreSqlContainerFixture database)
         public void EnviarEmail(string para, string assunto, string corpo) =>
             EnviarEmailAsync(para, assunto, corpo).GetAwaiter().GetResult();
 
-        public Task EnviarEmailAsync(
+        public async Task EnviarEmailAsync(
             string para,
             string assunto,
             string corpo,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (sendOverride is not null)
+            {
+                await sendOverride(cancellationToken);
+            }
+
             lock (_gate)
             {
                 _messages.Add((para, assunto, corpo));
@@ -296,7 +498,6 @@ public sealed class EmailChangeNoticeTests(PostgreSqlContainerFixture database)
                 }
             }
 
-            return Task.CompletedTask;
         }
     }
 }

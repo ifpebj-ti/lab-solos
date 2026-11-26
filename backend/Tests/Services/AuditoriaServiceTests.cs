@@ -358,6 +358,145 @@ public sealed class AuditoriaServiceTests
     }
 
     [Fact]
+    public async Task ReclassificarClassificacaoAsyncRejeitaJustificativaEmBrancoAntesDeAcessarRepositorio()
+    {
+        var fixture = CreateFixture();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            fixture.Service.ReclassificarClassificacaoAsync(11, 7, 0, true, " \t "));
+
+        fixture.LogRepository.Verify(repository => repository.ReclassificarAsync(
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<bool>(),
+            It.IsAny<string>(),
+            It.IsAny<DateTimeOffset>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReclassificarClassificacaoAsyncRejeitaJustificativaAcimaDoLimite()
+    {
+        var fixture = CreateFixture();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            fixture.Service.ReclassificarClassificacaoAsync(11, 7, 0, true, new string('x', 1001)));
+
+        fixture.LogRepository.Verify(repository => repository.ReclassificarAsync(
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<bool>(),
+            It.IsAny<string>(),
+            It.IsAny<DateTimeOffset>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EventoObrigatorioRejeitaReferenciaDeRecursoComCaractereNaoPermitido()
+    {
+        var fixture = CreateFixture();
+        var evento = CreateAuthorizedNotificationEvent() with { ReferenciaRecurso = "notification/17" };
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => fixture.Service.RegistrarEventoObrigatorioAsync(evento));
+
+        fixture.LogRepository.Verify(repository => repository.Criar(It.IsAny<LogAuditoria>()), Times.Never);
+        fixture.UnitOfWork.Verify(unitOfWork => unitOfWork.CommitAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task EventoObrigatorioRejeitaCamposDeAtorIncompatíveisComOrigemDeUsuario()
+    {
+        var fixture = CreateFixture();
+        var evento = CreateAuthorizedNotificationEvent(
+            OrigemConfiavelAuditoria.UsuarioAutenticado,
+            usuarioId: 7,
+            identidadeProcesso: "notifications-worker");
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => fixture.Service.RegistrarEventoObrigatorioAsync(evento));
+
+        fixture.LogRepository.Verify(repository => repository.Criar(It.IsAny<LogAuditoria>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EventoObrigatorioRejeitaCamposDeAtorIncompatíveisComOrigemDeProcesso()
+    {
+        var fixture = CreateFixture();
+        var evento = CreateAuthorizedNotificationEvent(
+            OrigemConfiavelAuditoria.ProcessoAutorizado,
+            usuarioId: 7,
+            identidadeProcesso: "notifications-worker");
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => fixture.Service.RegistrarEventoObrigatorioAsync(evento));
+
+        fixture.LogRepository.Verify(repository => repository.Criar(It.IsAny<LogAuditoria>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EventoObrigatorioRejeitaCorrelationIdComFormatoInseguro()
+    {
+        var fixture = CreateFixture();
+        var evento = CreateAuthorizedNotificationEvent() with { CorrelationId = "trace with spaces" };
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => fixture.Service.RegistrarEventoObrigatorioAsync(evento));
+
+        fixture.LogRepository.Verify(repository => repository.Criar(It.IsAny<LogAuditoria>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("not-an-ip")]
+    [InlineData(" ")]
+    public async Task VerificarAtividadeSuspeitaAsyncNaoConsultaOrigemParaIpInvalidoOuAusente(string enderecoIP)
+    {
+        var fixture = CreateFixture();
+        fixture.LogRepository
+            .Setup(repository => repository.ContarFalhasLoginPorContaAsync(
+                7,
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>()))
+            .ReturnsAsync(0);
+
+        var isSuspicious = await fixture.Service.VerificarAtividadeSuspeitaAsync(7, enderecoIP);
+
+        Assert.False(isSuspicious);
+        fixture.LogRepository.Verify(repository => repository.ContarFalhasLoginPorContaAsync(
+            7,
+            It.IsAny<DateTime>(),
+            It.IsAny<DateTime>()), Times.Once);
+        fixture.LogRepository.Verify(repository => repository.ContarFalhasLoginPorOrigemAsync(
+            It.IsAny<string>(),
+            It.IsAny<DateTime>(),
+            It.IsAny<DateTime>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RegistrarFalhaDeLoginComIpInvalidoNaoConsultaContagemPorOrigem()
+    {
+        var fixture = CreateFixture();
+        LogAuditoria? createdLog = null;
+        fixture.LogRepository
+            .Setup(repository => repository.Criar(It.IsAny<LogAuditoria>()))
+            .Callback<LogAuditoria>(log => createdLog = log)
+            .Returns((LogAuditoria log) => log);
+
+        await fixture.Service.RegistrarLogAsync(
+            CreateLogDto(TipoAcaoAuditoria.LoginFalhado),
+            enderecoIP: "not-an-ip");
+
+        Assert.NotNull(createdLog);
+        Assert.Equal(string.Empty, createdLog!.EnderecoIP);
+        Assert.False(createdLog.Suspeita);
+        fixture.LogRepository.Verify(repository => repository.ContarFalhasLoginPorOrigemAsync(
+            It.IsAny<string>(),
+            It.IsAny<DateTime>(),
+            It.IsAny<DateTime>()), Times.Never);
+        fixture.UnitOfWork.Verify(unitOfWork => unitOfWork.CommitAsync(), Times.Once);
+    }
+
+    [Fact]
     public async Task FalhaDeGravacaoDoDiagnosticoPreservaOperacaoESinalizaCorrelacaoSemExcecaoBruta()
     {
         var fixture = CreateFixture();
@@ -429,6 +568,20 @@ public sealed class AuditoriaServiceTests
         Resultado = ResultadoOperacaoAuditoria.Falha,
         CorrelationId = correlationId,
         TipoAcaoDiagnostica = tipoAcao
+    };
+
+    private static CreateLogAuditoriaDTO CreateAuthorizedNotificationEvent(
+        OrigemConfiavelAuditoria origem = OrigemConfiavelAuditoria.ProcessoAutorizado,
+        int? usuarioId = null,
+        string? identidadeProcesso = "notifications-worker") => new()
+    {
+        CodigoEvento = CodigoEventoAuditoria.EmissaoNotificacao,
+        OrigemConfiavel = origem,
+        UsuarioId = usuarioId,
+        IdentidadeProcesso = identidadeProcesso,
+        ReferenciaRecurso = "notification-17",
+        Resultado = ResultadoOperacaoAuditoria.Sucesso,
+        CorrelationId = "trace-17"
     };
 
     private static CreateLogAuditoriaDTO CreateAuthenticatedLoginFailure() => new()

@@ -4,6 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Tests.Security;
 
+// The production meter is static, so listeners must not capture concurrent test collections.
+[CollectionDefinition(nameof(AuthenticationProtectionTelemetryTestGroup), DisableParallelization = true)]
+public sealed class AuthenticationProtectionTelemetryTestGroup
+{
+}
+
+[Collection(nameof(AuthenticationProtectionTelemetryTestGroup))]
 public sealed class AuthenticationProtectionTelemetryTests
 {
     private static readonly HashSet<string> AllowedTagNames = new(StringComparer.Ordinal)
@@ -154,6 +161,69 @@ public sealed class AuthenticationProtectionTelemetryTests
         var measurement = Assert.Single(measurements);
         Assert.Equal("authentication_protection_failure_total", measurement.Name);
         Assert.Equal(["operation=unknown", "reason=unknown"], measurement.Tags);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationProtectionOperation.PasswordChange, "password_change")]
+    [InlineData(AuthenticationProtectionOperation.UserRead, "user_read")]
+    [InlineData(AuthenticationProtectionOperation.UserWrite, "user_write")]
+    public void MapsEveryRemainingOperationToItsBoundedTag(
+        AuthenticationProtectionOperation operation,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordFailure(operation, AuthenticationProtectionReason.Unexpected);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Equal("authentication_protection_failure_total", measurement.Name);
+        Assert.Equal(["operation=" + expectedTag, "reason=unexpected"], measurement.Tags);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationProtectionReason.Unauthenticated, "unauthenticated")]
+    [InlineData(AuthenticationProtectionReason.NotFound, "not_found")]
+    [InlineData(AuthenticationProtectionReason.CapacityExhausted, "capacity_exhausted")]
+    [InlineData(AuthenticationProtectionReason.InvalidConfiguration, "invalid_configuration")]
+    [InlineData(AuthenticationProtectionReason.Unexpected, "unexpected")]
+    public void MapsEveryRemainingReasonToItsBoundedTag(
+        AuthenticationProtectionReason reason,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordFailure(AuthenticationProtectionOperation.Login, reason);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Equal("authentication_protection_failure_total", measurement.Name);
+        Assert.Equal(["operation=login", "reason=" + expectedTag], measurement.Tags);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationProtectionResult.Success, "success")]
+    [InlineData(AuthenticationProtectionResult.Throttled, "throttled")]
+    [InlineData(AuthenticationProtectionResult.Accepted, "accepted")]
+    [InlineData(AuthenticationProtectionResult.Rejected, "rejected")]
+    public void MapsEveryRemainingDeliveryResultToItsBoundedTag(
+        AuthenticationProtectionResult result,
+        string expectedTag)
+    {
+        var telemetry = new AuthenticationProtectionTelemetry(
+            new CapturingLogger<AuthenticationProtectionTelemetry>());
+        var measurements = new List<MeasurementRecord>();
+        using var listener = CreateListener(measurements);
+
+        telemetry.RecordRecoveryDelivery(result, AuthenticationProtectionReason.Unexpected);
+
+        var measurement = Assert.Single(measurements);
+        Assert.Equal("recovery_delivery_total", measurement.Name);
+        Assert.Equal(["reason=unexpected", "result=" + expectedTag], measurement.Tags);
     }
 
     [Fact]

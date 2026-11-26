@@ -5,6 +5,10 @@ using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Moq;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -85,6 +89,50 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
     }
 
     [Fact]
+    public async Task ProductionStartupAcceptsAnActiveProcessingJobWithAnAvailableEncryptionKey()
+    {
+        await database.RecreateEmptyDatabaseAsync();
+        await using (var context = CreateDbContext())
+        {
+            await context.Database.MigrateAsync();
+            var now = DateTimeOffset.UtcNow;
+            context.PasswordRecoveryJobs.Add(new PasswordRecoveryJob
+            {
+                Id = Guid.NewGuid(),
+                DeliveryKeyHash = new byte[32],
+                RecipientKeyHash = Enumerable.Repeat((byte)1, 32).ToArray(),
+                PayloadCiphertext = [1, 2, 3],
+                PayloadNonce = new byte[12],
+                PayloadTag = new byte[16],
+                EncryptionKeyId = "active-key-id",
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(15),
+                NextAttemptAt = now,
+                Status = PasswordRecoveryJobStatus.Processing,
+                Attempts = 1
+            });
+            await context.SaveChangesAsync();
+            var capacity = await context.AuthenticationProtectionCapacities.SingleAsync(
+                item => item.Scope == AuthenticationProtectionCapacity.RecoveryJobs);
+            capacity.Allocated = 1;
+            await context.SaveChangesAsync();
+        }
+
+        await using var factory = CreateFactory(
+            ProductionConfiguration(),
+            new SyntheticSecretFileReader());
+        using var client = factory.CreateClient();
+        using var response = await client.GetAsync("/health");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("active-key-id", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(SyntheticPassword, body, StringComparison.Ordinal);
+        Assert.DoesNotContain(HashSecretPath, body, StringComparison.Ordinal);
+        Assert.DoesNotContain(RecoveryKeysPath, body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task RunningInstancesWithDifferentPoliciesCannotBothServeRequests()
     {
         await database.RecreateEmptyDatabaseAsync();
@@ -104,6 +152,26 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
 
         Assert.Contains("policy", AllMessages(exception), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(SyntheticPassword, AllMessages(exception), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task StartedValidatorCanBeStartedAgainAndStoppedRepeatedly()
+    {
+        await database.RecreateEmptyDatabaseAsync();
+        await using var factory = CreateFactory(
+            ProductionConfiguration(),
+            new SyntheticSecretFileReader());
+        using var client = factory.CreateClient();
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health")).StatusCode);
+
+        var validator = factory.Services.GetServices<IHostedService>()
+            .OfType<AuthenticationProtectionStartupValidator>()
+            .Single();
+        await validator.StartAsync(CancellationToken.None);
+        await validator.DisposeAsync();
+        await validator.DisposeAsync();
+        await validator.StopAsync(CancellationToken.None);
+        await validator.StopAsync(CancellationToken.None);
     }
 
     private IntegrationWebApplicationFactory CreateFactory(
@@ -190,5 +258,53 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
 
             throw new FileNotFoundException("Synthetic secret file is unavailable.");
         }
+    }
+}
+
+public sealed class AuthenticationProtectionStartupCleanupTests
+{
+    [Fact]
+    public async Task CleanupIsIdempotentBeforeAConnectionIsOpened()
+    {
+        var validator = new AuthenticationProtectionStartupValidator(
+            Mock.Of<IServiceScopeFactory>(),
+            Options.Create(new AuthenticationProtectionOptions()),
+            Mock.Of<IHostEnvironment>(),
+            Mock.Of<ISecretFileReader>());
+
+        await validator.StopAsync(CancellationToken.None);
+        await validator.StopAsync(CancellationToken.None);
+        await validator.DisposeAsync();
+        await validator.DisposeAsync();
+    }
+}
+
+public sealed class OperationAdmissionPolicyRequestDetectionTests
+{
+    [Fact]
+    public void IsLimitedJsonWriteRejectsNullRequest()
+    {
+        Assert.Throws<ArgumentNullException>(() => OperationAdmissionPolicy.IsLimitedJsonWrite(null!));
+    }
+
+    [Theory]
+    [InlineData("POST", "/api/Usuarios", "application/json", true)]
+    [InlineData("post", "/api/Emprestimos", "application/vnd.lab-solos+json; charset=utf-8", true)]
+    [InlineData("GET", "/api/Usuarios", "application/json", false)]
+    [InlineData("POST", "/api/Produtos", "application/json", false)]
+    [InlineData("POST", "/api/Usuarios", null, false)]
+    [InlineData("POST", "/api/Emprestimos", "text/json", false)]
+    public void IsLimitedJsonWriteRequiresAnAllowedPostEndpointAndJsonMediaType(
+        string method,
+        string path,
+        string? contentType,
+        bool expected)
+    {
+        var request = new DefaultHttpContext().Request;
+        request.Method = method;
+        request.Path = path;
+        request.ContentType = contentType;
+
+        Assert.Equal(expected, OperationAdmissionPolicy.IsLimitedJsonWrite(request));
     }
 }

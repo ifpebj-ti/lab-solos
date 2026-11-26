@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using LabSolos_Server_DotNet8.BackgroundServices;
 using LabSolos_Server_DotNet8.Data.Context;
@@ -221,6 +222,231 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
     }
 
     [Fact]
+    public async Task RequestExpiredBeforeMaximumAgeIsDiscardedWithoutIssuingCode()
+    {
+        var clock = new ControlledTimeProvider(DateTimeOffset.UtcNow.AddMinutes(10));
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var recoveryJob = await context.PasswordRecoveryJobs.SingleAsync();
+            recoveryJob.CreatedAt = clock.GetUtcNow().AddMinutes(-2);
+            recoveryJob.NextAttemptAt = clock.GetUtcNow().AddMinutes(-10);
+            recoveryJob.ExpiresAt = clock.GetUtcNow().AddMinutes(-1);
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var verifiedContext = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verifiedContext.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await verifiedContext.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task MalformedRequestJsonIsCompletedAndScrubbedWithoutSending()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await ReplaceRequestPayloadAsync(factory, "{ malformed");
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task InvalidRequestEmailIsCompletedAndScrubbedWithoutIssuingCode()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await ReplaceRequestPayloadAsync(factory, "{\"email\":\"not-an-email\"}");
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task UnreadableRequestPayloadIsCompletedAndScrubbedWithoutSending()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var updateContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var queuedJob = await updateContext.PasswordRecoveryJobs.SingleAsync();
+            queuedJob.PayloadCiphertext = [0];
+            await updateContext.SaveChangesAsync();
+        }
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Theory]
+    [InlineData("not-an-email", "valid-token")]
+    [InlineData(Email, " ")]
+    public async Task InvalidDeliveryPayloadIsCompletedAndScrubbedWithoutRetrying(
+        string deliveryEmail,
+        string token)
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService(failuresBeforeSuccess: 1);
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        var worker = CreateWorker(factory, clock);
+
+        Assert.Equal(1, await worker.ProcessPendingAsync());
+        await ReplaceDeliveryPayloadAsync(factory, deliveryEmail, token);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await context.Database.ExecuteSqlRawAsync(
+                "UPDATE \"PasswordRecoveryJobs\" SET \"NextAttemptAt\" = clock_timestamp() - interval '1 second';");
+        }
+
+        Assert.Equal(1, await worker.ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var verifiedContext = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var job = await verifiedContext.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Single(emailService.Messages);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Equal(1, job.Attempts);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task MissingEmissionBucketReschedulesWithoutConsumingAttempt()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await context.AuthenticationThrottleBuckets
+                .Where(bucket => bucket.Scope == AuthenticationProtectionCapacity.RecoveryRequestRecipient)
+                .ExecuteDeleteAsync();
+        }
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var verifiedContext = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var job = await verifiedContext.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        var user = await verifiedContext.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        Assert.Empty(emailService.Messages);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Pending, job.Status);
+        Assert.Equal(0, job.Attempts);
+        Assert.True(job.NextAttemptAt > clock.GetUtcNow());
+        Assert.Null(job.LeaseId);
+        Assert.NotEmpty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task AccountDisabledAfterEligibilityLookupCompletesWithoutIssuingCode()
+    {
+        var clock = NewClock();
+        var emailService = new CapturingEmailService();
+        await using var factory = CreateFactory(clock, emailService, disableUserBeforeIssue: true);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+
+        Assert.Equal(1, await CreateWorker(factory, clock).ProcessPendingAsync());
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await context.Usuarios.AsNoTracking().SingleAsync(value => value.Id == UserId);
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Empty(emailService.Messages);
+        Assert.Equal(StatusUsuario.Desabilitado, user.Status);
+        Assert.Null(user.TokenRedefinicaoHash);
+        Assert.Equal(PasswordRecoveryJobStatus.Completed, job.Status);
+        Assert.Empty(job.PayloadCiphertext);
+    }
+
+    [Fact]
+    public async Task CancellationDuringEmailDeliveryPreservesTheActiveJobForRecovery()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var clock = NewClock();
+        var emailService = new CapturingEmailService(send: async (_, _, _, cancellationToken) =>
+        {
+            cancellation.Cancel();
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        });
+        await using var factory = CreateFactory(clock, emailService);
+        await factory.RecreateDatabaseAsync();
+        await SeedUserAsync(factory, UserId, Email, StatusUsuario.Habilitado);
+        await AdmitAsync(factory, Email);
+        var worker = CreateWorker(factory, clock);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => worker.ProcessPendingAsync(cancellation.Token));
+
+        await using var verification = factory.Services.CreateAsyncScope();
+        var context = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        var job = await context.PasswordRecoveryJobs.AsNoTracking().SingleAsync();
+        Assert.Single(emailService.Messages);
+        Assert.Equal(PasswordRecoveryJobStatus.Processing, job.Status);
+        Assert.Equal(0, job.Attempts);
+        Assert.NotEmpty(job.PayloadCiphertext);
+        Assert.NotNull(job.LeaseId);
+    }
+
+    [Fact]
     public async Task RetryIsCancelledWhenSessionVersionChangesAfterFirstFailedSend()
     {
         var clock = NewClock();
@@ -385,7 +611,8 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
         ControlledTimeProvider clock,
         CapturingEmailService emailService,
         bool runWorker = false,
-        bool expireLeaseBeforeValidation = false)
+        bool expireLeaseBeforeValidation = false,
+        bool disableUserBeforeIssue = false)
     {
         var keys = SyntheticAuthenticationProtectionKeys.Create("recovery-delivery-worker");
         var protectionOptions = new AuthenticationProtectionOptions
@@ -429,13 +656,15 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
                 services.RemoveAll<IRecoveryEncryptionKeyProvider>();
                 services.AddSingleton<IRecoveryEncryptionKeyProvider>(
                     new TestRecoveryEncryptionKeyProvider(keys.RecoveryEncryptionKey));
-                if (expireLeaseBeforeValidation)
+                if (expireLeaseBeforeValidation || disableUserBeforeIssue)
                 {
                     services.RemoveAll<ICredentialService>();
                     services.AddScoped<CredentialService>();
-                    services.AddScoped<ICredentialService>(provider => new LeaseExpiringCredentialService(
+                    services.AddScoped<ICredentialService>(provider => new CredentialServiceTestDecorator(
                         provider.GetRequiredService<CredentialService>(),
-                        provider.GetRequiredService<AppDbContext>()));
+                        provider.GetRequiredService<AppDbContext>(),
+                        expireLeaseBeforeValidation,
+                        disableUserBeforeIssue));
                 }
             }
         });
@@ -454,6 +683,56 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
         await using var scope = factory.Services.CreateAsyncScope();
         var requestService = scope.ServiceProvider.GetRequiredService<IPasswordRecoveryRequestService>();
         await requestService.AdmitAsync(email, IPAddress.Parse("203.0.113.42"));
+    }
+
+    private static async Task ReplaceRequestPayloadAsync(
+        IntegrationWebApplicationFactory factory,
+        string requestJson)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var protector = scope.ServiceProvider.GetRequiredService<RecoveryPayloadProtector>();
+        var job = await context.PasswordRecoveryJobs.SingleAsync();
+        var plaintext = Encoding.UTF8.GetBytes(requestJson);
+        try
+        {
+            var protectedPayload = protector.Protect(job.Id, RecoveryPayloadPurpose.Request, plaintext);
+            job.PayloadCiphertext = protectedPayload.Ciphertext;
+            job.PayloadNonce = protectedPayload.Nonce;
+            job.PayloadTag = protectedPayload.Tag;
+            job.EncryptionKeyId = protectedPayload.EncryptionKeyId;
+            await context.SaveChangesAsync();
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(plaintext);
+        }
+    }
+
+    private static async Task ReplaceDeliveryPayloadAsync(
+        IntegrationWebApplicationFactory factory,
+        string email,
+        string token)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var protector = scope.ServiceProvider.GetRequiredService<RecoveryPayloadProtector>();
+        var job = await context.PasswordRecoveryJobs.SingleAsync();
+        var plaintext = JsonSerializer.SerializeToUtf8Bytes(
+            new PasswordRecoveryDeliveryPayload(email, "Synthetic recovery recipient", token));
+        try
+        {
+            var protectedPayload = protector.Protect(job.Id, RecoveryPayloadPurpose.Delivery, plaintext);
+            job.PayloadCiphertext = protectedPayload.Ciphertext;
+            job.PayloadNonce = protectedPayload.Nonce;
+            job.PayloadTag = protectedPayload.Tag;
+            job.EncryptionKeyId = protectedPayload.EncryptionKeyId;
+            await context.SaveChangesAsync();
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(plaintext);
+        }
     }
 
     private static async Task EnqueueCaseVariantAsync(
@@ -577,9 +856,11 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
         }
     }
 
-    private sealed class LeaseExpiringCredentialService(
+    private sealed class CredentialServiceTestDecorator(
         ICredentialService inner,
-        AppDbContext context) : ICredentialService
+        AppDbContext context,
+        bool expireLeaseBeforeValidation,
+        bool disableUserBeforeIssue) : ICredentialService
     {
         public Task<CredentialChangeResult> ChangePasswordAsync(
             int userId,
@@ -594,11 +875,20 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
             CancellationToken cancellationToken = default) =>
             inner.RequestPasswordResetAsync(email, cancellationToken);
 
-        public Task<PasswordResetDeliveryIssue?> IssuePasswordResetForDeliveryAsync(
+        public async Task<PasswordResetDeliveryIssue?> IssuePasswordResetForDeliveryAsync(
             int userId,
             string expectedEmail,
-            CancellationToken cancellationToken = default) =>
-            inner.IssuePasswordResetForDeliveryAsync(userId, expectedEmail, cancellationToken);
+            CancellationToken cancellationToken = default)
+        {
+            if (disableUserBeforeIssue)
+            {
+                await context.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE \"Usuarios\" SET \"Status\" = {(int)StatusUsuario.Desabilitado} WHERE \"Id\" = {userId};",
+                    cancellationToken);
+            }
+
+            return await inner.IssuePasswordResetForDeliveryAsync(userId, expectedEmail, cancellationToken);
+        }
 
         public async Task<bool> IsPasswordResetCurrentAsync(
             int userId,
@@ -607,9 +897,12 @@ public sealed partial class RecoveryDeliveryWorkerTests(PostgreSql15ContainerFix
             string token,
             CancellationToken cancellationToken = default)
         {
-            await context.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE \"PasswordRecoveryJobs\" SET \"LeaseUntil\" = clock_timestamp() - interval '1 day' WHERE \"UserId\" = {userId} AND \"Status\" = 'Processing';",
-                cancellationToken);
+            if (expireLeaseBeforeValidation)
+            {
+                await context.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE \"PasswordRecoveryJobs\" SET \"LeaseUntil\" = clock_timestamp() - interval '1 day' WHERE \"UserId\" = {userId} AND \"Status\" = 'Processing';",
+                    cancellationToken);
+            }
             return await inner.IsPasswordResetCurrentAsync(
                 userId,
                 expectedEmail,

@@ -39,6 +39,16 @@ public sealed class ProductHistoryPrivacyTests
         Assert.Equal(typeof(List<HistoricoSaidaProdutoDTO>), historyProperty.PropertyType);
     }
 
+    [Fact]
+    public void RequesterNameIsNullableForRowsOutsideTheAuthorizedNameScope()
+    {
+        var requesterName = typeof(HistoricoSaidaProdutoDTO)
+            .GetProperty(nameof(HistoricoSaidaProdutoDTO.SolicitanteNome), BindingFlags.Instance | BindingFlags.Public);
+
+        Assert.NotNull(requesterName);
+        Assert.Equal(NullabilityState.Nullable, new NullabilityInfoContext().Create(requesterName).ReadState);
+    }
+
     private static void AssertPropertyNames<T>(IReadOnlyCollection<string> expected)
     {
         var actual = typeof(T)

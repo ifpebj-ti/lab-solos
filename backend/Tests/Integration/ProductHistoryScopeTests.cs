@@ -132,6 +132,57 @@ public sealed class ProductHistoryScopeTests(PostgreSqlContainerFixture database
     }
 
     [Fact]
+    public async Task CommonActorGetsNotFoundWithoutProductHistoryDetails()
+    {
+        var seeded = await SeedHistoryScenarioAsync("product-history-common-role", includeOutflows: true);
+        await using var factory = seeded.Factory;
+        using var commonActor = await CreateAuthenticatedClientAsync(
+            factory,
+            seeded.CommonActorEmail,
+            seeded.CommonActorPassword);
+
+        using var response = await commonActor.GetAsync(HistoryPath(seeded.Scenario.ProductId));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain(BorrowerName(seeded.Scenario), body, StringComparison.Ordinal);
+        Assert.DoesNotContain("@integration.test", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(
+            seeded.Scenario.ProductId.ToString(CultureInfo.InvariantCulture),
+            body,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("historico", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AdministratorGetsNotFoundForNonPositiveAndMissingProductIds()
+    {
+        var seeded = await SeedHistoryScenarioAsync("product-history-missing-product", includeOutflows: true);
+        await using var factory = seeded.Factory;
+        using var administrator = await CreateAuthenticatedClientAsync(
+            factory,
+            seeded.Scenario.AdministratorEmail,
+            seeded.Scenario.AdministratorPassword);
+        var nonPositiveResponse = await administrator.GetAsync(HistoryPath(0));
+        using (nonPositiveResponse)
+        {
+            Assert.Equal(HttpStatusCode.NotFound, nonPositiveResponse.StatusCode);
+            var body = await nonPositiveResponse.Content.ReadAsStringAsync();
+            Assert.DoesNotContain(BorrowerName(seeded.Scenario), body, StringComparison.Ordinal);
+            Assert.DoesNotContain("historico", body, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var missingProductId = int.MaxValue;
+        using var missingProductResponse = await administrator.GetAsync(HistoryPath(missingProductId));
+
+        Assert.Equal(HttpStatusCode.NotFound, missingProductResponse.StatusCode);
+        var missingProductBody = await missingProductResponse.Content.ReadAsStringAsync();
+        Assert.DoesNotContain(BorrowerName(seeded.Scenario), missingProductBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("@integration.test", missingProductBody, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("historico", missingProductBody, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task AuthorizedProductWithoutEffectiveOutflowsReturnsEmptyHistoryAndZeroTotals()
     {
         var seeded = await SeedHistoryScenarioAsync("product-history-empty-scope", includeOutflows: false);
@@ -182,6 +233,8 @@ public sealed class ProductHistoryScopeTests(PostgreSqlContainerFixture database
         var peerMenteePassword = $"T007-PeerMentee-{scenario.ScenarioToken}-Secure!";
         var unrelatedMentorEmail = $"unrelated-mentor-{scenario.ScenarioToken}@integration.test";
         var unrelatedMentorPassword = $"T007-Unrelated-{scenario.ScenarioToken}-Secure!";
+        var commonActorEmail = $"common-actor-{scenario.ScenarioToken}@integration.test";
+        var commonActorPassword = $"T007-CommonActor-{scenario.ScenarioToken}-Secure!";
         var peerMentorName = $"Mentor par {scenario.ScenarioToken}";
         var peerMenteeName = $"Mentorado par {scenario.ScenarioToken}";
 
@@ -192,6 +245,14 @@ public sealed class ProductHistoryScopeTests(PostgreSqlContainerFixture database
                 peerMentorEmail,
                 peerMentorPassword,
                 NivelUsuario.Mentor,
+                responsavelId: null,
+                passwordHasher),
+            CreateAcademicAccount(
+                scenario.ResponsibleId + 40,
+                $"Usuário comum {scenario.ScenarioToken}",
+                commonActorEmail,
+                commonActorPassword,
+                NivelUsuario.Comum,
                 responsavelId: null,
                 passwordHasher),
             CreateAcademicAccount(
@@ -296,6 +357,8 @@ public sealed class ProductHistoryScopeTests(PostgreSqlContainerFixture database
             peerMentorId,
             peerMentorEmail,
             peerMentorPassword,
+            commonActorEmail,
+            commonActorPassword,
             peerMenteeName,
             unrelatedMentorEmail,
             unrelatedMentorPassword,
@@ -507,6 +570,8 @@ public sealed class ProductHistoryScopeTests(PostgreSqlContainerFixture database
         int PeerMentorId,
         string PeerMentorEmail,
         string PeerMentorPassword,
+        string CommonActorEmail,
+        string CommonActorPassword,
         string PeerMenteeName,
         string UnrelatedMentorEmail,
         string UnrelatedMentorPassword,

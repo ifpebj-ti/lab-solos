@@ -61,6 +61,63 @@ public class UsuarioRegistrationValidationTests
         fixture.UnitOfWork.Verify(unit => unit.CommitAsync(), Times.Once);
     }
 
+    [Theory]
+    [InlineData(TipoUsuario.Administrador)]
+    [InlineData(TipoUsuario.Comum)]
+    public async Task ObterUsuariosPeloTipoMapsAdministratorAndFallbackResponses(TipoUsuario tipo)
+    {
+        var fixture = CreateController("Belo Jardim", "ES");
+        fixture.User.TipoUsuario = tipo;
+        var users = new List<Usuario> { fixture.User };
+        fixture.Repository.Setup(repository => repository.ObterTodosAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<Usuario, bool>>>(),
+                It.IsAny<Func<IQueryable<Usuario>, IQueryable<Usuario>>>()))
+            .ReturnsAsync(users);
+
+        object expectedResponse;
+        if (tipo == TipoUsuario.Administrador)
+        {
+            var administratorDtos = Array.Empty<AdministradorDTO>();
+            fixture.Mapper.Setup(mapper => mapper.Map<IEnumerable<AdministradorDTO>>(It.IsAny<object>()))
+                .Returns(administratorDtos);
+            expectedResponse = administratorDtos;
+        }
+        else
+        {
+            var genericDtos = Array.Empty<UsuarioDTO>();
+            fixture.Mapper.Setup(mapper => mapper.Map<IEnumerable<UsuarioDTO>>(It.IsAny<object>()))
+                .Returns(genericDtos);
+            expectedResponse = genericDtos;
+        }
+
+        var result = await fixture.Controller.ObterUsuariosPeloTipo((int)tipo);
+
+        var response = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expectedResponse, response.Value);
+        if (tipo == TipoUsuario.Administrador)
+        {
+            fixture.Mapper.Verify(mapper => mapper.Map<IEnumerable<AdministradorDTO>>(It.IsAny<object>()), Times.Once);
+        }
+        else
+        {
+            fixture.Mapper.Verify(mapper => mapper.Map<IEnumerable<UsuarioDTO>>(It.IsAny<object>()), Times.Once);
+        }
+    }
+
+    [Fact]
+    public async Task ObterUsuariosPeloTipoUndefinedTypeReturnsBadRequestWithoutQueryingRepository()
+    {
+        var fixture = CreateController("Belo Jardim", "ES");
+
+        var result = await fixture.Controller.ObterUsuariosPeloTipo(int.MaxValue);
+
+        var response = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Tipo de usuário inválido. Use um valor de TipoUsuario válido.", response.Value);
+        fixture.Repository.Verify(repository => repository.ObterTodosAsync(
+            It.IsAny<System.Linq.Expressions.Expression<Func<Usuario, bool>>>(),
+            It.IsAny<Func<IQueryable<Usuario>, IQueryable<Usuario>>>()), Times.Never);
+    }
+
     private static Fixture CreateController(string? city, string? course)
     {
         var request = new AddUsuarioDTO

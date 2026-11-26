@@ -46,6 +46,28 @@ public sealed class AuthLoginContractTests(PostgreSql15ContainerFixture database
         }
     }
 
+    [Theory]
+    [InlineData(Email, "incorrect password 2026")]
+    [InlineData("unknown-login-contract@example.invalid", ValidPassword)]
+    public async Task LoginInvalidCredentialsUseSameGenericUnauthorizedResponse(string email, string password)
+    {
+        var factory = await CreateScenarioAsync(StatusUsuario.Habilitado, requiresPasswordChange: false);
+        await using (factory)
+        using (var client = factory.CreateClient())
+        using (var response = await LoginAsync(client, email, password))
+        {
+            var body = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            var normalized = await Tests.Integration.ApiProblemContractAssertions.ReadAsync(
+                response, HttpStatusCode.Unauthorized, "authentication_required");
+            using var problem = JsonDocument.Parse(normalized);
+            Assert.Equal("Entre na sua conta para continuar.", problem.RootElement.GetProperty("title").GetString());
+            Assert.DoesNotContain("token", body, StringComparison.OrdinalIgnoreCase);
+            Assert.True(response.Headers.CacheControl?.NoStore);
+        }
+    }
+
     [Fact]
     public async Task LoginValidAccountReturnsPasswordChangeFlagAndVersionedClaims()
     {

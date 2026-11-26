@@ -288,6 +288,49 @@ public sealed class CriticalUserApprovalTests(PostgreSqlContainerFixture databas
             audit => audit.CodigoEvento == CodigoEventoAuditoria.ConcessaoConta);
     }
 
+    [Fact]
+    public async Task AdministratorCannotGrantMissingAlreadyAdministratorOrDisabledAccounts()
+    {
+        await using var factory = await CreateFactoryAsync(
+            CreateUser(300, NivelUsuario.Administrador),
+            CreateUser(301, NivelUsuario.Administrador),
+            CreateAcademicUser(302, NivelUsuario.Mentor, StatusUsuario.Desabilitado));
+
+        using var client = CreateClient(factory, 300, NivelUsuario.Administrador);
+        using var missing = await client.PatchAsync("/api/Usuarios/999/conceder-administrador", content: null);
+        using var alreadyAdministrator = await client.PatchAsync("/api/Usuarios/301/conceder-administrador", content: null);
+        using var disabled = await client.PatchAsync("/api/Usuarios/302/conceder-administrador", content: null);
+
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, alreadyAdministrator.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, disabled.StatusCode);
+        Assert.Equal(NivelUsuario.Administrador, await ReadRoleAsync(factory, 301));
+        Assert.Equal(NivelUsuario.Mentor, await ReadRoleAsync(factory, 302));
+        Assert.Equal(StatusUsuario.Desabilitado, await ReadStatusAsync(factory, 302));
+        Assert.DoesNotContain(
+            await ReadAuditsAsync(factory),
+            audit => audit.CodigoEvento == CodigoEventoAuditoria.ConcessaoConta);
+    }
+
+    [Theory]
+    [InlineData("aprovar")]
+    [InlineData("rejeitar")]
+    public async Task MentorCannotDecideMentorLevelRegistration(string action)
+    {
+        await using var factory = await CreateFactoryAsync(
+            CreateUser(100, NivelUsuario.Mentor),
+            CreateAcademicUser(200, NivelUsuario.Mentor, StatusUsuario.Pendente));
+
+        using var client = CreateClient(factory, 100, NivelUsuario.Mentor);
+        using var response = await SendDecisionAsync(client, action, 200, 100);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(StatusUsuario.Pendente, await ReadStatusAsync(factory, 200));
+        Assert.DoesNotContain(
+            await ReadAuditsAsync(factory),
+            audit => audit.CodigoEvento == CodigoEventoAuditoria.DecisaoConta);
+    }
+
     private async Task<IntegrationWebApplicationFactory> CreateFactoryAsync(params Usuario[] users)
     {
         var factory = new IntegrationWebApplicationFactory(database);

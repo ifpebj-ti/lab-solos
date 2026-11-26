@@ -241,6 +241,24 @@ describe('FormQuimicos: experiência de erros', () => {
     expect(requests).toHaveLength(1);
   });
 
+  it('preserva o foco do campo que iniciou o envio ao cancelar a confirmação', async () => {
+    server.use(http.post(API_URL, () => expiredProblem()));
+
+    render(<FormQuimicos />);
+    await fillForm();
+
+    const nameField = screen.getByLabelText(/^Nome/);
+    nameField.focus();
+    fireEvent.submit(nameField.closest('form')!);
+
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Produto vencido',
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+
+    await waitFor(() => expect(nameField).toHaveFocus());
+  });
+
   it('permite fechar a confirmação pelo teclado e devolve o foco ao formulário', async () => {
     server.use(http.post(API_URL, () => expiredProblem()));
 

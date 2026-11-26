@@ -1,9 +1,14 @@
-using LabSolos_Server_DotNet8.Enums;
+using System.Security.Claims;
+using AutoMapper;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.DTOs.Usuarios;
+using LabSolos_Server_DotNet8.Enums;
 using LabSolos_Server_DotNet8.Models;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -133,6 +138,125 @@ public class UsuarioServiceValidationTests
         var result = CreateService().ValidarEstrutura(request);
 
         Assert.False(result.Validado);
+    }
+
+    [Fact]
+    public void RejectsAcademicRegistrationWithoutInstitution()
+    {
+        var request = CreateAcademicRequest();
+        request.Instituicao = string.Empty;
+
+        var result = CreateService().ValidarEstrutura(request);
+
+        Assert.False(result.Validado);
+        Assert.Empty(result.Errors);
+        Assert.Contains("Instituicao", result.Mensagem, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(NivelUsuario.Mentor, true, true)]
+    [InlineData(NivelUsuario.Mentorado, false, false)]
+    [InlineData(NivelUsuario.Mentorado, true, true)]
+    public void AppliesResponsibleEligibilityForMentees(
+        NivelUsuario candidateRole,
+        bool hasEligibleResponsible,
+        bool expected)
+    {
+        var actor = new Usuario
+        {
+            Id = 10,
+            NomeCompleto = "Administrador sintético",
+            Email = "admin@example.test",
+            SenhaHash = "synthetic",
+            NivelUsuario = NivelUsuario.Administrador,
+            Status = StatusUsuario.Habilitado
+        };
+        var candidate = new Usuario
+        {
+            Id = 11,
+            NomeCompleto = "Candidato sintético",
+            Email = "candidate@example.test",
+            SenhaHash = "synthetic",
+            TipoUsuario = TipoUsuario.Academico,
+            NivelUsuario = candidateRole,
+            Status = StatusUsuario.Pendente,
+            Responsavel = hasEligibleResponsible
+                ? new Usuario
+                {
+                    Id = actor.Id,
+                    NomeCompleto = "Responsável sintético",
+                    Email = "responsible@example.test",
+                    SenhaHash = "synthetic",
+                    NivelUsuario = NivelUsuario.Mentor,
+                    Status = StatusUsuario.Habilitado
+                }
+                : null
+        };
+
+        Assert.Equal(expected, CreateService().PodeDecidir(actor, candidate));
+    }
+
+    [Fact]
+    public void FiltersRequestsToMenteesLinkedToTheActor()
+    {
+        var actor = new Usuario
+        {
+            Id = 10,
+            NomeCompleto = "Mentor sintético",
+            Email = "mentor@example.test",
+            SenhaHash = "synthetic",
+            NivelUsuario = NivelUsuario.Mentor,
+            Status = StatusUsuario.Habilitado
+        };
+        var linked = new Usuario
+        {
+            Id = 11,
+            NomeCompleto = "Vínculo autorizado",
+            Email = "linked@example.test",
+            SenhaHash = "synthetic",
+            TipoUsuario = TipoUsuario.Academico,
+            NivelUsuario = NivelUsuario.Mentorado,
+            Status = StatusUsuario.Pendente,
+            ResponsavelId = actor.Id,
+            Responsavel = actor
+        };
+        var unlinked = new Usuario
+        {
+            Id = 12,
+            NomeCompleto = "Vínculo de outro mentor",
+            Email = "unlinked@example.test",
+            SenhaHash = "synthetic",
+            TipoUsuario = TipoUsuario.Academico,
+            NivelUsuario = NivelUsuario.Mentorado,
+            Status = StatusUsuario.Pendente,
+            ResponsavelId = actor.Id + 1
+        };
+
+        var eligible = CreateService().FiltrarSolicitacoesElegiveis(actor, [linked, unlinked]);
+
+        Assert.Same(linked, Assert.Single(eligible));
+    }
+
+    [Fact]
+    public async Task RejectsNonRelationalStorageBeforeMutation()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+        await using var context = new AppDbContext(options);
+        var service = new UserProfileUpdateService(
+            context,
+            Mock.Of<IMapper>(),
+            Mock.Of<IPasswordHasher<Usuario>>(),
+            new AdminContinuityGuard(context));
+        var principal = new ClaimsPrincipal(new ClaimsIdentity());
+        var patch = new JsonPatchDocument<UsuarioDTOPatchRequest>();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.UpdateAsync(42, principal, patch));
+
+        Assert.Equal("Profile updates require transactional relational storage.", exception.Message);
+        Assert.Empty(context.ChangeTracker.Entries());
     }
 
     private static UsuarioService CreateService() => new(

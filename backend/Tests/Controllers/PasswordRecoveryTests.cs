@@ -1,12 +1,16 @@
 using System.Reflection;
 using System.Text.Json;
 using LabSolos_Server_DotNet8.Controllers;
+using LabSolos_Server_DotNet8.Data.Context;
 using LabSolos_Server_DotNet8.DTOs.Email;
+using LabSolos_Server_DotNet8.Repositories;
 using LabSolos_Server_DotNet8.Services;
 using LabSolos_Server_DotNet8.Services.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Tests.Controllers;
@@ -199,6 +203,109 @@ public class PasswordRecoveryTests
             properties);
     }
 
+    [Fact]
+    public async Task RejectsInvalidEmailVariantsBeforeThrottleAdmission()
+    {
+        await using var context = CreateInMemoryContext();
+        var service = CreateRequestService(context);
+        string?[] invalidEmails =
+        [
+            null,
+            "",
+            "not-an-email",
+            new string('x', 255) + "@example.invalid",
+            "control\0@example.invalid",
+            "Recovery User <recovery@example.invalid>"
+        ];
+
+        foreach (var email in invalidEmails)
+        {
+            await service.AdmitAsync(email, null);
+        }
+    }
+
+    [Fact]
+    public async Task PropagatesCancellationBeforeAdmission()
+    {
+        await using var context = CreateInMemoryContext();
+        var service = CreateRequestService(context);
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        var error = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.AdmitAsync("eligible@example.invalid", null, cancellation.Token));
+
+        Assert.Equal(cancellation.Token, error.CancellationToken);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(11)]
+    public void RepositoryRejectsReservationBatchesOutsideTheSupportedRange(int batchSize)
+    {
+        using var context = CreateInMemoryContext();
+        var repository = CreateRepository(context);
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = repository.ReserveBatchAsync(batchSize); });
+    }
+
+    [Fact]
+    public void RepositoryRejectsLeaseDurationsOutsideTheSupportedRange()
+    {
+        using var context = CreateInMemoryContext();
+        var repository = CreateRepository(context);
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = repository.ReserveBatchAsync(leaseDuration: TimeSpan.FromMilliseconds(999)); });
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = repository.ReserveBatchAsync(leaseDuration: TimeSpan.FromMinutes(10).Add(TimeSpan.FromTicks(1))); });
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void RepositoryRejectsRetryAttemptsOutsideTheSupportedRange(int attempts)
+    {
+        using var context = CreateInMemoryContext();
+        var repository = CreateRepository(context);
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = repository.TryScheduleRetryAsync(Guid.NewGuid(), Guid.NewGuid(), attempts, DateTimeOffset.UtcNow); });
+    }
+
+    [Fact]
+    public void RepositoryRejectsInvalidCleanupBatchAndUserIdentifiers()
+    {
+        using var context = CreateInMemoryContext();
+        var repository = CreateRepository(context);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _ = repository.CleanupExpiredAsync(0); });
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _ = repository.CleanupExpiredAsync(501); });
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _ = repository.CancelForUserAsync(0); });
+    }
+
+    [Fact]
+    public void RepositoryRejectsInvalidPayloadContextAndExpirationBeforePersistence()
+    {
+        using var context = CreateInMemoryContext();
+        var repository = CreateRepository(context);
+        var jobId = Guid.NewGuid();
+        var leaseId = Guid.NewGuid();
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(5);
+
+        Assert.Throws<ArgumentException>(() => { _ = repository.TryReplacePayloadAsync(
+            Guid.Empty, leaseId, Array.Empty<byte>(), RecoveryPayloadPurpose.Request, null, null, expiresAt); });
+        Assert.Throws<ArgumentException>(() => { _ = repository.TryReplacePayloadAsync(
+            jobId, Guid.Empty, Array.Empty<byte>(), RecoveryPayloadPurpose.Request, null, null, expiresAt); });
+        Assert.Throws<ArgumentException>(() => { _ = repository.TryReplacePayloadAsync(
+            jobId, leaseId, Array.Empty<byte>(), RecoveryPayloadPurpose.Delivery, null, 0, expiresAt); });
+        Assert.Throws<ArgumentException>(() => { _ = repository.TryReplacePayloadAsync(
+            jobId, leaseId, Array.Empty<byte>(), (RecoveryPayloadPurpose)int.MaxValue, null, null, expiresAt); });
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _ = repository.TryReplacePayloadAsync(
+            jobId, leaseId, Array.Empty<byte>(), RecoveryPayloadPurpose.Request, null, null, DateTimeOffset.MinValue); });
+    }
+
     private static EmailController CreateController(
         IEmailService emailService,
         IPasswordResetService passwordResetService,
@@ -211,5 +318,48 @@ public class PasswordRecoveryTests
             NullLogger<EmailController>.Instance);
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
         return controller;
+    }
+
+    private static AppDbContext CreateInMemoryContext() => new(
+        new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+
+    private static PasswordRecoveryRequestService CreateRequestService(AppDbContext context)
+    {
+        var options = Options.Create(new AuthenticationProtectionOptions());
+        var telemetry = new AuthenticationProtectionTelemetry(
+            NullLogger<AuthenticationProtectionTelemetry>.Instance);
+        var keyFactory = new ThrottleKeyFactory(Enumerable.Range(1, 32).Select(value => (byte)value).ToArray(), "Tests");
+        var protector = new RecoveryPayloadProtector(new TestPasswordRecoveryKeyProvider(
+            Enumerable.Range(1, 32).Select(value => (byte)value).ToArray()));
+        var throttle = new PostgresAuthenticationThrottle(
+            context,
+            options,
+            new TimeProviderAuthenticationThrottleClock(TimeProvider.System));
+        var repository = new PasswordRecoveryJobRepository(context, protector);
+
+        return new PasswordRecoveryRequestService(
+            throttle,
+            repository,
+            keyFactory,
+            options,
+            TimeProvider.System,
+            telemetry);
+    }
+
+    private static PasswordRecoveryJobRepository CreateRepository(AppDbContext context) =>
+        new(
+            context,
+            new RecoveryPayloadProtector(new TestPasswordRecoveryKeyProvider(
+                Enumerable.Range(1, 32).Select(value => (byte)value).ToArray())));
+
+    private sealed class TestPasswordRecoveryKeyProvider(byte[] key) : IRecoveryEncryptionKeyProvider
+    {
+        private readonly byte[] _key = key.ToArray();
+
+        public string ActiveKeyId => "password-recovery-tests";
+
+        public byte[] CopyKey(string keyId) => _key.ToArray();
     }
 }

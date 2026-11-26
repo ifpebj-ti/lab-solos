@@ -130,6 +130,58 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
     }
 
     [Fact]
+    public async Task AdministratorCannotSetUndefinedStatusAndProfileRemainsUnchanged()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+            using var response = await PatchAsync(
+                administrator,
+                scenario.MenteeOneId,
+                "[{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"Desconhecido\"}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "status_invalid",
+                payload.RootElement.GetProperty("errors").GetProperty("status")[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+            Assert.Equal(StatusUsuario.Habilitado, user.Status);
+        }
+    }
+
+    [Fact]
+    public async Task AdministratorCannotSetNullStatusAndProfileRemainsUnchanged()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var administrator = CreateClient(factory, scenario.AdministratorId, NivelUsuario.Administrador);
+            using var response = await PatchAsync(
+                administrator,
+                scenario.MenteeOneId,
+                "[{\"op\":\"replace\",\"path\":\"/status\",\"value\":null}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "status_invalid",
+                payload.RootElement.GetProperty("errors").GetProperty("status")[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal(StatusUsuario.Habilitado, user.Status);
+        }
+    }
+
+    [Fact]
     public async Task OwnerEmailChangeRequiresCorrectPasswordAndCancelsRecoveryWithoutRevokingSession()
     {
         var (factory, scenario) = await CreateScenarioAsync();
@@ -229,6 +281,139 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
             Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+        }
+    }
+
+    [Fact]
+    public async Task JsonPatchTestOperationAllowsMatchingValueAndRejectsMismatchWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var matching = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"test\",\"path\":\"/email\",\"value\":\"{scenario.MenteeOneEmail}\"}}]");
+            Assert.Equal(HttpStatusCode.OK, matching.StatusCode);
+
+            using var mismatch = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                "[{\"op\":\"test\",\"path\":\"/email\",\"value\":\"different@example.invalid\"}]");
+            Assert.Equal(HttpStatusCode.BadRequest, mismatch.StatusCode);
+            Assert.Contains("invalid_patch", await mismatch.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+        }
+    }
+
+    [Theory]
+    [InlineData("/nomeCompleto", "  ", 400, "nomeCompleto", "name_required")]
+    [InlineData("/email", "not-an-email", 400, "email", "email_invalid")]
+    [InlineData("/status", "Desabilitado", 403, null, null)]
+    public async Task InvalidOrForbiddenProfilePatchIsRejectedWithoutMutation(
+        string path,
+        string value,
+        int expectedStatus,
+        string? field,
+        string? expectedCode)
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var response = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"{path}\",\"value\":\"{value}\"}}]");
+
+            Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
+            if (field is not null && expectedCode is not null)
+            {
+                using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                Assert.Equal(expectedCode, payload.RootElement.GetProperty("errors").GetProperty(field)[0].GetString());
+            }
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+            Assert.Equal(StatusUsuario.Habilitado, user.Status);
+        }
+    }
+
+    [Fact]
+    public async Task EmptyPatchDocumentReturnsBadRequestWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var response = await PatchAsync(owner, scenario.MenteeOneId, "[]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("invalid_patch", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+        }
+    }
+
+    [Fact]
+    public async Task EmailLongerThanTheMaximumLengthIsRejectedWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            var oversizedEmail = $"{new string('a', 239)}@example.invalid";
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var response = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                $"[{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"{oversizedEmail}\"}}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "email_invalid",
+                payload.RootElement.GetProperty("errors").GetProperty("email")[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
+        }
+    }
+
+    [Fact]
+    public async Task NullEmailIsRejectedWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+            using var response = await PatchAsync(
+                owner,
+                scenario.MenteeOneId,
+                "[{\"op\":\"replace\",\"path\":\"/email\",\"value\":null}]");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(
+                "email_invalid",
+                payload.RootElement.GetProperty("errors").GetProperty("email")[0].GetString());
+
+            await using var scope = factory.Services.CreateAsyncScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+            Assert.Equal(scenario.MenteeOneEmail, user.Email);
         }
     }
 
@@ -533,6 +718,233 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
                 removeTrigger.CommandText = """
                     DROP TRIGGER IF EXISTS reject_synthetic_email_change_audit ON "LogsAuditoria";
                     DROP FUNCTION IF EXISTS reject_synthetic_email_change_audit();
+                    """;
+                await removeTrigger.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task EmailUniqueViolationDuringPersistenceReturnsConflictAndRollsBackTheWholeChange()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            await using (var connection = new NpgsqlConnection(database.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await using var createTrigger = connection.CreateCommand();
+                createTrigger.CommandText = """
+                    CREATE FUNCTION reject_t027_email_update() RETURNS trigger LANGUAGE plpgsql AS $$
+                    BEGIN
+                        IF NEW."Email" = 't027-unique-conflict@example.invalid' THEN
+                            RAISE EXCEPTION 'synthetic email uniqueness conflict'
+                                USING ERRCODE = '23505', CONSTRAINT = 'IX_Usuarios_Email';
+                        END IF;
+                        RETURN NEW;
+                    END;
+                    $$;
+                    CREATE TRIGGER reject_t027_email_update
+                    BEFORE UPDATE OF "Email" ON "Usuarios"
+                    FOR EACH ROW EXECUTE FUNCTION reject_t027_email_update();
+                    """;
+                await createTrigger.ExecuteNonQueryAsync();
+            }
+
+            try
+            {
+                using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+                using var response = await PatchAsync(
+                    owner,
+                    scenario.MenteeOneId,
+                    $"[{{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"Não persistir\"}},{{\"op\":\"replace\",\"path\":\"/email\",\"value\":\"t027-unique-conflict@example.invalid\"}},{{\"op\":\"replace\",\"path\":\"/senhaAtual\",\"value\":\"{scenario.MenteeOnePassword}\"}}]");
+
+                Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+                await using var scope = factory.Services.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+                Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+                Assert.Equal(scenario.MenteeOneEmail, user.Email);
+                Assert.Empty(await context.EmailAddressReservations
+                    .Where(reservation => reservation.OwnerUserId == scenario.MenteeOneId).ToListAsync());
+                Assert.Empty(await context.EmailChangeNoticeJobs
+                    .Where(job => job.UserId == scenario.MenteeOneId).ToListAsync());
+                Assert.Empty(await context.LogsAuditoria.Where(log =>
+                    log.CodigoEvento == CodigoEventoAuditoria.TrocaEmail &&
+                    log.UsuarioId == scenario.MenteeOneId).ToListAsync());
+            }
+            finally
+            {
+                await using var connection = new NpgsqlConnection(database.ConnectionString);
+                await connection.OpenAsync();
+                await using var removeTrigger = connection.CreateCommand();
+                removeTrigger.CommandText = """
+                    DROP TRIGGER IF EXISTS reject_t027_email_update ON "Usuarios";
+                    DROP FUNCTION IF EXISTS reject_t027_email_update();
+                    """;
+                await removeTrigger.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentProfileWriteReturnsConflictWithoutPersistingAnyField()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            await using (var connection = new NpgsqlConnection(database.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await using var createTrigger = connection.CreateCommand();
+                createTrigger.CommandText = """
+                    CREATE FUNCTION suppress_t027_profile_update() RETURNS trigger LANGUAGE plpgsql AS $$
+                    BEGIN
+                        IF NEW."NomeCompleto" = 'T027 suppress this profile update' THEN
+                            RETURN NULL;
+                        END IF;
+                        RETURN NEW;
+                    END;
+                    $$;
+                    CREATE TRIGGER suppress_t027_profile_update
+                    BEFORE UPDATE ON "Usuarios"
+                    FOR EACH ROW EXECUTE FUNCTION suppress_t027_profile_update();
+                    """;
+                await createTrigger.ExecuteNonQueryAsync();
+            }
+
+            try
+            {
+                using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+                using var response = await PatchAsync(
+                    owner,
+                    scenario.MenteeOneId,
+                    "[{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"T027 suppress this profile update\"},{\"op\":\"replace\",\"path\":\"/telefone\",\"value\":\"81999990000\"}]");
+
+                Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+                await using var scope = factory.Services.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+                Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+                Assert.NotEqual("81999990000", user.Telefone);
+            }
+            finally
+            {
+                await using var connection = new NpgsqlConnection(database.ConnectionString);
+                await connection.OpenAsync();
+                await using var removeTrigger = connection.CreateCommand();
+                removeTrigger.CommandText = """
+                    DROP TRIGGER IF EXISTS suppress_t027_profile_update ON "Usuarios";
+                    DROP FUNCTION IF EXISTS suppress_t027_profile_update();
+                    """;
+                await removeTrigger.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UnexpectedProfilePersistenceFailureReturnsUnavailableWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            await using (var connection = new NpgsqlConnection(database.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await using var createTrigger = connection.CreateCommand();
+                createTrigger.CommandText = """
+                    CREATE FUNCTION reject_t027_profile_update() RETURNS trigger LANGUAGE plpgsql AS $$
+                    BEGIN
+                        IF NEW."NomeCompleto" = 'T027 reject this profile update' THEN
+                            RAISE EXCEPTION 'synthetic profile persistence failure' USING ERRCODE = '23514';
+                        END IF;
+                        RETURN NEW;
+                    END;
+                    $$;
+                    CREATE TRIGGER reject_t027_profile_update
+                    BEFORE UPDATE ON "Usuarios"
+                    FOR EACH ROW EXECUTE FUNCTION reject_t027_profile_update();
+                    """;
+                await createTrigger.ExecuteNonQueryAsync();
+            }
+
+            try
+            {
+                using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+                using var response = await PatchAsync(
+                    owner,
+                    scenario.MenteeOneId,
+                    "[{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"T027 reject this profile update\"}]");
+
+                Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+                await using var scope = factory.Services.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+                Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            }
+            finally
+            {
+                await using var connection = new NpgsqlConnection(database.ConnectionString);
+                await connection.OpenAsync();
+                await using var removeTrigger = connection.CreateCommand();
+                removeTrigger.CommandText = """
+                    DROP TRIGGER IF EXISTS reject_t027_profile_update ON "Usuarios";
+                    DROP FUNCTION IF EXISTS reject_t027_profile_update();
+                    """;
+                await removeTrigger.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UnrelatedUniqueViolationReturnsUnavailableWithoutMutation()
+    {
+        var (factory, scenario) = await CreateScenarioAsync();
+        await using (factory)
+        {
+            await using (var connection = new NpgsqlConnection(database.ConnectionString))
+            {
+                await connection.OpenAsync();
+                await using var createTrigger = connection.CreateCommand();
+                createTrigger.CommandText = """
+                    CREATE FUNCTION reject_t035_unrelated_unique_violation() RETURNS trigger LANGUAGE plpgsql AS $$
+                    BEGIN
+                        IF NEW."NomeCompleto" = 'T035 unrelated unique violation' THEN
+                            RAISE EXCEPTION 'synthetic unrelated unique violation'
+                                USING ERRCODE = '23505', CONSTRAINT = 'UX_T035_UnrelatedProfileField';
+                        END IF;
+                        RETURN NEW;
+                    END;
+                    $$;
+                    CREATE TRIGGER reject_t035_unrelated_unique_violation
+                    BEFORE UPDATE ON "Usuarios"
+                    FOR EACH ROW EXECUTE FUNCTION reject_t035_unrelated_unique_violation();
+                    """;
+                await createTrigger.ExecuteNonQueryAsync();
+            }
+
+            try
+            {
+                using var owner = CreateClient(factory, scenario.MenteeOneId, NivelUsuario.Mentorado);
+                using var response = await PatchAsync(
+                    owner,
+                    scenario.MenteeOneId,
+                    "[{\"op\":\"replace\",\"path\":\"/nomeCompleto\",\"value\":\"T035 unrelated unique violation\"}]");
+
+                Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+                await using var scope = factory.Services.CreateAsyncScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var user = await context.Usuarios.SingleAsync(candidate => candidate.Id == scenario.MenteeOneId);
+                Assert.Equal($"Usuário mentee-one-{scenario.ScenarioToken}", user.NomeCompleto);
+            }
+            finally
+            {
+                await using var connection = new NpgsqlConnection(database.ConnectionString);
+                await connection.OpenAsync();
+                await using var removeTrigger = connection.CreateCommand();
+                removeTrigger.CommandText = """
+                    DROP TRIGGER IF EXISTS reject_t035_unrelated_unique_violation ON "Usuarios";
+                    DROP FUNCTION IF EXISTS reject_t035_unrelated_unique_violation();
                     """;
                 await removeTrigger.ExecuteNonQueryAsync();
             }
