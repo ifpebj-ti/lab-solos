@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using LabSolos_Server_DotNet8.Controllers;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -153,16 +155,129 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
         Assert.Equal(1, user.VersaoSessao);
     }
 
-    private async Task<Scenario> CreateScenarioAsync(bool requiresPasswordChange, bool seedSecondAccount = false)
+    [Fact]
+    public async Task AccountCapacityExhaustionReturnsRetryableRateLimitWithoutMutation()
+    {
+        var scenario = await CreateScenarioAsync(
+            requiresPasswordChange: false,
+            maxBucketsPerScope: 1);
+        await using var factory = scenario.Factory;
+        using var client = scenario.Client;
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var capacity = await context.Set<AuthenticationProtectionCapacity>()
+                .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange);
+            capacity.Allocated = 1;
+
+            var keyFactory = scope.ServiceProvider.GetRequiredService<ThrottleKeyFactory>();
+            var accountKey = keyFactory.CreateAccountQuotaKey(ThrottlePurpose.PasswordChange, accountId: 99);
+            try
+            {
+                context.Set<AuthenticationThrottleBucket>().Add(new AuthenticationThrottleBucket
+                {
+                    Scope = AuthenticationProtectionCapacity.PasswordChange,
+                    KeyHash = accountKey.ToArray(),
+                    WindowStartedAt = InitialTime,
+                    WindowEndsAt = InitialTime.AddMinutes(15),
+                    Count = 0
+                });
+                await context.SaveChangesAsync();
+            }
+            finally
+            {
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(accountKey);
+            }
+        }
+
+        using var exhausted = await ChangePasswordAsync(client, scenario.Cookie, Password);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, exhausted.StatusCode);
+        Assert.Equal(30, exhausted.Headers.RetryAfter?.Delta?.TotalSeconds);
+        using (var problem = System.Text.Json.JsonDocument.Parse(await exhausted.Content.ReadAsStringAsync()))
+        {
+            Assert.Equal("authentication_rate_limited", problem.RootElement.GetProperty("code").GetString());
+            Assert.Equal(30, problem.RootElement.GetProperty("retryAfterSeconds").GetInt32());
+        }
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verificationContext.Usuarios.AsNoTracking().SingleAsync(candidate => candidate.Id == 42);
+        Assert.Equal(
+            PasswordVerificationResult.Success,
+            new PasswordHasher<Usuario>().VerifyHashedPassword(user, user.SenhaHash, Password));
+        Assert.Equal(1, user.VersaoSessao);
+    }
+
+    [Fact]
+    public async Task CredentialStoreInfrastructureFailureReturnsUnavailableAndPreservesCredential()
+    {
+        var credentialService = new Mock<ICredentialService>(MockBehavior.Strict);
+        credentialService
+            .Setup(service => service.ChangePasswordAsync(
+                42,
+                Password,
+                NewPassword,
+                NewPassword,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(
+                "synthetic wrapper",
+                new TimeoutException("synthetic credential store timeout")));
+
+        var scenario = await CreateScenarioAsync(
+            requiresPasswordChange: false,
+            credentialService: credentialService.Object);
+        await using var factory = scenario.Factory;
+        using var client = scenario.Client;
+
+        using var unavailable = await ChangePasswordAsync(client, scenario.Cookie, Password);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, unavailable.StatusCode);
+        var responseBody = await unavailable.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("synthetic", responseBody, StringComparison.OrdinalIgnoreCase);
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await verificationContext.Usuarios.AsNoTracking().SingleAsync(candidate => candidate.Id == 42);
+        Assert.Equal(
+            PasswordVerificationResult.Success,
+            new PasswordHasher<Usuario>().VerifyHashedPassword(user, user.SenhaHash, Password));
+        Assert.Equal(1, user.VersaoSessao);
+        credentialService.Verify(service => service.ChangePasswordAsync(
+            42,
+            Password,
+            NewPassword,
+            NewPassword,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private async Task<Scenario> CreateScenarioAsync(
+        bool requiresPasswordChange,
+        bool seedSecondAccount = false,
+        int? maxBucketsPerScope = null,
+        ICredentialService? credentialService = null)
     {
         var clock = new ControlledTimeProvider(InitialTime);
         var factory = new IntegrationWebApplicationFactory(database, new()
         {
             TimeProvider = clock,
+            Configuration = maxBucketsPerScope is int capacity
+                ? new Dictionary<string, string?>
+                {
+                    ["AuthenticationProtection:MaxBucketsPerScope"] =
+                        capacity.ToString(CultureInfo.InvariantCulture)
+                }
+                : new Dictionary<string, string?>(),
             ConfigureServices = services =>
             {
                 services.RemoveAll<IAuthenticationThrottleClock>();
                 services.AddSingleton<IAuthenticationThrottleClock>(new TimeProviderAuthenticationThrottleClock(clock));
+                if (credentialService is not null)
+                {
+                    services.RemoveAll<ICredentialService>();
+                    services.AddSingleton(credentialService);
+                }
             }
         });
         await factory.RecreateDatabaseAsync();

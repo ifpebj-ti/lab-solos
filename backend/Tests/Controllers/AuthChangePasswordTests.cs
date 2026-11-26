@@ -88,7 +88,7 @@ public class AuthChangePasswordTests
     }
 
     [Fact]
-    public async Task ChangePassword_NullRequestAndMissingCode_UsesSafeValidationDefaults()
+    public async Task UsesSafeValidationDefaultsForNullRequestAndMissingCode()
     {
         var passwordChanges = new Mock<IPasswordChangeRateLimitService>();
         passwordChanges.Setup(service => service.ChangePasswordAsync(

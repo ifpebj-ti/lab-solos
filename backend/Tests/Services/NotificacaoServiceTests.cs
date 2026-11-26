@@ -111,7 +111,7 @@ public sealed class NotificacaoServiceTests
         Assert.False(notification.AudienciaLegadaIndeterminada);
         Assert.Null(notification.ExcluidaEmUtc);
         Assert.Equal("/notifications/42", notification.LinkAcao);
-        Assert.Equal(new[] { 43 }, notification.Destinatarios.Select(read => read.UsuarioId));
+        Assert.Equal(43, Assert.Single(notification.Destinatarios.Select(read => read.UsuarioId)));
         Assert.StartsWith("v1:", idempotencyKey);
         Assert.Equal(idempotencyKey, idempotencyKey!.ToLowerInvariant());
         Assert.Equal(67, idempotencyKey.Length);

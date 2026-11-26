@@ -122,7 +122,7 @@ public class UserCreationPasswordPolicyTests
 
     [Theory]
     [MemberData(nameof(RegistrationPasswordFailures))]
-    public async Task Adicionar_MapsPasswordPolicyFailuresToSafeFieldErrors(
+    public async Task MapsPasswordPolicyFailuresToSafeFieldErrors(
         string password,
         string expectedCode,
         string expectedMessage)
@@ -140,7 +140,7 @@ public class UserCreationPasswordPolicyTests
     }
 
     [Fact]
-    public async Task Adicionar_InvalidPublicRoleReturnsBadRequestWithoutPersisting()
+    public async Task InvalidPublicRoleReturnsBadRequestWithoutPersisting()
     {
         var fixture = CreateController("safe registration password");
         fixture.Request.NivelUsuario = nameof(NivelUsuario.Administrador);
@@ -154,7 +154,7 @@ public class UserCreationPasswordPolicyTests
     }
 
     [Fact]
-    public async Task Adicionar_InvalidAcademicFieldsReturnsValidationProblemWithoutPersisting()
+    public async Task InvalidAcademicFieldsReturnsValidationProblemWithoutPersisting()
     {
         var fixture = CreateController("safe registration password");
         fixture.Request.Cidade = "Indefinido";

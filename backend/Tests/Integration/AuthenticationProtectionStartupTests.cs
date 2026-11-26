@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Moq;
 using Tests.Infrastructure;
 
 namespace Tests.Integration;
@@ -107,6 +110,26 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
         Assert.DoesNotContain(SyntheticPassword, AllMessages(exception), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task StartedValidatorCanBeStartedAgainAndStoppedRepeatedly()
+    {
+        await database.RecreateEmptyDatabaseAsync();
+        await using var factory = CreateFactory(
+            ProductionConfiguration(),
+            new SyntheticSecretFileReader());
+        using var client = factory.CreateClient();
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health")).StatusCode);
+
+        var validator = factory.Services.GetServices<IHostedService>()
+            .OfType<AuthenticationProtectionStartupValidator>()
+            .Single();
+        await validator.StartAsync(CancellationToken.None);
+        await validator.DisposeAsync();
+        await validator.DisposeAsync();
+        await validator.StopAsync(CancellationToken.None);
+        await validator.StopAsync(CancellationToken.None);
+    }
+
     private IntegrationWebApplicationFactory CreateFactory(
         IReadOnlyDictionary<string, string?> configuration,
         ISecretFileReader files) =>
@@ -191,6 +214,24 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
 
             throw new FileNotFoundException("Synthetic secret file is unavailable.");
         }
+    }
+}
+
+public sealed class AuthenticationProtectionStartupCleanupTests
+{
+    [Fact]
+    public async Task CleanupIsIdempotentBeforeAConnectionIsOpened()
+    {
+        var validator = new AuthenticationProtectionStartupValidator(
+            Mock.Of<IServiceScopeFactory>(),
+            Options.Create(new AuthenticationProtectionOptions()),
+            Mock.Of<IHostEnvironment>(),
+            Mock.Of<ISecretFileReader>());
+
+        await validator.StopAsync(CancellationToken.None);
+        await validator.StopAsync(CancellationToken.None);
+        await validator.DisposeAsync();
+        await validator.DisposeAsync();
     }
 }
 

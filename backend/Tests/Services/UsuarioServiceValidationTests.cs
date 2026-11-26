@@ -141,7 +141,7 @@ public class UsuarioServiceValidationTests
     }
 
     [Fact]
-    public void ValidarEstrutura_RejectsAcademicRegistrationWithoutInstitution()
+    public void RejectsAcademicRegistrationWithoutInstitution()
     {
         var request = CreateAcademicRequest();
         request.Instituicao = string.Empty;
@@ -157,7 +157,7 @@ public class UsuarioServiceValidationTests
     [InlineData(NivelUsuario.Mentor, true, true)]
     [InlineData(NivelUsuario.Mentorado, false, false)]
     [InlineData(NivelUsuario.Mentorado, true, true)]
-    public void PodeDecidir_AppliesResponsibleEligibilityForMentees(
+    public void AppliesResponsibleEligibilityForMentees(
         NivelUsuario candidateRole,
         bool hasEligibleResponsible,
         bool expected)
@@ -197,7 +197,7 @@ public class UsuarioServiceValidationTests
     }
 
     [Fact]
-    public void FiltrarSolicitacoesElegiveis_OnlyReturnsMenteesLinkedToTheActor()
+    public void FiltersRequestsToMenteesLinkedToTheActor()
     {
         var actor = new Usuario
         {
@@ -238,7 +238,7 @@ public class UsuarioServiceValidationTests
     }
 
     [Fact]
-    public async Task UserProfileUpdateService_RejectsNonRelationalStorageBeforeMutation()
+    public async Task RejectsNonRelationalStorageBeforeMutation()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))

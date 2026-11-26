@@ -1,6 +1,6 @@
 # Tarefas — Aumentar a cobertura de branches para 80%
 
-- Status: T001–T014 concluídas; T015 em andamento
+- Status: T001–T014 concluídas; T015 em andamento; T016–T017 concluídas; T018–T019 em andamento (validação no CI pendente)
 - PRD: [Aumento da cobertura de branches para 80%](./prd.md)
 - Especificação técnica: [Aumento da cobertura de branches para 80%](./techspec.md)
 - Atualizado em: 2026-11-26
@@ -13,7 +13,8 @@ A meta de conclusão é atingir 80% de branches em cada módulo. Frontend contin
 | ---- | ------- | --------------------------------- |
 | 1 | T001 | Alinha a fonte do gate/backend JSON ao HTML e registra a baseline que orienta todos os testes. |
 | 2 | T002–T013, T014 | Cada tarefa cobre caminhos de teste próprios; a tarefa documental usa README e o checkout separado da Wiki. Todas dependem de T001. |
-| 3 | T015 | A validação integrada depende do coletor, testes de frontend/backend e textos atualizados, sem editar os caminhos das tarefas paralelas. |
+| 3 | T016–T019 | O primeiro artefato integrado do T015 mostrou que o backend ainda está abaixo da meta. Cada tarefa cobre uma área distinta do backend e possui arquivo de teste exclusivo. |
+| 4 | T015 | Revalidar o PR após as tarefas focais, medir os dois módulos nos artefatos oficiais e confirmar o gate de 70%. |
 
 ## T001 — Alinhar a medição do gate backend ao artefato e fixar a baseline
 
@@ -421,7 +422,7 @@ Atualizar README e Plano de Testes para identificar 80% de branches por módulo 
 
 - Status: em andamento
 - Issue: #512
-- Dependências: T002, T003, T004, T005, T006, T007, T008, T009, T010, T011, T012, T013, T014
+- Dependências: T002, T003, T004, T005, T006, T007, T008, T009, T010, T011, T012, T013, T014, T016, T017, T018, T019
 - Paralela: não
 - Requisitos: RF-001, RF-002, RF-004, RF-005, RNF-001, RNF-002, CA-001, CA-002, CA-003, CA-005, CA-006
 - Caminhos sob responsabilidade: `.codex/docs/specs/aumento-cobertura-branches-80/evidencias/T015.md`
@@ -458,6 +459,104 @@ Se a cobertura de qualquer módulo permanecer abaixo de 80%, registrar o gap e d
 
 ### Notas
 
+O primeiro artefato oficial da PR, run `45749677986`, SHA `4a42688cc480da157606981b09634a61335af928`, tentativa 1, confirma que o gate backend lê a mesma contagem do `Summary.json`: 2702/3610 (74,85%). O backend passa no gate de 70%, mas permanece abaixo da meta de 80%. Para chegar a 80% com o total oficial de 3610 branches, são necessários 2888 cobertos; faltam 186. As tarefas focais T016–T019 foram derivadas das lacunas do mesmo relatório, sem alterar o escopo do ReportGenerator.
+
+## T016 — Aumentar cobertura dos fluxos de credencial
+
+- Status: concluída
+- Issue: #512
+- Dependências: T001
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Security/CredentialServiceTests.cs`
+
+### Escopo
+
+Usar o relatório oficial do run `45749677986` para exercitar decisões de credencial ainda descobertas, priorizando `CredentialService` (113/170 branches cobertos). Estender somente os testes de serviço existentes com cenários observáveis de sucesso, rejeição e estado de token/sessão, sem mudar produção, filtros ou exclusões.
+
+### Critérios de conclusão
+
+- Cada cenário novo corresponde a uma decisão existente ainda não coberta e verifica o resultado e o estado persistido.
+- Os testes focais passam e o relatório local demonstra o avanço das branches escolhidas.
+- Os novos testes não introduzem alertas no baseline/analisadores.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T016 --filter "FullyQualifiedName~CredentialServiceTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+## T017 — Aumentar cobertura das rotas de autenticação
+
+- Status: concluída
+- Issue: #512
+- Dependências: T001
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Controllers/AuthControllerCoverageTests.cs`
+
+### Escopo
+
+Usar o relatório oficial do run `45749677986` para cobrir decisões observáveis ainda descobertas em `AuthController` (82/147 branches cobertos), concentrando-se em rotas além da troca de senha já tratada por T008. Seguir as fixtures e contratos existentes para Login, Session, Logout ou Renew, sem alterar produção.
+
+### Critérios de conclusão
+
+- Os cenários cobrem branches relevantes observados no relatório e afirmam respostas, cookies, cabeçalhos ou efeitos de sessão.
+- Os testes focais passam e demonstram avanço na cobertura do controlador.
+- Os novos testes não introduzem alertas no baseline/analisadores.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T017 --filter "FullyQualifiedName~AuthControllerCoverageTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+## T018 — Cobrir decisões do limite de troca de senha
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Integration/PasswordChangeRateLimitTests.cs`
+
+### Escopo
+
+Usar o relatório oficial do run `45749677986`, que registra 14/43 branches cobertos em `PasswordChangeRateLimitService`, para acrescentar cenários de resultado conforme a admissão do throttle e a conclusão da troca. Reutilizar o harness PostgreSQL existente e verificar o contrato observável; não mudar política nem implementação de produção.
+
+### Critérios de conclusão
+
+- Os novos cenários cobrem estados relevantes do throttle e verificam o resultado da troca e da admissão.
+- Os testes passam no ambiente PostgreSQL do projeto; uma limitação local de Docker fica documentada para validação no CI.
+- Os novos testes não introduzem alertas no baseline/analisadores.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T018 --filter "FullyQualifiedName~PasswordChangeRateLimitTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+## T019 — Cobrir validações de inicialização de proteção
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Integration/AuthenticationProtectionStartupTests.cs`
+
+### Escopo
+
+Usar o relatório oficial do run `45749677986`, que registra 40/72 branches cobertos em `AuthenticationProtectionStartupValidator`, para cobrir decisões de configuração, inicialização e liberação de recursos ainda descobertas. Reutilizar o harness existente e manter o comportamento de produção intacto.
+
+### Critérios de conclusão
+
+- Os cenários demonstram respostas de startup/health observáveis para os ramos escolhidos.
+- Os testes passam no ambiente PostgreSQL do projeto; uma limitação local de Docker fica documentada para validação no CI.
+- Os novos testes não introduzem alertas no baseline/analisadores.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T019 --filter "FullyQualifiedName~AuthenticationProtectionStartupTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
 ## Log de execução
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
@@ -476,4 +575,8 @@ Se a cobertura de qualquer módulo permanecer abaixo de 80%, registrar o gap e d
 | 2026-11-26 | T012 | concluída | Testes focais passaram de 47/47 para 67/67; `NotificacaoService` 47,36%→71,05% no recorte comparável; `git diff --check` passou. | Datas e empréstimo vencido usam relógio fixo. Testes de quota e integrações dependentes de PostgreSQL serão validados pela CI/T015. |
 | 2026-11-26 | T013 | concluída | Build Release de `Tests.csproj` passou (99 avisos preexistentes, 0 erros); recorte focal 107/107; `git diff --check` passou. `ApiDateFilters` 93,93%, `ProdutoService` 57,22%, `LoanDomainRules` 92,85% e `DecidirEmprestimoAsync` 85,71% nos recortes descritos. | Testes de devolução/LoanReturnService dependem da fixture PostgreSQL/Docker e ficam para CI/T015. `backend/Tests/bin` e `obj` limpos. |
 | 2026-11-25 | T014 | concluída | Verificação textual e `git diff --check` passaram no README e na Wiki. | Documentadas meta 80%, gate 70%, cobertura de linhas informativa e contagens backend do `Summary.json`, compartilhadas com gate/badge. |
-| 2026-11-26 | T015 | em andamento | Frontend completo 1163/1163; 2833/3525 branches (80,36% local; 80,37% no resumo oficial); lint/build passaram. Checker 8, coletor 9 e contrato do workflow 14 testes passaram. | PR #513 run 1: 449/450 backend tests; expectativa incorreta do status próprio corrigida. Quality baseline também apontou `xUnit2031`, corrigido com `Assert.Single` filtrado. A próxima execução deve validar backend e o `Summary.json`; [T015](./evidencias/T015.md). |
+| 2026-11-26 | T015 | em andamento | Run #45749677986, SHA `4a42688`: frontend 2833/3525 (80,37%); backend 2702/3610 (74,85%). `backend-coverage.json` coincide exatamente com o `Summary.json`; `Coverage policy` aprovou o gate de 70%. Recorte dos ajustes do quality baseline: 101/101 testes passaram localmente. | Backend ainda está abaixo da meta de 80%; foram derivadas T016–T019 a partir das lacunas do artefato. O baseline de qualidade do SHA falhou por 14 avisos em testes, corrigidos localmente. Aguardando novo run após a onda focal; [evidências T015](./evidencias/T015.md). |
+| 2026-11-26 | T016 | concluída | `CredentialServiceTests`: 31/31 passaram com cobertura; `git diff --check` passou e não surgiram novos avisos de analyzer no arquivo. | Cobertos pedidos sem e-mail, conta desconhecida/desabilitada, validade/identidade/hash do token, confirmação/política de senha e precondição transacional. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
+| 2026-11-26 | T017 | concluída | `AuthControllerCoverageTests`: 15/15 passaram; junto a `AuthChangePasswordTests`, 26/26. O SARIF local não apontou alertas no novo arquivo e `git diff --check` passou. | Cenários cobrem Login, Session, Logout e Renew; sem alteração em produção. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
+| 2026-11-26 | T018 | em andamento | Dois cenários adicionados em `PasswordChangeRateLimitTests.cs`; assembly compilou e `git diff --check` passou. | Docker local indisponível; os 7 casos focais falharam antes de iniciar por npipe. Capacidade esgotada e falha de infraestrutura serão confirmadas no CI. |
+| 2026-11-26 | T019 | em andamento | `AuthenticationProtectionStartupCleanupTests`: 1/1 passou; teste local exercitou o ramo de limpeza sem conexão. O filtro de integração compilou as quatro ocorrências e parou na inicialização do Docker. | Docker local indisponível (`npipe://./pipe/docker_engine`); o caso de inicialização/conexão precisa ser confirmado no CI. `git diff --check` passou e não houve novo aviso de analyzer no arquivo. |

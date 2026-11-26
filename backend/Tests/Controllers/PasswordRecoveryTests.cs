@@ -204,7 +204,7 @@ public class PasswordRecoveryTests
     }
 
     [Fact]
-    public async Task RequestService_RejectsInvalidEmailVariantsBeforeThrottleAdmission()
+    public async Task RejectsInvalidEmailVariantsBeforeThrottleAdmission()
     {
         await using var context = CreateInMemoryContext();
         var service = CreateRequestService(context);
@@ -225,7 +225,7 @@ public class PasswordRecoveryTests
     }
 
     [Fact]
-    public async Task RequestService_PropagatesCancellationBeforeStartingAdmission()
+    public async Task PropagatesCancellationBeforeAdmission()
     {
         await using var context = CreateInMemoryContext();
         var service = CreateRequestService(context);
