@@ -1,15 +1,17 @@
 # PRD — Aumentar a cobertura de branches para 80%
 
-- **Status** pronto para especificação
+- **Status** em execução
 - **Responsável** a definir
-- **Atualizado em** 2026-11-25
+- **Atualizado em** 2026-11-26
 - **Validação de descoberta** dispensada pelo usuário
 
 ## Contexto e problema
 
 A issue [#505](https://github.com/ifpebj-ti/lab-solos/issues/505) estabeleceu a medição de cobertura de branches e um gate de CI de 70% por módulo, separando cobertura de linhas. O mantenedor informou que a cobertura atual está em 69% e, na issue [#512](https://github.com/ifpebj-ti/lab-solos/issues/512), definiu a meta de alcançar 80%.
 
-A meta de 80% é um objetivo de qualidade para ampliar os testes. O usuário esclareceu que ela não deve elevar o gate da CI: a exigência automatizada continua em 70% por módulo. A inspeção do run [#45727800901](https://github.com/ifpebj-ti/lab-solos/actions/runs/45727800901), SHA `df1d55f1f0bb88f0a88d792a40efe010d75efe1a`, encontrou frontend em 76,82% (2708/3525 branches) no JSON de cobertura publicado e backend em **69,8% (2521/3610 branches)** no `Summary.json` do artefato HTML do backend. O valor de backend 91,67% (1540/1680) vinha de outro escopo: o coletor normalizado filtrava e deduplicava fontes, divergindo do relatório HTML visto pelo mantenedor. Para o backend, este PRD adota como medida o `Summary.json` do ReportGenerator que acompanha o artefato HTML; o gate e o JSON usado pelos badges devem espelhar suas contagens. A primeira tarefa confirmará a mesma fonte e identidade na execução oficial mais recente.
+A meta de 80% é um objetivo de qualidade para ampliar os testes. O usuário esclareceu que ela não deve elevar o gate da CI: a exigência automatizada continua em 70% por módulo. A inspeção do run [#45727800901](https://github.com/ifpebj-ti/lab-solos/actions/runs/45727800901), SHA `df1d55f1f0bb88f0a88d792a40efe010d75efe1a`, encontrou frontend em 76,82% (2708/3525 branches) no JSON de cobertura publicado e backend em **69,8% (2521/3610 branches)** no `Summary.json` do artefato HTML do backend. O valor de backend 91,67% (1540/1680) vinha de outro escopo: o coletor normalizado filtrava e deduplicava fontes, divergindo do relatório HTML visto pelo mantenedor. Para o backend, este PRD adota como medida o `Summary.json` do ReportGenerator que acompanha o artefato HTML; o gate e o JSON usado pelos badges devem espelhar suas contagens. T001 confirmou que a coleta e o gate usam essa fonte e identidade.
+
+Na execução oficial da PR [#513](https://github.com/ifpebj-ti/lab-solos/pull/513), run `45767363080`, tentativa 1, o frontend registrou 2833/3525 branches (80,37%) e o backend 2776/3610 (76,90%) no `Summary.json` do artefato HTML. O JSON backend do gate e dos badges registra os mesmos 2776/3610, para o mesmo SHA/run/tentativa; `Coverage policy` aprovou com o limiar de 70%. O backend ainda precisa de 112 branches cobertos para chegar a 2888/3610 (80%). Essa medição do artefato HTML é a referência para selecionar as próximas tarefas e avaliar o cumprimento da meta deste PRD.
 
 Sem essa distinção, a equipe pode tratar a meta como uma nova condição de bloqueio da CI ou não conseguir demonstrar quanto os testes avançaram. Também é importante evitar que o percentual suba por exclusões ou mudanças no escopo contabilizado, em vez de cobrir mais decisões relevantes.
 

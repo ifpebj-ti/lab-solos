@@ -1,11 +1,11 @@
 # Tarefas — Aumentar a cobertura de branches para 80%
 
-- Status: T001–T014, T016–T020 e T025 concluídas; T015 em andamento; T021–T024 bloqueadas aguardando validação PostgreSQL na CI
+- Status: T001–T014, T016–T025 concluídas; T015 em andamento; T026–T028 em andamento
 - PRD: [Aumento da cobertura de branches para 80%](./prd.md)
 - Especificação técnica: [Aumento da cobertura de branches para 80%](./techspec.md)
 - Atualizado em: 2026-11-26
 
-A meta de conclusão é atingir 80% de branches em cada módulo. Frontend continua usando seu JSON oficial; backend usa as contagens do `Summary.json` que aparece no artefato HTML. O gate permanece em 70% por módulo, sem arredondamento. A baseline backend consultada é 2521/3610 (69,8%), então a fonte alinhada pode reprovar o gate até que novos testes elevem a cobertura. Não alterar o escopo do ReportGenerator, filtros ou exclusões para obter o percentual.
+A meta de conclusão é atingir 80% de branches em cada módulo. Frontend continua usando seu JSON oficial; backend usa `summary.coveredbranches/summary.totalbranches` do `Summary.json` no artefato HTML, agregando todos os assemblies. A decisão do gate e o JSON de backend devem repetir essa mesma contagem; o gate permanece em 70% por módulo e compara a razão sem arredondamento. No run oficial mais recente desta PR (`45767363080`, tentativa 1), frontend ficou em 2833/3525 (80,37%) e backend em 2776/3610 (76,90%); JSON do gate e `Summary.json` coincidem. A suíte backend passou 1061/1061 na etapa de cobertura. Para alcançar 80% backend são necessários 2888 branches cobertos, restando 112. Essa medição do artefato, e não linhas ou a antiga cobertura normalizada, é a referência de seleção e conclusão das tarefas restantes. Não alterar o escopo do ReportGenerator, filtros ou exclusões para obter o percentual.
 
 ## Ondas de execução
 
@@ -17,7 +17,8 @@ A meta de conclusão é atingir 80% de branches em cada módulo. Frontend contin
 | 4 | T020, T022 | T020 concluída; T022 compilada, mas aguardando execução do fixture PostgreSQL na CI. |
 | 5 | T023 | Cenário de status inválido compilado; execução do harness aguardando CI por indisponibilidade local do Docker. |
 | 6 | T024, T025 | T025 concluída; T024 compilada e aguardando execução do fixture PostgreSQL na CI. |
-| 7 | T015, T021–T024 | Revalidar a PR, medir os dois módulos e confirmar o gate de 70%; destravar integrações pela CI. |
+| 7 | T015, T021–T024 | Revalidar a PR, medir os dois módulos e confirmar o gate de 70%; as integrações foram validadas pela CI. |
+| 8 | T026–T028 | Aumentar branches backend remanescentes em arquivos de teste distintos; comparar o próximo `Summary.json` oficial e recalcular a lacuna antes de abrir outra onda. |
 
 ## T001 — Alinhar a medição do gate backend ao artefato e fixar a baseline
 
@@ -592,7 +593,7 @@ Usar o `Summary.json` do run `45758251729`, que registra `CredentialService` em 
 
 ## T021 — Cobrir emissão transacional de recuperação de senha
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T010, T016, T020
 - Paralela: sim
@@ -616,7 +617,7 @@ Criar testes de integração focados nas branches restantes de `CredentialServic
 
 ## T022 — Cobrir decisões restantes de aprovação e concessão administrativa
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T011
 - Paralela: sim
@@ -639,7 +640,7 @@ Partir do `Summary.json` do run `45758251729`, no qual `UsuariosController` est�
 
 ## T023 — Cobrir decisões restantes de atualização de perfil
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T011
 - Paralela: sim
@@ -662,7 +663,7 @@ Usar a medição oficial do run `45758251729`, na qual `UserProfileUpdateService
 
 ## T024 — Cobrir estados restantes da entrega assíncrona de recuperação
 
-- Status: bloqueada
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T010
 - Paralela: sim
@@ -708,10 +709,97 @@ Usar o `Summary.json` oficial do run `45758251729`, que registra `AuthController
 - `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T025 --filter "FullyQualifiedName~AuthControllerLoginCoverageTests" --collect:"XPlat Code Coverage" --results-directory .tmp/T025/results --nologo --disable-build-servers`.
 - `git diff --check`.
 
+## T026 — Cobrir branches remanescentes da validação de inicialização
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001, T015, T019
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-001, CA-002, CA-005, CA-006
+- Caminhos sob responsabilidade: `backend/Tests/Integration/AuthenticationProtectionStartupTests.cs`
+
+### Escopo
+
+Partir do artefato oficial do run `45767363080`, no qual `AuthenticationProtectionStartupValidator` apresenta 42/72 branches cobertos. Inspecionar os ramos não cobertos no HTML e acrescentar testes de integração para decisões de inicialização/readiness que tenham efeito observável, incluindo configuração inválida, leitura de segredos e estados de chaves/jobs, sem duplicar os cenários existentes. Usar PostgreSQL/Testcontainers e as fixtures/fakes já adotadas. Não alterar produção, o gate ou a métrica; reavaliar o ganho no próximo artefato oficial.
+
+### Critérios de conclusão
+
+- Cada caso novo corresponde a branch descoberto no artefato de referência e verifica startup, health/readiness ou falha sem expor segredo/caminho.
+- Os testes focalizados e a suíte backend completa passam na CI com PostgreSQL; nenhum cenário depende de Docker local disponível.
+- A alteração não enfraquece validação de configuração ou sigilo de mensagens.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T026 --filter "FullyQualifiedName~AuthenticationProtectionStartupTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+### Evidência local
+
+O build Release passou sem avisos atribuídos ao arquivo. A execução focal descobriu cinco testes, mas o fixture Testcontainers não iniciou por indisponibilidade local do Docker (`npipe://./pipe/docker_engine`); as asserções dependem da CI PostgreSQL.
+
+## T027 — Cobrir decisões remanescentes de atualização de perfil
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001, T015, T023
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-001, CA-002, CA-005, CA-006
+- Caminhos sob responsabilidade: `backend/Tests/Integration/UserProfileMutationTests.cs`
+
+### Escopo
+
+Partir do `Summary.json` oficial do run `45767363080`, que registra `UserProfileUpdateService` em 121/153 branches. Escolher decisões ainda descobertas no HTML e ampliar os testes de atualização de perfil para resultados observáveis, priorizando autorização, validação do patch, alteração de e-mail e seus conflitos/rollback. Reutilizar as fixtures PostgreSQL existentes. Não duplicar casos de T023 nem alterar produção, filtros ou exclusões.
+
+### Critérios de conclusão
+
+- Os casos cobrem branches descobertos e verificam resposta, persistência e ausência de mutação em rejeições.
+- A suíte focal e a suíte backend completa passam na CI com PostgreSQL.
+- Nenhuma condição de autorização ou consistência é flexibilizada para aumentar cobertura.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T027 --filter "FullyQualifiedName~UserProfileMutationTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+### Evidência local
+
+O build compilou os 30 casos focais; todos pararam no setup do Testcontainers por indisponibilidade local do Docker. `git diff --check` passou; os cenários de persistência/rollback aguardam execução na CI PostgreSQL.
+
+## T028 — Cobrir estados remanescentes do worker de recuperação
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001, T015, T024
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-001, CA-002, CA-005, CA-006
+- Caminhos sob responsabilidade: `backend/Tests/Integration/RecoveryDeliveryWorkerTests.cs`
+
+### Escopo
+
+Partir do `Summary.json` oficial do run `45767363080`, no qual `PasswordRecoveryDeliveryWorker` registra 58/94 branches apesar dos cenários de T024. Examinar os branches ainda descobertos e adicionar casos de integração somente para estados relevantes não exercitados, como elegibilidade, falha de entrega/retry, cancelamento ou estado terminal, verificando efeitos de envio, tentativas, lease e limpeza do payload. Reutilizar o fixture PostgreSQL e o relógio/fakes do arquivo. Não repetir cenários de T024 nem mudar política de retry ou comportamento de produção.
+
+### Critérios de conclusão
+
+- Novos casos correspondem aos branches descobertos e verificam o estado persistido e os efeitos observáveis.
+- Os testes focais e a suíte backend completa passam na CI com PostgreSQL.
+- Não há relaxamento de idempotência, retry, expiração ou limpeza de payload.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T028 --filter "FullyQualifiedName~RecoveryDeliveryWorkerTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+### Evidência local
+
+O build compilou os 21 casos focais; o fixture PostgreSQL impediu as asserções por Docker local indisponível. Os cenários novos verificam payload semântico inválido, bucket de emissão ausente e conta desabilitada entre consulta e emissão; a CI deve confirmar os resultados.
+
 ## Log de execução
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
 | ---- | ------ | --------- | ----------------- | ----------- |
+| 2026-11-26 | T015 | em andamento | Run #45767363080, tentativa 1: Backend quality passou com 1061/1061 testes; frontend 2833/3525 (80,37%), backend HTML 2776/3610 (76,90%); JSON do gate coincide exatamente; Coverage policy e demais checks passaram com gate de 70%. | Faltam 112 branches backend para 2888/3610 (80%). Essa contagem do artefato HTML é a medida oficial para selecionar e verificar as próximas tarefas; T021–T024 deixam de estar bloqueadas. |
+| 2026-11-26 | T021–T024 | concluídas | Suíte backend da CI run #45767363080 passou 1061/1061, incluindo os testes de emissão, aprovação, atualização de perfil e worker que dependiam de PostgreSQL. | A indisponibilidade de Docker local não bloqueia mais estas tarefas; a validação integrada foi feita na CI. |
+| 2026-11-26 | T026–T028 | em andamento | Casos implementados e builds focais concluídos; 66/66 testes unitários dos arquivos afetados por CodeQL passaram. As integrações focais foram bloqueadas antes das asserções pelo Docker local; CI ainda pendente. | T026 exercita o ramo de chave de criptografia disponível; T027 cobre conflito único, concorrência e falha de persistência sem mutação parcial; T028 cobre payload semântico, bucket ausente e usuário desabilitado. |
 | 2026-11-25 | T001 | concluída | Coletor 9, workflow 14 e gate 8 testes passaram; `git diff --check` passou; [baseline](./evidencias/baseline.md) | JSON backend passa a usar 2521/3610 do `Summary.json`; baseline abaixo do gate de 70%, aguardando aumento de cobertura e CI nova. |
 | 2026-11-25 | T002 | concluída | Vitest focado: 2 arquivos, 27 testes passaram; `FormQuimicos.tsx` 68/84 branches (80,95%); `git diff --check` passou. | Teste de caracterização do retorno de foco após cancelar confirmação de validade; RED foi lacuna de cobertura, sem falha fabricada. |
 | 2026-11-25 | T003 | concluída | Vitest focado: 2 arquivos, 30 testes passaram; `nav-main.tsx` 28/31 branches (90,32%), `nav-secondary.tsx` 47/48 (97,91%); `git diff --check` passou. | Baseline focal: 0/31 e 27/48; acrescentados cenários observáveis de navegação e notificações. |

@@ -95,7 +95,7 @@ public sealed class NotificacaoServiceTests
         fixture.NotificationRepository
             .Setup(repository => repository.ObterPorChaveIdempotenciaAsync(It.IsAny<string>()))
             .Callback<string>(key => idempotencyKey = key)
-            .ReturnsAsync((Notificacao?)null);
+            .ReturnsAsync(() => null);
 
         var result = await fixture.Service.CriarNotificacaoAsync(request);
 
@@ -231,7 +231,7 @@ public sealed class NotificacaoServiceTests
         var unavailableAdministrator = CreateFixture(auditoriaService: new Mock<IAuditoriaService>().Object);
         unavailableAdministrator.UserRepository
             .Setup(repository => repository.ObterAsync(It.IsAny<Expression<Func<Usuario, bool>>>(), null))
-            .ReturnsAsync((Usuario?)null);
+            .ReturnsAsync(() => null);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             unavailableAdministrator.Service.ExcluirNotificacaoAsync(91, 42));
 
@@ -249,7 +249,7 @@ public sealed class NotificacaoServiceTests
             .ReturnsAsync(CreateUser(42, "Administrador"));
         fixture.NotificationRepository
             .Setup(repository => repository.ObterPorIdIncluindoExcluidasAsync(91))
-            .ReturnsAsync((Notificacao?)null);
+            .ReturnsAsync(() => null);
 
         var result = await fixture.Service.ExcluirNotificacaoAsync(91, 42);
 
@@ -464,11 +464,11 @@ public sealed class NotificacaoServiceTests
             .Setup(repository => repository.ObterAsync(
                 It.IsAny<Expression<Func<Emprestimo, bool>>>(),
                 It.IsAny<Func<IQueryable<Emprestimo>, IQueryable<Emprestimo>>?>()))
-            .ReturnsAsync((Emprestimo?)null);
+            .ReturnsAsync(() => null);
         fixture.UserRepository
             .Setup(repository => repository.ObterAsync(
                 It.IsAny<Expression<Func<Usuario, bool>>>(), null))
-            .ReturnsAsync((Usuario?)null);
+            .ReturnsAsync(() => null);
 
         await fixture.Service.CriarNotificacaoNovoEmprestimo(700);
         await fixture.Service.CriarNotificacaoNovaSolicitacaoUsuario(43);

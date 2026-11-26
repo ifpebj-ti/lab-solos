@@ -89,6 +89,50 @@ public sealed class AuthenticationProtectionStartupTests(PostgreSqlContainerFixt
     }
 
     [Fact]
+    public async Task ProductionStartupAcceptsAnActiveProcessingJobWithAnAvailableEncryptionKey()
+    {
+        await database.RecreateEmptyDatabaseAsync();
+        await using (var context = CreateDbContext())
+        {
+            await context.Database.MigrateAsync();
+            var now = DateTimeOffset.UtcNow;
+            context.PasswordRecoveryJobs.Add(new PasswordRecoveryJob
+            {
+                Id = Guid.NewGuid(),
+                DeliveryKeyHash = new byte[32],
+                RecipientKeyHash = Enumerable.Repeat((byte)1, 32).ToArray(),
+                PayloadCiphertext = [1, 2, 3],
+                PayloadNonce = new byte[12],
+                PayloadTag = new byte[16],
+                EncryptionKeyId = "active-key-id",
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(15),
+                NextAttemptAt = now,
+                Status = PasswordRecoveryJobStatus.Processing,
+                Attempts = 1
+            });
+            await context.SaveChangesAsync();
+            var capacity = await context.AuthenticationProtectionCapacities.SingleAsync(
+                item => item.Scope == AuthenticationProtectionCapacity.RecoveryJobs);
+            capacity.Allocated = 1;
+            await context.SaveChangesAsync();
+        }
+
+        await using var factory = CreateFactory(
+            ProductionConfiguration(),
+            new SyntheticSecretFileReader());
+        using var client = factory.CreateClient();
+        using var response = await client.GetAsync("/health");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("active-key-id", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(SyntheticPassword, body, StringComparison.Ordinal);
+        Assert.DoesNotContain(HashSecretPath, body, StringComparison.Ordinal);
+        Assert.DoesNotContain(RecoveryKeysPath, body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task RunningInstancesWithDifferentPoliciesCannotBothServeRequests()
     {
         await database.RecreateEmptyDatabaseAsync();

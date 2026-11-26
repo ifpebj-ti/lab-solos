@@ -304,7 +304,7 @@ public sealed class ProdutosControllerTests
             .Setup(repository => repository.ObterAsync(
                 It.IsAny<Expression<Func<Produto, bool>>>(),
                 It.IsAny<Func<IQueryable<Produto>, IQueryable<Produto>>?>()))
-            .ReturnsAsync((Produto?)null);
+            .ReturnsAsync(() => null);
         var unitOfWork = new Mock<IUnitOfWork>();
         unitOfWork.SetupGet(repository => repository.ProdutoRepository).Returns(productRepository.Object);
         var controller = new ProdutosController(

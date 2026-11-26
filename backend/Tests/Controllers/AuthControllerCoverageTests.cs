@@ -188,7 +188,7 @@ public class AuthControllerCoverageTests
             .Setup(repository => repository.ObterAsync(
                 It.IsAny<Expression<Func<Usuario, bool>>>(),
                 It.IsAny<Func<IQueryable<Usuario>, IQueryable<Usuario>>?>()))
-            .ReturnsAsync((Usuario?)null);
+            .ReturnsAsync(() => null);
 
         var result = await harness.Controller.Renew(CancellationToken.None);
 
@@ -211,7 +211,7 @@ public class AuthControllerCoverageTests
                 It.IsAny<Guid>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SessaoCriada?)null);
+            .ReturnsAsync(() => null);
 
         var result = await harness.Controller.Renew(CancellationToken.None);
 

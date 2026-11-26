@@ -1,20 +1,21 @@
 # Especificação técnica — Aumento da cobertura de branches para 80%
 
-- **Status** proposta pronta para decomposição
+- **Status** em execução
 - **PRD** [Aumentar a cobertura de branches para 80%](./prd.md)
-- **Atualizado em** 2026-11-25
+- **Atualizado em** 2026-11-26
 - **Validação de design** desnecessária; a mudança afeta testes e documentação, sem alterar interface da aplicação
 - **Validação de descoberta** dispensada pelo usuário; meta de 80% e gate de 70% confirmados
 
 ## Resumo técnico
 
-Ampliar os testes de comportamento que exercitam branches não cobertos, até que frontend e backend alcancem pelo menos 80% cada um na fonte definida para o módulo. A fonte de backend será o `Summary.json` do ReportGenerator que acompanha o artefato HTML. No run #45727800901, SHA `df1d55f1f0bb88f0a88d792a40efe010d75efe1a`, esse sumário mostra 2521/3610 branches (69,8%); o JSON normalizado antigo mostrava 1540/1680 (91,67%) porque filtrava e deduplicava fontes. O JSON de backend entregue ao gate e aos badges será alinhado ao sumário HTML. Antes de escolher os testes, registrar novamente a linha de base por módulo, SHA e execução.
+Ampliar os testes de comportamento que exercitam branches não cobertos, até que frontend e backend alcancem pelo menos 80% cada um na fonte definida para o módulo. A fonte de backend é o `Summary.json` do ReportGenerator que acompanha o artefato HTML. No run #45727800901, SHA `df1d55f1f0bb88f0a88d792a40efe010d75efe1a`, esse sumário mostra 2521/3610 branches (69,8%); o JSON normalizado antigo mostrava 1540/1680 (91,67%) porque filtrava e deduplicava fontes. O coletor, o gate e o JSON dos badges foram alinhados ao sumário HTML. A execução oficial mais recente desta PR, run `45767363080`, tentativa 1, registra frontend em 2833/3525 branches (80,37%) e backend em 2776/3610 (76,90%). O JSON de backend repete exatamente 2776/3610 com os mesmos metadados de execução; o gate continua em 70% e passou. Restam 112 branches backend para a meta de 2888/3610 (80%); este `Summary.json` é a medida de referência para o restante deste PRD.
 
 A alteração não eleva o gate. A política continuará exigindo 70% de branches por módulo e rejeitando medições ausentes ou inválidas. A constante `MINIMUM_PERCENT` de `.github/scripts/check_coverage.py` permanece em 70; o coletor backend passará a refletir as contagens inteiras de `summary.coveredbranches` e `summary.totalbranches` do ReportGenerator, sem arredondar a razão usada no gate. Isso faz o gate e os badges apresentarem a mesma medida do HTML. O README e o Plano de Testes devem distinguir o gate de 70% da meta de qualidade de 80%. A mudança não requer API, persistência, migração de banco ou nova infraestrutura de testes.
 
 ## Estado atual
 
 - A cobertura oficial é dividida entre frontend e backend. No run [#45727800901](https://github.com/ifpebj-ti/lab-solos/actions/runs/45727800901), SHA `df1d55f1f0bb88f0a88d792a40efe010d75efe1a`, frontend tem 2708/3525 branches (76,82%) no JSON publicado. O `backend/Summary.json` do mesmo artefato HTML tem 2521/3610 branches (69,8%). O JSON normalizado anterior reportava 1540/1680 (91,67%) por usar outro escopo; ele não é a medida aprovada para o backend neste PRD.
+- A medição mais recente usada para orientar esta execução é o run [#45767363080](https://github.com/ifpebj-ti/lab-solos/actions/runs/45767363080), tentativa 1: frontend 2833/3525 branches (80,37%); backend 2776/3610 (76,90%) no `Summary.json` do artefato HTML. O JSON backend do gate/badges repete exatamente essas contagens e os metadados de execução. A meta backend exige pelo menos 2888/3610; faltam 112 branches cobertos. A cobertura de linhas não é a métrica de sucesso.
 - `.github/scripts/check_coverage.py` consome JSONs schema v2, valida módulo, SHA, `run_id`, `run_attempt` e contagens, calcula a razão sem arredondar para a decisão e aplica `MINIMUM_PERCENT = 70` separadamente a cada módulo. O JSON de backend será produzido a partir do `Summary.json` do ReportGenerator. Linhas são apresentadas, mas não alteram o resultado.
 - `.github/scripts/tests/test_check_coverage.py` já cobre o limiar exato de 70%, valor abaixo, falha isolada de módulo, linhas abaixo de 70% sem reprovação e relatórios inválidos. Esses testes protegem o gate existente; eles não devem ser adaptados para 80%.
 - O frontend usa Vitest pelo script `test` de `frontend/package.json`. A CI executa `npm run test -- --run --coverage`, coleta `coverage-summary.json` com `.github/scripts/collect_frontend_coverage.py` e publica o relatório HTML como artefato.
