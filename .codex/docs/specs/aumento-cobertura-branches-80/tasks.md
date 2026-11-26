@@ -1,11 +1,13 @@
 # Tarefas — Aumentar a cobertura de branches para 80%
 
-- Status: T001–T014, T016–T031 concluídas; T015 e T032–T034 em andamento
+- Status: T001–T014, T016–T034 concluídas; T015 e T035–T036 em andamento
 - PRD: [Aumento da cobertura de branches para 80%](./prd.md)
 - Especificação técnica: [Aumento da cobertura de branches para 80%](./techspec.md)
 - Atualizado em: 2026-11-26
 
-A meta de conclusão é atingir 80% de branches em cada módulo. Frontend continua usando seu JSON oficial; backend usa `summary.coveredbranches/summary.totalbranches` do `Summary.json` no artefato HTML, agregando todos os assemblies. A decisão do gate e o JSON de backend devem repetir essa mesma contagem; o gate permanece em 70% por módulo e compara a razão sem arredondamento. No run mais recente desta PR com artefatos backend válidos (`45781174292`, tentativa 1), frontend ficou em 2833/3525 branches (80,37%) e backend em 2857/3610 (79,14% pela razão exata das contagens); JSON do gate e `Summary.json` coincidem. Backend quality e Coverage policy passaram; quality baseline falhou em diagnósticos de T034 e Browser security E2E ficou inconclusivo por captura incompleta. Para alcançar 80% backend são necessários 2888 branches cobertos, restando 31. Essa medição do artefato, e não linhas ou a antiga cobertura normalizada, é a referência de seleção e conclusão das tarefas restantes. Não alterar o escopo do ReportGenerator, filtros ou exclusões para obter o percentual.
+A meta de conclusão é atingir 80% de branches em cada módulo. Frontend continua usando seu JSON oficial; backend usa `summary.coveredbranches/summary.totalbranches` do `Summary.json` no artefato HTML, agregando todos os assemblies. A decisão do gate e o JSON de backend devem repetir essa mesma contagem; o gate permanece em 70% por módulo e compara a razão sem arredondamento. No run mais recente desta PR com artefatos backend válidos (`45783004144`, tentativa 1), frontend ficou em 2833/3525 branches (80,37%) e backend em 2857/3610 (79,14% pela razão exata das contagens); JSON do gate e `Summary.json` coincidem. Backend quality, Coverage policy, quality baseline, CodeQL, Browser security E2E e Authentication E2E passaram. Para alcançar 80% backend são necessários 2888 branches cobertos, restando 31. Essa medição do artefato, e não linhas ou a antiga cobertura normalizada, é a referência de seleção e conclusão das tarefas restantes. Não alterar o escopo do ReportGenerator, filtros ou exclusões para obter o percentual.
+
+**Decisão confirmada pelo mantenedor em 26/11/2026:** selecionar e fechar as tarefas deste plano com base no `Summary.json` entregue junto ao HTML backend; o gate e seu JSON precisam refletir a mesma contagem de branches. Manter 70% como limiar do gate e 80% como meta do PRD.
 
 ## Ondas de execução
 
@@ -21,6 +23,7 @@ A meta de conclusão é atingir 80% de branches em cada módulo. Frontend contin
 | 8 | T026–T028 | Aumentar branches backend remanescentes em arquivos de teste distintos; comparar o próximo `Summary.json` oficial e recalcular a lacuna antes de abrir outra onda. |
 | 9 | T029–T031 | Priorizar os maiores gaps observados no run 10 em arquivos sem sobreposição; medir outra vez pelo `Summary.json` da CI antes de definir novas tarefas. |
 | 10 | T032–T034 | Testes unitários em três arquivos distintos, sem fixture PostgreSQL compartilhada; usar diretórios de artefato separados e confirmar a cobertura agregada no próximo `Summary.json`. |
+| 11 | T035–T036 | Ampliar cobertura em classes com lacunas no run 14, em arquivos de teste distintos; medir outra vez pelo `Summary.json` antes de criar novas tarefas. |
 
 ## T001 — Alinhar a medição do gate backend ao artefato e fixar a baseline
 
@@ -881,7 +884,7 @@ Build Release e quality local passaram sem avisos atribuídos ao arquivo. A suí
 
 ## T032 — Cobrir resultados e erros do EmailController
 
-- Status: em andamento
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T029
 - Paralela: sim
@@ -911,11 +914,11 @@ Partir do artefato oficial `45776498924`, no qual `EmailController` está em 21/
 
 ### Evidência local
 
-O filtro focal passou 21/21; a cobertura local focal somando `EmailController` e suas máquinas de estado assíncronas ficou em 37/44 branches, contra 21/44 no Summary oficial completo. `git diff --check` passou. A cobertura focal não substitui o próximo artefato `Summary.json`; validação de quality baseline/CodeQL aguarda CI.
+O filtro focal passou 21/21; a cobertura local focal somando `EmailController` e suas máquinas de estado assíncronas ficou em 37/44 branches, contra 21/44 no Summary oficial completo. `git diff --check` passou. A Container CI run `45783004144` confirmou Backend quality, quality baseline e CodeQL; o `Summary.json` segue sendo a única medida da meta agregada.
 
 ## T033 — Cobrir validações restantes de AuditoriaService
 
-- Status: em andamento
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T015
 - Paralela: sim
@@ -945,11 +948,11 @@ Partir do artefato oficial `45776498924`, no qual `AuditoriaService` está em 58
 
 ### Evidência local
 
-O filtro focal passou 23/23; a coleta focal registrou 45/52 branches para `AuditoriaService`, um recorte diferente do denominador 58/78 do Summary oficial da suíte completa. `git diff --check` passou. Os testes unitários não dependem de Docker; validação integrada e quality baseline/CodeQL aguardam CI.
+O filtro focal passou 23/23; a coleta focal registrou 45/52 branches para `AuditoriaService`, um recorte diferente do denominador 58/78 do Summary oficial da suíte completa. `git diff --check` passou. A Container CI run `45783004144` confirmou Backend quality, quality baseline e CodeQL; o `Summary.json` segue sendo a única medida da meta agregada.
 
 ## T034 — Cobrir validações restantes de AuthController
 
-- Status: em andamento
+- Status: concluída
 - Issue: #512
 - Dependências: T001, T017, T025
 - Paralela: sim
@@ -979,12 +982,85 @@ Partir do artefato oficial `45776498924`, no qual `AuthController` está em 118/
 
 ### Evidência local
 
-O filtro focal passou 46/46, acima da linha de base local 28/28; `AuthController` ficou em 74/82 branches no recorte focal, sem substituir a medida do Summary oficial. A CI apontou CA1707 e xUnit1045; os seis nomes com underscores foram renomeados e a teoria passou a receber identificadores serializáveis em vez de objetos `Exception`. O filtro focal e build passaram novamente, sem avisos atribuídos aos arquivos T034; quality baseline e CodeQL aguardam nova CI.
+O filtro focal passou 46/46, acima da linha de base local 28/28; `AuthController` ficou em 74/82 branches no recorte focal, sem substituir a medida do Summary oficial. A CI apontou CA1707 e xUnit1045; os seis nomes com underscores foram renomeados e a teoria passou a receber identificadores serializáveis em vez de objetos `Exception`. O filtro focal, build, Backend quality, quality baseline e CodeQL passaram na Container CI run `45783004144`; Browser security E2E também passou.
+
+## T035 — Cobrir branches observáveis do UserProfileUpdateService
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001, T015
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Services/UsuarioServiceValidationTests.cs`, `backend/Tests/Integration/UserProfileMutationTests.cs`
+
+### Escopo
+
+Usar o artefato oficial do run `45783004144`, tentativa 1: `UserProfileUpdateService` aparece em 125/153 branches no `Summary.json` (28 descobertos). Inspecionar a página dessa classe no mesmo artefato e os testes existentes; acrescentar cenários somente para condições alcançáveis pelo contrato de atualização de perfil. Verificar respostas, persistência e ausência de mutação parcial quando aplicável. Não alterar produção, regras de perfil, escopo do ReportGenerator ou limiar do gate. A meta de branches deve continuar sendo calculada pelo agregado do `Summary.json`, nunca pelo recorte focal.
+
+### Plano TDD
+
+- RED: selecionar ramos descobertos na página HTML e criar casos que caracterizem a resposta ou estado persistido esperado.
+- GREEN: executar os testes unitários e de integração apropriados, usando a fixture PostgreSQL existente para cenários integrados.
+- REFACTOR: consolidar preparação compartilhada sem apagar asserções de contrato e segurança.
+
+### Critérios de conclusão
+
+- Testes cobrem comportamentos observáveis de `UserProfileUpdateService`, sem cenários inventados ou relaxamento das validações.
+- Os filtros focais passam e `git diff --check` não aponta erros.
+- CodeQL e quality baseline não recebem novos alertas atribuídos aos arquivos.
+- O próximo artefato oficial confirma o efeito no total de branches backend e mantém o gate lendo as contagens do HTML.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T035 --filter "FullyQualifiedName~UsuarioServiceValidationTests|FullyQualifiedName~UserProfileMutationTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+### Evidência da execução
+
+Adicionados cinco casos integrados para status nulo, patch vazio, e-mail acima do limite, e-mail nulo e violação de unicidade alheia à restrição de e-mail, sempre verificando ausência de mutação indevida. O comando focal local não executou: o SDK 8.0.428 do `global.json` não está instalado e o Docker/Testcontainers local está indisponível. O build Release com SDK 10.0.401, executado na mesma onda T036 após as alterações, compilou o projeto de testes sem erros. `git diff --check` passou. Execução das asserções e quality baseline/CodeQL ficam pendentes da CI.
+
+## T036 — Cobrir branches observáveis do EmailChangeNoticeService
+
+- Status: em andamento
+- Issue: #512
+- Dependências: T001, T015
+- Paralela: sim
+- Requisitos: RF-001, RNF-001, CA-002, CA-005
+- Caminhos sob responsabilidade: `backend/Tests/Integration/EmailChangeNoticeTests.cs`
+
+### Escopo
+
+Usar o artefato oficial do run `45783004144`, tentativa 1: `EmailChangeNoticeService` aparece em 55/78 branches no `Summary.json` (23 descobertos). Inspecionar a página da classe no mesmo artefato e os testes existentes; complementar cenários integrados de entrega, retry, estado de job e tratamento seguro de falhas que sejam observáveis pelo serviço. Verificar payloads/resultados sem expor segredos e preservar idempotência. Não alterar produção, semântica da fila, escopo do ReportGenerator ou limiar do gate. A cobertura de recorte focal não substitui o agregado oficial.
+
+### Plano TDD
+
+- RED: escolher condições descobertas no HTML e adicionar testes integrados que provem o contrato antes e depois do processamento.
+- GREEN: executar o filtro focal com PostgreSQL/Testcontainers e afirmar estado de jobs, tentativas, entrega e detalhes sanitizados.
+- REFACTOR: reutilizar cenários/helpers existentes mantendo asserts de idempotência e proteção de dados.
+
+### Critérios de conclusão
+
+- Os novos cenários cobrem apenas ramos alcançáveis e preservam a política de retry e o tratamento seguro de dados.
+- O filtro focal passa na CI com a fixture PostgreSQL; `git diff --check` passa.
+- CodeQL e quality baseline não recebem novos alertas atribuídos ao arquivo.
+- O próximo artefato oficial confirma o efeito no total de branches backend e mantém o gate lendo as contagens do HTML.
+
+### Validação
+
+- `dotnet test backend/Tests/Tests.csproj -c Release --artifacts-path .tmp/T036 --filter "FullyQualifiedName~EmailChangeNoticeTests" --nologo --disable-build-servers`.
+- `git diff --check`.
+
+### Evidência da execução
+
+Adicionados cenários para payload adulterado, UTF-8 inválido, destinatário inválido, deadline/retenção vencidos e cancelamento seguido de retomada após o lease expirar. O build Release com SDK 10.0.401 passou sem erros e sem novo aviso atribuído ao arquivo. Os nove casos focais não chegaram às asserções porque Testcontainers não conectou ao Docker local (`npipe://./pipe/docker_engine`); o SDK fixado 8.0.428 também não está instalado. `git diff --check` passou. Validação integrada, CodeQL, quality baseline e efeito agregado aguardam CI.
 
 ## Log de execução
 
 | Data | Tarefa | Resultado | Testes/evidências | Observações |
 | ---- | ------ | --------- | ----------------- | ----------- |
+| 2026-11-26 | T015 | em andamento | Run #45783004144, tentativa 1, head `9eda69d8`, SHA de medição `b3f9cf35`: frontend 2833/3525 (80,37%); backend 2857/3610 (79,14%). `Summary.json` e JSON do gate coincidem; todos os checks do Container CI passaram. | Restam 31 branches backend. T032–T034 validadas pela suíte e checks de qualidade; T035–T036 derivadas das lacunas do mesmo Summary. |
+| 2026-11-26 | T032–T034 | concluídas | Filtros focais passaram 21/21, 23/23 e 46/46; Container CI run #45783004144 confirmou Backend quality, quality baseline e CodeQL. | A métrica agregada continua em 2857/3610, medida pelo `Summary.json`; recortes focais não substituem a fonte oficial. Browser security E2E passou. |
+| 2026-11-26 | T035–T036 | implementação local; CI pendente | T035 adicionou cinco casos integrados; T036 adicionou cenários de payload inválido, deadline/retenção e reclaim. Build Release com SDK 10.0.401 passou sem erros; `git diff --check` passou. | Os filtros focais dependem da fixture PostgreSQL, mas Docker local está indisponível; T035 também não encontrou o SDK 8.0.428 pinado. O próximo CI deve executar as asserções, quality baseline/CodeQL e recalcular o saldo pelo `Summary.json`. |
 | 2026-11-26 | T015 | em andamento | Run #45767363080, tentativa 1: Backend quality passou com 1061/1061 testes; frontend 2833/3525 (80,37%), backend HTML 2776/3610 (76,90%); JSON do gate coincide exatamente; Coverage policy e demais checks passaram com gate de 70%. | Faltam 112 branches backend para 2888/3610 (80%). Essa contagem do artefato HTML é a medida oficial para selecionar e verificar as próximas tarefas; T021–T024 deixam de estar bloqueadas. |
 | 2026-11-26 | T021–T024 | concluídas | Suíte backend da CI run #45767363080 passou 1061/1061, incluindo os testes de emissão, aprovação, atualização de perfil e worker que dependiam de PostgreSQL. | A indisponibilidade de Docker local não bloqueia mais estas tarefas; a validação integrada foi feita na CI. |
 | 2026-11-26 | T026–T028 | validação local | Casos implementados e builds focais concluídos; 66/66 testes unitários dos arquivos afetados por CodeQL passaram. As integrações focais foram barradas antes das asserções pelo Docker local indisponível. | T026 exercita o ramo de chave de criptografia disponível; T027 cobre conflito único, concorrência e falha de persistência sem mutação parcial; T028 cobre payload semântico, bucket ausente e usuário desabilitado. A CI validou todos os cenários. |
