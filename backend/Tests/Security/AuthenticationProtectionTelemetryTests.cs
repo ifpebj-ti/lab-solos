@@ -193,7 +193,11 @@ public sealed class AuthenticationProtectionTelemetryTests
         telemetry.RecordFailure(AuthenticationProtectionOperation.Login, reason);
 
         var measurement = Assert.Single(measurements);
-        Assert.Equal("reason=" + expectedTag, Assert.Single(measurement.Tags.Where(tag => tag.StartsWith("reason=", StringComparison.Ordinal))));
+        Assert.Equal(
+            "reason=" + expectedTag,
+            Assert.Single(
+                measurement.Tags,
+                tag => tag.StartsWith("reason=", StringComparison.Ordinal)));
     }
 
     [Theory]

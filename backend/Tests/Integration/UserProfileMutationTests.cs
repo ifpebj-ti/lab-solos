@@ -260,14 +260,15 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
     }
 
     [Theory]
-    [InlineData("/nomeCompleto", "  ", "nomeCompleto", "name_required")]
-    [InlineData("/email", "not-an-email", "email", "email_invalid")]
-    [InlineData("/status", "ValorInexistente", "status", "status_invalid")]
-    public async Task InvalidPatchedProfileValuesReturnFieldErrorsWithoutMutation(
+    [InlineData("/nomeCompleto", "  ", 400, "nomeCompleto", "name_required")]
+    [InlineData("/email", "not-an-email", 400, "email", "email_invalid")]
+    [InlineData("/status", "Desabilitado", 403, null, null)]
+    public async Task InvalidOrForbiddenProfilePatchIsRejectedWithoutMutation(
         string path,
         string value,
-        string field,
-        string expectedCode)
+        int expectedStatus,
+        string? field,
+        string? expectedCode)
     {
         var (factory, scenario) = await CreateScenarioAsync();
         await using (factory)
@@ -278,9 +279,12 @@ public sealed class UserProfileMutationTests(PostgreSqlContainerFixture database
                 scenario.MenteeOneId,
                 $"[{{\"op\":\"replace\",\"path\":\"{path}\",\"value\":\"{value}\"}}]");
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            Assert.Equal(expectedCode, payload.RootElement.GetProperty("errors").GetProperty(field)[0].GetString());
+            Assert.Equal((HttpStatusCode)expectedStatus, response.StatusCode);
+            if (field is not null && expectedCode is not null)
+            {
+                using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                Assert.Equal(expectedCode, payload.RootElement.GetProperty("errors").GetProperty(field)[0].GetString());
+            }
 
             await using var scope = factory.Services.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
