@@ -1,6 +1,6 @@
 # Tarefas — Cobertura e segurança na CI
 
-- Status: T007 e T011 concluídas com evidência da CI #45553894924 no head `c74de25`; PR #501 está aberta e mergeable. A navegação humana pelo perfil de avaliação foi dispensada explicitamente pelo usuário e permanece não comprovada.
+- Status: T007 e T011 concluídas; CI pós-merge #45719221935 passou no SHA `4590c7e` e publicou cobertura, badges e relatórios. T010 concluída e publicada na Wiki. A navegação humana pelo perfil de avaliação foi dispensada explicitamente pelo usuário e permanece não comprovada.
 - PRD: [Cobertura e segurança na CI](./prd.md)
 - Especificação técnica: [Cobertura e segurança na CI](./techspec.md)
 - Atualizado em: 2026-11-25
@@ -301,11 +301,11 @@ Derivar o indicador da publicação aprovada e indicar no README onde consultar 
 
 ## T010 — Completar o Plano de Testes com procedimentos e resultados
 
-- Status: concluída localmente sob limitações documentadas
+- Status: concluída e publicada no GitHub Wiki em 25/11/2026
 - Issue: #494
 - Dependências: T004, T008, T009
 - Dependências externas: [documentação da primeira entrega T015](../documentacao-primeira-entrega/tasks.md#t015--fixar-candidato-da-wiki-e-validar-integração), contrato da revisão da Wiki.
-- Decisão registrada: atualizar somente o checkout local da Wiki. O Plano de Testes não está no manifesto editorial `documentacao.json`, então ele não será alterado nesta tarefa. Descrever que as integrações de cobertura, Semgrep e ZAP estão no worktree local e que a verificação remota fica para T011. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases).
+- Decisão registrada: o usuário autorizou publicar a página após a conferência da documentação. O Plano de Testes não está no manifesto editorial `documentacao.json`; não será adicionado ao manifesto nesta entrega. Atualizar o estado pós-merge e citar evidências remotas observadas, sem alegar navegação humana pelo perfil de avaliação.
 - Paralela: não
 - Requisitos: RF-005, RNF-002, CA-006
 - Caminhos sob responsabilidade: `../lab-solos.wiki/Plano-de-Testes.md`, `.codex/docs/specs/documentacao-primeira-entrega/documentacao.json` se a página entrar no contrato editorial aprovado
@@ -328,7 +328,7 @@ Registrar os fluxos efetivos de cobertura, Semgrep e ZAP com política, gatilhos
 - Status: concluída com dispensa explícita do usuário para navegação humana pelo perfil de avaliação
 - Issue: #494
 - Dependências: T008, T009, T010
-- Evidência e ressalva: T008–T010 concluídas. CI #45553894924 passou no head `c74de25` e no merge commit `ba123c3`; a navegação com perfil de avaliação foi dispensada pelo usuário. O registro não afirma acesso nem navegação humana. Ver [decisão de planejamento](../decisoes-de-planejamento.md#cobertura-análise-defensiva-e-releases) e [evidência T011](./evidencias/T011.md).
+- Evidência e ressalva: T008–T010 concluídas; CI pós-merge #45719221935 passou no SHA `4590c7e`, incluindo Quality gate, Coverage policy e Publish coverage badges. A navegação com perfil de avaliação foi dispensada pelo usuário e não é afirmada. Métricas, artefatos e limitações constam em [evidência T011](./evidencias/T011.md).
 - Paralela: não
 - Requisitos: RF-001, RF-002, RF-003, RF-004, RF-005, RNF-001, RNF-002, CA-001, CA-002, CA-003, CA-004, CA-005, CA-006
 - Caminhos sob responsabilidade: `.codex/docs/specs/cobertura-e-seguranca-na-ci/evidencias/T011.md`
@@ -396,3 +396,11 @@ O run #45546413560 no head `c9789db` passou os contratos e verificações anteri
 ### Encerramento de T007/T011 pela CI #45553894924 — 25/11/2026
 
 A validação remota passou no head `c74de256a71ee9be5f43de5d6536e84447ad7902` e no merge commit testado `ba123c3b6ea873848ca5d3bb0cd5f049353e0b6b`. Browser security passou **6/6**, ZAP `passed` em **251,713 s** e Caddy conciliou **329/329** registros, sem divergências ou ambiguidades. Authentication E2E, Quality gate, cobertura, segurança, documentação, CodeQL, dependências, scans e contratos também passaram. A navegação humana pelo perfil de avaliação permanece dispensada e não é declarada como realizada. A PR #501 está aberta, direcionada a `develop`, com estado `MERGEABLE`.
+
+### Publicação do Plano de Testes na Wiki — 25/11/2026
+
+T010 foi concluída e publicada em [Plano de Testes](https://github.com/ifpebj-ti/lab-solos/wiki/Plano-de-Testes), atualizada contra o SHA `4590c7e` e o run pós-merge #45719221935. A página distingue as camadas executadas das ferramentas planejadas, documenta a política de 70% para branches e aponta para workflows, comandos e artefatos atuais. O commit da Wiki foi integrado com atualizações remotas de PRDs; HEAD resultante `57b0666c3e21037a3ccdee4692af6d530f919ef0`.
+
+Validação: `python -m unittest discover -s .github/scripts/tests -p "test_delivery_docs*.py" -v` passou com variáveis `GIT_CONFIG_*` injetadas removidas apenas do processo de teste: 24 testes, um skip por daemon Docker indisponível; `git diff --check -- Plano-de-Testes.md` passou. A primeira execução registrou 11 erros de configuração Git sintética (`GIT_CONFIG_VALUE_0`), não relacionados ao conteúdo da Wiki.
+
+O perfil de avaliação não foi usado; o usuário dispensou essa navegação. CI automatizada e artefatos não são apresentados como prova de acesso humano.

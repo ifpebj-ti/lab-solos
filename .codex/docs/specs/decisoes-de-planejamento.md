@@ -72,3 +72,9 @@ O usuário autorizou aplicar as recomendações de planejamento sem pedir confir
 ## CODEOWNERS provisório — 2026-11-25
 
 Conforme a autorização para decisões autônomas, `@nathannmvr` será responsável provisório de revisão para todas as áreas até que mantenedores especialistas sejam definidos. O CODEOWNERS solicita revisão sem alterar exigências de aprovação ou proteções das branches. Sua eficácia remota só poderá ser confirmada após a integração desta revisão; a validação da atribuição em um PR de teste continua pendente na T014.
+
+## Divulgação de segurança e validação de CODEOWNERS — 2026-11-25
+
+- O usuário habilitou GitHub Private Vulnerability Reporting no repositório. A consulta autenticada retornou `enabled=true`. `@nathannmvr` é o responsável único confirmado pelo recebimento; não publicar endereço pessoal quando o formulário privado do GitHub está disponível.
+- O usuário informou que não há outra pessoa para abrir uma PR de teste do CODEOWNERS e instruiu considerar atendido o registro da atribuição e fechar a issue #496 quando a PR com as informações de `SECURITY.md` for aberta. A T014 não será declarada como validação observada; a solicitação automática de revisão continua sem teste por falta de outro autor.
+- Não foi enviado relato benigno e não há confirmação de recebimento humano. A T013 permanece sem evidência; fechar a issue conforme orientação do usuário não será apresentado como prova de recebimento ou navegação.
