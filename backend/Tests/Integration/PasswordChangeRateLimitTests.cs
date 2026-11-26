@@ -181,7 +181,7 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
             var otherAccountAttempt = Assert.IsType<AuthenticationThrottleAttempt>(otherAccountAdmission.Attempt);
             await using (otherAccountAttempt)
             {
-                await otherAccountAttempt.CompleteAsync(AuthenticationThrottleOutcome.Accepted);
+                await otherAccountAttempt.CompleteAsync(AuthenticationThrottleOutcome.Failure);
             }
 
             var requestAccountKey = keyFactory.CreateAccountQuotaKey(
@@ -196,6 +196,12 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
                 Assert.Equal(1, await context.Set<AuthenticationThrottleBucket>()
                     .AsNoTracking()
                     .CountAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange));
+                var occupiedBucket = await context.Set<AuthenticationThrottleBucket>()
+                    .AsNoTracking()
+                    .SingleAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange
+                        && item.KeyHash.SequenceEqual(otherAccountRule.KeyHash));
+                Assert.Equal(1, occupiedBucket.Count);
+                Assert.True(occupiedBucket.WindowEndsAt > scenario.Clock.GetUtcNow());
                 Assert.False(await context.Set<AuthenticationThrottleBucket>()
                     .AsNoTracking()
                     .AnyAsync(item => item.Scope == AuthenticationProtectionCapacity.PasswordChange
@@ -204,6 +210,7 @@ public sealed class PasswordChangeRateLimitTests(PostgreSql15ContainerFixture da
             finally
             {
                 System.Security.Cryptography.CryptographicOperations.ZeroMemory(requestAccountKey);
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(otherAccountRule.KeyHash);
             }
         }
 

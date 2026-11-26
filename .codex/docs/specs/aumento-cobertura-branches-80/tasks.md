@@ -1,6 +1,6 @@
 # Tarefas — Aumentar a cobertura de branches para 80%
 
-- Status: T001–T014 concluídas; T015 em andamento; T016–T017 concluídas; T018 em andamento; T019 concluída
+- Status: T001–T008 e T010–T014 concluídas; T009, T015 e T018 em andamento; T016, T017 e T019 concluídas
 - PRD: [Aumento da cobertura de branches para 80%](./prd.md)
 - Especificação técnica: [Aumento da cobertura de branches para 80%](./techspec.md)
 - Atualizado em: 2026-11-26
@@ -268,7 +268,7 @@ Usar o HTML backend atualizado para selecionar caminhos condicionais relevantes 
 
 ## T009 — Cobrir políticas e proteções de autenticação
 
-- Status: concluída
+- Status: em andamento
 - Issue: #512
 - Dependências: T001
 - Paralela: sim
@@ -290,6 +290,10 @@ Selecionar branches ainda descobertos em validação de opções e inicializaç�
 
 - Os testes cobrem caminhos reais das políticas de autenticação sem desabilitar proteções.
 - O sumário HTML da suíte completa confirma aumento de branches cobertos no backend.
+
+### Estabilização após CI
+
+O run `45755998172` expôs que o helper `CreateListener` escuta todos os instrumentos do meter global estático. O teste `MapsEveryRemainingDeliveryResultToItsBoundedTag` recebeu a métrica esperada e uma métrica de falha emitida por outra coleção em paralelo. A classe foi isolada em uma coleção xUnit sem paralelismo; os testes de mapeamento agora verificam o instrumento exato e o conjunto completo de tags. Focal: 15/15; análise, compilação com SDK 10.0.401 e `git diff --check` passaram. A confirmação de integração fica no CI seguinte.
 
 ## T010 — Cobrir recuperação de senha e entrega assíncrona
 
@@ -570,6 +574,8 @@ Usar o relatório oficial do run `45749677986`, que registra 40/72 branches cobe
 | 2026-11-25 | T007 | concluída | Vitest focal isolado: 14/14 testes passaram; `Auditoria.tsx` 100/120 branches (83,33%); ESLint, `npx tsc -b` e `npm run build` passaram. | `npm run build` inicialmente revelou três incompatibilidades de tipo na fixture/assertivas; corrigidas sem tocar produção. Build concluiu com avisos de recursos e tamanho de chunks do Vite/Rollup. |
 | 2026-11-25 | T008 | concluída | Testes focais com `--artifacts-path .tmp/T008`: 23/23 passaram; `AuthController.ChangePassword` 7/7 e `CredentialService.ChangePasswordAsync` 21/26 branches; `git diff --check` passou. | Testes de login inválido dependem de Docker e não foram executados localmente; CI deve validá-los. Os cinco arquivos versionados de `backend/Tests/obj` foram restaurados após cessarem os builds. |
 | 2026-11-25 | T009 | concluída | Recorte focal: 49/49 testes passaram; `AuthenticationProtectionOptionsValidator` 83,07% e `AuthenticationProtectionTelemetry` 96%; `git diff --check` passou. | Na suíte ampla, 441/457 passaram; 16 integrações falharam por Docker/npipe indisponível. A CI em T015 deve confirmar as integrações e o ganho no `Summary.json` oficial. |
+| 2026-11-26 | T009 | em andamento | Run #45755998172 registrou 1035/1037 testes backend e falhou em dois casos: T018 e `AuthenticationProtectionTelemetryTests.MapsEveryRemainingDeliveryResultToItsBoundedTag`. | Reaberta para impedir que o listener global do teste capture medições emitidas por outras coleções paralelas. A alteração deve permanecer nos testes de telemetria e preservar a métrica e as tags esperadas. |
+| 2026-11-26 | T009 | em andamento | O listener passou a pertencer a uma coleção xUnit não paralela; as teorias também conferem nome da métrica e tags exatas. Testes focais: 15/15; compilação sem novos analyzers; `git diff --check` passou. | Validação no CI completo pendente; ambiente local usa SDK 10.0.401 pois 8.0.428 não está instalado. |
 | 2026-11-25 | T010 | concluída | Testes focais: 33/33 passaram; `RecoveryPayloadProtector` subiu de 47,5% para 92,5% no recorte comparável; `git diff --check` passou. | As integrações de repositório/worker exigem PostgreSQL via Docker indisponível localmente; T015/CI confirma a suíte completa e o `Summary.json`. |
 | 2026-11-26 | T011 | concluída | Recorte unitário 42/42; `UsuarioService` 70,58%→85,29%, `UsuariosController` 35,71%→50%; build e `git diff --check` passaram. | O primeiro run da PR confirmou que autoedição de `status` retorna 403; teste alinhado ao contrato e agora verifica estado inalterado. Integrações precisam de CI. |
 | 2026-11-26 | T012 | concluída | Testes focais passaram de 47/47 para 67/67; `NotificacaoService` 47,36%→71,05% no recorte comparável; `git diff --check` passou. | Datas e empréstimo vencido usam relógio fixo. Testes de quota e integrações dependentes de PostgreSQL serão validados pela CI/T015. |
@@ -577,7 +583,8 @@ Usar o relatório oficial do run `45749677986`, que registra 40/72 branches cobe
 | 2026-11-25 | T014 | concluída | Verificação textual e `git diff --check` passaram no README e na Wiki. | Documentadas meta 80%, gate 70%, cobertura de linhas informativa e contagens backend do `Summary.json`, compartilhadas com gate/badge. |
 | 2026-11-26 | T015 | em andamento | Run #45749677986, SHA `4a42688`: frontend 2833/3525 (80,37%); backend 2702/3610 (74,85%). `backend-coverage.json` coincide exatamente com o `Summary.json`; `Coverage policy` aprovou o gate de 70%. Recorte dos ajustes do quality baseline: 101/101 testes passaram localmente. | Backend ainda está abaixo da meta de 80%; foram derivadas T016–T019 a partir das lacunas do artefato. O baseline de qualidade do SHA falhou por 14 avisos em testes, corrigidos localmente. Aguardando novo run após a onda focal; [evidências T015](./evidencias/T015.md). |
 | 2026-11-26 | T015 | em andamento | Run #45753232263, SHA `47b4070`: baseline de qualidade passou; backend 453/454 testes passaram. Run #45754389872, SHA `5ea2132`: T018 falhou de novo; frontend ficou em 2833/3525 branches (80,37%). | O Browser security E2E ficou inconclusivo por uma entrada concorrente extra no access log; os seis testes Playwright passaram e o ZAP não reportou alertas. Como a suíte backend não passou, o artefato backend e uma medida válida para T015 não foram publicados. |
+| 2026-11-26 | T015 | em andamento | Run #45755998105, head `615bfda`, identidade do artefato `81da75c98788f82706b39949f3fa3ed09d51af43`: frontend 2833/3525 branches (80,37%); Backend quality falhou com 2/1037 testes e `Coverage policy` marcou backend como inválido por ausência do JSON. | Browser security E2E passou. As falhas do backend foram T018 e o isolamento de `AuthenticationProtectionTelemetryTests`; T009 foi reaberta para a segunda. O resultado não fornece uma medida de branches backend. |
 | 2026-11-26 | T016 | concluída | `CredentialServiceTests`: 31/31 passaram com cobertura; `git diff --check` passou e não surgiram novos avisos de analyzer no arquivo. | Cobertos pedidos sem e-mail, conta desconhecida/desabilitada, validade/identidade/hash do token, confirmação/política de senha e precondição transacional. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
 | 2026-11-26 | T017 | concluída | `AuthControllerCoverageTests`: 15/15 passaram; junto a `AuthChangePasswordTests`, 26/26. O SARIF local não apontou alertas no novo arquivo e `git diff --check` passou. | Cenários cobrem Login, Session, Logout e Renew; sem alteração em produção. A medida focal não substitui a do `Summary.json`; será reavaliada no run oficial seguinte. |
-| 2026-11-26 | T018 | em andamento | Runs #45753232263 e #45754389872 falharam no caso de capacidade cheia: esperava 429, recebeu 204. A inspeção mostrou que a semeadura manual da linha não exercitava a alocação real do throttle nem comprovava que a chave da conta autenticada era distinta. O teste foi ajustado para consumir a vaga via `PostgresAuthenticationThrottle.TryBeginAsync` com a regra de senha da conta 99, confirmar limite/alocação/chave da conta 42 ausente e validar sessão como usuário 42 antes da requisição. Build Release passou com 0 erros e `git diff --check` passou. | A execução focal local foi impedida pela indisponibilidade do Docker/Testcontainers (`npipe://./pipe/docker_engine`); aguarda CI PostgreSQL para confirmar 429, `Retry-After` e ausência de mutação. |
+| 2026-11-26 | T018 | em andamento | Runs #45753232263, #45754389872 e #45755998105 falharam no caso de capacidade cheia: esperava 429, recebeu 204. Diagnóstico: concluir a tentativa sintética como Accepted deixava Count=0 e o throttle removia o placeholder; o teste agora completa como Failure e confirma Count=1, janela ativa, capacidade=1, chave da conta 42 ausente e sessão como usuário 42. Build Release passou com 0 erros e `git diff --check` passou. | O teste focal local foi impedido pela indisponibilidade do Docker/Testcontainers (`npipe://./pipe/docker_engine`); o novo caso aguarda CI para confirmar 429, `Retry-After` e ausência de mutação. |
 | 2026-11-26 | T019 | concluída | `AuthenticationProtectionStartupCleanupTests`: 1/1 passou localmente. No run #45753232263, a suíte PostgreSQL teve 453/454 casos aprovados e sua única falha listada foi T018; os quatro casos de T019 passaram. | `Start/Stop` repetido e limpeza sem conexão cobertos; `git diff --check` passou e não houve alerta de analyzer no arquivo. |

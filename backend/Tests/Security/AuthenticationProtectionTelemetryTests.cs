@@ -4,6 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Tests.Security;
 
+// The production meter is static, so listeners must not capture concurrent test collections.
+[CollectionDefinition(nameof(AuthenticationProtectionTelemetryTestGroup), DisableParallelization = true)]
+public sealed class AuthenticationProtectionTelemetryTestGroup
+{
+}
+
+[Collection(nameof(AuthenticationProtectionTelemetryTestGroup))]
 public sealed class AuthenticationProtectionTelemetryTests
 {
     private static readonly HashSet<string> AllowedTagNames = new(StringComparer.Ordinal)
@@ -172,6 +179,7 @@ public sealed class AuthenticationProtectionTelemetryTests
         telemetry.RecordFailure(operation, AuthenticationProtectionReason.Unexpected);
 
         var measurement = Assert.Single(measurements);
+        Assert.Equal("authentication_protection_failure_total", measurement.Name);
         Assert.Equal(["operation=" + expectedTag, "reason=unexpected"], measurement.Tags);
     }
 
@@ -193,11 +201,8 @@ public sealed class AuthenticationProtectionTelemetryTests
         telemetry.RecordFailure(AuthenticationProtectionOperation.Login, reason);
 
         var measurement = Assert.Single(measurements);
-        Assert.Equal(
-            "reason=" + expectedTag,
-            Assert.Single(
-                measurement.Tags,
-                tag => tag.StartsWith("reason=", StringComparison.Ordinal)));
+        Assert.Equal("authentication_protection_failure_total", measurement.Name);
+        Assert.Equal(["operation=login", "reason=" + expectedTag], measurement.Tags);
     }
 
     [Theory]
@@ -217,7 +222,8 @@ public sealed class AuthenticationProtectionTelemetryTests
         telemetry.RecordRecoveryDelivery(result, AuthenticationProtectionReason.Unexpected);
 
         var measurement = Assert.Single(measurements);
-        Assert.Contains("result=" + expectedTag, measurement.Tags);
+        Assert.Equal("recovery_delivery_total", measurement.Name);
+        Assert.Equal(["reason=unexpected", "result=" + expectedTag], measurement.Tags);
     }
 
     [Fact]
